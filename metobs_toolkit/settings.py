@@ -57,7 +57,6 @@ class Settings:
         from .settings_files.default_formats_settings import (
             plot_settings,
             print_settings,
-            vars_display,
             default_name,
             label_def,
         )
