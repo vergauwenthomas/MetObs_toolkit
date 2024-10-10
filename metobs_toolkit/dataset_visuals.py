@@ -601,6 +601,12 @@ class DatasetVisuals:
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['spatial_geo']`,
+        and can be changed (before calling the plot method). Other design settings
+        can be altered by using `matplotlib.axes` methods (on the axes that is returned).
+
         Examples
         --------
 
@@ -734,7 +740,6 @@ class DatasetVisuals:
             plotsettings=self.settings.app["plot_settings"],
             categorical_fields=self.settings.app["categorical_fields"],
             static_fields=self.settings.app["static_fields"],
-            display_name_mapper=self.settings.app["display_name_mapper"],
             boundbox=boundbox,
         )
 

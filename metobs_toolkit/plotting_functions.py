@@ -112,10 +112,6 @@ def make_cat_colormapper(catlist, cmapname):
     """
     catlist = list(set(catlist))  # get unique categories
 
-    # convert colors to rgba form
-    for _key, val in force_col_def_dict.items():
-        force_col_def_dict[_key] = matplotlib.colors.to_rgba(val)
-
     cmap = matplotlib.colormaps[cmapname]
 
     # check number of colors in the cmap
@@ -134,8 +130,6 @@ def make_cat_colormapper(catlist, cmapname):
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
-
-        colordict.update(force_col_def_dict)  # update with forced color defenitions
         return colordict
 
     # check if the colormap can be decreased (and thus increasing the colordistance)
@@ -301,7 +295,6 @@ def geospatial_plot(
     plotsettings,
     categorical_fields,
     static_fields,
-    display_name_mapper,
     boundbox,
 ):
     """Make geospatial plot of a variable (matplotlib).
@@ -331,9 +324,6 @@ def geospatial_plot(
         a categorical coloring scheme.
     static_fields : bool
         If True the variable is assumed to be time independent.
-    display_name_mapper : dict
-        Must contain at least {varname: varname_str_rep}, where the
-        varname_str_rep is the string representation of the variable to plot.
     boundbox : shapely.box
         The boundbox to represent the spatial extent of the plot.
 
@@ -838,7 +828,7 @@ def timeseries_plot(
 
         # all lines are solid lines
         line_style_mapper = {lab: "-" for lab in line_labels}
-        
+
         # create color mapper
         col_mapper = make_cat_colormapper(
             mergedf.index.get_level_values("name").unique(),

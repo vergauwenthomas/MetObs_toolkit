@@ -73,9 +73,6 @@ class Settings:
         # 2. Plot settings
         self.app["plot_settings"] = plot_settings
 
-        # 3. display name mappers
-        self.app["display_name_mapper"] = vars_display
-
         # 4 Fields settings
         # fields without timeevolution
         self.app["static_fields"] = static_fields
