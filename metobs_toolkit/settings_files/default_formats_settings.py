@@ -198,16 +198,7 @@ qc_label_group = [
 # Diurnal plot settings
 # =============================================================================
 
-plot_settings["diurnal"] = {
-    "figsize": (10, 10),
-    "alpha_error_bands": 0.3,
-    "cmap_continious": "viridis",  # if many stations are present, best to use continious rather than categorical
-    "n_cat_max": 20,  # when less or equal categories are detected, use the categorical col mapping
-    "cmap_categorical": "tab20",
-    "legend_n_columns": 5,
-}
-
-plot_settings["annual"] = {
+plot_settings["cycle_plot"] = {
     "figsize": (10, 10),
     "alpha_error_bands": 0.3,
     "cmap_continious": "viridis",  # if many stations are present, best to use continious rather than categorical
@@ -246,27 +237,3 @@ plot_settings["correlation_scatter"] = {
 
 
 print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}
-
-
-# =============================================================================
-# variables display strings
-# =============================================================================
-vars_display = {
-    "network": "network",
-    "name": "station name",
-    "call_name": "pseudo name",
-    "location": "region",
-    "lat": "latitude",
-    "lon": "longtitude",
-    "temp": "temperature",
-    "radiation_temp": "radiation temperature",
-    "humidity": "humidity",
-    "precip": "precipitation intensity",
-    "precip_sum": "cummulated precipitation",
-    "wind_speed": "wind speed",
-    "wind_gust": "wind gust speed",
-    "wind_direction": "wind direction",
-    "pressure": "air pressure",
-    "pressure_at_sea_level": "corrected pressure at sea level",
-    "lcz": "LCZ",
-}

@@ -87,13 +87,11 @@ def map_obstype(obstype, template):
     return template[obstype].to_dict()
 
 
-def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
+def make_cat_colormapper(catlist, cmapname):
     """Create a dictionary {cat : color} for a list of categorical values.
 
     If the colormap has more colors than the catlist, optimal color distance is
     done. If a colormap has fewer colors than unique categories, the categories are grouped.
-
-    Color defenitions can be forced if they are specified in the force_col_def_dict.
 
 
     Parameters
@@ -114,10 +112,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
     """
     catlist = list(set(catlist))  # get unique categories
 
-    # convert colors to rgba form
-    for _key, val in force_col_def_dict.items():
-        force_col_def_dict[_key] = matplotlib.colors.to_rgba(val)
-
     cmap = matplotlib.colormaps[cmapname]
 
     # check number of colors in the cmap
@@ -136,8 +130,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
                 col_idx += 1
             colordict[cat] = cmap(int(col_idx))
             _cat_index += 1
-
-        colordict.update(force_col_def_dict)  # update with forced color defenitions
         return colordict
 
     # check if the colormap can be decreased (and thus increasing the colordistance)
@@ -149,7 +141,6 @@ def make_cat_colormapper(catlist, cmapname, force_col_def_dict={}):
         colordict[cat] = cmap(int(i))
         i = i + num_increase
 
-    colordict.update(force_col_def_dict)  # update with forced color defenitions
     return colordict
 
 
@@ -304,7 +295,6 @@ def geospatial_plot(
     plotsettings,
     categorical_fields,
     static_fields,
-    display_name_mapper,
     boundbox,
 ):
     """Make geospatial plot of a variable (matplotlib).
@@ -334,9 +324,6 @@ def geospatial_plot(
         a categorical coloring scheme.
     static_fields : bool
         If True the variable is assumed to be time independent.
-    display_name_mapper : dict
-        Must contain at least {varname: varname_str_rep}, where the
-        varname_str_rep is the string representation of the variable to plot.
     boundbox : shapely.box
         The boundbox to represent the spatial extent of the plot.
 
@@ -523,6 +510,7 @@ def _create_linecollection(
     const_color=None,
     value_col_name="value",
     label_col_name="label",
+    line_force_kwargs={},
 ):
 
     # 1. convert datetime to numerics values
@@ -537,16 +525,33 @@ def _create_linecollection(
     points = np.array([inxval, linedf[value_col_name]]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
-    # 3. get styling info
+    # 3. styling attributes
+
+    style_kwargs = {
+        "color": const_color,
+        "linewidth": linewidth,
+        "zorder": linezorder,
+        "linestyle": None,
+    }
+
+    # 4. update styling attributes
+    style_kwargs.update(line_force_kwargs)
+
+    # 5. Construct arguments
     if const_color is None:
         color = linedf[label_col_name].map(colormapper).to_list()
     else:
-        color = [const_color] * linedf.shape[0]
-    linewidth = [linewidth] * linedf.shape[0]
-    zorder = linezorder
-    linestyle = linedf[label_col_name].map(linestylemapper).fillna("-").to_list()
+        color = [style_kwargs["color"]] * linedf.shape[0]
 
-    # 4. Make line collection
+    linewidth = [style_kwargs["linewidth"]] * linedf.shape[0]
+    zorder = style_kwargs["zorder"]
+
+    if style_kwargs["linestyle"] is None:
+        linestyle = linedf[label_col_name].map(linestylemapper).fillna("-").to_list()
+    else:
+        linestyle = style_kwargs["linestyle"]
+
+    # 6. create plot
     lc = LineCollection(
         segments=segments,
         colors=color,
@@ -566,9 +571,8 @@ def timeseries_plot(
     show_outliers,
     show_filled,
     settings,
-    name_col_def={},
+    sta_plot_kwargs_dict={},
     _ax=None,  # needed for GUI, not recommended use
-    colorby_name_colordict=None,
 ):  # when colorscheme will be reused
     """Make a timeseries plot.
 
@@ -593,12 +597,14 @@ def timeseries_plot(
     name_col_def: dict, optional
         A dictionary to force colors for a station. The keys are the names and
         the values are the colors to use for them.
+    sta_plot_kwargs_dict : {}, optional.
+        Station-specific styling kwargs for the line plot if colorby=name. A nested dict with
+        stationnames as keys and kwarg-dict as values. The kwarg-dict can have
+        keys that are elements of ['color', 'linewidth', 'zorder', 'linestyle'].
+        The default is {}
     _ax : matplotlib.pyplot.axes
         An axes to plot on. If None, a new axes will be made. The
         default is None.
-    colorby_name_colorscheme : dict
-        A colormapper for the station names. If None, a new colormapper will
-        be created. The default is None.
 
     Returns
     -------
@@ -823,20 +829,18 @@ def timeseries_plot(
         # all lines are solid lines
         line_style_mapper = {lab: "-" for lab in line_labels}
 
-        # create color mapper if none is given
-        if colorby_name_colordict is None:
-            col_mapper = make_cat_colormapper(
-                mergedf.index.get_level_values("name").unique(),
-                plot_settings["time_series"]["colormap"],
-                name_col_def,
-            )
-        else:
-            # col_mapper = colorby_name_colordict
-            col_mapper = make_cat_colormapper(
-                mergedf.index.get_level_values("name").unique(),
-                plot_settings["time_series"]["colormap"],
-                colorby_name_colordict,
-            )
+        # create color mapper
+        col_mapper = make_cat_colormapper(
+            mergedf.index.get_level_values("name").unique(),
+            plot_settings["time_series"]["colormap"],
+        )
+
+        # update the colormapper using the station plot kwargs
+        kwargs_col_map = {}
+        for staname, stakwargs in sta_plot_kwargs_dict.items():
+            if "color" in stakwargs.keys():
+                kwargs_col_map[staname] = stakwargs["color"]
+        col_mapper.update(kwargs_col_map)
 
         # iterate over station and make line collection to avoid interpolation
         # sort mergedf by station name so the same colors are used for the same stations
@@ -852,14 +856,21 @@ def timeseries_plot(
             # interpolation in the plot
             stadf.loc[~stadf.index.isin(linedf.index), "value"] = np.nan
 
+            # plot kwargs to forece for this station
+            if sta in sta_plot_kwargs_dict.keys():
+                stakwargs = sta_plot_kwargs_dict[sta]
+            else:
+                stakwargs = {}
+
             # make line collection
             sta_line_lc = _create_linecollection(
                 linedf=stadf,
                 colormapper=None,
                 const_color=col_mapper[sta],
                 linestylemapper=line_style_mapper,
-                # plotsettings=plot_settings,
+                line_force_kwargs=stakwargs,
             )
+
             ax.add_collection(sta_line_lc)
 
         if show_legend is True:
@@ -912,13 +923,12 @@ def model_timeseries_plot(
     show_primary_legend,
     add_second_legend=True,
     _ax=None,  # needed for GUI, not recommended use
-    colorby_name_colordict=None,  # automatic --> not by user
     figsize=(15, 5),
     colormap="tab20",
     legend_n_columns=5,
     linewidth=2,
     linezorder=1,
-    name_col_def={},  # Defined by user
+    sta_plot_kwargs_dict={},
 ):
     """Make a timeseries plot for modeldata.
 
@@ -959,9 +969,11 @@ def model_timeseries_plot(
         The width of the plotted lines. The default is 2.
     linezorder: int, optional.
         The zorder of the lines in the plot. The default is 1.
-    name_col_def: dict, optional
-        A dictionary to force colors for a station. The keys are the names and
-        the values are the colors to use for them.
+    sta_plot_kwargs_dict : {}, optional.
+        Station-specific styling kwargs for the line plot. A nested dict with
+        stationnames as keys and kwarg-dict as values. The kwarg-dict can have
+        keys that are elements of ['color', 'linewidth', 'zorder', 'linestyle'].
+        The default is {}
 
 
 
@@ -991,19 +1003,25 @@ def model_timeseries_plot(
     line_style_mapper = {"modeldata": "--"}
 
     # create color mapper if none is given
-    if colorby_name_colordict is None:
-        col_mapper = make_cat_colormapper(
-            df.index.get_level_values("name").unique(),
-            colormap,
-            name_col_def,
-        )
-    else:
-        col_mapper = colorby_name_colordict
+    col_mapper = make_cat_colormapper(
+        df.index.get_level_values("name").unique(), colormap
+    )
+
+    # update the colormapper using the station plot kwargs
+    kwargs_col_map = {}
+    for staname, stakwargs in sta_plot_kwargs_dict.items():
+        if "color" in stakwargs.keys():
+            kwargs_col_map[staname] = stakwargs["color"]
+    col_mapper.update(kwargs_col_map)
 
     # iterate over station and make line collection to avoid interpolation
     for sta in df.index.get_level_values("name").unique():
         stadf = xs_save(df, sta, "name")  # subset to one station
 
+        if sta in sta_plot_kwargs_dict.keys():
+            force_line_kwargs = sta_plot_kwargs_dict[sta]
+        else:
+            force_line_kwargs = {}
         # make line collection
         sta_line_lc = _create_linecollection(
             linedf=stadf,
@@ -1012,6 +1030,7 @@ def model_timeseries_plot(
             linestylemapper=line_style_mapper,
             linewidth=linewidth,
             linezorder=linezorder,
+            line_force_kwargs=force_line_kwargs,
         )
         ax.add_collection(sta_line_lc)
 

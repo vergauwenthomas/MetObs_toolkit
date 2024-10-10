@@ -55,7 +55,7 @@ class DatasetVisuals:
         legend=True,
         show_outliers=True,
         show_filled=True,
-        name_color_def={},
+        sta_plot_kwargs_dict={},
         _ax=None,  # needed for GUI, not recommended use
     ):
         """Make a timeseries plot.
@@ -100,12 +100,13 @@ class DatasetVisuals:
              If true the filled values for gaps and missing observations will
              be included in the plot. This is only true when colorby == 'name'.
              The default is True.
-        name_color_def : dict, optional
-             If colorby is 'name', a colormap is used as color defenitions for
-             the name. If a name_color_def dictionary is given, then the color
-             defenition (value) for a station name (key) is used as defined by
-             the user. Colors are strings that can be represent by matplotlib
-             name, or in hex-form. The default is {}.
+        sta_plot_kwargs_dict : dict, optional
+             sta_plot_kwargs_dict is a nested dictionary that can contain extra
+             styling arguments that is used for a specific station, if colorby=name.
+             The keys are the station names, and the values are a dict with the
+             keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
+             to the corresponding keyword in matplotlib for their meaning and
+             possible types. The default is {}.
 
 
         Returns
@@ -207,13 +208,17 @@ class DatasetVisuals:
             >>> dataset.settings.app['plot_settings']['time_series']['figsize'] = (20,5)
             >>> dataset.settings.app['plot_settings']['time_series']['colormap'] = 'Accent'
 
-            You can also force a color for a specifi station (if you use `colorby=name`),
+            You can also force a color for a specific station (if you use `colorby=name`),
             and use methods of `matplotlib.axes` to change the looks to your liking.
 
             >>> import matplotlib.pyplot as plt
             >>> ax = dataset.make_plot(obstype='temp', colorby='name',
-            ...                        name_color_def={'vlinder02':'#ed11e6',
-            ...                                        'vlinder05': 'black'})
+            ...                        sta_plot_kwargs_dict={'vlinder02': {'color': '#ed11e6',
+            ...                                                            'linewidth': 6,
+            ...                                                            'zorder': 5,
+            ...                                                            'linestyle': '--'},
+            ...                                              'vlinder05': {'color': 'black',
+            ...                                                            'zorder': 6}})
             >>> ax.grid(True)
 
         """
@@ -271,7 +276,7 @@ class DatasetVisuals:
             show_outliers=show_outliers,
             show_filled=show_filled,
             settings=self.settings,
-            name_col_def=name_color_def,
+            sta_plot_kwargs_dict=sta_plot_kwargs_dict,
             _ax=_ax,
         )
 
@@ -596,6 +601,12 @@ class DatasetVisuals:
         If a timezone unaware datetime is given as an argument, it is interpreted
         as if it has the same timezone as the observations.
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['spatial_geo']`,
+        and can be changed (before calling the plot method). Other design settings
+        can be altered by using `matplotlib.axes` methods (on the axes that is returned).
+
         Examples
         --------
 
@@ -729,7 +740,6 @@ class DatasetVisuals:
             plotsettings=self.settings.app["plot_settings"],
             categorical_fields=self.settings.app["categorical_fields"],
             static_fields=self.settings.app["static_fields"],
-            display_name_mapper=self.settings.app["display_name_mapper"],
             boundbox=boundbox,
         )
 

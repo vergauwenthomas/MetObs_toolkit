@@ -50,7 +50,7 @@ jedi = "^0.19"
 # To run poetry tests
 poetry = "^1.8.3"
 poetry-plugin-export = "^1.8.0"
-pre-commit = "^4.0.0"
+pre-commit = "^4.0.1"
 
 [tool.poetry.group.documentation.dependencies]
 ipykernel = "^6.29.5"
@@ -62,7 +62,7 @@ pydata-sphinx-theme = "^0.15.4"
 # Group of dep packages for building the documentation
 sphinx = ">=7"
 sphinx-copybutton = "^0.5.2"
-sphinx-rtd-theme = "^3.0.0"
+sphinx-rtd-theme = "^3.0.1"
 
 [tool.poetry.group.titan.dependencies]
 # titanlib requires C-compilers, which are not by default present on windows.

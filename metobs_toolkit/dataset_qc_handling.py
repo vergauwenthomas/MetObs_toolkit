@@ -86,6 +86,11 @@ class DatasetQCCore:
         the cumulated sum of outliers detected in advance of a specific check
         is taken into account. (The order of applied checks is used.)
 
+        Note
+        ------
+        Some graphical settings are stored in `Dataset.settings.app['plot_settings']['pie_charts']`,
+        and can be changed (before calling the plot method).
+
         See Also
         ----------
         apply_quality_control: Apply quality control methods to the dataset.
