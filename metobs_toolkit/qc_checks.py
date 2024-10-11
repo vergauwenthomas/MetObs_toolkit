@@ -213,8 +213,8 @@ def gross_value_check(obsdf, obstype, checks_settings):
 
     # find outlier observations as a list of tuples [(name, datetime), (name, datetime)]
     outl_obs = input_series.loc[
-        (input_series <= specific_settings["min_value"])
-        | (input_series >= specific_settings["max_value"])
+        (input_series < specific_settings["min_value"])
+        | (input_series > specific_settings["max_value"])
     ].index.to_list()
 
     # make new obsdf and outlierdf
