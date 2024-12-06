@@ -835,6 +835,11 @@ class DatasetGapCore:
                               2022-09-01 22:00:00+00:00  18.17   debiased modeldata fill  Modelvalue: 18.78 cor...
                               2022-09-01 23:00:00+00:00  17.63   debiased modeldata fill  Modelvalue: 18.23 cor...
 
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+
+
         """
 
         # Check if the Model has the compatible data
@@ -1051,6 +1056,11 @@ class DatasetGapCore:
                               2022-09-09 09:00:00+00:00    NaN  failed diurnal debias...  Modelvalue: 16.84 can...
             <BLANKLINE>
             [51 rows x 3 columns]
+
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
 
@@ -1279,6 +1289,11 @@ class DatasetGapCore:
                               2022-09-09 09:00:00+00:00    NaN  failed Weighted diurn...  Modelvalue: 16.84 can...
             <BLANKLINE>
             [51 rows x 3 columns]
+
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
 
