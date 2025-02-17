@@ -8,6 +8,8 @@ MetObs-toolkit.
 """
 
 import os
+from pathlib import Path
+from typing import Literal
 import sys
 import copy
 from datetime import timedelta
@@ -18,14 +20,19 @@ import numpy as np
 import pickle
 
 
-from metobs_toolkit.data_import import import_data_from_csv, import_metadata_from_csv
-from metobs_toolkit.printing import print_dataset_info
+from metobs_toolkit.backend_collection.printing import print_dataset_info
+from metobs_toolkit.filereaders import CsvFileReader
+from metobs_toolkit.dataparser import DataParser
+from metobs_toolkit.metadataparser import MetaDataParser
+from metobs_toolkit.station import Station
+from metobs_toolkit.site import Site
+from metobs_toolkit.sensordata import SensorData
 
 
 from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
 )
-
+from metobs_toolkit.template import update_known_obstype_with_original_data
 from metobs_toolkit.writing_files import (
     write_df_to_csv,
     _does_trg_file_exist,
@@ -34,17 +41,17 @@ from metobs_toolkit.writing_files import (
 )
 
 from metobs_toolkit.gap import (
-    find_gaps,
+    # find_gaps,
     get_station_gaps,
 )
 
 
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     empty_outliers_df,
     metadf_to_gdf,
     # xs_save,
     # concat_save,
-    _simplify_time,
+    simplify_time,
 )
 
 from metobs_toolkit.obstypes import Obstype as Obstype_class
@@ -52,7 +59,8 @@ from metobs_toolkit.obstypes import Obstype as Obstype_class
 
 # dataset extensions
 from metobs_toolkit.datasetbase import DatasetBase
-from metobs_toolkit.dataset_settings_updater import DatasetSettingsCore
+
+# from metobs_toolkit.dataset_settings_updater import DatasetSettingsCore
 from metobs_toolkit.dataset_visuals import DatasetVisuals
 from metobs_toolkit.dataset_qc_handling import DatasetQCCore
 from metobs_toolkit.dataset_gap_handling import DatasetGapCore
@@ -68,7 +76,7 @@ logger = logging.getLogger(__name__)
 
 class Dataset(
     DatasetBase,
-    DatasetSettingsCore,
+    # DatasetSettingsCore,
     DatasetVisuals,
     DatasetQCCore,
     DatasetGapCore,
@@ -837,7 +845,7 @@ class Dataset(
          *Known GEE datasets for: ['lcz', 'altitude', 'worldcover', 'ERA5-land']
 
         """
-        from metobs_toolkit.station import Station  # isn't this tricky !!??
+        from metobs_toolkit.oldstation import Station  # isn't this tricky !!??
 
         # check if there is data
         self._data_is_required_check()
@@ -1304,9 +1312,9 @@ class Dataset(
             )
         else:
             simple_freqs = self.metadf["dataset_resolution"].apply(
-                lambda x: _simplify_time(
+                lambda x: simplify_time(
                     time=x,
-                    max_simplyfi_error=freq_shift_tolerance,
+                    max_simplify_error=freq_shift_tolerance,
                     zero_protection=True,
                 )
             )
@@ -1317,9 +1325,9 @@ class Dataset(
             simple_origins = pd.Series(data=fixed_origin, index=self.metadf.index)
         else:
             simple_origins = self.metadf["dt_start"].apply(
-                lambda x: _simplify_time(
+                lambda x: simplify_time(
                     time=x,
-                    max_simplyfi_error=timestamp_shift_tolerance,
+                    max_simplify_error=timestamp_shift_tolerance,
                 )
             )
         logger.debug(f"Simplified target origins: {simple_origins}")
@@ -1331,9 +1339,9 @@ class Dataset(
             )
         else:
             simple_ends = self.metadf["dt_end"].apply(
-                lambda x: _simplify_time(
+                lambda x: simplify_time(
                     time=x,
-                    max_simplyfi_error=timestamp_shift_tolerance,
+                    max_simplify_error=timestamp_shift_tolerance,
                 )
             )
         logger.debug(f"Simplified target end timestamps: {simple_ends}")
@@ -1505,16 +1513,16 @@ class Dataset(
         # get template file
         if template_file is not None:
             trg_templ_file = str(template_file)
-        elif self.settings.templatefile is not None:
-            trg_templ_file = str(self.settings.templatefile)
+        # elif self.settings.templatefile is not None:
+        #     trg_templ_file = str(self.settings.templatefile)
         else:
             raise MetobsDatasetError(f"No templatefile is specified.")
 
         # get metadatafile
         if input_metadata_file is not None:
             trg_meta_file = str(template_file)
-        elif self.settings.IO["input_metadata_file"] is not None:
-            trg_meta_file = str(self.settings.IO["input_metadata_file"])
+        # elif self.settings.IO["input_metadata_file"] is not None:
+        #     trg_meta_file = str(self.settings.IO["input_metadata_file"])
         else:
             raise MetobsDatasetError(f"No metadata file is specified.")
 
@@ -1560,16 +1568,16 @@ class Dataset(
 
     def import_data_from_file(
         self,
-        input_data_file=None,
-        input_metadata_file=None,
-        template_file=None,
-        freq_estimation_method="highest",
-        freq_estimation_simplify_tolerance="2min",
-        origin_simplify_tolerance="5min",
-        timestamp_tolerance="4min",
-        kwargs_data_read={},
-        kwargs_metadata_read={},
-        templatefile_is_url=False,
+        input_data_file: str | Path = None,
+        input_metadata_file: str | Path = None,
+        template_file: str | Path = None,
+        freq_estimation_method: Literal["highest", "median"] = "median",
+        freq_estimation_simplify_tolerance: str | pd.Timedelta = "2min",
+        origin_simplify_tolerance: str | pd.Timedelta = "5min",
+        timestamp_tolerance: str | pd.Timedelta = "4min",
+        kwargs_data_read: dict = {},
+        kwargs_metadata_read: dict = {},
+        templatefile_is_url: bool = False,
     ):
         """Read observations from a csv file and fill the Dataset.
 
@@ -1708,128 +1716,69 @@ class Dataset(
                 f"A template_file is provided, but the input_data_file is missing."
             )
 
-        # Update paths to the input files, if given.
-        if input_data_file is not None:
-            self.update_file_paths(
-                input_data_file=input_data_file,
-                template_file=template_file,
-                input_metadata_file=input_metadata_file,
-            )
+        # # Update paths to the input files, if given.
+        # if input_data_file is not None:
+        #     self.update_file_paths(
+        #         input_data_file=input_data_file,
+        #         template_file=template_file,
+        #         input_metadata_file=input_metadata_file,
+        # )
 
-        logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
+        # logger.info(f'Importing data from file: {self.settings.IO["input_data_file"]}')
 
-        assert self.settings.templatefile is not None, "No templatefile is specified."
+        assert template_file is not None, "No templatefile is specified."
 
         # Read template
         logger.info(f"Reading the templatefile")
         self.template.read_template_from_file(
-            jsonpath=self.settings.templatefile, templatefile_is_url=templatefile_is_url
+            jsonpath=template_file, templatefile_is_url=templatefile_is_url
         )
 
-        # Read observations into pandas dataframe
-        logger.info(f"Reading the observations from file")
-        df = import_data_from_csv(
-            input_file=self.settings.IO["input_data_file"],
+        # Read Datafile
+        dataparser = DataParser(
+            datafilereader=CsvFileReader(file_path=input_data_file),
             template=self.template,
-            known_obstypes=list(self.obstypes.keys()),
-            kwargs_data_read=kwargs_data_read,
         )
+        dataparser.parse(**kwargs_data_read)  # read and parse to a dataframe
 
-        # drop Nat datetimes if present
-        df = df.loc[pd.notnull(df.index)]
-
-        logger.debug(
-            f'Data from {self.settings.IO["input_data_file"]} \
-                      imported to dataframe {df.head()}.'
-        )
-
-        if self.settings.IO["input_metadata_file"] is None:
-            logger.warning(
-                "No metadata file is defined,\
-                    no metadata attributes can be set!"
-            )
-
-            use_metadata = False
-
-        else:
-            logger.info(
-                f'Importing metadata from file: {self.settings.IO["input_metadata_file"]}'
-            )
+        # Read Metadata
+        if input_metadata_file is not None:
             use_metadata = True
-            meta_df = import_metadata_from_csv(
-                input_file=self.settings.IO["input_metadata_file"],
+            metadataparser = MetaDataParser(
+                metadatafilereader=CsvFileReader(file_path=input_metadata_file),
                 template=self.template,
-                kwargs_metadata_read=kwargs_metadata_read,
             )
-            # in dataset of one station
-            if self.template._is_data_single_station():
-                # logger.warning("No station names find in the observations!")
+            metadataparser.parse(**kwargs_metadata_read)
+        else:
+            logger.info("No metadatafile is provided.")
+            use_metadata = False
+            metadataparser = None  # will not be used
 
-                # If there is ONE name in the metadf, than we use that name for
-                # the df, else we use the default name
-                if ("name" in meta_df.columns) & (meta_df.shape[0] == 1):
-                    name = meta_df["name"].iloc[0]
-                    df["name"] = name
-                    logger.warning(
-                        f"One stationname found in the metadata: {name}, this name is used for the data."
-                    )
-                else:
-                    df["name"] = str(self.settings.app["default_name"])
-                    # for later merging, we add the name column with the default
-                    # also in the metadf
-                    meta_df["name"] = str(self.settings.app["default_name"])
-                    logger.warning(
-                        f'Assume the dataset is for ONE station with the \
-                        default name: {self.settings.app["default_name"]}.'
-                    )
+        # Add original columnname and units to the known obstypes
+        self.obstypes = update_known_obstype_with_original_data(
+            known_obstypes=self.obstypes, template=self.template
+        )
 
-            # merge additional metadata to observations
-            logger.debug(f"Head of data file, before merge: {df.head()}")
-            logger.debug(f"Head of metadata file, before merge: {meta_df.head()}")
-
-            meta_cols = [
-                colname for colname in meta_df.columns if not colname.startswith("_")
-            ]
-            additional_meta_cols = list(set(meta_cols).difference(df.columns))
-
-            if bool(additional_meta_cols):
-                logger.debug(
-                    f"Merging metadata ({additional_meta_cols}) to dataset data by name."
-                )
-                additional_meta_cols.append("name")  # merging on name
-                # merge deletes datetime index somehow? so add it back.
-                df_index = df.index
-                df = df.merge(
-                    right=meta_df[additional_meta_cols], how="left", on="name"
-                )
-                df.index = df_index
-
-        # update dataset object
-
-        # Remove stations whith only one observation (no freq estimation)
-        station_counts = df["name"].value_counts()
-        issue_station = station_counts[station_counts < 2].index.to_list()
-        if bool(issue_station):
-
-            logger.warning(
-                f"These stations will be removed because of only having one record: {issue_station}"
-            )
-            df = df[~df["name"].isin(issue_station)]
-
-        # convert dataframe to multiindex (datetime - name)
-        df = df.set_index(["name", df.index])
-
-        # Sort by name and then by datetime (to avoid negative freq)
-        df = df.sort_index(level=["name", "datetime"])
-
-        self._construct_dataset(
-            df=df,
+        # Construct Stations
+        stations = createstations(
+            data_parser=dataparser,
+            metadata_parser=metadataparser,
+            use_metadata=use_metadata,
+            known_obstypes=self.obstypes,
+            timezone=self.template.tz,
             freq_estimation_method=freq_estimation_method,
             freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
             origin_simplify_tolerance=origin_simplify_tolerance,
             timestamp_tolerance=timestamp_tolerance,
-            use_metadata=use_metadata,
         )
+
+        # Set stations attribute
+        self.stations = stations
+
+
+# ------------------------------------------
+#    Helpers
+# ------------------------------------------
 
 
 def import_dataset(folder_path, filename="saved_dataset.pkl"):
@@ -1880,6 +1829,101 @@ def import_dataset(folder_path, filename="saved_dataset.pkl"):
     dataset.metadf = metadf_to_gdf(dataset.metadf)
 
     return dataset
+
+
+# def createstations(data_parser:DataParser,
+#                    metadata_parser: MetaDataParser,
+#                    use_metadata: bool,
+#                    known_obstypes: dict,
+#                    timezone: str,
+#                    freq_estimation_method:str,  #'highest' | 'median',
+#                    freq_estimation_simplify_tolerance:pd.Timedelta | str ,
+#                    origin_simplify_tolerance:pd.Timedelta | str  ,
+#                    timestamp_tolerance: pd.Timedelta | str) -> list:
+#     """
+#     Create a list of Station objects from parsed data and metadata.
+#     Args:
+#         data_parser (DataParser): An object that provides access to the observational data.
+#         metadata_parser (MetadataParser): An object that provides access to the metadata for the stations.
+#         known_obstypes (dict): A dictionary mapping observation type names to their corresponding ObsType objects.
+#         timezone (str): a pytz equivalent string indicating the timezone of the timestamps.
+#     Returns:
+#         list: A list of Station objects, each representing a station with its associated sensor data and metadata.
+#     """
+
+
+#     datadf =  data_parser.get_df()
+
+#     # Station creator
+#     not_an_obstype = ['name', 'datetime']
+#     stations = []
+#     for stationname, stationdata in datadf.groupby('name'):
+#         #initialize a set of sensordata
+#         all_station_sensor_data = []
+#         for obstypename in stationdata.columns:
+#             if obstypename in not_an_obstype:
+#                 continue
+
+#             #Get the corresponding obstype
+#             obstype = known_obstypes[obstypename]
+
+#             #Formatting on raw data
+#             #1. Skip stations with nan as name (caused by string casting errors)
+#             if ((stationname == str(np.nan)) | (pd.isnull(stationname))):
+#                 logger.warning('Skipping the records beloging to station with Nan as name. This could be the result from stringcasting the stationnames.')
+#                 continue
+#             #2. Drop NAT datetimes if present
+#             stationdata = stationdata.loc[pd.notnull(stationdata['datetime'])]
+
+#             #3. Skip stations if there are less than 2 records (no freq can be estimated)
+#             if stationdata.shape[0] < 2:
+#                 logger.warning(
+#                 f"Station {stationname} is skipped because of has only one record."
+#                 )
+#                 continue
+
+#             #Get dataseries:
+#             sensordata = SensorData(
+#                             stationname=stationname,
+#                             datarecords=stationdata[obstype.name].to_numpy(),
+#                             timestamps = stationdata['datetime'].to_numpy(),
+#                             obstype= obstype,
+#                             #timestamps details:
+#                             timezone=timezone,
+#                             freq_estimation_method=freq_estimation_method,
+#                             freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+#                             origin_simplify_tolerance=origin_simplify_tolerance,
+#                             timestamp_tolerance=timestamp_tolerance)
+
+#             #Add Sensordata:
+#             all_station_sensor_data.append(sensordata)
+
+
+#         #Create a Site object for the station
+#         if use_metadata:
+#             stationsite = Site(latitude=metadata_parser.get_station_lat(stationname),
+#                             longitude=metadata_parser.get_station_lon(stationname),
+#                             metadata=metadata_parser.get_station_extra_metadata(stationname))
+#         else:
+#             #no metafile is provided
+#             stationsite = Site(latitude=np.nan,
+#                             longitude=np.nan,
+#                             metadata={})
+
+#         #Combine into a Station
+#         station = Station(stationname=stationname,
+#                         site=stationsite,
+#                         all_sensor_data=all_station_sensor_data)
+
+#         stations.append(station)
+
+#     if use_metadata:
+#         #Check the stations present in the metadata but not in the data
+#         missing_in_data = list(set(metadata_parser.get_df().index) - set(datadf['name'].unique()))
+#         if bool(missing_in_data):
+#             logger.warning('The following stations are defined in the metadatafile but no records are found in the data:\n {missing_in_data}')
+
+#     return stations
 
 
 # =============================================================================

@@ -123,10 +123,10 @@ GEE Modeldata classes
 
 Two classes are designed to interact with a GEE (Google Earth Engine) dataset:
 
-* `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers around them).
-* `GeeDynamicModelData`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the station's locations.
+* `GeeStaticDataset`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers around them).
+* `GeeDynamicDataset`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the station's locations.
 
-Both classes can hold metadata (=Coordinates of the stations), and the `GeeDynamicModelData` class can hold timeseries data.
+Both classes can hold metadata (=Coordinates of the stations), and the `GeeDynamicDataset` class can hold timeseries data.
 These classes are used for extracting extra metadata (landcover, altitude, soil properties, ...) and for comparing
 observations with modelled data (plotting, filling gaps, ...).
 

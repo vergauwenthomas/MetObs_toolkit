@@ -13,7 +13,7 @@ import datetime
 
 import metobs_toolkit.gap_filling as gap_filling
 
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     init_multiindexdf,
     xs_save,
     concat_save,
@@ -489,7 +489,7 @@ class Gap:
         Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station
             The dataset that holds the records of the same station as the Gap
             is from.
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -502,7 +502,7 @@ class Gap:
         --------
         Gap: The Gap class.
         Dataset.fill_gaps_with_raw_modeldata: Equivalent for all gaps in a Dataset.
-        GeeDynamicModelData: The Gee Model data (timeseries).
+        GeeDynamicDataset: The Gee Model data (timeseries).
         Dataset.get_modeldata: Method for creating a modeldata from a dataset.
         Gap.interpolate: Interpolate gap.
         Gap.raw_model_gapfill: Raw modeldata gapfill method.
@@ -581,7 +581,7 @@ class Gap:
         Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station
             The dataset that holds the records of the same station as the Gap
             is from.
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -604,7 +604,7 @@ class Gap:
         --------
         Gap: The Gap class.
         Dataset.fill_gaps_with_debiased_modeldata: Equivalent for all gaps in a Dataset.
-        GeeDynamicModelData: The Gee Model data (timeseries).
+        GeeDynamicDataset: The Gee Model data (timeseries).
         Dataset.get_modeldata: Method for creating a modeldata from a dataset.
         Gap.interpolate: Interpolate gap.
         Gap.raw_model_gapfill: Raw modeldata gapfill method.
@@ -735,7 +735,7 @@ class Gap:
         Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station
             The dataset that holds the records of the same station as the Gap
             is from.
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -755,7 +755,7 @@ class Gap:
         --------
         Gap: The Gap class.
         Dataset.fill_gaps_with_diurnal_debiased_modeldata: Equivalent for all gaps in a Dataset.
-        GeeDynamicModelData: The Gee Model data (timeseries).
+        GeeDynamicDataset: The Gee Model data (timeseries).
         Dataset.get_modeldata: Method for creating a modeldata from a dataset.
         Gap.interpolate: Interpolate gap.
         Gap.raw_model_gapfill: Raw modeldata gapfill method.
@@ -860,7 +860,7 @@ class Gap:
         Dataset : metobs_toolkit.Dataset or metobs_toolkit.Station
             The dataset that holds the records of the same station as the Gap
             is from.
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -883,7 +883,7 @@ class Gap:
         --------
         Gap: The Gap class.
         Dataset.fill_gaps_with_weighted_diurnal_debias_modeldata: Equivalent for all gaps in a Dataset.
-        GeeDynamicModelData: The Gee Model data (timeseries).
+        GeeDynamicDataset: The Gee Model data (timeseries).
         Dataset.get_modeldata: Method for creating a modeldata from a dataset.
         Gap.interpolate: Interpolate gap.
         Gap.raw_model_gapfill: Raw modeldata gapfill method.
@@ -1099,83 +1099,83 @@ def get_station_gaps(gapslist, name):
 # =============================================================================
 # Gap finders
 # =============================================================================
-def find_gaps(df, metadf, outliersdf, obstypes):
-    """Find missing records and create Gaps of them.
+# def find_gaps(df, metadf, outliersdf, obstypes):
+#     """Find missing records and create Gaps of them.
 
-    Gaps are scanned for per station. The records (of a station) are assumed
-    to have a perfect frequency, which is defined in the metadf 'dataset_resolution'.
-    Each record is tested if it occurs exactly as expected after the previous
-    record. If that is not the case, then a gap is located in between these records.
+#     Gaps are scanned for per station. The records (of a station) are assumed
+#     to have a perfect frequency, which is defined in the metadf 'dataset_resolution'.
+#     Each record is tested if it occurs exactly as expected after the previous
+#     record. If that is not the case, then a gap is located in between these records.
 
-    Outliers are temporarily added to the records, to scan for gaps.
+#     Outliers are temporarily added to the records, to scan for gaps.
 
 
-    Parameters
-    ----------
-    df : pandas.DataFrame()
-        The df-attribute of Dataset holding the good records.
-    metadf : pandas.DataFrame()
-        The metadf-attribute of the Dataset holding the 'dataset_resolution' column.
-    outliersdf : pandas.DataFrame()
-        The outliersdf-attribute of the Dataset holding the outliers. This is
-        needed because an outlier does not count (by default) as a gap.
-    obstypes : dict of metobs_toolkit.Obstype's
-        The obstypes-attribute of a Dataset.
+#     Parameters
+#     ----------
+#     df : pandas.DataFrame()
+#         The df-attribute of Dataset holding the good records.
+#     metadf : pandas.DataFrame()
+#         The metadf-attribute of the Dataset holding the 'dataset_resolution' column.
+#     outliersdf : pandas.DataFrame()
+#         The outliersdf-attribute of the Dataset holding the outliers. This is
+#         needed because an outlier does not count (by default) as a gap.
+#     obstypes : dict of metobs_toolkit.Obstype's
+#         The obstypes-attribute of a Dataset.
 
-    Returns
-    -------
-    gap_list : list
-        A list Gap's .
+#     Returns
+#     -------
+#     gap_list : list
+#         A list Gap's .
 
-    """
+#     """
 
-    gap_list = []
-    # Replace the nans in the df, which are assigned as outliers, to a default value
-    df.loc[outliersdf.index, "value"] = (
-        -999
-    )  # WARNING! df is a pointer, so this affects the self.df of the dataset !!!
-    # make sure to revert this!!
+#     gap_list = []
+#     # Replace the nans in the df, which are assigned as outliers, to a default value
+#     df.loc[outliersdf.index, "value"] = (
+#         -999
+#     )  # WARNING! df is a pointer, so this affects the self.df of the dataset !!!
+#     # make sure to revert this!!
 
-    # Subset to the missing records
-    missing_records = df[df["value"].isnull()]
+#     # Subset to the missing records
+#     missing_records = df[df["value"].isnull()]
 
-    # Group by station and obstype to locate and define gaps
-    for groupidx, groupdf in missing_records.reset_index().groupby(["name", "obstype"]):
-        staname = groupidx[0]
-        obsname = groupidx[1]
-        sta_res = metadf.loc[staname, "dataset_resolution"]
+#     # Group by station and obstype to locate and define gaps
+#     for groupidx, groupdf in missing_records.reset_index().groupby(["name", "obstype"]):
+#         staname = groupidx[0]
+#         obsname = groupidx[1]
+#         sta_res = metadf.loc[staname, "dataset_resolution"]
 
-        # calculate differences (at level of obstype) because else
-        # gaps are computed wrong !! (DO NOT TRY TO REDUCE COMPUTATIONS ON THIS STEP! )
-        groupdf["diff"] = groupdf["datetime"] - groupdf["datetime"].shift()
+#         # calculate differences (at level of obstype) because else
+#         # gaps are computed wrong !! (DO NOT TRY TO REDUCE COMPUTATIONS ON THIS STEP! )
+#         groupdf["diff"] = groupdf["datetime"] - groupdf["datetime"].shift()
 
-        # find groups of consecutive missing records
-        groupdf["gap_def"] = ((groupdf["diff"] != sta_res)).cumsum()
-        gapgroups = groupdf.groupby("gap_def")
+#         # find groups of consecutive missing records
+#         groupdf["gap_def"] = ((groupdf["diff"] != sta_res)).cumsum()
+#         gapgroups = groupdf.groupby("gap_def")
 
-        for _idx, gapgroup in gapgroups:
-            # Construct gap
-            gap = Gap(
-                name=staname,
-                startdt=gapgroup["datetime"].min(),
-                enddt=gapgroup["datetime"].max(),
-                obstype=obstypes[obsname],
-                records_freq=sta_res,
-            )
+#         for _idx, gapgroup in gapgroups:
+#             # Construct gap
+#             gap = Gap(
+#                 name=staname,
+#                 startdt=gapgroup["datetime"].min(),
+#                 enddt=gapgroup["datetime"].max(),
+#                 obstype=obstypes[obsname],
+#                 records_freq=sta_res,
+#             )
 
-            # # Compute missing records
-            # missing_records = pd.date_range(
-            #     start=gap.startdt, end=gap.enddt, freq=sta_res, tz=gap.startdt.tz
-            # )
-            # gap._construct_gapdf(missing_datetime_records=missing_records)
+#             # # Compute missing records
+#             # missing_records = pd.date_range(
+#             #     start=gap.startdt, end=gap.enddt, freq=sta_res, tz=gap.startdt.tz
+#             # )
+#             # gap._construct_gapdf(missing_datetime_records=missing_records)
 
-            # add gap to list
-            gap_list.append(gap)
+#             # add gap to list
+#             gap_list.append(gap)
 
-    # Make sure to revert all outlier values to Nan (because they are present as -999)
-    df.loc[outliersdf.index, "value"] = np.nan
+#     # Make sure to revert all outlier values to Nan (because they are present as -999)
+#     df.loc[outliersdf.index, "value"] = np.nan
 
-    return gap_list
+#     return gap_list
 
 
 # =============================================================================

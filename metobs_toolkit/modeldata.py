@@ -6,6 +6,7 @@ This module contains the Modeldata class and all its methods.
 A Modeldata holds all timeseries coming from a model and methods to use them.
 """
 import os
+from pathlib import Path
 import copy
 import sys
 import pickle
@@ -16,7 +17,7 @@ from time import sleep
 import ee
 
 
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     init_multiindexdf,
     conv_tz_multiidxdf,
     xs_save,
@@ -49,7 +50,8 @@ logger = logging.getLogger(__name__)
 
 
 class _GeeModelData:
-    """Parent class for working with a GEE modeldataset."""
+    """Parent class for working with a GEE modeldataset. This class is abstract,
+    and hold methods and attributes that are applicable to all Gee Dataset."""
 
     def __init__(
         self,
@@ -93,11 +95,8 @@ class _GeeModelData:
 
         """
 
-        self.metadf = pd.DataFrame()  # will hold static data
-
         self.name = str(name)
         self.location = str(location)
-        # self.band_of_use = str(band_of_use)
 
         if str(value_type) not in ["categorical", "numeric"]:
             raise MetobsModelDataError(
@@ -155,10 +154,10 @@ class _GeeModelData:
     # Setters
     # =============================================================================
 
-    def set_metadf(self, metadf):
-        """Setter for the metadf."""
-        self._check_metadf_validity(metadf)
-        self.metadf = metadf[["lon", "lat", "geometry"]]
+    # def set_metadf(self, metadf):
+    #     """Setter for the metadf."""
+    #     self._check_metadf_validity(metadf)
+    #     self.metadf = metadf[["lon", "lat", "geometry"]]
 
     # =============================================================================
     # Getters
@@ -184,11 +183,11 @@ class _GeeModelData:
         print(f" * credentials: {self.credentials}")
         return
 
-    def _clear_metadata(self):
-        self.metadf = pd.DataFrame()  # will hold static data
+    # def _clear_metadata(self):
+    #     self.metadf = pd.DataFrame()  # will hold static data
 
 
-class GeeStaticModelData(_GeeModelData):
+class GeeStaticDataset(_GeeModelData):
     """Class for working with static GEE modeldatasets."""
 
     def __init__(
@@ -206,7 +205,7 @@ class GeeStaticModelData(_GeeModelData):
         col_scheme={},
     ):
         """
-        Create a GeeStaticModelData instance representing a GEE dataset without
+        Create a GeeStaticDataset instance representing a GEE dataset without
         a time dimensions.
 
         Parameters
@@ -252,12 +251,11 @@ class GeeStaticModelData(_GeeModelData):
 
         See Also
         -----------
-        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
-        GeeStaticModelData.set_metadf: Set metadata (station locations).
-        GeeStaticModelData.get_info: Print out detailed info method.
-        GeeStaticModelData.extract_static_point_data: Extract point values.
-        GeeStaticModelData.extract_static_buffer_frac_data: Extract buffer fractions.
-        GeeStaticModelData.make_gee_plot: Make an interactive spatial gee plot.
+        GeeDynamicDataset: Gee Modeldata dataset for time-evolving data.
+        GeeStaticDataset.get_info: Print out detailed info method.
+        GeeStaticDataset.extract_static_point_data: Extract point values.
+        GeeStaticDataset.extract_static_buffer_frac_data: Extract buffer fractions.
+        GeeStaticDataset.make_gee_plot: Make an interactive spatial gee plot.
 
         Note
         -------
@@ -266,12 +264,12 @@ class GeeStaticModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will create a GeeStaticModelData instance representing
+        As an example, we will create a GeeStaticDataset instance representing
         representing the Copernicus Corine landcover dataset. This Dataset is
         available as a GEE dataset: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_CORINE_V20_100m#bands.
 
         >>> import metobs_toolkit
-        >>> corine = metobs_toolkit.GeeStaticModelData(
+        >>> corine = metobs_toolkit.GeeStaticDataset(
         ...             name="corine",
         ...             location="COPERNICUS/CORINE/V20/100m", #See GEE
         ...             band_of_use="landcover", #See GEE
@@ -383,7 +381,7 @@ class GeeStaticModelData(_GeeModelData):
         ...                 523: "#e6f2ff"}
         ...             )
         >>> corine
-        GeeStaticModelData instance of corine  (no metadata has been set)
+        GeeStaticDataset instance of corine  (no metadata has been set)
 
         If you want to use this map with your `Dataset`, add them to the known
         Modeldatasets.
@@ -391,7 +389,7 @@ class GeeStaticModelData(_GeeModelData):
         >>> dataset = metobs_toolkit.Dataset()
         >>> dataset.add_new_geemodeldata(Modeldata=corine)
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land , 'corine': GeeStaticModelData instance of corine  (no metadata has been set) }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land , 'corine': GeeStaticDataset instance of corine  (no metadata has been set) }
         """
         super().__init__(
             name=name,
@@ -410,27 +408,17 @@ class GeeStaticModelData(_GeeModelData):
         self.col_scheme = col_scheme
         self.band_of_use = band_of_use
 
-        self.__name__ = "GeeStaticModelData"
+        self.__name__ = "GeeStaticDataset"
 
     # ========================================================================
     # Special methods
     # ========================================================================
     def __str__(self):
-
-        if self.metadf.empty:
-            return (
-                f"{self.__name__} instance of {self.name}  (no metadata has been set) "
-            )
-        else:
-            return f"{self.__name__} instance of {self.name}  (known metadata)"
+        return f"{self.__name__} instance of {self.name}"
 
     def __repr__(self):
         """Print overview information of the modeldata."""
         return self.__str__()
-
-    def _clear_data(self):
-        """Clear all attributes that hold meta and extracted data."""
-        self._clear_metadata()
 
     # =========================================================================
     # Setters
@@ -441,7 +429,7 @@ class GeeStaticModelData(_GeeModelData):
     # =========================================================================
     def get_info(self):
         """
-        Prints out detailed information of the GeeStaticModelData.
+        Prints out detailed information of the GeeStaticDataset.
 
         Returns
         -------
@@ -449,7 +437,7 @@ class GeeStaticModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the LCZ map, which is a default `GeeStaticModelData`
+        As an example, we will use the LCZ map, which is a default `GeeStaticDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -457,19 +445,19 @@ class GeeStaticModelData(_GeeModelData):
         >>> #Create your Dataset
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
 
         These are the defaults. We select the lcz one:
 
         >>> lcz_model = dataset.gee_datasets['lcz']
         >>> lcz_model
-        GeeStaticModelData instance of lcz  (no metadata has been set)
+        GeeStaticDataset instance of lcz  (no metadata has been set)
 
-        To print out detailed information use the `GeeStaticModelData.get_info()`
+        To print out detailed information use the `GeeStaticDataset.get_info()`
         method.
 
         >>> lcz_model.get_info()
-        GeeStaticModelData instance of lcz  (no metadata has been set)
+        GeeStaticDataset instance of lcz  (no metadata has been set)
         ------ Details ---------
         <BLANKLINE>
          * name: lcz
@@ -506,7 +494,7 @@ class GeeStaticModelData(_GeeModelData):
     # Functionality
     # =========================================================================
 
-    def extract_static_point_data(self):
+    def extract_static_point_data(self, metadf):
         """
         Extract point values at the locations in the metadata.
 
@@ -525,15 +513,15 @@ class GeeStaticModelData(_GeeModelData):
         See Also
         -----------
         metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticModelData.set_metadf: Set metadata (station locations).
-        GeeStaticModelData.get_info: Print out detailed info method.
-        GeeStaticModelData.extract_static_buffer_frac_data: Extract buffer fractions.
+        GeeStaticDataset.set_metadf: Set metadata (station locations).
+        GeeStaticDataset.get_info: Print out detailed info method.
+        GeeStaticDataset.extract_static_buffer_frac_data: Extract buffer fractions.
 
 
         Note
         -------
         Make sure that the metadata is set. Use the
-        `GeeStaticModelData.set_metadata()` for this.
+        `GeeStaticDataset.set_metadata()` for this.
 
         Note
         -------
@@ -543,7 +531,7 @@ class GeeStaticModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the LCZ map, which is a default `GeeStaticModelData`
+        As an example, we will use the LCZ map, which is a default `GeeStaticDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -580,13 +568,13 @@ class GeeStaticModelData(_GeeModelData):
 
         >>> lcz_model = dataset.gee_datasets['lcz']
         >>> lcz_model
-        GeeStaticModelData instance of lcz  (no metadata has been set)
+        GeeStaticDataset instance of lcz  (no metadata has been set)
         >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
         >>> lcz_model
-        GeeStaticModelData instance of lcz  (known metadata)
+        GeeStaticDataset instance of lcz  (known metadata)
 
         To extract point-values, use the
-        `GeeStaticModelData.extract_static_point_data()` method. First, make
+        `GeeStaticDataset.extract_static_point_data()` method. First, make
         sure you are authenticated with the GEE services.
 
         >>> metobs_toolkit.connect_to_gee() #only required once per session
@@ -609,19 +597,14 @@ class GeeStaticModelData(_GeeModelData):
         [28 rows x 1 columns]
 
         """
-        if self.metadf.empty:
-            raise MetobsModelDataError(
-                f"No metadata is present for the GeeStaticModelData. No extraction possible."
-            )
 
         # test if coordiantes are available
-        self._check_metadf_validity(self.metadf)
+        self._check_metadf_validity(metadf)
 
         # =============================================================================
         # df to featurecollection
         # =============================================================================
-
-        ee_fc = gee_api._df_to_features_point_collection(self.metadf)
+        ee_fc = gee_api._df_to_features_point_collection(metadf)
 
         # =============================================================================
         # extract raster values
@@ -643,7 +626,7 @@ class GeeStaticModelData(_GeeModelData):
                 f"Something went wrong, gee did not return any data: {results}"
             )
             logger.info(
-                f"(Could it be that (one) these coordinates are not on the map: {self.metadf}?)"
+                f"(Could it be that (one) these coordinates are not on the map: {metadf}?)"
             )
             return pd.DataFrame()
 
@@ -666,7 +649,7 @@ class GeeStaticModelData(_GeeModelData):
 
         return df
 
-    def extract_static_buffer_frac_data(self, bufferradius, agg_bool=False):
+    def extract_static_buffer_frac_data(self, metadf, bufferradius, agg_bool=False):
         """Extract cover frequencies in circular buffers at stations.
 
         This methods will create (circular) buffers, specified by the radius,
@@ -697,14 +680,14 @@ class GeeStaticModelData(_GeeModelData):
         See Also
         -----------
         metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticModelData.set_metadf: Set metadata (station locations).
-        GeeStaticModelData.get_info: Print out detailed info method.
-        GeeStaticModelData.extract_static_point_data: Extract point values.
+        GeeStaticDataset.set_metadf: Set metadata (station locations).
+        GeeStaticDataset.get_info: Print out detailed info method.
+        GeeStaticDataset.extract_static_point_data: Extract point values.
 
         Note
         -------
         Make sure that the metadata is set. Use the
-        `GeeStaticModelData.set_metadata()` for this.
+        `GeeStaticDataset.set_metadata()` for this.
 
         Note
         -------
@@ -714,7 +697,7 @@ class GeeStaticModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the ESA worldcovermap, which is a default `GeeStaticModelData`
+        As an example, we will use the ESA worldcovermap, which is a default `GeeStaticDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -751,16 +734,16 @@ class GeeStaticModelData(_GeeModelData):
 
         >>> worldcover_model = dataset.gee_datasets['worldcover']
         >>> worldcover_model
-        GeeStaticModelData instance of worldcover  (no metadata has been set)
+        GeeStaticDataset instance of worldcover  (no metadata has been set)
         >>> worldcover_model.set_metadf(dataset.metadf) #overload the metadf
         >>> worldcover_model
-        GeeStaticModelData instance of worldcover  (known metadata)
+        GeeStaticDataset instance of worldcover  (known metadata)
 
         For more details on the Modeldataset you can use the
-        `GeeStaticModelData.get_info()` method.
+        `GeeStaticDataset.get_info()` method.
 
         >>> worldcover_model.get_info()
-        GeeStaticModelData instance of worldcover  (known metadata)
+        GeeStaticDataset instance of worldcover  (known metadata)
         ------ Details ---------
         <BLANKLINE>
          * name: worldcover
@@ -785,7 +768,7 @@ class GeeStaticModelData(_GeeModelData):
         <BLANKLINE>
 
         To extract buffer frequencies, use the
-        `GeeStaticModelData.extract_static_buffer_frac_data()` method. First, make
+        `GeeStaticDataset.extract_static_buffer_frac_data()` method. First, make
         sure you are authenticated with the GEE services.
 
         >>> metobs_toolkit.connect_to_gee() #only required once per session
@@ -837,20 +820,18 @@ class GeeStaticModelData(_GeeModelData):
 
         """
 
-        if self.metadf.empty:
+        if metadf.empty:
             raise MetobsModelDataError(
-                f"No metadata is present for the GeeStaticModelData. No extraction possible."
+                f"No metadata is present for the GeeStaticDataset. No extraction possible."
             )
 
         # test if coordiantes are available
-        self._check_metadf_validity(self.metadf)
+        self._check_metadf_validity(metadf)
 
         # =============================================================================
         # df to featurecollection
         # =============================================================================
-        ee_fc = gee_api._df_to_features_buffer_collection(
-            self.metadf, int(bufferradius)
-        )
+        ee_fc = gee_api._df_to_features_buffer_collection(metadf, int(bufferradius))
 
         # =============================================================================
         # extract raster frequencies
@@ -914,7 +895,14 @@ class GeeStaticModelData(_GeeModelData):
         return freqsdf
 
     def make_gee_plot(
-        self, outputfolder=None, filename=None, vmin=None, vmax=None, overwrite=False
+        self,
+        metadf,
+        save=False,
+        outputfolder=None,
+        filename=None,
+        vmin=None,
+        vmax=None,
+        overwrite=False,
     ):
         """Make an interactive spatial plot of the GEE dataset and the stations.
 
@@ -952,13 +940,13 @@ class GeeStaticModelData(_GeeModelData):
         Returns
         -------
         MAP : geemap.foliummap.Map
-            The interactive map of the GeeStaticModelData.
+            The interactive map of the GeeStaticDataset.
 
         See Also
         -----------
         metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticModelData.set_metadf: Set metadata (station locations).
-        GeeStaticModelData.get_info: Print out detailed info method.
+        GeeStaticDataset.set_metadf: Set metadata (station locations).
+        GeeStaticDataset.get_info: Print out detailed info method.
 
         Warning
         ---------
@@ -972,7 +960,7 @@ class GeeStaticModelData(_GeeModelData):
 
         Examples
         --------
-        As an example we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        As an example we will make a plot of the LCZ map, which is a default `GeeStaticDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -992,7 +980,7 @@ class GeeStaticModelData(_GeeModelData):
 
         >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
         >>> lcz_model
-        GeeStaticModelData instance of lcz  (known metadata)
+        GeeStaticDataset instance of lcz  (known metadata)
 
         We will save the map as a (HTML) file. You can specify where so save it,
         for this example we will store it in the current working directory
@@ -1006,29 +994,29 @@ class GeeStaticModelData(_GeeModelData):
 
 
         """
-
-        # check if outputfile exists
-        if (outputfolder is not None) | (filename is not None):
-            save = True
-
-            if not os.path.isdir(outputfolder):
-                raise MetobsModelDataError(f"{outputfolder} is not a directory!")
-
+        # Test output folder and filename
+        if save:
+            if outputfolder is None:
+                raise MetobsModelDataError(
+                    "If save is True, then outputfolder must be specified."
+                )
+            if filename is None:
+                raise MetobsModelDataError(
+                    "If save is True, then filename must be specified."
+                )
             # check file extension in the filename:
             if filename[-5:] != ".html":
                 filename += ".html"
 
-            full_path = os.path.join(outputfolder, filename)
-
-            # check if file exists
-            if os.path.isfile(full_path):
+            target_path = Path(outputfolder).joinpath(filename)
+            if target_path.exists():
                 if overwrite:
-                    logger.info(f"Overwrite the file at {full_path}.")
-                    os.remove(full_path)
+                    logger.info(f"Overwrite the file at {target_path}.")
+                    target_path.unlink()
                 else:
-                    raise MetobsModelDataError(f"{full_path} is already a file!")
-        else:
-            save = False
+                    raise MetobsModelDataError(
+                        f"{target_path} is already a file and overwrite is set to False!"
+                    )
 
         # Connect to Gee
         connect_to_gee()
@@ -1040,20 +1028,19 @@ class GeeStaticModelData(_GeeModelData):
         MAP = folium_map()
 
         # show stations
-        if self.metadf.empty:
+        if metadf.empty:
             pass
 
         else:
             # Extract point values (for hover info and vmin/vmax in cont case)
-            metadf = copy.deepcopy(self.metadf)
-            df = self.extract_static_point_data()
+            df = self.extract_static_point_data(metadf=metadf)
             metadf = metadf.merge(df, how="left", left_index=True, right_index=True)
 
             _add_stations_to_folium_map(
                 Map=MAP, metadf=metadf, display_cols=["name", self.name]
             )
             # fix center
-            centroid = self.metadf.dissolve().centroid
+            centroid = metadf.dissolve().centroid
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
         if bool(self.class_map):
@@ -1085,7 +1072,7 @@ class GeeStaticModelData(_GeeModelData):
                 }
 
         else:
-            if self.metadf.empty:
+            if metadf.empty:
                 if vmin == None:
                     vmin = 0.0
                 if vmax == None:
@@ -1146,13 +1133,13 @@ class GeeStaticModelData(_GeeModelData):
 
         # Save
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {full_path}")
-            MAP.save(full_path)
+            logger.info(f"Saving {self.name} gee plot at: {target_path}")
+            MAP.save(target_path)
 
         return MAP
 
 
-class GeeDynamicModelData(_GeeModelData):
+class GeeDynamicDataset(_GeeModelData):
     """Class for working with Dynamic GEE modeldatasets."""
 
     def __init__(
@@ -1171,7 +1158,7 @@ class GeeDynamicModelData(_GeeModelData):
         col_scheme={},
     ):
         """
-        Create a GeeDynamicModelData instance representing a GEE dataset with
+        Create a GeeDynamicDataset instance representing a GEE dataset with
         a time dimension.
 
         Parameters
@@ -1221,13 +1208,13 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
-        GeeStaticModelData : Gee Modeldata dataset without time dimension.
+        GeeStaticDataset : Gee Modeldata dataset without time dimension.
         metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to a band).
         metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
-        GeeDynamicModelData.set_metadf: Set metadata (station locations).
-        GeeDynamicModelData.get_info: Print out detailed info method.
-        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
-        GeeDynamicModelData.save_modeldata: Save Modeldata as pickle.
+        GeeDynamicDataset.set_metadf: Set metadata (station locations).
+        GeeDynamicDataset.get_info: Print out detailed info method.
+        GeeDynamicDataset.extract_timeseries_data: Extract data from GEE.
+        GeeDynamicDataset.save_modeldata: Save Modeldata as pickle.
         metobs_toolkit.import_modeldata_from_pkl: Import Modeldata from pickle.
 
 
@@ -1263,7 +1250,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         self.time_res = str(time_res)
 
-        self.__name__ = "GeeDynamicModelData"
+        self.__name__ = "GeeDynamicDataset"
 
     def __str__(self):
         if self.modeldf.empty:
@@ -1284,17 +1271,17 @@ class GeeDynamicModelData(_GeeModelData):
     # Setters
     # =============================================================================
 
-    def _set_modeldf(self, modeldf):
-        """Set the modeldf attribute"""
+    # def _set_modeldf(self, modeldf):
+    #     """Set the modeldf attribute"""
 
-        if not list(modeldf.index.names) == ["name", "datetime"]:
-            raise MetobsModelDataError()(
-                f"A dataframe is being set as .modeldf with wrong modeldf.index.names: {modeldf.index.names}"
-            )
-        self.modeldf = modeldf
+    #     if not list(modeldf.index.names) == ["name", "datetime"]:
+    #         raise MetobsModelDataError()(
+    #             f"A dataframe is being set as .modeldf with wrong modeldf.index.names: {modeldf.index.names}"
+    #         )
+    #     self.modeldf = modeldf
 
     def add_modelobstype(self, modelobstype):
-        """Add a new ModelObstype to the GeeDynamicModelData.
+        """Add a new ModelObstype to the GeeDynamicDataset.
 
 
         Parameters
@@ -1313,7 +1300,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -1322,7 +1309,7 @@ class GeeDynamicModelData(_GeeModelData):
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         The ERA5 GeeDyanmicModelData is equipped with a few Modelobstypes.
         >>> era5.modelobstypes
@@ -1355,7 +1342,7 @@ class GeeDynamicModelData(_GeeModelData):
         ModelObstype instance of solar_radiation (linked to band: surface_solar_radiation_downwards)
 
         At last, we can add the solar radiation to the Geedataset by using
-        the `GeeDynamicModelData.add_modelobstype()` method.
+        the `GeeDynamicDataset.add_modelobstype()` method.
 
         >>> era5.add_modelobstype(modelobstype=solar_rad_in_era5)
 
@@ -1384,20 +1371,19 @@ class GeeDynamicModelData(_GeeModelData):
     # =============================================================================
     # Convertors/formatters
     # =============================================================================
-    def _convert_units(self):
+    def _convert_units(self, df):
         """Convert the units of the modeldf attr to toolkit space, and set the
         modeldf again.
 
         """
 
-        modeldf = self.modeldf
         for obs in self.modelobstypes.values():
-            if obs.name in modeldf.columns:
-                modeldf[obs.name] = obs.convert_to_standard_units(
-                    input_data=modeldf[obs.name], input_unit=obs.get_modelunit()
+            if obs.name in df.columns:
+                df[obs.name] = obs.convert_to_standard_units(
+                    input_data=df[obs.name], input_unit=obs.get_modelunit()
                 )
-        self._set_modeldf(modeldf)
-        return
+
+        return df
 
     def _format_gee_df_structure(self, geedf):
         """Format a dataframe (constructed directly from gee), to a modeldf (
@@ -1444,9 +1430,10 @@ class GeeDynamicModelData(_GeeModelData):
         geedf = geedf.rename(columns=band_mapper)
 
         modeldf = geedf
-        self._set_modeldf(modeldf)
+        # self._set_modeldf(modeldf)
+        return modeldf
 
-    def _subset_to_obstypes(self, trg_obstypes):
+    def _subset_to_obstypes(self, df, trg_obstypes):
         """Subset the modeldf (atttr) to list of target obstypes."""
         keep_columns = []
 
@@ -1461,7 +1448,7 @@ class GeeDynamicModelData(_GeeModelData):
                     f"{obs} is not a ModelObstype or ModelObstype_Vectorfield."
                 )
 
-        self.modeldf = self.modeldf[keep_columns]
+        return df[keep_columns]
 
     # =============================================================================
     # Getters
@@ -1498,7 +1485,7 @@ class GeeDynamicModelData(_GeeModelData):
         return list(set(self.modeldf.columns) - set(self.modelobstypes.keys()))
 
     def get_info(self):
-        """Print out detailed information about the GeeDynamicModelData.
+        """Print out detailed information about the GeeDynamicDataset.
 
         Returns
         -------
@@ -1506,13 +1493,13 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
-        GeeDynamicModelData.set_metadf: Set metadata (station locations).
-        GeeDynamicModelData.add_modelobstype: Add a new ModelObstype.
-        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
+        GeeDynamicDataset.set_metadf: Set metadata (station locations).
+        GeeDynamicDataset.add_modelobstype: Add a new ModelObstype.
+        GeeDynamicDataset.extract_timeseries_data: Extract data from GEE.
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -1521,13 +1508,13 @@ class GeeDynamicModelData(_GeeModelData):
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
-        To get a detailed overview, use the `GeeDynamicModelData.get_info()`
+        To get a detailed overview, use the `GeeDynamicDataset.get_info()`
         method, to print out the info.
 
         >>> era5.get_info()
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
         ------ Details ---------
         <BLANKLINE>
          * name: ERA5-land
@@ -1596,8 +1583,10 @@ class GeeDynamicModelData(_GeeModelData):
 
     def make_gee_plot(
         self,
+        metadf,
         timeinstance,
         modelobstype="temp",
+        save=False,
         outputfolder=None,
         filename=None,
         vmin=None,
@@ -1650,14 +1639,14 @@ class GeeDynamicModelData(_GeeModelData):
         Returns
         -------
         MAP : geemap.foliummap.Map
-            The interactive map of the GeeStaticModelData.
+            The interactive map of the GeeStaticDataset.
 
         See Also
         -----------
         metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeDynamicModelData.set_metadf: Set metadata (station locations).
-        GeeDynamicModelData.get_info: Print out detailed info method.
-        GeeDynamicModelData.make_plot: Make a timeseries plot.
+        GeeDynamicDataset.set_metadf: Set metadata (station locations).
+        GeeDynamicDataset.get_info: Print out detailed info method.
+        GeeDynamicDataset.make_plot: Make a timeseries plot.
 
         Warning
         ---------
@@ -1675,7 +1664,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
 
         >>> import metobs_toolkit
@@ -1683,7 +1672,7 @@ class GeeDynamicModelData(_GeeModelData):
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         For illustration we will add metadata (station locations) to the era5
         Modeldata, so that the locations appear on the map. We use the demo
@@ -1695,7 +1684,7 @@ class GeeDynamicModelData(_GeeModelData):
         ...                template_file=metobs_toolkit.demo_template)
         >>> era5.set_metadf(dataset.metadf)
 
-        We can no use the `GeeDynamicModelData.make_gee_plot()` method to make
+        We can no use the `GeeDynamicDataset.make_gee_plot()` method to make
         an interactive spatial plot of the era5 Modeldata (and since we added
         metadata, the locations of the stations are added as an extra layer).
 
@@ -1725,26 +1714,49 @@ class GeeDynamicModelData(_GeeModelData):
 
 
         """
+        # Test output folder and filename
+        if save:
+            if outputfolder is None:
+                raise MetobsModelDataError(
+                    "If save is True, then outputfolder must be specified."
+                )
+            if filename is None:
+                raise MetobsModelDataError(
+                    "If save is True, then filename must be specified."
+                )
+            # check file extension in the filename:
+            if filename[-5:] != ".html":
+                filename += ".html"
 
-        # Format datetime
-        if isinstance(timeinstance, datetimemodule.datetime):
-            dt = pd.Timestamp(timeinstance)
-        elif isinstance(timeinstance, pd.Timestamp):
-            dt = timeinstance
-        else:
-            raise MetobsModelDataError(
-                f"{timeinstance} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
-            )
+            target_path = Path(outputfolder).joinpath(filename)
+            if target_path.exists():
+                if overwrite:
+                    logger.info(f"Overwrite the file at {target_path}.")
+                    target_path.unlink()
+                else:
+                    raise MetobsModelDataError(
+                        f"{target_path} is already a file and overwrite is set to False!"
+                    )
+
+        # # Format datetime
+        # if isinstance(timeinstance, datetimemodule.datetime):
+        #     dt = pd.Timestamp(timeinstance)
+        # elif isinstance(timeinstance, pd.Timestamp):
+        #     dt = timeinstance
+        # else:
+        #     raise MetobsModelDataError(
+        #         f"{timeinstance} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
+        #     )
         # check timezone and make tz-awer
-        if dt.tz is None:
+        if timeinstance.tz is None:
             # tz naive timestamp
-            dt = dt.tz_localize(tz="UTC")
+            timeinstance = timeinstance.tz_localize(tz="UTC")
         else:
             # tz aware timestamp --> convert to tz of records
-            dt = dt.tz_convert(tz="UTC")
+            timeinstance = timeinstance.tz_convert(tz="UTC")
 
         # floor to resolution
-        dt = dt.floor(self.time_res)
+        timeinstance = timeinstance.floor(self.time_res)
 
         # Check modelobstype
         if modelobstype not in self.modelobstypes:
@@ -1756,29 +1768,6 @@ class GeeDynamicModelData(_GeeModelData):
         if not isinstance(modelobstype, ModelObstype):
             raise MetobsModelDataError(f"{modelobstype} is not a ModelObstype.")
 
-        # check if outputfile exists
-        if (outputfolder is not None) | (filename is not None):
-            save = True
-
-            if not os.path.isdir(outputfolder):
-                raise MetobsModelDataError(f"{outputfolder} is not a directory!")
-
-            # check file extension in the filename:
-            if filename[-5:] != ".html":
-                filename += ".html"
-
-            full_path = os.path.join(outputfolder, filename)
-
-            # check if file exists
-            if os.path.isfile(full_path):
-                if overwrite:
-                    logger.info(f"Overwrite the file at {full_path}.")
-                    os.remove(full_path)
-                else:
-                    raise MetobsModelDataError(f"{full_path} is already a file!")
-        else:
-            save = False
-
         # Connect to Gee
         connect_to_gee()
 
@@ -1786,7 +1775,8 @@ class GeeDynamicModelData(_GeeModelData):
         im = gee_api.get_ee_obj(self, target_bands=[modelobstype.get_modelband()])
         # filter to timestamp
         im = im.filterDate(
-            start=dt.isoformat(), end=(dt + pd.Timedelta(self.time_res)).isoformat()
+            start=timeinstance.isoformat(),
+            end=(timeinstance + pd.Timedelta(self.time_res)).isoformat(),
         )
         im = im.first()
 
@@ -1794,21 +1784,19 @@ class GeeDynamicModelData(_GeeModelData):
         MAP = folium_map()
 
         # show stations
-        if self.metadf.empty:
+        if metadf.empty:
             vmin = 0.0
             vmax = 1.0
 
         else:
-            _add_stations_to_folium_map(
-                Map=MAP, metadf=self.metadf, display_cols=["name"]
-            )
+            _add_stations_to_folium_map(Map=MAP, metadf=metadf, display_cols=["name"])
             # fix center
-            centroid = self.metadf.dissolve().centroid
+            centroid = metadf.dissolve().centroid
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
             # Create GEE boundbox of the ROI
 
-            metadf = self.metadf.to_crs("epsg:4326")
+            metadf = metadf.to_crs("epsg:4326")
             (xmin, ymin, xmax, ymax) = metadf.total_bounds
 
             if (vmin is None) | (vmax is None):
@@ -1871,7 +1859,7 @@ class GeeDynamicModelData(_GeeModelData):
         )
 
         # add title
-        title = f"{self.name} GEE plot of {modelobstype.get_modelband()} (in {modelobstype.get_modelunit()}) at {dt}."
+        title = f"{self.name} GEE plot of {modelobstype.get_modelband()} (in {modelobstype.get_modelunit()}) at {timeinstance}."
         MAP = add_title_to_folium_map(title=title, Map=MAP)
 
         # add layer control
@@ -1879,289 +1867,286 @@ class GeeDynamicModelData(_GeeModelData):
 
         # Save
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {full_path}")
-            MAP.save(full_path)
+            logger.info(f"Saving {self.name} gee plot at: {target_path}")
+            MAP.save(target_path)
 
         return MAP
 
-    def make_plot(
-        self,
-        obstype_model="temp",
-        Dataset=None,
-        obstype_dataset=None,
-        stationnames=None,
-        starttime=None,
-        endtime=None,
-        title=None,
-        show_outliers=True,
-        show_filled=True,
-        legend=True,
-        sta_plot_kwargs_dict={},
-        _ax=None,  # needed for GUI, not recommended use
-    ):
-        """Plot timeseries of the modeldata.
+    # def make_plot(
+    #     self,
+    #     obstype_model="temp",
+    #     Dataset=None,
+    #     obstype_dataset=None,
+    #     stationnames=None,
+    #     starttime=None,
+    #     endtime=None,
+    #     title=None,
+    #     show_outliers=True,
+    #     show_filled=True,
+    #     legend=True,
+    #     sta_plot_kwargs_dict={},
+    #     _ax=None,  # needed for GUI, not recommended use
+    # ):
+    #     """Plot timeseries of the modeldata.
 
-        This function creates a timeseries plot for the Modeldata. When a
-        metobs_toolkit.Dataset is provided, it is plotted in the same figure.
+    #     This function creates a timeseries plot for the Modeldata. When a
+    #     metobs_toolkit.Dataset is provided, it is plotted in the same figure.
 
-        The line colors represent the timeseries for different locations.
+    #     The line colors represent the timeseries for different locations.
 
+    #     Parameters
+    #     ----------
+    #     obstype_model : string, optional
+    #         The name of the ModelObstype to plot. The default is 'temp'.
+    #     Dataset : metobs_toolkit.Dataset, optional
+    #         A Dataset instance with observations plotted in the same figure.
+    #         Observations are represented by solid lines and modeldata by dashed
+    #         lines. The default is None.
+    #     obstype_dataset : string, optional
+    #         Fieldname of the Dataset to visualize. Only relevant when a dataset
+    #         is provided. If None, obsype_dataset = obstype_model. The default
+    #         is None.
+    #     stationnames : list, optional
+    #         A list with stationnames to include in the timeseries. If None is
+    #         given, all the stations are used, defaults to None.
+    #     starttime : datetime.datetime, optional
+    #          Specify the start datetime for the plot. If None is given it will
+    #          use the start datetime of the dataset. The default to None.
+    #     endtime : datetime.datetime, optional
+    #          Specify the end datetime for the plot. If None is given it will
+    #          use the end datetime of the dataset. The default to None.
+    #     title : string, optional
+    #          Title of the figure, if None a default title is generated. The
+    #          default is None.
+    #     show_outliers : bool, optional
+    #          If true the observations labeled as outliers will be included in
+    #          the plot. Only relevant when a dataset is provided. The default
+    #          is True.
+    #     show_filled : bool, optional
+    #          If true the filled values for gaps and missing observations will
+    #          be included in the plot. Only relevant when a dataset is provided.
+    #          The default is True.
+    #     legend : bool, optional
+    #          If True, a legend is added to the plot. The default is True.
+    #     sta_plot_kwargs_dict : dict, optional
+    #          sta_plot_kwargs_dict is a nested dictionary that can contain extra
+    #          styling arguments that is used for a specific station.
+    #          The keys are the station names, and the values are a dict with the
+    #          keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
+    #          to the corresponding keyword in matplotlib for their meaning and
+    #          possible types. The default is {}.
 
+    #     Returns
+    #     -------
+    #     axis : matplotlib.pyplot.axes
+    #          The timeseries axes of the plot is returned.
 
-        Parameters
-        ----------
-        obstype_model : string, optional
-            The name of the ModelObstype to plot. The default is 'temp'.
-        Dataset : metobs_toolkit.Dataset, optional
-            A Dataset instance with observations plotted in the same figure.
-            Observations are represented by solid lines and modeldata by dashed
-            lines. The default is None.
-        obstype_dataset : string, optional
-            Fieldname of the Dataset to visualize. Only relevant when a dataset
-            is provided. If None, obsype_dataset = obstype_model. The default
-            is None.
-        stationnames : list, optional
-            A list with stationnames to include in the timeseries. If None is
-            given, all the stations are used, defaults to None.
-        starttime : datetime.datetime, optional
-             Specify the start datetime for the plot. If None is given it will
-             use the start datetime of the dataset. The default to None.
-        endtime : datetime.datetime, optional
-             Specify the end datetime for the plot. If None is given it will
-             use the end datetime of the dataset. The default to None.
-        title : string, optional
-             Title of the figure, if None a default title is generated. The
-             default is None.
-        show_outliers : bool, optional
-             If true the observations labeled as outliers will be included in
-             the plot. Only relevant when a dataset is provided. The default
-             is True.
-        show_filled : bool, optional
-             If true the filled values for gaps and missing observations will
-             be included in the plot. Only relevant when a dataset is provided.
-             The default is True.
-        legend : bool, optional
-             If True, a legend is added to the plot. The default is True.
-        sta_plot_kwargs_dict : dict, optional
-             sta_plot_kwargs_dict is a nested dictionary that can contain extra
-             styling arguments that is used for a specific station.
-             The keys are the station names, and the values are a dict with the
-             keys elements of ['color', 'linewidth', 'zorder', 'linestyle']. Refer
-             to the corresponding keyword in matplotlib for their meaning and
-             possible types. The default is {}.
+    #     See Also
+    #     -----------
+    #     metobs_toolkit.connect_to_gee: Establish connection with GEE services.
+    #     GeeDynamicDataset.set_metadf: Set metadata (station locations).
+    #     GeeDynamicDataset.extract_timeseries_data: Extract data from GEE.
+    #     GeeDynamicDataset.get_info: Print out detailed info method.
+    #     GeeDynamicDataset.make_gee_plot: Make interactive spatial GEE plot.
 
-        Returns
-        -------
-        axis : matplotlib.pyplot.axes
-             The timeseries axes of the plot is returned.
+    #     Examples
+    #     --------
 
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeDynamicModelData.set_metadf: Set metadata (station locations).
-        GeeDynamicModelData.extract_timeseries_data: Extract data from GEE.
-        GeeDynamicModelData.get_info: Print out detailed info method.
-        GeeDynamicModelData.make_gee_plot: Make interactive spatial GEE plot.
+    #     .. plot::
+    #         :context: close-figs
 
-        Examples
-        --------
+    #         As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
+    #         present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
+    #         extract era5 timeseries data for the stations in the demo dataset, and
+    #         plot the temperature.
 
-        .. plot::
-            :context: close-figs
+    #         >>> import metobs_toolkit
+    #         >>> #Create your Dataset
+    #         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
+    #         >>> dataset.import_data_from_file(
+    #         ...                input_data_file=metobs_toolkit.demo_datafile,
+    #         ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
+    #         ...                template_file=metobs_toolkit.demo_template)
+    #         >>> era5 = dataset.gee_datasets['ERA5-land']
+    #         >>> era5.set_metadf(dataset.metadf)
+    #         >>> era5
+    #         Empty GeeDynamicDataset instance of ERA5-land
 
-            As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
-            present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
-            extract era5 timeseries data for the stations in the demo dataset, and
-            plot the temperature.
+    #         Now we will extract temperature timeseries from ERA5. We already have
+    #         a ModelObstype representing the temperature present in the GeeDynamicDataset:
 
-            >>> import metobs_toolkit
-            >>> #Create your Dataset
-            >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-            >>> dataset.import_data_from_file(
-            ...                input_data_file=metobs_toolkit.demo_datafile,
-            ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-            ...                template_file=metobs_toolkit.demo_template)
-            >>> era5 = dataset.gee_datasets['ERA5-land']
-            >>> era5.set_metadf(dataset.metadf)
-            >>> era5
-            Empty GeeDynamicModelData instance of ERA5-land
+    #         >>> era5.modelobstypes
+    #         {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
-            Now we will extract temperature timeseries from ERA5. We already have
-            a ModelObstype representing the temperature present in the GeeDynamicModelData:
+    #         We define a (short) period and extract ERA5 timeseries.
 
-            >>> era5.modelobstypes
-            {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
+    #         >>> import datetime
+    #         >>> tstart = datetime.datetime(2022,9,4)
+    #         >>> tend = datetime.datetime(2022,9,5)
+    #         >>> era5.extract_timeseries_data(
+    #         ...                            startdt_utc=tstart,
+    #         ...                            enddt_utc=tend,
+    #         ...                            obstypes=['temp'])
 
-            We define a (short) period and extract ERA5 timeseries.
+    #         If the data request is small, the timeseries are present. (If the
+    #         data request is larger, a CSV file is written to your google drive.
+    #         Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
+    #         method.)
 
-            >>> import datetime
-            >>> tstart = datetime.datetime(2022,9,4)
-            >>> tend = datetime.datetime(2022,9,5)
-            >>> era5.extract_timeseries_data(
-            ...                            startdt_utc=tstart,
-            ...                            enddt_utc=tend,
-            ...                            obstypes=['temp'])
+    #         >>> era5.modeldf
+    #                                               temp
+    #         name      datetime
+    #         vlinder01 2022-09-04 00:00:00+00:00  17.71
+    #                   2022-09-04 01:00:00+00:00  17.56
+    #                   2022-09-04 02:00:00+00:00  17.24
+    #                   2022-09-04 03:00:00+00:00  16.75
+    #                   2022-09-04 04:00:00+00:00  16.33
+    #         ...                                    ...
+    #         vlinder28 2022-09-04 20:00:00+00:00  21.40
+    #                   2022-09-04 21:00:00+00:00  20.91
+    #                   2022-09-04 22:00:00+00:00  20.51
+    #                   2022-09-04 23:00:00+00:00  20.28
+    #                   2022-09-05 00:00:00+00:00  20.13
+    #         <BLANKLINE>
+    #         [700 rows x 1 columns]
 
-            If the data request is small, the timeseries are present. (If the
-            data request is larger, a CSV file is written to your google drive.
-            Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
-            method.)
+    #         (As you can see, the timeseries are automatically converted to the
+    #          toolkit standards of the Obstype: °C)
 
-            >>> era5.modeldf
-                                                  temp
-            name      datetime
-            vlinder01 2022-09-04 00:00:00+00:00  17.71
-                      2022-09-04 01:00:00+00:00  17.56
-                      2022-09-04 02:00:00+00:00  17.24
-                      2022-09-04 03:00:00+00:00  16.75
-                      2022-09-04 04:00:00+00:00  16.33
-            ...                                    ...
-            vlinder28 2022-09-04 20:00:00+00:00  21.40
-                      2022-09-04 21:00:00+00:00  20.91
-                      2022-09-04 22:00:00+00:00  20.51
-                      2022-09-04 23:00:00+00:00  20.28
-                      2022-09-05 00:00:00+00:00  20.13
-            <BLANKLINE>
-            [700 rows x 1 columns]
+    #         Now we can plot the timeseries. We can plot the observations in the
+    #         same figure as well.
 
+    #         >>> era5.make_plot(
+    #         ...     obstype_model="temp", #plot temperature timeseries of the model (=era5)
+    #         ...     Dataset=dataset,
+    #         ...     obstype_dataset='temp') #plot temperature observations
+    #         <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
 
-            (As you can see, the timeseries are automatically converted to the
-             toolkit standards of the Obstype: °C)
+    #     """
+    #     logger.info(f"Make {obstype_model}-timeseries plot of model data")
 
-            Now we can plot the timeseries. We can plot the observations in the
-            same figure as well.
+    #     # Basic test
+    #     if obstype_model not in self.modeldf.columns:
+    #         raise MetobsModelDataError(
+    #             f"{obstype_model} is not foud in the modeldata df (columns = {self.modeldf.columns})."
+    #         )
 
-            >>> era5.make_plot(
-            ...     obstype_model="temp", #plot temperature timeseries of the model (=era5)
-            ...     Dataset=dataset,
-            ...     obstype_dataset='temp') #plot temperature observations
-            <Axes: title={'center': 'ERA5-land and temp observations.'}, ylabel='temp ...
+    #     if self.modeldf.empty:
+    #         logger.warning("The modeldata is empty.")
+    #         return
+    #     if obstype_dataset is None:
+    #         obstype_dataset = obstype_model
 
-        """
-        logger.info(f"Make {obstype_model}-timeseries plot of model data")
+    #     if Dataset is not None:
+    #         if obstype_dataset not in Dataset._get_present_obstypes():
+    #             logger.warning(f"{obstype_dataset} is not foud in the Dataframe df.")
+    #             return
 
-        # Basic test
-        if obstype_model not in self.modeldf.columns:
-            raise MetobsModelDataError(
-                f"{obstype_model} is not foud in the modeldata df (columns = {self.modeldf.columns})."
-            )
+    #     model_df = self.modeldf
 
-        if self.modeldf.empty:
-            logger.warning("The modeldata is empty.")
-            return
-        if obstype_dataset is None:
-            obstype_dataset = obstype_model
+    #     # ------ filter model ------------
 
-        if Dataset is not None:
-            if obstype_dataset not in Dataset._get_present_obstypes():
-                logger.warning(f"{obstype_dataset} is not foud in the Dataframe df.")
-                return
+    #     # Filter on obstype
+    #     model_df = model_df[[obstype_model]]
 
-        model_df = self.modeldf
+    #     # Subset on stationnames
+    #     if stationnames is not None:
+    #         model_df = model_df[
+    #             model_df.index.get_level_values("name").isin(stationnames)
+    #         ]
 
-        # ------ filter model ------------
+    #     # Subset on start and endtime
+    #     model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
 
-        # Filter on obstype
-        model_df = model_df[[obstype_model]]
+    #     #  -------- Filter dataset (if available) -----------
+    #     if Dataset is not None:
+    #         # check if there is data
+    #         Dataset._data_is_required_check()
+    #         # combine all dataframes
+    #         mergedf = Dataset.get_full_status_df(return_as_wide=False)
 
-        # Subset on stationnames
-        if stationnames is not None:
-            model_df = model_df[
-                model_df.index.get_level_values("name").isin(stationnames)
-            ]
+    #         # subset to obstype
+    #         mergedf = xs_save(mergedf, obstype_dataset, level="obstype")
 
-        # Subset on start and endtime
-        model_df = multiindexdf_datetime_subsetting(model_df, starttime, endtime)
+    #         # Subset on stationnames
+    #         if stationnames is not None:
+    #             mergedf = mergedf[
+    #                 mergedf.index.get_level_values("name").isin(stationnames)
+    #             ]
 
-        #  -------- Filter dataset (if available) -----------
-        if Dataset is not None:
-            # check if there is data
-            Dataset._data_is_required_check()
-            # combine all dataframes
-            mergedf = Dataset.get_full_status_df(return_as_wide=False)
+    #         # Subset on start and endtime
+    #         mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
 
-            # subset to obstype
-            mergedf = xs_save(mergedf, obstype_dataset, level="obstype")
+    #     # Generate ylabel
+    #     y_label = self.modelobstypes[obstype_model]._get_plot_y_label()
 
-            # Subset on stationnames
-            if stationnames is not None:
-                mergedf = mergedf[
-                    mergedf.index.get_level_values("name").isin(stationnames)
-                ]
+    #     # Generate title
+    #     title = f"{self.name}"
+    #     if Dataset is not None:
+    #         title = (
+    #             f"{title} and {Dataset.obstypes[obstype_dataset].name} observations."
+    #         )
 
-            # Subset on start and endtime
-            mergedf = multiindexdf_datetime_subsetting(mergedf, starttime, endtime)
+    #     # make plot of the observations
+    #     if Dataset is not None:
+    #         # make plot of the observations
+    #         _ax, col_map = timeseries_plot(
+    #             mergedf=mergedf,
+    #             title=title,
+    #             ylabel=y_label,
+    #             colorby="name",
+    #             show_legend=legend,
+    #             show_outliers=show_outliers,
+    #             show_filled=show_filled,
+    #             settings=Dataset.settings,
+    #             sta_plot_kwargs_dict=sta_plot_kwargs_dict,
+    #             _ax=_ax,
+    #         )
 
-        # Generate ylabel
-        y_label = self.modelobstypes[obstype_model]._get_plot_y_label()
+    #         # use the col_map to update the sta_plot_kwargs_dict,
+    #         # so that the same colors are use for modeldata
 
-        # Generate title
-        title = f"{self.name}"
-        if Dataset is not None:
-            title = (
-                f"{title} and {Dataset.obstypes[obstype_dataset].name} observations."
-            )
+    #         # Note: a simplile dict update will not work since all other-than-color
+    #         # elements are removed
+    #         for staname, col in col_map.items():
+    #             if staname in sta_plot_kwargs_dict.keys():
+    #                 if (
+    #                     "color" in sta_plot_kwargs_dict[staname].keys()
+    #                 ):  # loop for readability
+    #                     # update color
+    #                     sta_plot_kwargs_dict[staname]["color"] = col
+    #                 else:
+    #                     # add color-pair
+    #                     sta_plot_kwargs_dict[staname]["color"] = col
+    #             else:
+    #                 sta_plot_kwargs_dict[staname] = {"color": col}
 
-        # make plot of the observations
-        if Dataset is not None:
-            # make plot of the observations
-            _ax, col_map = timeseries_plot(
-                mergedf=mergedf,
-                title=title,
-                ylabel=y_label,
-                colorby="name",
-                show_legend=legend,
-                show_outliers=show_outliers,
-                show_filled=show_filled,
-                settings=Dataset.settings,
-                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
-                _ax=_ax,
-            )
+    #         # Make plot of the model on the previous axes
+    #         ax, col_map = model_timeseries_plot(
+    #             df=model_df,
+    #             obstype=obstype_model,
+    #             title=title,
+    #             ylabel=y_label,
+    #             show_primary_legend=False,
+    #             add_second_legend=True,
+    #             _ax=_ax,
+    #             sta_plot_kwargs_dict=sta_plot_kwargs_dict,
+    #         )
 
-            # use the col_map to update the sta_plot_kwargs_dict,
-            # so that the same colors are use for modeldata
+    #     else:
+    #         # Make plot of model on empty axes
+    #         ax, _colmap = model_timeseries_plot(
+    #             df=model_df,
+    #             obstype=obstype_model,
+    #             title=title,
+    #             ylabel=y_label,
+    #             show_primary_legend=legend,
+    #             add_second_legend=False,
+    #             sta_plot_kwargs_dict=sta_plot_kwargs_dict,
+    #             _ax=_ax,
+    #         )
 
-            # Note: a simplile dict update will not work since all other-than-color
-            # elements are removed
-            for staname, col in col_map.items():
-                if staname in sta_plot_kwargs_dict.keys():
-                    if (
-                        "color" in sta_plot_kwargs_dict[staname].keys()
-                    ):  # loop for readability
-                        # update color
-                        sta_plot_kwargs_dict[staname]["color"] = col
-                    else:
-                        # add color-pair
-                        sta_plot_kwargs_dict[staname]["color"] = col
-                else:
-                    sta_plot_kwargs_dict[staname] = {"color": col}
-
-            # Make plot of the model on the previous axes
-            ax, col_map = model_timeseries_plot(
-                df=model_df,
-                obstype=obstype_model,
-                title=title,
-                ylabel=y_label,
-                show_primary_legend=False,
-                add_second_legend=True,
-                _ax=_ax,
-                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
-            )
-
-        else:
-            # Make plot of model on empty axes
-            ax, _colmap = model_timeseries_plot(
-                df=model_df,
-                obstype=obstype_model,
-                title=title,
-                ylabel=y_label,
-                show_primary_legend=legend,
-                add_second_legend=False,
-                sta_plot_kwargs_dict=sta_plot_kwargs_dict,
-                _ax=_ax,
-            )
-
-        return ax
+    #     return ax
 
     # =============================================================================
     # Functionallity
@@ -2169,6 +2154,7 @@ class GeeDynamicModelData(_GeeModelData):
 
     def extract_timeseries_data(
         self,
+        metadf,
         startdt_utc,
         enddt_utc,
         obstypes=["temp"],
@@ -2192,7 +2178,7 @@ class GeeDynamicModelData(_GeeModelData):
             * If the data request is to big, GEE services will write a datafile
               (CSV) directly to your Google Drive. Wait until the file appears
               on your Drive, then download it. You can import the data by using
-              the `GeeDynamicModelData.set_modeldata_from_csv()` method.
+              the `GeeDynamicDataset.set_modeldata_from_csv()` method.
 
         Parameters
         ----------
@@ -2233,14 +2219,14 @@ class GeeDynamicModelData(_GeeModelData):
         See Also
         -----------
         metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeDynamicModelData.set_metadf: Set metadata (station locations).
-        GeeDynamicModelData.get_info: Print out detailed info method.
-        GeeDynamicModelData.make_plot: Make a timeseries plot.
+        GeeDynamicDataset.set_metadf: Set metadata (station locations).
+        GeeDynamicDataset.get_info: Print out detailed info method.
+        GeeDynamicDataset.make_plot: Make a timeseries plot.
 
         Note
         -------
         Make sure that the metadata is set. Use the
-        `GeeDynamicModelData.set_metadata()` for this.
+        `GeeDynamicDataset.set_metadata()` for this.
 
         Note
         ------
@@ -2251,7 +2237,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()`. We will extract era5 timeseries
         data for the stations in the demo dataset.
 
@@ -2265,10 +2251,10 @@ class GeeDynamicModelData(_GeeModelData):
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5.set_metadf(dataset.metadf)
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         Now we will extract temperature and wind timeseries from ERA5. We already have
-        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+        a ModelObstype representing the temperature present in the GeeDynamicDataset:
 
         >>> era5.modelobstypes
         {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
@@ -2296,7 +2282,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         If the data request is small, the timeseries are present. (If the
         data request is larger, a CSV file is writen to your google drive.
-        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
         method.)
 
         >>> era5.modeldf
@@ -2332,7 +2318,7 @@ class GeeDynamicModelData(_GeeModelData):
         # ====================================================================
         # Test input
         # ====================================================================
-        self._check_metadf_validity(self.metadf)
+        self._check_metadf_validity(metadf)
 
         if (force_direct_transfer) & (force_to_drive):
             raise MetobsModelDataError(
@@ -2375,7 +2361,7 @@ class GeeDynamicModelData(_GeeModelData):
         logger.info(f"{bandnames} are extracted from {self}.")
 
         _est_data_size = gee_api._estimate_data_size(
-            metadf=self.metadf,
+            metadf=metadf,
             startdt=startdt_utc,
             enddt=enddt_utc,
             time_res=self.time_res,
@@ -2402,7 +2388,7 @@ class GeeDynamicModelData(_GeeModelData):
         # df to featurecollection
         # =============================================================================
 
-        ee_fc = gee_api._df_to_features_point_collection(self.metadf)
+        ee_fc = gee_api._df_to_features_point_collection(metadf)
 
         # =============================================================================
         # extract raster values
@@ -2441,14 +2427,18 @@ class GeeDynamicModelData(_GeeModelData):
             if df.empty:
                 sys.exit("ERROR: the returned timeseries from GEE are empty.")
 
-            self._format_gee_df_structure(df)  # format to wide structure + update attr
+            df = self._format_gee_df_structure(
+                df
+            )  # format to wide structure + rename columns etc
 
             # Subset
             if not get_all_bands:
-                self._subset_to_obstypes(trg_obstypes=obstypes)
+                df = self._subset_to_obstypes(df=df, trg_obstypes=obstypes)
 
             # convert units + update attr
-            self._convert_units()
+            df = self._convert_units(df=df)
+
+            return df
 
         else:
             if drive_filename is None:
@@ -2613,7 +2603,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
-        GeeDynamicModelData.set_modeldata_from_csv: Set modeldata from a csv datafile.
+        GeeDynamicDataset.set_modeldata_from_csv: Set modeldata from a csv datafile.
         metobs_toolkit.import_modeldata_from_pkl: Import modeldata from a pkl file.
 
         Returns
@@ -2622,10 +2612,10 @@ class GeeDynamicModelData(_GeeModelData):
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
         extract era5 timeseries data for the stations in the demo dataset, and
-        save the GeeDynamicModelData.
+        save the GeeDynamicDataset.
 
         >>> import metobs_toolkit
         >>> #Create your Dataset
@@ -2637,10 +2627,10 @@ class GeeDynamicModelData(_GeeModelData):
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5.set_metadf(dataset.metadf)
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         Now we will extract temperature timeseries from ERA5. We already have
-        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+        a ModelObstype representing the temperature present in the GeeDynamicDataset:
 
         >>> era5.modelobstypes
         {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
@@ -2657,11 +2647,11 @@ class GeeDynamicModelData(_GeeModelData):
 
         If the data request is small, the timeseries are present. (If the
         data request is larger, a CSV file is writen to your google drive.
-        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
         method.)
 
         >>> era5.get_info()
-        GeeDynamicModelData instance of ERA5-land with modeldata
+        GeeDynamicDataset instance of ERA5-land with modeldata
         ------ Details ---------
         <BLANKLINE>
          * name: ERA5-land
@@ -2722,7 +2712,7 @@ class GeeDynamicModelData(_GeeModelData):
         <BLANKLINE>
         [700 rows x 1 columns]
 
-        We will save the era5 GeeDynamicModelData now as a (pkl) file. As an
+        We will save the era5 GeeDynamicDataset now as a (pkl) file. As an
         example, we will store it in the current working directory (`os.getcwd()`)
 
         >>> import os
@@ -2733,7 +2723,7 @@ class GeeDynamicModelData(_GeeModelData):
         Modeldata saved in ...
 
         If we later want to open the saved era5 Modeldata, we use the
-        `GeeDynamicModelData.import_modeldata_from_pkl()` method.
+        `GeeDynamicDataset.import_modeldata_from_pkl()` method.
 
         >>> your_era5 = metobs_toolkit.import_modeldata_from_pkl(
         ...                     folder_path=os.getcwd(),
@@ -2788,12 +2778,12 @@ class GeeDynamicModelData(_GeeModelData):
 
         See Also
         -----------
-        GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
+        GeeDynamicDataset.save_modeldata: Save modeldata as a pkl file.
         metobs_toolkit.import_modeldata_from_pkl: Import modeldata from a pkl file.
 
         Examples
         --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
         and extract era5 timeseries data for the stations in the demo dataset.
 
@@ -2807,10 +2797,10 @@ class GeeDynamicModelData(_GeeModelData):
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5.set_metadf(dataset.metadf)
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         Now we will extract temperature timeseries from ERA5. We already have
-        a ModelObstype representing the temperature present in the GeeDynamicModelData:
+        a ModelObstype representing the temperature present in the GeeDynamicDataset:
 
         >>> era5.modelobstypes
         {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
@@ -2830,7 +2820,7 @@ class GeeDynamicModelData(_GeeModelData):
 
         If the data request is small, the timeseries are present. If the
         data request is larger, a CSV file is writen to your google drive.
-        Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+        Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
         method.
 
         Let's assume that you downloaded the CSV file ("your_era5_temperature_data.csv")
@@ -2849,33 +2839,33 @@ class GeeDynamicModelData(_GeeModelData):
 
 
 def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
-    """Import a GeeDynamicModelData instance from a (pickle) file.
+    """Import a GeeDynamicDataset instance from a (pickle) file.
 
     Parameters
     ----------
     folder_path : str
-        The path to the folder where the GeeDynamicModelData pickle file is
+        The path to the folder where the GeeDynamicDataset pickle file is
         located.
     filename : str, optional
         The name of the output file. The default is 'saved_modeldata.pkl'.
 
     Returns
     -------
-    metobs_toolkit.GeeDynamicModelData
+    metobs_toolkit.GeeDynamicDataset
         The modeldata instance.
 
     See Also
     -----------
-    GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
-    GeeDynamicModelData.save_modeldata: Save modeldata as a pkl file.
-    GeeDynamicModelData.set_modeldata_from_csv: Set modeldata from a csv datafile.
+    GeeDynamicDataset: Gee Modeldata dataset for time-evolving data.
+    GeeDynamicDataset.save_modeldata: Save modeldata as a pkl file.
+    GeeDynamicDataset.set_modeldata_from_csv: Set modeldata from a csv datafile.
 
     Examples
     --------
-    As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+    As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
     present in a `metobs_toolkit.Dataset()`. We will use the demo dataset,
     extract era5 timeseries data for the stations in the demo dataset, and
-    save the GeeDynamicModelData. Then we wil import the data from a pkl file.
+    save the GeeDynamicDataset. Then we wil import the data from a pkl file.
 
     >>> import metobs_toolkit
     >>> #Create your Dataset
@@ -2888,7 +2878,7 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     >>> era5.set_metadf(dataset.metadf)
 
     Now we will extract temperature timeseries from ERA5. We already have
-    a ModelObstype representing the temperature present in the GeeDynamicModelData:
+    a ModelObstype representing the temperature present in the GeeDynamicDataset:
 
     >>> era5.modelobstypes
     {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
@@ -2905,11 +2895,11 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
 
     If the datarequest is small, the timeseries are present. (If the
     datarequest is larger, a csv file is writen to your google drive.
-    Download that file, and use the `GeeDynamicModelData.set_modeldata_from_csv()`
+    Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
     method.)
 
 
-    We will save the era5 GeeDynamicModelData now as a (pkl) file. As an
+    We will save the era5 GeeDynamicDataset now as a (pkl) file. As an
     example we will store it in the current working directory (`os.getcwd()`)
 
     >>> import os
@@ -2920,7 +2910,7 @@ def import_modeldata_from_pkl(folder_path, filename="saved_modeldata.pkl"):
     Modeldata saved in ...
 
     If we later want to open the saved era5 Modeldata, we use the
-    `GeeDynamicModelData.import_modeldata_from_pkl()` method.
+    `GeeDynamicDataset.import_modeldata_from_pkl()` method.
 
     >>> your_era5 = metobs_toolkit.import_modeldata_from_pkl(
     ...                     folder_path=os.getcwd(),
@@ -2977,7 +2967,7 @@ class MetobsModelDataError(Exception):
 # Define default datasets
 # =============================================================================
 
-global_lcz_map = GeeStaticModelData(
+global_lcz_map = GeeStaticDataset(
     name="lcz",
     location="RUB/RUBCLIM/LCZ/global_lcz_map/latest",
     band_of_use="LCZ_Filter",
@@ -3027,7 +3017,7 @@ global_lcz_map = GeeStaticModelData(
 )
 
 
-global_dem = GeeStaticModelData(
+global_dem = GeeStaticDataset(
     name="altitude",
     location="CGIAR/SRTM90_V4",
     band_of_use="elevation",
@@ -3038,7 +3028,7 @@ global_dem = GeeStaticModelData(
     credentials="SRTM Digital Elevation Data Version 4",
 )
 
-global_worldcover = GeeStaticModelData(
+global_worldcover = GeeStaticDataset(
     name="worldcover",
     location="ESA/WorldCover/v200",
     band_of_use="Map",
@@ -3080,7 +3070,7 @@ global_worldcover = GeeStaticModelData(
     },
 )
 
-era5_land = GeeDynamicModelData(
+era5_land = GeeDynamicDataset(
     name="ERA5-land",
     location="ECMWF/ERA5_LAND/HOURLY",
     value_type="numeric",

@@ -12,10 +12,9 @@ import numpy as np
 import pandas as pd
 
 import datetime as datetimemodule
-from metobs_toolkit.printing import dataset_string_repr
+from metobs_toolkit.backend_collection.printing import dataset_string_repr
 from metobs_toolkit.settings_files.default_formats_settings import label_def
-from metobs_toolkit.qc_checks import duplicate_timestamp_check
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     # multiindexdf_datetime_subsetting,
     # fmt_datetime_argument,
     # init_multiindex,
@@ -26,7 +25,7 @@ from metobs_toolkit.df_helpers import (
     # conv_applied_qc_to_df,
     # get_freqency_series,
     get_likely_frequency,
-    _simplify_time,
+    simplify_time,
     # value_labeled_doubleidxdf_to_triple_idxdf,
     xs_save,
     # concat_save,
@@ -35,7 +34,8 @@ from metobs_toolkit.template import Template
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.modeldata import default_datasets
-from metobs_toolkit.gap import find_gaps
+
+# from metobs_toolkit.gap import find_gaps
 
 logger = logging.getLogger(__name__)
 
@@ -48,192 +48,218 @@ class DatasetBase(object):
         """Construct all the necessary attributes for Dataset object."""
         logger.info("Initialise dataset")
 
+        self._stations = []  # list of Station instances
+
         # Dataset with 'good' observations
-        self.df = pd.DataFrame()
+        # self.df = pd.DataFrame()
 
         # Dataset with outlier observations (same structure as df, and all
         # these records must be present (with nan values) in the df)
-        self.outliersdf = empty_outliers_df()
+        # self.outliersdf = empty_outliers_df()
 
         # for interpretation of qc effectifness
-        self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
+        # self._applied_qc = pd.DataFrame(columns=["obstype", "checkname"])
 
         # Dataset with metadata (static)
-        self.metadf = pd.DataFrame()
+        # self.metadf = pd.DataFrame()
 
         # dictionary storing present observationtypes
-        self.obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
-        self.settings = copy.deepcopy(Settings())
+        self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
+        self._settings = copy.deepcopy(Settings())
 
         # Gaps are stored as a list of Gap()
-        self.gaps = None
+        # self.gaps = None
 
         # Template
-        self.template = Template()
+        self._template = Template()
 
         # GEE datasets defenitions
-        self.gee_datasets = copy.deepcopy(default_datasets)
+        self._gee_datasets = copy.deepcopy(default_datasets)
 
     # =============================================================================
     # Specials
     # =============================================================================
-    def __str__(self):
-        """Represent as text."""
+    # def __str__(self):
+    #     """Represent as text."""
 
-        return dataset_string_repr(self)
+    #     return dataset_string_repr(self)
 
-    def __repr__(self):
-        """Info representation."""
-        class_name = type(self).__name__
-        return f"Instance of {class_name} at {hex(id(self))}"
+    # def __repr__(self):
+    #     """Info representation."""
+    #     class_name = type(self).__name__
+    #     return f"Instance of {class_name} at {hex(id(self))}"
+
+    # @property
+    # def stations(self):
+    #     return self._stations
+    # @property
+    # def obstypes(self):
+    #     return self._obstypes
+    # @property
+    # def settings(self):
+    #     return self._settings
+    # @property
+    # def template(self):
+    #     return self._template
+    # @property
+    # def gee_datasets(self):
+    #     return self._gee_datasets
+
+    # @stations.setter
+    # def stations(self, stationlist: list) -> None:
+    #     self._stations = stationlist
+
+    # @obstypes.setter
+    # def obstypes(self, obstypesdict: dict)-> None:
+    #     self._obstypes = obstypesdict
 
     # =============================================================================
     #   Argument checkers
     # =============================================================================
 
-    def _timedelta_arg_check(self, timedeltaarg, none_is_none=True):
-        if (none_is_none) & (timedeltaarg is None):
-            return None
+    # def _timedelta_arg_check(self, timedeltaarg, none_is_none=True) -> pd.Timedelta:
+    #     if (none_is_none) & (timedeltaarg is None):
+    #         return None
 
-        if isinstance(timedeltaarg, datetimemodule.timedelta):
-            dt = pd.Timedelta(timedeltaarg)
-        elif isinstance(timedeltaarg, str):
-            dt = pd.Timedelta(timedeltaarg)
-        elif isinstance(timedeltaarg, pd.Timedelta):
-            dt = dt
-        else:
-            MetobsDatasetBaseError(
-                f"{timedeltaarg} could not be interpreted as a Timedelta, convert it to a pd.Timedelta()."
-            )
+    #     if isinstance(timedeltaarg, datetimemodule.timedelta):
+    #         dt = pd.Timedelta(timedeltaarg)
+    #     elif isinstance(timedeltaarg, str):
+    #         dt = pd.Timedelta(timedeltaarg)
+    #     elif isinstance(timedeltaarg, pd.Timedelta):
+    #         dt = dt
+    #     else:
+    #         MetobsDatasetBaseError(
+    #             f"{timedeltaarg} could not be interpreted as a Timedelta, convert it to a pd.Timedelta()."
+    #         )
 
-        if dt == pd.Timedelta(0):
-            logger.warning(f"A {dt} is given as an argument for a timedelta.")
+    #     if dt == pd.Timedelta(0):
+    #         logger.warning(f"A {dt} is given as an argument for a timedelta.")
 
-        return dt
+    #     return dt
 
-    def _datetime_arg_check(self, datetimearg, none_is_none=True):
-        """Formats a datetime given by a user in an argument.
+    # def _datetime_arg_check(self, datetimearg, none_is_none=True) -> pd.Timestamp:
+    #     """Formats a datetime given by a user in an argument.
 
-        Conversion to a pandas.Timestamp in the tz of the records.
+    #     Conversion to a pandas.Timestamp in the tz of the records.
 
-        """
+    #     """
 
-        if (none_is_none) & (datetimearg is None):
-            return None
-        # check type and cast to pd.Timestamp
-        if isinstance(datetimearg, datetimemodule.datetime):
-            dt = pd.Timestamp(datetimearg)
-        elif isinstance(datetimearg, pd.Timestamp):
-            dt = datetimearg
-        else:
-            raise MetobsDatasetBaseError(
-                f"{datetimearg} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
-            )
+    #     if (none_is_none) & (datetimearg is None):
+    #         return None
+    #     # check type and cast to pd.Timestamp
+    #     if isinstance(datetimearg, datetimemodule.datetime):
+    #         dt = pd.Timestamp(datetimearg)
+    #     elif isinstance(datetimearg, pd.Timestamp):
+    #         dt = datetimearg
+    #     else:
+    #         raise MetobsDatasetBaseError(
+    #             f"{datetimearg} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
+    #         )
 
-        # check timezone and make tz-awer
-        if dt.tz is None:
-            # tz naive timestamp
-            dt = dt.tz_localize(tz=self._get_tz())
-        else:
-            # tz aware timestamp --> convert to tz of records
-            dt = dt.tz_convert(tz=self._get_tz())
+    #     # check timezone and make tz-awer
+    #     if dt.tz is None:
+    #         # tz naive timestamp
+    #         dt = dt.tz_localize(tz=self._get_tz())
+    #     else:
+    #         # tz aware timestamp --> convert to tz of records
+    #         dt = dt.tz_convert(tz=self._get_tz())
 
-        return dt
+    #     return dt
 
     # =============================================================================
     #     Setters
     # =============================================================================
-    def _set_df(
-        self,
-        df,
-        apply_structure_checks=True,
-        apply_dup_checks=True,
-        tz_aware_check=True,
-    ):
-        # TODO: run simple checks
-        if apply_structure_checks:
-            # Test index order
-            if not list(df.index.names) == ["name", "obstype", "datetime"]:
-                raise MetobsDatasetBaseError(
-                    f"A dataframe is being set as Dataset.df with wrong df.index.names: {df.index.names}"
-                )
-            if not list(df.columns) == ["value"]:
-                raise MetobsDatasetBaseError(
-                    f"A dataframe is being set as Dataset.df with wrong df.columns: {list(df.columns)}"
-                )
-        if apply_dup_checks:
-            if df.index.duplicated().any():
-                raise MetobsDatasetBaseError(
-                    f"A dataframe is being set as Dataset.df with duplicates in the index: \n {df.loc[df.index.duplicated()]}"
-                )
-        if tz_aware_check:
-            if df.index.get_level_values("datetime").tz is None:
-                raise MetobsDatasetBaseError(
-                    f'A dataframe is being set as Dataset.df with a timezone-unaware datetimeindex: {df.index.get_level_values("datetime")}'
-                )
+    # def _set_df(
+    #     self,
+    #     df,
+    #     apply_structure_checks=True,
+    #     apply_dup_checks=True,
+    #     tz_aware_check=True,
+    # ):
+    #     # TODO: run simple checks
+    #     if apply_structure_checks:
+    #         # Test index order
+    #         if not list(df.index.names) == ["name", "obstype", "datetime"]:
+    #             raise MetobsDatasetBaseError(
+    #                 f"A dataframe is being set as Dataset.df with wrong df.index.names: {df.index.names}"
+    #             )
+    #         if not list(df.columns) == ["value"]:
+    #             raise MetobsDatasetBaseError(
+    #                 f"A dataframe is being set as Dataset.df with wrong df.columns: {list(df.columns)}"
+    #             )
+    #     if apply_dup_checks:
+    #         if df.index.duplicated().any():
+    #             raise MetobsDatasetBaseError(
+    #                 f"A dataframe is being set as Dataset.df with duplicates in the index: \n {df.loc[df.index.duplicated()]}"
+    #             )
+    #     if tz_aware_check:
+    #         if df.index.get_level_values("datetime").tz is None:
+    #             raise MetobsDatasetBaseError(
+    #                 f'A dataframe is being set as Dataset.df with a timezone-unaware datetimeindex: {df.index.get_level_values("datetime")}'
+    #             )
 
-        # set attr
-        self.df = df
+    #     # set attr
+    #     self.df = df
 
-    def _set_metadf(self, metadf):
-        if not metadf.index.name == "name":
-            raise MetobsDatasetBaseError(
-                f"A dataframe is being set as Dataset.metadf with wrong df.index.name: {metadf.index.name}"
-            )
+    # def _set_metadf(self, metadf):
+    #     if not metadf.index.name == "name":
+    #         raise MetobsDatasetBaseError(
+    #             f"A dataframe is being set as Dataset.metadf with wrong df.index.name: {metadf.index.name}"
+    #         )
 
-        if "lat" in metadf.columns:
-            if (
-                metadf["lat"]
-                .dropna()
-                .apply(lambda x: ((x < -90.0) | ((x > 90.0))))
-                .any()
-            ):
-                raise MetobsDatasetBaseError(
-                    f"The latitude coordinates in the metadata are not all in [-90; 90] range: {metadf['lat']}"
-                )
-        if "lon" in metadf.columns:
-            if (
-                metadf["lon"]
-                .dropna()
-                .apply(lambda x: ((x < 0.0) | ((x > 180.0))))
-                .any()
-            ):
-                raise MetobsDatasetBaseError(
-                    f"The longitude coordinates in the metadata are not all in [0; 180] range: {metadf['lon']}"
-                )
+    #     if "lat" in metadf.columns:
+    #         if (
+    #             metadf["lat"]
+    #             .dropna()
+    #             .apply(lambda x: ((x < -90.0) | ((x > 90.0))))
+    #             .any()
+    #         ):
+    #             raise MetobsDatasetBaseError(
+    #                 f"The latitude coordinates in the metadata are not all in [-90; 90] range: {metadf['lat']}"
+    #             )
+    #     if "lon" in metadf.columns:
+    #         if (
+    #             metadf["lon"]
+    #             .dropna()
+    #             .apply(lambda x: ((x < 0.0) | ((x > 180.0))))
+    #             .any()
+    #         ):
+    #             raise MetobsDatasetBaseError(
+    #                 f"The longitude coordinates in the metadata are not all in [0; 180] range: {metadf['lon']}"
+    #             )
 
-        self.metadf = metadf
+    #     self.metadf = metadf
 
-    def _set_outliersdf(
-        self, outliersdf, apply_structure_checks=True, apply_dup_checks=True
-    ):
-        # TODO: run simple checks
-        if apply_structure_checks:
-            # Test index order
-            if not list(outliersdf.index.names) == ["name", "obstype", "datetime"]:
-                raise MetobsDatasetBaseError(
-                    f"A dataframe is being set as Dataset.outliersdf with wrong df.index.names: {outliersdf.index.names}"
-                )
-            if not list(outliersdf.columns) == ["value", "label"]:
-                raise MetobsDatasetBaseError(
-                    f"A dataframe is being set as Dataset.outliersdf with wrong df.columns: {list(outliersdf.columns)}"
-                )
-        # set attr
-        self.outliersdf = outliersdf
+    # def _set_outliersdf(
+    #     self, outliersdf, apply_structure_checks=True, apply_dup_checks=True
+    # ):
+    #     # TODO: run simple checks
+    #     if apply_structure_checks:
+    #         # Test index order
+    #         if not list(outliersdf.index.names) == ["name", "obstype", "datetime"]:
+    #             raise MetobsDatasetBaseError(
+    #                 f"A dataframe is being set as Dataset.outliersdf with wrong df.index.names: {outliersdf.index.names}"
+    #             )
+    #         if not list(outliersdf.columns) == ["value", "label"]:
+    #             raise MetobsDatasetBaseError(
+    #                 f"A dataframe is being set as Dataset.outliersdf with wrong df.columns: {list(outliersdf.columns)}"
+    #             )
+    #     # set attr
+    #     self.outliersdf = outliersdf
 
-    def _set_obstypes(self, obstypes):
-        # TODO: run simple checks
-        self.obstypes = obstypes.copy()
+    # def _set_obstypes(self, obstypes):
+    #     # TODO: run simple checks
+    #     self.obstypes = obstypes.copy()
 
-    def _set_settings(self, settings):
-        # TODO: run simple checks
-        self.settings = copy.deepcopy(settings)  # deep copy?
+    # def _set_settings(self, settings):
+    #     # TODO: run simple checks
+    #     self.settings = copy.deepcopy(settings)  # deep copy?
 
-    def _set_gaps(self, gapslist):
-        # TODO: run simple checks
-        self.gaps = gapslist
+    # def _set_gaps(self, gapslist):
+    #     # TODO: run simple checks
+    #     self.gaps = gapslist
 
-    def _set_gee_dataset(self, geedatasetlist):
+    def _set_gee_dataset(self, geedatasetlist: list):
         # clear all metadata and extracted timeseries form the geedatasets
         gee_dataset_dict = {}
         for gee_dataset in geedatasetlist:
@@ -242,194 +268,195 @@ class DatasetBase(object):
 
         self.gee_datasets = gee_dataset_dict
 
-    def _append_to_applied_qc(self, obstypename, checkname):
-        """Add an observationtype to the _applied_qc.
+    # def _append_to_applied_qc(self, obstypename, checkname):
+    #     """Add an observationtype to the _applied_qc.
 
-        The applied qc is mainly used to save the order of applied checks,
-        to validate the effectiveness of one check.
+    #     The applied qc is mainly used to save the order of applied checks,
+    #     to validate the effectiveness of one check.
 
-        Parameters
-        ----------
-        obstypename : str or list of str
-            The names of the obstypes that are checked.
-        checkname : str
-            The name of the check (must be a key in label_def).
+    #     Parameters
+    #     ----------
+    #     obstypename : str or list of str
+    #         The names of the obstypes that are checked.
+    #     checkname : str
+    #         The name of the check (must be a key in label_def).
 
-        Returns
-        -------
-        None.
+    #     Returns
+    #     -------
+    #     None.
 
-        """
+    #     """
 
-        if checkname not in label_def.keys():
-            raise MetobsDatasetBaseError(f"{checkname} is not a known checkname.")
-        # add it to the applied checks
-        if isinstance(obstypename, str):
-            obstypes = [obstypename]
-        else:
-            obstypes = list(obstypename)
+    #     if checkname not in label_def.keys():
+    #         raise MetobsDatasetBaseError(f"{checkname} is not a known checkname.")
+    #     # add it to the applied checks
+    #     if isinstance(obstypename, str):
+    #         obstypes = [obstypename]
+    #     else:
+    #         obstypes = list(obstypename)
 
-        self._applied_qc = pd.concat(
-            [
-                self._applied_qc,
-                pd.DataFrame(
-                    data={"obstype": obstypes, "checkname": [checkname] * len(obstypes)}
-                ),
-            ]
-        )
+    #     self._applied_qc = pd.concat(
+    #         [
+    #             self._applied_qc,
+    #             pd.DataFrame(
+    #                 data={"obstype": obstypes, "checkname": [checkname] * len(obstypes)}
+    #             ),
+    #         ]
+    #     )
 
     # =============================================================================
     # Getters
     # =============================================================================
     def _get_all_stationnames(self):
-        """Returns a list of all present names in the data."""
-        if self.df.empty:
+        """Returns a list of all present station names"""
+
+        if not bool(self.stations):
             return []
         else:
-            return self.df.index.get_level_values("name").unique().to_list()
+            return [sta.name for sta in self.stations]
 
-    def _get_tz(self):
-        # IF no data --> tz is UTC (to work without data for gee fun)
-        if self.df.empty:
-            return "UTC"
-        else:
-            return self.df.index.get_level_values("datetime").tz
+    # def _get_tz(self):
+    #     # IF no data --> tz is UTC (to work without data for gee fun)
+    #     if self.df.empty:
+    #         return "UTC"
+    #     else:
+    #         return self.df.index.get_level_values("datetime").tz
 
-    def _get_present_obstypes(self):
-        """Get all present obstypenames in the df.
+    # def _get_present_obstypes(self):
+    #     """Get all present obstypenames in the df.
 
-        (This does not guarantee that these obstypesnames are known obstypes!)
+    #     (This does not guarantee that these obstypesnames are known obstypes!)
 
-        Returns
-        -------
-        list
-            All present obstypenames.
+    #     Returns
+    #     -------
+    #     list
+    #         All present obstypenames.
 
-        """
-        return self.df.index.get_level_values("obstype").unique().to_list()
+    #     """
+    #     return self.df.index.get_level_values("obstype").unique().to_list()
 
-    def _get_timestamps_info(
-        self,
-        freq_estimation_method="median",
-        freq_simplify_tolerance="2min",
-        origin_simplify_tolerance="5min",
-    ):
-        """Get details of the time resolution for each station.
+    # def _get_timestamps_info(
+    #     self,
+    #     freq_estimation_method="median",
+    #     freq_simplify_tolerance="2min",
+    #     origin_simplify_tolerance="5min",
+    # ):
+    #     """Get details of the time resolution for each station.
 
-        It is assumed that ideally, records are perfect periodically. In
-        practice this is not always the case. We can specify an ideal set
-        of timestamps by a start, and end frequency.
+    #     It is assumed that ideally, records are perfect periodically. In
+    #     practice this is not always the case. We can specify an ideal set
+    #     of timestamps by a start, and end frequency.
 
-        This method estimates, for each station:
+    #     This method estimates, for each station:
 
-            - Frequency: the frequency of a station is the highest frequency
-            detected for all its observationtypes. The frequency estimate
-            of an obsertype is done by a 'mean' or 'highest' approach on
-            consecutive records. One can specify a tolerance to simplify
-            the frequency estimates.
+    #         - Frequency: the frequency of a station is the highest frequency
+    #         detected for all its observationtypes. The frequency estimate
+    #         of an obsertype is done by a 'mean' or 'highest' approach on
+    #         consecutive records. One can specify a tolerance to simplify
+    #         the frequency estimates.
 
-            - start timestamp: The first timestamp registered by a station,
-            overall its observationtypes. One can specify a tolerance to
-            simplify the origin.
+    #         - start timestamp: The first timestamp registered by a station,
+    #         overall its observationtypes. One can specify a tolerance to
+    #         simplify the origin.
 
-            - end timestamp: The latest timestemp registerd by a station,
-            over all its observationtypes. One can specify a tolerance to
-            simplify it.
+    #         - end timestamp: The latest timestemp registerd by a station,
+    #         over all its observationtypes. One can specify a tolerance to
+    #         simplify it.
 
-        This information is added to the metadf attribute.
+    #     This information is added to the metadf attribute.
 
-        Note
-        -----
-        The assumption is made that all obstypes per station have the same start
-        and end timestamp.
+    #     Note
+    #     -----
+    #     The assumption is made that all obstypes per station have the same start
+    #     and end timestamp.
 
-        """
+    #     """
 
-        df = self.df
+    #     df = self.df
 
-        # 1. Find frequencies per station ()
-        if pd.Timedelta(freq_simplify_tolerance).seconds < 1:
-            freq_simplify = False
-        else:
-            freq_simplify = True
+    #     # 1. Find frequencies per station ()
+    #     if pd.Timedelta(freq_simplify_tolerance).seconds < 1:
+    #         freq_simplify = False
+    #     else:
+    #         freq_simplify = True
 
-        freqs_dict = {sta: [] for sta in df.index.get_level_values("name")}
+    #     freqs_dict = {sta: [] for sta in df.index.get_level_values("name")}
 
-        for groupidx, groupdf in df.reset_index().groupby(["name", "obstype"]):
-            # calculate the frequecy of each station, and each of its obstypes
-            groupdf = groupdf.set_index("datetime")
+    #     for groupidx, groupdf in df.reset_index().groupby(["name", "obstype"]):
+    #         # calculate the frequecy of each station, and each of its obstypes
+    #         groupdf = groupdf.set_index("datetime")
 
-            freqs_dict[groupidx[0]].append(
-                get_likely_frequency(
-                    timestamps=groupdf.index,
-                    method=freq_estimation_method,
-                    simplify=freq_simplify,
-                    max_simplify_error=freq_simplify_tolerance,
-                )
-            )
+    #         freqs_dict[groupidx[0]].append(
+    #             get_likely_frequency(
+    #                 timestamps=groupdf.index,
+    #                 method=freq_estimation_method,
+    #                 simplify=freq_simplify,
+    #                 max_simplify_error=freq_simplify_tolerance,
+    #             )
+    #         )
 
-        # The target frequency of a station is set as the minimum of its obstypes
-        freqs_target = {sta: min(val) for sta, val in freqs_dict.items()}
+    #     # The target frequency of a station is set as the minimum of its obstypes
+    #     freqs_target = {sta: min(val) for sta, val in freqs_dict.items()}
 
-        # 2. Find origins and last timestamps
+    #     # 2. Find origins and last timestamps
 
-        origin_dict = {}
-        last_timestamp_dict = {}
-        for sta in df.index.get_level_values("name").unique():
-            stadatetimes = df.xs(sta, level="name").index.get_level_values("datetime")
+    #     origin_dict = {}
+    #     last_timestamp_dict = {}
+    #     for sta in df.index.get_level_values("name").unique():
+    #         stadatetimes = df.xs(sta, level="name").index.get_level_values("datetime")
 
-            # find origin
-            naive_origin = stadatetimes.min()
-            sta_origin = _simplify_time(
-                time=naive_origin, max_simplyfi_error=origin_simplify_tolerance
-            )
-            origin_dict[sta] = sta_origin
+    #         # find origin
+    #         naive_origin = stadatetimes.min()
+    #         sta_origin = _simplify_time(
+    #             time=naive_origin, max_simplyfi_error=origin_simplify_tolerance
+    #         )
+    #         origin_dict[sta] = sta_origin
 
-            # find last timestamp
-            naive_last = stadatetimes.max()
-            last_timestamp = pd.Timestamp(
-                sta_origin
-                + (
-                    int((naive_last - sta_origin) / freqs_target[sta])
-                    * freqs_target[sta]
-                )
-            )
-            last_timestamp_dict[sta] = last_timestamp
+    #         # find last timestamp
+    #         naive_last = stadatetimes.max()
+    #         last_timestamp = pd.Timestamp(
+    #             sta_origin
+    #             + (
+    #                 int((naive_last - sta_origin) / freqs_target[sta])
+    #                 * freqs_target[sta]
+    #             )
+    #         )
+    #         last_timestamp_dict[sta] = last_timestamp
 
-        # 3. update metadf
-        self.metadf["dataset_resolution"] = pd.Series(freqs_target)
-        self.metadf["dt_start"] = pd.Series(origin_dict)
-        self.metadf["dt_end"] = pd.Series(last_timestamp_dict)
+    #     # 3. update metadf
+    #     self.metadf["dataset_resolution"] = pd.Series(freqs_target)
+    #     self.metadf["dt_start"] = pd.Series(origin_dict)
+    #     self.metadf["dt_end"] = pd.Series(last_timestamp_dict)
 
     # =============================================================================
     # Checks
     # =============================================================================
 
-    def _data_is_required_check(self):
-        """Raise an error when there is no observational data found."""
-        if self.df.empty:
-            if self.metadf.empty:
-                raise MetobsDatasetBaseError(
-                    f"There is no observational data stored in {self}"
-                )
-            else:
-                raise MetobsDatasetBaseError(
-                    f'There is no observational data stored in {self} \n(This method is not a "metadata-only" method.)'
-                )
-        return
+    # def _data_is_required_check(self):
+    #     """Raise an error when there is no observational data found."""
+    #     if self.df.empty:
+    #         if self.metadf.empty:
+    #             raise MetobsDatasetBaseError(
+    #                 f"There is no observational data stored in {self}"
+    #             )
+    #         else:
+    #             raise MetobsDatasetBaseError(
+    #                 f'There is no observational data stored in {self} \n(This method is not a "metadata-only" method.)'
+    #             )
+    #     return
 
-    def _are_all_present_obstypes_knonw(self):
-        """Raise an error if there are unknown obstypes in the df."""
-        present_obstypes = self._get_present_obstypes()
-        unknown_obs_cols = [
-            obs_pres
-            for obs_pres in present_obstypes
-            if obs_pres not in self.obstypes.keys()
-        ]
-        if len(unknown_obs_cols) > 0:
-            raise MetobsDatasetBaseError(
-                f"The following observationtypes are found in the data, but are unknown obstypes: {unknown_obs_cols}"
-            )
+    # def _are_all_present_obstypes_knonw(self):
+    #     """Raise an error if there are unknown obstypes in the df."""
+    #     present_obstypes = self._get_present_obstypes()
+    #     unknown_obs_cols = [
+    #         obs_pres
+    #         for obs_pres in present_obstypes
+    #         if obs_pres not in self.obstypes.keys()
+    #     ]
+    #     if len(unknown_obs_cols) > 0:
+    #         raise MetobsDatasetBaseError(
+    #             f"The following observationtypes are found in the data, but are unknown obstypes: {unknown_obs_cols}"
+    #         )
 
     # =============================================================================
     # Construction methods for creating a Dataset

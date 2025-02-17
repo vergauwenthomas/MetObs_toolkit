@@ -23,7 +23,10 @@ lib_folder = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(lib_folder))
 import metobs_toolkit
 
-from metobs_toolkit.df_helpers import init_multiindexdf, conv_tz_multiidxdf
+from metobs_toolkit.backend_collection.df_helpers import (
+    init_multiindexdf,
+    conv_tz_multiidxdf,
+)
 
 
 # %% Import data

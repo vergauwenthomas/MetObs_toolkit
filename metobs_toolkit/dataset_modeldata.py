@@ -19,8 +19,8 @@ import pytz
 # )
 
 from metobs_toolkit.modeldata import (
-    GeeStaticModelData,
-    GeeDynamicModelData,
+    GeeStaticDataset,
+    GeeDynamicDataset,
 )
 
 from metobs_toolkit.gee_api import connect_to_gee
@@ -54,7 +54,7 @@ class DatasetModelData:
 
         Parameters
         ----------
-        Model : str or GeeDynamicModelData
+        Model : str or GeeDynamicDataset
             The Gee dataset to download timeseries from. If Model is a str, it
             is looked for by name in the `Dataset.gee_dataset.keys()`.
         obstypes : str or list of strings, optional
@@ -94,7 +94,7 @@ class DatasetModelData:
 
         Returns
         -------
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The Gee Modeldata with the extracted timeseries stored in. The
             timeseries are stored in the `Model.modeldf`.
 
@@ -113,7 +113,7 @@ class DatasetModelData:
 
         See Also
         -----------
-        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+        GeeDynamicDataset: Gee Modeldata dataset for time-evolving data.
         metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to a band).
         metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
         Dataset.add_new_geemodeldata(): Add a new Gee Modeldata to your dataset.
@@ -140,9 +140,9 @@ class DatasetModelData:
         By default, each `Dataset` is equipped with default Gee datasets.
 
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
 
-        As you can see, is "ERA5-land" a default GeeDynamicModelData. We will
+        As you can see, is "ERA5-land" a default GeeDynamicDataset. We will
         use it for this example.
 
 
@@ -162,7 +162,7 @@ class DatasetModelData:
 
         >>> ERA5_model = sta.gee_datasets['ERA5-land']
         >>> ERA5_model.get_info()
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
         ------ Details ---------
         <BLANKLINE>
          * name: ERA5-land
@@ -205,7 +205,7 @@ class DatasetModelData:
         ...                     startdt=tstart,
         ...                     enddt=tend,
         ...                     force_direct_transfer=True)
-        GeeDynamicModelData instance of ERA5-land with modeldata
+        GeeDynamicDataset instance of ERA5-land with modeldata
 
         The timeseries are stored in the Model itself.
 
@@ -226,14 +226,14 @@ class DatasetModelData:
         if isinstance(Model, str):
             if Model not in self.gee_datasets.keys():
                 raise MetobsDatasetGeeModelDataHandlingError(
-                    f"{Model} is not a known GeeDynamicModelData of {self}."
+                    f"{Model} is not a known GeeDynamicDataset of {self}."
                 )
             Model = self.gee_datasets[str(Model)]
-        elif isinstance(Model, GeeDynamicModelData):
+        elif isinstance(Model, GeeDynamicDataset):
             pass
         else:
             raise MetobsDatasetGeeModelDataHandlingError(
-                f"{Model} is not a (known) GeeDynamicModelData (of {self})."
+                f"{Model} is not a (known) GeeDynamicDataset (of {self})."
             )
 
         # Check obstypes
@@ -691,12 +691,12 @@ class DatasetModelData:
     def add_new_geemodeldata(self, Modeldata, overwrite=False):
         """Add a new GeeModeldata to the Dataset.
 
-        The GeeModelData is in the form of a GeeStaticModelData or GeeDynamicModelData.
+        The GeeModelData is in the form of a GeeStaticDataset or GeeDynamicDataset.
 
 
         Parameters
         ----------
-        Modeldata : GeeStaticModelData or GeeDynamicModelData
+        Modeldata : GeeStaticDataset or GeeDynamicDataset
             The GeeModeldata to add.
         overwrite : bool, optional
             If there is already a GeeModelData with the same name present
@@ -709,8 +709,8 @@ class DatasetModelData:
 
         See Also
         -----------
-        GeeStaticModelData: Gee Modeldata dataset without time dimension.
-        GeeDynamicModelData: Gee Modeldata dataset for time-evolving data.
+        GeeStaticDataset: Gee Modeldata dataset without time dimension.
+        GeeDynamicDataset: Gee Modeldata dataset for time-evolving data.
 
         Examples
         ----------
@@ -722,11 +722,11 @@ class DatasetModelData:
         >>> #Create your Dataset
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
 
         As we can see, there are default GeeModelData's present in the Dataset.
 
-        Now we will create a new GeeDynamicModelData linking to this GEE dataset:
+        Now we will create a new GeeDynamicDataset linking to this GEE dataset:
         https://developers.google.com/earth-engine/datasets/catalog/JAXA_GPM_L3_GSMaP_v8_operational.
 
         We create a ModelObstype reflecting the precipitation, and
@@ -749,7 +749,7 @@ class DatasetModelData:
 
         Now we can create the Gee Modeldata.
 
-        >>> precip_satelite = metobs_toolkit.GeeDynamicModelData(
+        >>> precip_satelite = metobs_toolkit.GeeDynamicDataset(
         ...        name='precip_GSMaP',
         ...        location="JAXA/GPM_L3/GSMaP/v8/operational", #See GEE
         ...        value_type='numeric', #See GEE
@@ -763,7 +763,7 @@ class DatasetModelData:
 
         >>> dataset.add_new_geemodeldata(Modeldata=precip_satelite)
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land , 'precip_GSMaP': Empty GeeDynamicModelData instance of precip_GSMaP }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land , 'precip_GSMaP': Empty GeeDynamicDataset instance of precip_GSMaP }
 
         Now we can use the Gee Modeldata with our dataset (gap filling, plotting,
         extracting timeseries, ...). As an example we will download the timeseries
@@ -794,7 +794,7 @@ class DatasetModelData:
         ...                  obstypes=['precip'],
         ...                  startdt=tstart,
         ...                  enddt=tend)
-        GeeDynamicModelData instance of precip_GSMaP with modeldata
+        GeeDynamicDataset instance of precip_GSMaP with modeldata
 
         >>> dataset.gee_datasets['precip_GSMaP'].modeldf.head()
                                                  precip
@@ -809,11 +809,11 @@ class DatasetModelData:
 
         # Check instance
         if not (
-            (isinstance(Modeldata, GeeStaticModelData))
-            | (isinstance(Modeldata, GeeDynamicModelData))
+            (isinstance(Modeldata, GeeStaticDataset))
+            | (isinstance(Modeldata, GeeDynamicDataset))
         ):
             raise MetobsDatasetGeeModelDataHandlingError(
-                f"{Modeldata} is not an instance of GeeStaticModelData or GeeDynamicModelData."
+                f"{Modeldata} is not an instance of GeeStaticDataset or GeeDynamicDataset."
             )
         # Check name is unique
         if Modeldata.name in self.gee_datasets.keys():

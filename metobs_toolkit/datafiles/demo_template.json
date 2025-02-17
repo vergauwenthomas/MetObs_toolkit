@@ -42,6 +42,7 @@
         "name_column": "Vlinder",
         "lat_column": "lat",
         "lon_column": "lon",
+        "altitude_column": null,
         "columns_to_include": [
             "school"
         ]

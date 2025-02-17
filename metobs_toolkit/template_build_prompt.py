@@ -19,11 +19,11 @@ from metobs_toolkit.template import _get_empty_templ_dict, _pwrite_templdict_to_
 
 
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes
-from metobs_toolkit.data_import import _read_csv_to_df
+
+# from metobs_toolkit.data_import import _read_csv_to_df
 
 
 def add_new_obstype():
-
     print("\n --- Adding a new observation type --- \n")
 
     # get obsname

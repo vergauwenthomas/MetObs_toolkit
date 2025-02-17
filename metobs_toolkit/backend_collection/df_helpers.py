@@ -15,6 +15,7 @@ import geopandas as gpd
 import itertools
 import pytz
 import logging
+from typing import Literal
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +219,11 @@ def datetime_subsetting(df, starttime, endtime):
 # =============================================================================
 
 
-def _simplify_time(time, max_simplyfi_error, zero_protection=False):
+def simplify_time(
+    time: pd.Timestamp | pd.Timedelta,
+    max_simplify_error: pd.Timedelta,
+    zero_protection: bool = False,
+):
     """Simplifies a time (or timedelta) to a rounded value, within a tolerance.
 
     time can be a timestamp of a timedelta.
@@ -234,7 +239,7 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
                 "h"
             )  # try the ceil as candidate (is never zero)
 
-    if abs(time - hourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+    if abs(time - hourly_candidate) < pd.to_timedelta(max_simplify_error):
         return hourly_candidate
 
     # 2  half_hourly_candidate
@@ -244,7 +249,7 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
             halfhourly_candidate = time.ceil(
                 "30min"
             )  # try the ceil as candidate (is never zero)
-    if abs(time - halfhourly_candidate) < pd.to_timedelta(max_simplyfi_error):
+    if abs(time - halfhourly_candidate) < pd.to_timedelta(max_simplify_error):
         return halfhourly_candidate
 
     # 3. 10min fold
@@ -254,7 +259,7 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
             tenmin_candidate = time.ceil(
                 "10min"
             )  # try the ceil as candidate (is never zero)
-    if abs(time - tenmin_candidate) < pd.to_timedelta(max_simplyfi_error):
+    if abs(time - tenmin_candidate) < pd.to_timedelta(max_simplify_error):
         return tenmin_candidate
 
     # 4. 5min fold
@@ -264,7 +269,7 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
             fivemin_candidate = time.ceil(
                 "5min"
             )  # try the ceil as candidate (is never zero)
-    if abs(time - fivemin_candidate) < pd.to_timedelta(max_simplyfi_error):
+    if abs(time - fivemin_candidate) < pd.to_timedelta(max_simplify_error):
         return fivemin_candidate
 
     # 5. min fold
@@ -274,7 +279,7 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
             min_candidate = time.ceil(
                 "1min"
             )  # try the ceil as candidate (is never zero)
-    if abs(time - min_candidate) < pd.to_timedelta(max_simplyfi_error):
+    if abs(time - min_candidate) < pd.to_timedelta(max_simplify_error):
         return min_candidate
 
     # 6. No simplyfication posible
@@ -285,8 +290,10 @@ def _simplify_time(time, max_simplyfi_error, zero_protection=False):
 
 
 def get_likely_frequency(
-    timestamps, method="highest", simplify=True, max_simplify_error="2min"
-):
+    timestamps: pd.DatetimeIndex,
+    method: Literal["highest", "median"] = "highest",
+    max_simplify_error: str | pd.Timedelta = "2min",
+) -> pd.Timedelta:
     """Find the most likely observation frequency of a datetimeindex.
 
     Parameters
@@ -296,10 +303,6 @@ def get_likely_frequency(
     method : 'highest' or 'median', optional
         Select wich method to use. If 'highest', the highest apearing frequency is used.
         If 'median', the median of the apearing frequencies is used. The default is 'highest'.
-    simplify : Boolean, optional
-        If True, the likely frequency is converted to round hours, or round minutes.
-        The "max_simplify_error' is used as a constrain. If the constrain is not met,
-        the simplification is not performed.The default is True.
     max_simplify_error : datetimestring, optional
         The maximum deviation from the found frequency when simplifying. The default is '2min'.
 
@@ -309,6 +312,9 @@ def get_likely_frequency(
         The assumed (and simplified) frequency of the datetimeindex.
 
     """
+    logger.debug(
+        f"Starting get_likely_frequency with method={method} and max_simplify_error={max_simplify_error}"
+    )
     assert method in [
         "highest",
         "median",
@@ -321,6 +327,14 @@ def get_likely_frequency(
             f'{max_simplify_error} is not valid timeindication. Example: "5min" indicates 5 minutes.'
         )
 
+    # simplify is true if a non-zero simplify_error is provided
+    if pd.to_timedelta(max_simplify_error).seconds < 1:
+        simplify = False
+    else:
+        simplify = True
+
+    logger.debug(f"Simplify is set to {simplify}")
+
     freqs_blacklist = [pd.Timedelta(0), np.nan]  # avoid a zero frequency
 
     freqs = timestamps.to_series().diff()
@@ -328,9 +342,10 @@ def get_likely_frequency(
 
     if method == "highest":
         assume_freq = freqs.min()  # highest frequency
-
     elif method == "median":
         assume_freq = freqs.median()
+
+    logger.debug(f"Assumed frequency before simplification: {assume_freq}")
 
     if simplify:
         simplify_freq = None
@@ -369,13 +384,17 @@ def get_likely_frequency(
         else:
             assume_freq = simplify_freq
 
+    logger.debug(f"Assumed frequency after simplification: {assume_freq}")
+
     if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
         # select the second highest frequency
         assume_freq = abs(
             timestamps.to_series().diff().value_counts().index
         ).sort_values(ascending=True)[1]
 
-    return assume_freq
+    logger.debug(f"Final assumed frequency: {assume_freq}")
+
+    return pd.to_timedelta(assume_freq)
 
 
 def get_freqency_series(df, method="highest", simplify=True, max_simplify_error="2min"):

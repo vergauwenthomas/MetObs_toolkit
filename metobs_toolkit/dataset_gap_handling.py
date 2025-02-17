@@ -13,11 +13,11 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-from metobs_toolkit.gap import (
-    find_gaps,
-)
+# from metobs_toolkit.gap import (
+#     find_gaps,
+# )
 
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     empty_outliers_df,
     xs_save,
     concat_save,
@@ -494,7 +494,7 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -512,7 +512,7 @@ class DatasetGapCore:
         See Also
         --------
         get_gaps_fill_df: Get an overview dataframe of gap filled records and info.
-        metobs_toolkit.GeeDynamicModelData: The Gee Model data (timeseries).
+        metobs_toolkit.GeeDynamicDataset: The Gee Model data (timeseries).
         get_modeldata: Method for creating a modeldata from a dataset.
         interpolate_gaps: Fill gaps by interpolation.
         fill_gaps_with_debiased_modeldata: Debiased modeldata gap fill method.
@@ -602,7 +602,7 @@ class DatasetGapCore:
             (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
             >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
             >>> print(era5_data)
-            GeeDynamicModelData instance of ERA5-land with modeldata
+            GeeDynamicDataset instance of ERA5-land with modeldata
 
             Now we are going to fill the gaps with this raw modeldata.
 
@@ -674,7 +674,7 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -794,7 +794,7 @@ class DatasetGapCore:
             (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
             >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
             >>> print(era5_data)
-            GeeDynamicModelData instance of ERA5-land with modeldata
+            GeeDynamicDataset instance of ERA5-land with modeldata
 
             Now we are going to fill the gaps with this debiased modeldata. Do this
             by specifying a leading and trailing period (by duration and the minimum
@@ -880,7 +880,7 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -1006,7 +1006,7 @@ class DatasetGapCore:
             (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
             >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
             >>> print(era5_data)
-            GeeDynamicModelData instance of ERA5-land with modeldata
+            GeeDynamicDataset instance of ERA5-land with modeldata
 
             Now we are going to fill the gaps with this diurnal debiased modeldata.
             Do this by specifying a leading and trailing period (by duration and
@@ -1100,7 +1100,7 @@ class DatasetGapCore:
 
         Parameters
         ----------
-        Model : metobs_toolkit.GeeDynamicModelData
+        Model : metobs_toolkit.GeeDynamicDataset
             The model that is used to fill the gaps records. The modeldata
             must be compatible (same metadata and `ModelObstype` equivalent
             of obstype) to fill the gaps.
@@ -1232,7 +1232,7 @@ class DatasetGapCore:
             (When using the .set_model_from_csv() method, make sure the modelname of your Modeldata is ERA5_hourly)
             >>> # For large datafiles, the modeldata is writen to a csv file. See Dataset.get_modeldata() for more info.
             >>> print(era5_data)
-            GeeDynamicModelData instance of ERA5-land with modeldata
+            GeeDynamicDataset instance of ERA5-land with modeldata
 
 
             Now we are going to fill the gaps with weighted diurnal debiased modeldata.

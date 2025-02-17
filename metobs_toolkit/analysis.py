@@ -20,7 +20,7 @@ from metobs_toolkit.plotting_functions import (
     correlation_scatter,
 )
 
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.backend_collection.df_helpers import (
     xs_save,
     datetime_subsetting,
     subset_stations,

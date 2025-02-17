@@ -162,6 +162,7 @@ label_def = {
     },
 }
 
+label_to_color_map = {group["label"]: group["color"] for group in label_def.values()}
 # make lists per label-theme, so if a new thematic label is added, functionallity
 # through the full toolkit is done by adding it to the defenition and the labelgroup
 

@@ -34,16 +34,18 @@ demo_template = os.path.join(
 
 # import the Dataset core
 
-from metobs_toolkit.dataset_core import Dataset
+# from metobs_toolkit.dataset_core import Dataset
+from metobs_toolkit.Newdataset import Dataset
+from metobs_toolkit.Newdataset import import_dataset_from_pkl
 
 # User accesable classes
-from metobs_toolkit.station import Station  # after all Dataset extensions !!
+from metobs_toolkit.oldstation import Station  # after all Dataset extensions !!
 
 # from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.obstype_modeldata import ModelObstype, ModelObstype_Vectorfield
 from metobs_toolkit.analysis import Analysis
-from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
+from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
 from metobs_toolkit.gap import (
     Gap,
 )  # No direct usecase, but needed for creation of artificial gaps (+ doc api)
@@ -51,8 +53,9 @@ from metobs_toolkit.gap import (
 
 # Special functions that can be directly called by te user
 from metobs_toolkit.template_build_prompt import build_template_prompt
-from metobs_toolkit.modeldata import import_modeldata_from_pkl
-from metobs_toolkit.dataset_core import import_dataset
+
+# from metobs_toolkit.modeldata import import_modeldata_from_pkl
+# from metobs_toolkit.dataset_core import import_dataset
 from metobs_toolkit.gee_api import connect_to_gee
 
 # =============================================================================

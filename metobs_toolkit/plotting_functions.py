@@ -37,7 +37,7 @@ from metobs_toolkit.geometry_functions import find_plot_extent
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # from metobs_toolkit.landcover_functions import get_ee_obj
-from metobs_toolkit.df_helpers import xs_save
+from metobs_toolkit.backend_collection.df_helpers import xs_save
 from metobs_toolkit.settings_files.default_formats_settings import (
     label_def,
     gapfill_label_group,

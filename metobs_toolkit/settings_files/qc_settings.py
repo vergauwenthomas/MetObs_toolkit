@@ -12,27 +12,27 @@ check_settings = {
         "keep": False
     },  # No numeric settings (False: drop all duplicates)
     # "missing_timestamp": {},
-    "persistence": {
-        "temp": {
-            "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
-            "min_num_obs": 5,
-        }
-    },  # Minimum number of records in window to perform check
-    "repetitions": {"temp": {"max_valid_repetitions": 5}},
+    # "persistence": {
+    #     "temp": {
+    #         "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
+    #         "min_num_obs": 5,
+    #     }
+    # },  # Minimum number of records in window to perform check
+    # "repetitions": {"temp": {"max_valid_repetitions": 5}},
     # checks on specific observation types
-    "gross_value": {
-        "temp": {"min_value": -15.0, "max_value": 39.0},
-    },
-    "window_variation": {
-        "temp": {
-            "max_increase_per_second": 8.0
-            / 3600.0,  # == max 8° (increase) change in 3600 seconds (==one hour)
-            "max_decrease_per_second": 10.0
-            / 3600.0,  # == max 10° (decrease) change in 3600 seconds (==one hour)
-            "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
-            "min_window_members": 3,  # Minimum numer of records in window to perform check
-        }
-    },
+    # "gross_value": {
+    #     "temp": {"min_value": -15.0, "max_value": 39.0},
+    # },
+    # "window_variation": {
+    #     "temp": {
+    #         "max_increase_per_second": 8.0
+    #         / 3600.0,  # == max 8° (increase) change in 3600 seconds (==one hour)
+    #         "max_decrease_per_second": 10.0
+    #         / 3600.0,  # == max 10° (decrease) change in 3600 seconds (==one hour)
+    #         "time_window_to_check": "1h",  # Use this format as example: "1h20min50s"
+    #         "min_window_members": 3,  # Minimum numer of records in window to perform check
+    #     }
+    # },
     "step": {
         "temp": {
             "max_increase_per_second": 8.0 / 3600.0,

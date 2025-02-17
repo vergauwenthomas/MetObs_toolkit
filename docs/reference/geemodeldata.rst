@@ -7,14 +7,14 @@ GEE Modeldata
 The Gee (Google Earth Engine) Modeldata is the bridge between the Metobs-toolkit
 and the GEE services. There are two classes:
 
- * `GeeStaticModelData`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers arround them).
- * `GeeDynamicModelData`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.
+ * `GeeStaticDataset`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers arround them).
+ * `GeeDynamicDataset`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the stations locations.
 
-Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDynamicModelData` class can hold timeseries data.
+Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDynamicDataset` class can hold timeseries data.
 
 .. note::
-    Extracting data from a GEE dataset, can be done directly from a `GeeStaticModelData`
-    or a `GeeDynamicModelData`. In addition, one can call extractions also directly from
+    Extracting data from a GEE dataset, can be done directly from a `GeeStaticDataset`
+    or a `GeeDynamicDataset`. In addition, one can call extractions also directly from
     a `Dataset`, see the *Extracting data* section in the `Dataset` API documentation.
 
 
@@ -26,7 +26,7 @@ Both classes can hold metadata (=Coordinates of the stations), and the ´GeeDyna
 Demo examples on the Modeldata class can be found here: :ref:`Extracting ERA5 timeseries`_ .
 
 
-GeeStaticModelData
+GeeStaticDataset
 --------------------
 
 .. currentmodule:: metobs_toolkit
@@ -34,25 +34,25 @@ GeeStaticModelData
 .. autosummary::
    :toctree: api/
 
-   GeeStaticModelData
-   GeeStaticModelData.get_info
-   GeeStaticModelData.extract_static_point_data
-   GeeStaticModelData.extract_static_buffer_frac_data
-   GeeStaticModelData.make_gee_plot
+   GeeStaticDataset
+   GeeStaticDataset.get_info
+   GeeStaticDataset.extract_static_point_data
+   GeeStaticDataset.extract_static_buffer_frac_data
+   GeeStaticDataset.make_gee_plot
 
 
-GeeDynamicModelData
+GeeDynamicDataset
 --------------------
 
 .. autosummary::
    :toctree: api/
 
-   GeeDynamicModelData
-   GeeDynamicModelData.get_info
-   GeeDynamicModelData.add_modelobstype
-   GeeDynamicModelData.extract_timeseries_data
-   GeeDynamicModelData.save_modeldata
-   GeeDynamicModelData.set_modeldata_from_csv
+   GeeDynamicDataset
+   GeeDynamicDataset.get_info
+   GeeDynamicDataset.add_modelobstype
+   GeeDynamicDataset.extract_timeseries_data
+   GeeDynamicDataset.save_modeldata
+   GeeDynamicDataset.set_modeldata_from_csv
    import_modeldata_from_pkl
-   GeeDynamicModelData.make_plot
-   GeeDynamicModelData.make_gee_plot
+   GeeDynamicDataset.make_plot
+   GeeDynamicDataset.make_gee_plot

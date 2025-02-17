@@ -21,7 +21,7 @@ class ModelObstype(Obstype):
         """Initiate an observation type, to link with a GEE dataset band.
 
         A ModelObstype is specific to a GEE Dataset, and is therefore added
-        to a `GeeDynamicModelData` (that facilitates the link with a GEE dataset).
+        to a `GeeDynamicDataset` (that facilitates the link with a GEE dataset).
 
         All methods and attributes are inherited from the `Obstype` class.
 
@@ -57,7 +57,7 @@ class ModelObstype(Obstype):
         {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
 
         There is no default solar radiation modeldata `ModelObstype` present for the
-        ERA5 `GeeDynamicModelData`. Thus we must create one.
+        ERA5 `GeeDynamicDataset`. Thus we must create one.
 
         >>> dataset.obstypes
         {'temp': Obstype instance of temp, 'humidity': Obstype instance of humidity, 'radiation_temp': Obstype instance of radiation_temp, 'pressure': Obstype instance of pressure, 'pressure_at_sea_level': Obstype instance of pressure_at_sea_level, 'precip': Obstype instance of precip, 'precip_sum': Obstype instance of precip_sum, 'wind_speed': Obstype instance of wind_speed, 'wind_gust': Obstype instance of wind_gust, 'wind_direction': Obstype instance of wind_direction}
@@ -80,7 +80,7 @@ class ModelObstype(Obstype):
         >>> sol_rad_down_for_ERA5
         ModelObstype instance of solar_rad_down_at_surface (linked to band: surface_solar_radiation_downwards)
 
-        In practice we add it to the known ModelObstypes of the ERA5 `GeeDynamicModelData`.
+        In practice we add it to the known ModelObstypes of the ERA5 `GeeDynamicDataset`.
 
         >>> era5_mod = dataset.gee_datasets['ERA5-land']
         >>> era5_mod.add_modelobstype(sol_rad_down_for_ERA5)
@@ -272,11 +272,11 @@ class ModelObstype_Vectorfield(Obstype):
         If you want to use it for extracting data, add it to your dataset's Modeldata first.
 
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticModelData instance of lcz  (no metadata has been set) , 'altitude': GeeStaticModelData instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticModelData instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicModelData instance of ERA5-land }
+        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
 
         >>> dataset.gee_datasets['ERA5-land'].add_modelobstype(wind_10m_era5)
         >>> dataset.gee_datasets['ERA5-land'].get_info()
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
         ------ Details ---------
         <BLANKLINE>
          * name: ERA5-land

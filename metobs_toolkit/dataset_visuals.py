@@ -28,8 +28,8 @@ from metobs_toolkit.settings_files.default_formats_settings import (
 from metobs_toolkit.gee_api import _validate_metadf
 
 # from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
-from metobs_toolkit.modeldata import GeeStaticModelData, GeeDynamicModelData
-from metobs_toolkit.df_helpers import (
+from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
+from metobs_toolkit.backend_collection.df_helpers import (
     multiindexdf_datetime_subsetting,
     metadf_to_gdf,
     xs_save,
@@ -765,9 +765,9 @@ class DatasetVisuals:
 
         Parameters
         ----------
-        Model : str or metobs_toolkit.GeeStaticModelData, optional
-            The GeeStaticModelData to plot. If a string is given, it is assumed
-            to be the name of a known GeeStaticModelData. The default is 'lcz'.
+        Model : str or metobs_toolkit.GeeStaticDataset, optional
+            The GeeStaticDataset to plot. If a string is given, it is assumed
+            to be the name of a known GeeStaticDataset. The default is 'lcz'.
         outputfolder : str or None, optional
             Path to the folder to save the HTML file. If None, the map will
             not be saved as an HTML file. The default is None.
@@ -793,12 +793,12 @@ class DatasetVisuals:
          Returns
          -------
          MAP : geemap.foliummap.Map
-             The interactive map of the GeeStaticModelData.
+             The interactive map of the GeeStaticDataset.
 
         See Also
         -----------
-        GeeStaticModelData : Gee Modeldata dataset without time dimension.
-        Dataset.make_gee_dynamic_spatialplot: Gee interactive spatial plot of GeeDynamicModelData.
+        GeeStaticDataset : Gee Modeldata dataset without time dimension.
+        Dataset.make_gee_dynamic_spatialplot: Gee interactive spatial plot of GeeDynamicDataset.
 
         Warning
         ---------
@@ -812,7 +812,7 @@ class DatasetVisuals:
 
         Examples
         -----------
-        As an example, we will make a plot of the LCZ map, which is a default `GeeStaticModelData`
+        As an example, we will make a plot of the LCZ map, which is a default `GeeStaticDataset`
         present in a `metobs_toolkit.Dataset()`
 
         >>> import metobs_toolkit
@@ -851,11 +851,11 @@ class DatasetVisuals:
                     f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
                 )
 
-        if isinstance(Model, GeeStaticModelData):
+        if isinstance(Model, GeeStaticDataset):
             pass
         else:
             raise MetobsDatasetVisualisationError(
-                f"{Model} is not a GeeStaticModelData, but a {type(Model)}."
+                f"{Model} is not a GeeStaticDataset, but a {type(Model)}."
             )
 
         # Set metadata
@@ -897,9 +897,9 @@ class DatasetVisuals:
             timeinstance is given, it is asumed to be in UTC. This timestamp is
             rounded down with the time resolution (.time_res). The timeinstance,
             is interpreted as UTC.
-        Model : str of GeeDynamicModelData, optional
-            The GeeDynamicModelData to plot. If a string is given, it is assumed
-            to be the name of a known GeeDynamicModelData. The default is 'ERA5-land'.
+        Model : str of GeeDynamicDataset, optional
+            The GeeDynamicDataset to plot. If a string is given, it is assumed
+            to be the name of a known GeeDynamicDataset. The default is 'ERA5-land'.
         modelobstype : str, optional
             The name of the ModelObstype to plot. The modelobstype name must be
             known (--> not the same as an Obstype!). The default is "temp".
@@ -930,12 +930,12 @@ class DatasetVisuals:
         Returns
         -------
         MAP : geemap.foliummap.Map
-            The interactive map of the GeeStaticModelData.
+            The interactive map of the GeeStaticDataset.
 
         See Also
         -----------
-        GeeDynamicModelData : Gee Modeldata dataset with a time dimension.
-        Dataset.make_gee_static_spatialplot: Gee interactive spatial plot of GeeStaticModelData.
+        GeeDynamicDataset : Gee Modeldata dataset with a time dimension.
+        Dataset.make_gee_static_spatialplot: Gee interactive spatial plot of GeeStaticDataset.
 
         Warning
         ---------
@@ -949,7 +949,7 @@ class DatasetVisuals:
 
         Examples
         -----------
-        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicModelData`
+        As an example we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
         present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
 
         >>> import metobs_toolkit
@@ -957,13 +957,13 @@ class DatasetVisuals:
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> era5 = dataset.gee_datasets['ERA5-land']
         >>> era5
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
 
         For more details (i.g. see which modelobstypes are knonw), use the
-        `GeeDynamicModelData.get_info()` method.
+        `GeeDynamicDataset.get_info()` method.
 
         >>> era5.get_info()
-        Empty GeeDynamicModelData instance of ERA5-land
+        Empty GeeDynamicDataset instance of ERA5-land
         ------ Details ---------
         <BLANKLINE>
          * name: ERA5-land
@@ -1039,11 +1039,11 @@ class DatasetVisuals:
                     f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
                 )
 
-        if isinstance(Model, GeeDynamicModelData):
+        if isinstance(Model, GeeDynamicDataset):
             pass
         else:
             raise MetobsDatasetVisualisationError(
-                f"{Model} is not a GeeDynamicModelData, but a {type(Model)}."
+                f"{Model} is not a GeeDynamicDataset, but a {type(Model)}."
             )
 
         # Set metadata
