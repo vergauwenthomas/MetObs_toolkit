@@ -14,14 +14,18 @@ import metobs_toolkit.settings_files.default_formats_settings as defaults
 # ------------------------------------------
 plot_as_line_labels = present_as_line_labels = [
     defaults.label_def["goodrecord"]["label"],  #'ok']
-    defaults.label_def["uncheckedrecord"]["label"],
-] + defaults.gapfill_label_group  #'not checked'
+    defaults.label_def["uncheckedrecord"]["label"],  #'not checked'
+] + [defaults.label_def[trglab]["label"] for trglab in defaults.gapfill_label_group]
 
 plot_as_vertical_line_labels = [
     defaults.label_def["regular_gap"]["label"],  #'gap'
     defaults.label_def["duplicated_timestamp"]["label"],  # duplicated timestamp outlier
     defaults.label_def["invalid_input"]["label"],
-] + defaults.failed_gapfill_label_group  # invalid input
+] + [
+    defaults.label_def[trglab]["label"]
+    for trglab in defaults.failed_gapfill_label_group
+]
+
 
 plot_as_scatter_labels = [
     defaults.label_def[cat]["label"]

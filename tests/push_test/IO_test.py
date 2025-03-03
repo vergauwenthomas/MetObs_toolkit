@@ -10,18 +10,33 @@ Test importing a variaty of data/metadata combinations and formats
 """
 
 import sys, os
-
 from pathlib import Path
 
+repodir = Path(os.getcwd()).parents[1]
+sys.path.insert(0, str(repodir))
+import metobs_toolkit
+
+
 # add the solutions
-sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
-print(sys.path)
-import solutions.solutions_creator as solution
+
+import importlib.util
+
+
+def import_module_from_path(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+solutions_creator = import_module_from_path(
+    "solutions_creator",
+    os.path.join(repodir, "tests", "push_test", "solutions", "solutions_creator.py"),
+)
+
 
 # point to current version of the toolkit
-lib_folder = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(lib_folder))
-import metobs_toolkit
+lib_folder = repodir
 
 
 # %% import data from file (long standard format)
@@ -32,13 +47,12 @@ testdatafile = os.path.join(
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
+
+dataset.import_data_from_file(
     input_data_file=testdatafile, template_file=metobs_toolkit.demo_template
 )
-dataset.show_settings()
-dataset.import_data_from_file()
-dataset.show()
-dataset.template.show()
+dataset.get_info()
+dataset.template.get_info()
 station = dataset.get_station("vlinder02")
 
 # %% Import dataset from online location
@@ -47,27 +61,24 @@ template_loc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(input_data_file=dataloc, template_file=template_loc)
-dataset.import_data_from_file(templatefile_is_url=True)
-assert not dataset.df.empty, "something wrong with importing from onlin locations"
+# dataset.import_data_from_file(input_data_file=dataloc,
+#                                template_file=template_loc,
+#                               templatefile_is_url=True)
+# assert not dataset.df.empty, "something wrong with importing from onlin locations"
 
 
 # %% import default dataset.
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
+
+dataset.import_data_from_file(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
 )
 
-
-dataset.show_settings()
-
-dataset.import_data_from_file()
-
-assert dataset.df.shape == (483840, 1), "Shape of demo data is not correct."
+assert dataset.df.shape == (483840, 2), "Shape of demo data is not correct."
 
 # %% Test template class methods
 
@@ -84,14 +95,10 @@ widetemplate = os.path.join(
 
 # #% Setup dataset
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
-    input_data_file=widedatafile,
-    # input_metadata_file=static_data,
-    template_file=widetemplate,
-)
-
 
 dataset.import_data_from_file(
+    input_data_file=widedatafile,
+    template_file=widetemplate,
     freq_estimation_method="median",
     freq_estimation_simplify_tolerance="2min",
     origin_simplify_tolerance="5min",

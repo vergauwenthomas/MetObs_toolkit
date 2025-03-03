@@ -25,7 +25,7 @@ from metobs_toolkit.backend_collection.df_helpers import (
 )
 
 import metobs_toolkit.gee_api as gee_api
-from metobs_toolkit.obstype_modeldata import default_era5_obstypes
+from metobs_toolkit.obstypes import default_era5_obstypes
 
 from metobs_toolkit.plotting_functions import (
     model_timeseries_plot,
@@ -36,7 +36,7 @@ from metobs_toolkit.plotting_functions import (
 from metobs_toolkit.gee_api import connect_to_gee
 
 # from metobs_toolkit.obstypes import tlk_obstypes
-from metobs_toolkit.obstype_modeldata import (
+from metobs_toolkit.obstypes import (
     # model_obstypes,
     ModelObstype,
     ModelObstype_Vectorfield,

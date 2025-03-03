@@ -47,3 +47,9 @@ class MetobsQualityControlError(Exception):
     """Exception raised for errors in the datasetbase."""
 
     pass
+
+
+class MetObsModelDataError(Exception):
+    """Exception raised when something is wrong or missing with Modeldata"""
+
+    pass

@@ -16,7 +16,7 @@ import metobs_toolkit.gap_filling as gap_filling
 from metobs_toolkit.backend_collection.df_helpers import (
     init_multiindexdf,
     xs_save,
-    concat_save,
+    save_concat,
 )
 
 from metobs_toolkit.obstypes import Obstype as Obstype_class
@@ -266,7 +266,7 @@ class Gap:
 
     def interpolate(
         self,
-        Dataset,
+        Sensordata,
         method="time",
         max_consec_fill=10,
         n_leading_anchors=1,
@@ -360,7 +360,7 @@ class Gap:
         anchordf, lead_msg, trail_msg = (
             gap_filling._create_anchor_df_for_leading_trailing_periods_by_size(
                 Gap=self,
-                Dataset=Dataset,
+                Sensordata=Sensordata,
                 n_lead_records=n_leading_anchors,
                 n_trail_records=n_trailing_anchors,
                 max_lead_duration=max_lead_to_gap_distance,

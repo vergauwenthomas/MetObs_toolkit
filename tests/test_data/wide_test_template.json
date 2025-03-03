@@ -15,7 +15,7 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": null,
-                "unit": "Kelvin",
+                "unit": "degK",
                 "description": "2mT"
             }
         ]
@@ -24,6 +24,7 @@
         "name_column": null,
         "lat_column": null,
         "lon_column": null,
+        "altitude_column": null,
         "columns_to_include": []
     },
     "single_station_name": "dummy_station_name"

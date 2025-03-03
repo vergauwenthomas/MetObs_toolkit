@@ -44,19 +44,41 @@ def xs_save(df, key, level, drop_level=True):
     return pd.DataFrame(index=idx, columns=columns)
 
 
-def concat_save(df_list, keep_all_nan_cols=False, **kwargs):
-    """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
+def save_concat(targets, **kwargs):
 
-    if all([isinstance(df, pd.DataFrame) for df in df_list]):
-        if keep_all_nan_cols:
-            return pd.concat(df_list, **kwargs)
-        else:
-            # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
-            return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
-    if all([isinstance(df, pd.Series) for df in df_list]):
-        # This line will filter out empty series
-        return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
-    sys.exit("Cannot concat Dataframes and Series together")
+    if not isinstance(targets, list):
+        targets = list(targets)
+
+    isempty = [tar.empty for tar in targets]
+
+    # if some (or none) but not all are empty
+    if not all(isempty):
+        return pd.concat([tar for tar in targets if not tar.empty], **kwargs)
+
+    # if all are empty
+    else:
+        # retrun an empty df with columns an index the union of all targets
+        all_columns = set()
+        all_index = set()
+        for tar in targets:
+            all_columns.update(tar.columns)
+            all_index.update(tar.index)
+        return pd.DataFrame(columns=list(all_columns), index=list(all_index))
+
+
+# def save_concat(df_list, keep_all_nan_cols=False, **kwargs):
+#     """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
+
+#     if all([isinstance(df, pd.DataFrame) for df in df_list]):
+#         if keep_all_nan_cols:
+#             return pd.concat(df_list, **kwargs)
+#         else:
+#             # This line will filter columns with all NAN values (so empty dfs + all NA entries are filtered out)
+#             return pd.concat([df.dropna(axis=1, how="all") for df in df_list], **kwargs)
+#     if all([isinstance(df, pd.Series) for df in df_list]):
+#         # This line will filter out empty series
+#         return pd.concat([ser for ser in df_list if not ser.empty], **kwargs)
+#     sys.exit("Cannot concat Dataframes and Series together")
 
 
 def init_multiindex():
@@ -119,7 +141,7 @@ def metadf_to_gdf(df, crs=4326):
     )
     geodf = geodf.set_crs(epsg=crs)
     metadata_columns = geodf.columns
-    geodf = concat_save([geodf, missing_coords_df])
+    geodf = save_concat([geodf, missing_coords_df])
 
     # Because empyt and Nan columns are skipped in the concat save, add them
     # again if needed

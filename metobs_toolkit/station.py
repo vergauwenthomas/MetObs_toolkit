@@ -12,7 +12,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 import metobs_toolkit.backend_collection.timeseries_plotting as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import *
-
+from metobs_toolkit.backend_collection.df_helpers import save_concat
 
 from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
 from metobs_toolkit.modeldata import default_datasets as default_gee_datasets
@@ -35,6 +35,9 @@ class Station:
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
 
+    def __repr__(self):
+        return f"Station instance of {self.name}"
+
     @property
     def name(self):
         return str(self._name)
@@ -44,13 +47,13 @@ class Station:
         return self._site
 
     @property
-    def modeldata(self):
+    def sensordata(self):
         return dict(self._modeldata)
 
     @property
     def df(self):
         # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
-        concatdf = pd.concat([sensor.df for sensor in self.obsdata.values()])
+        concatdf = save_concat(([sensor.df for sensor in self.obsdata.values()]))
 
         # sort by datetime
         concatdf.sort_index(inplace=True)
@@ -64,7 +67,7 @@ class Station:
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
 
-        combdf = pd.concat(concatlist)
+        combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
         return combdf
 
@@ -73,12 +76,18 @@ class Station:
 
         concatlist = []
         for sensordata in self.obsdata.values():
-            stadf = sensordata.gapsdf[["value", "label"]].reset_index()
+            stadf = sensordata.gapsdf.reset_index()
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
 
-        combdf = pd.concat(concatlist)
+        combdf = save_concat(concatlist)
         combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name=("datetime", "obstype")),
+            )
+
         return combdf
 
     @property
@@ -93,6 +102,10 @@ class Station:
     def end_datetime(self):
         return max([sensdata.end_datetime for sensdata in self.obsdata.values()])
 
+    @property
+    def modeldata(self):
+        return self._modeldata
+
     def add_to_modeldata(self, new_modeltimeseries, force_update=False):
         if not isinstance(new_modeltimeseries, ModelTimeSeries):
             raise MetObsWrongType(
@@ -100,7 +113,7 @@ class Station:
             )
 
         # Test if there is already modeldata for the same obstype available
-        if (new_modeltimeseries.obstype.name in self.modeldata) & (not force_update):
+        if (new_modeltimeseries.obstype.name in self.sensordata) & (not force_update):
             raise MetObsDataAlreadyPresent(
                 f"There is already an modeltimeseries instance represinting {new_modeltimeseries.obstype.name}, and force_update is False."
             )
@@ -121,8 +134,8 @@ class Station:
         infostr += self.site.get_info(printout=False)
 
         infostr += "\n--- Modeldata ---\n"
-        if bool(self.modeldata):
-            for modeldataseries in self.modeldata.values():
+        if bool(self.sensordata):
+            for modeldataseries in self.sensordata.values():
                 infostr += modeldataseries.get_info(printout=False)
         else:
             infostr += "  (no modeldata timeseries present)  \n"
@@ -137,7 +150,7 @@ class Station:
         target_freq,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
-        direction="nearest",
+        origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
 
         target_freq = fmt_timedelta_arg(target_freq)
@@ -148,8 +161,17 @@ class Station:
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
-                direction=direction,
+                origin_simplify_tolerance=origin_simplify_tolerance,
             )
+
+    def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
+        if all_observations:
+            for sensor in self.obsdata.values():
+                sensor.convert_outliers_to_gaps()
+
+        else:
+            self._obstype_is_known_check(obstype)
+            self.obsdata[obstype].convert_outliers_to_gaps()
 
     # ------------------------------------------
     #    Modeldata extraction
@@ -415,7 +437,7 @@ class Station:
         # test if the obstype has modeldata
         self._obstype_has_modeldata_check(obstype)
 
-        ax = self.modeldata[obstype].make_plot(
+        ax = self.sensordata[obstype].make_plot(
             linecolor=linecolor, ax=ax, figkwargs=figkwargs, title=title
         )
         return ax
@@ -463,6 +485,167 @@ class Station:
         return ax
 
     # ------------------------------------------
+    #    Gapfilling
+    # ------------------------------------------
+    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill=False):
+
+        # obstype check
+        self._obstype_is_known_check(obstype=target_obstype)
+
+        # Get modeltimeseries
+        if target_obstype not in self.modeldata:
+            raise MetObsModelDataError(
+                f"No Modeldata found for {target_obstype} in {self}"
+            )
+
+        modeltimeseries = self.modeldata[target_obstype]
+
+        # fill the gaps
+        self.obsdata[target_obstype].fill_gap_with_modeldata(
+            modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill
+        )
+
+    def fill_gaps_with_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        min_leading_records_total: int = 60,
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_trailing_records_total: int = 60,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        # obstype check
+        self._obstype_is_known_check(obstype=target_obstype)
+
+        # Get modeltimeseries
+        if target_obstype not in self.modeldata:
+            raise MetObsModelDataError(
+                f"No Modeldata found for {target_obstype} in {self}"
+            )
+
+        modeltimeseries = self.modeldata[target_obstype]
+
+        # fill the gaps
+        self.obsdata[target_obstype].fill_gap_with_modeldata(
+            modeltimeseries=modeltimeseries,
+            method="debiased",
+            method_kwargs={
+                "leading_period_duration": leading_period_duration,
+                "min_leading_records_total": min_leading_records_total,
+                "trailing_period_duration": trailing_period_duration,
+                "min_trailing_records_total": min_trailing_records_total,
+            },
+            overwrite_fill=overwrite_fill,
+        )
+
+    def fill_gaps_with_diurnal_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_debias_sample_size: int = 6,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        # obstype check
+        self._obstype_is_known_check(obstype=target_obstype)
+
+        # Get modeltimeseries
+        if target_obstype not in self.modeldata:
+            raise MetObsModelDataError(
+                f"No Modeldata found for {target_obstype} in {self}"
+            )
+
+        modeltimeseries = self.modeldata[target_obstype]
+
+        # fill the gaps
+        self.obsdata[target_obstype].fill_gap_with_modeldata(
+            modeltimeseries=modeltimeseries,
+            method="diurnal_debiased",
+            method_kwargs={
+                "leading_period_duration": leading_period_duration,
+                "trailing_period_duration": trailing_period_duration,
+                "min_debias_sample_size": min_debias_sample_size,
+            },
+            overwrite_fill=overwrite_fill,
+        )
+
+    def fill_gaps_with_weighted_diurnal_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_lead_debias_sample_size: int = 2,
+        min_trail_debias_sample_size: int = 2,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        # obstype check
+        self._obstype_is_known_check(obstype=target_obstype)
+
+        # Get modeltimeseries
+        if target_obstype not in self.modeldata:
+            raise MetObsModelDataError(
+                f"No Modeldata found for {target_obstype} in {self}"
+            )
+
+        modeltimeseries = self.modeldata[target_obstype]
+
+        # fill the gaps
+        self.obsdata[target_obstype].fill_gap_with_modeldata(
+            modeltimeseries=modeltimeseries,
+            method="weighted_diurnal_debiased",
+            method_kwargs={
+                "leading_period_duration": leading_period_duration,
+                "trailing_period_duration": trailing_period_duration,
+                "min_lead_debias_sample_size": min_lead_debias_sample_size,
+                "min_trail_debias_sample_size": min_trail_debias_sample_size,
+            },
+            overwrite_fill=overwrite_fill,
+        )
+
+    def interpolate_gaps(
+        self,
+        target_obstype: str,
+        method: str = "time",
+        max_consec_fill: int = 10,
+        n_leading_anchors: int = 1,
+        n_trailing_anchors: int = 1,
+        max_lead_to_gap_distance: pd.Timedelta | None = None,
+        max_trail_to_gap_distance: pd.Timedelta | None = None,
+        overwrite_fill=False,
+        method_kwargs={},
+    ):
+        # special formatters
+        max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
+        max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
+        # obstype check
+        self._obstype_is_known_check(obstype=target_obstype)
+
+        # interpolate all the gaps
+        self.obsdata[target_obstype].interpolate_gaps(
+            Sensordata=self.obsdata[target_obstype],
+            overwrite_fill=overwrite_fill,
+            method=method,
+            max_consec_fill=max_consec_fill,
+            n_leading_anchors=n_leading_anchors,
+            n_trailing_anchors=n_trailing_anchors,
+            max_lead_to_gap_distance=max_lead_to_gap_distance,
+            max_trail_to_gap_distance=max_trail_to_gap_distance,
+            method_kwargs=method_kwargs,
+        )
+
+    # ------------------------------------------
     #    Commons
     # ------------------------------------------
 
@@ -473,7 +656,7 @@ class Station:
             )
 
     def _obstype_has_modeldata_check(self, obstype: str) -> None:
-        if obstype not in self.modeldata.keys():
+        if obstype not in self.sensordata.keys():
             raise MetObsObstypeNotFound(
                 f"There is no {obstype} - modeldata present for {self}"
             )

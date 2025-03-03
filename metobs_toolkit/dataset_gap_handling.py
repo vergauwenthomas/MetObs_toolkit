@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from metobs_toolkit.backend_collection.df_helpers import (
     empty_outliers_df,
     xs_save,
-    concat_save,
+    save_concat,
 )
 
 logger = logging.getLogger(__name__)

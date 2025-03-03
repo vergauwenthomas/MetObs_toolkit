@@ -120,19 +120,6 @@ class Template:
         # Not activaly used attributes
         self.filepath = None
 
-    def show(self):
-        """Prints out an overview of Template.
-
-        Alias of Template.get_info().
-
-        Returns
-        -------
-        None.
-
-        """
-
-        self.get_info()
-
     def get_info(self):
         """
         Prints out an overview of the Template.
@@ -476,22 +463,11 @@ class Template:
     def read_template_from_file(self, jsonpath, templatefile_is_url=False):
         """Read the templatefile (JSON), and update the attributes of this Template."""
 
-        # if templatefile_is_url:
-        #     logger.info(f"Reading the URL-template from {jsonpath}")
-        #     with urllib.request.urlopen(jsonpath) as url:
-        #         tml_dict = json.load(url)
-
-        # else:
-        #     logger.info(f"Reading the template from {jsonpath}")
-        #     if not str(jsonpath).endswith(".json"):
-        #         raise MetobsTemplateError(f"{jsonpath}, is not a json file.")
-
-        #     with open(jsonpath, "r") as f:
-        #         tml_dict = json.load(f)
         jsonreader = JsonFileReader(file_path=jsonpath, is_url=templatefile_is_url)
         jsonreader.read()
 
         tml_dict = jsonreader.data
+
         # set attributes
         self.data_namemap = {"name": tml_dict["data_related"]["name_column"]}
         self.metadata_namemap = {"name": tml_dict["metadata_related"]["name_column"]}
@@ -524,10 +500,15 @@ class Template:
             self.metacolmapname["lat"] = tml_dict["metadata_related"]["lat_column"]
         if tml_dict["metadata_related"]["lon_column"] is not None:
             self.metacolmapname["lon"] = tml_dict["metadata_related"]["lon_column"]
-        if tml_dict["metadata_related"]["altitude_column"] is not None:
-            self.metacolmapname["altitude"] = tml_dict["metadata_related"][
-                "altitude_column"
-            ]
+        try:
+            if tml_dict["metadata_related"]["altitude_column"] is not None:
+                self.metacolmapname["altitude"] = tml_dict["metadata_related"][
+                    "altitude_column"
+                ]
+        except KeyError:
+            raise MetobsTemplateError(
+                f'"altitude_column" is not present in the templatefile ({jsonpath}). Rebuild the template to fix this.'
+            )
 
         for extra_col in tml_dict["metadata_related"]["columns_to_include"]:
             self.metacolmapname[extra_col] = extra_col
@@ -537,15 +518,24 @@ def update_known_obstype_with_original_data(
     known_obstypes: list, template: Template
 ) -> list:
     # update the known obstypes with template info
-    orig_data_column_name_map = template._get_obs_column_map()
-    for orig_name, obsname in orig_data_column_name_map.items():
+    if template._is_data_long():
+        orig_data_column_name_map = template._get_obs_column_map()
+        for orig_name, obsname in orig_data_column_name_map.items():
 
+            # set original name (column)
+            known_obstypes[obsname].original_name = orig_name
+
+            # set original unit
+            input_unit = template._get_input_unit_of_tlk_obstype(obsname)
+            known_obstypes[obsname].original_unit = input_unit
+    else:
+        # wide structured data
+        obsname = template._get_wide_obstype()
         # set original name (column)
-        known_obstypes[obsname].set_original_name(orig_name)
-
-        # set original unit
+        known_obstypes[obsname].original_name = "Irrelevant for wide-data"
+        # Set original units
         input_unit = template._get_input_unit_of_tlk_obstype(obsname)
-        known_obstypes[obsname].set_original_unit(input_unit)
+        known_obstypes[obsname].original_unit = input_unit
 
     return known_obstypes
 

@@ -15,13 +15,13 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": "temperature",
-                "unit": "Celsius",
+                "unit": "degC",
                 "description": "2m-temperature"
             },
             {
                 "tlk_obstype": "humidity",
                 "columnname": "humidity",
-                "unit": "%",
+                "unit": "percent",
                 "description": ""
             },
             {
@@ -36,6 +36,7 @@
         "name_column": null,
         "lat_column": null,
         "lon_column": null,
+        "altitude_column": null,
         "columns_to_include": []
     },
     "single_station_name": "dummy_station_name"

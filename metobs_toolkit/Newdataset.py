@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib.pyplot import Axes
 import concurrent.futures
 
-
+from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.metadataparser import MetaDataParser
@@ -22,8 +22,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
-from metobs_toolkit.obstypes import tlk_obstypes
-from metobs_toolkit.obstype_modeldata import ModelObstype
+from metobs_toolkit.obstypes import tlk_obstypes, ModelObstype
+
 from metobs_toolkit.backend_collection.timeseries_plotting import (
     create_axes,
     create_station_color_map,
@@ -116,7 +116,7 @@ class Dataset:
             stadf["name"] = sta.name
             concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
 
-        combdf = pd.concat(concatlist)
+        combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
         return combdf
 
@@ -128,21 +128,35 @@ class Dataset:
             stadf["name"] = sta.name
             concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
 
-        combdf = pd.concat(concatlist)
+        combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
         return combdf
 
     @property
     def gapsdf(self) -> pd.DataFrame:
-        # TODO
-        pass
+        concatlist = []
+        for sta in self.stations:
+            stadf = sta.gapsdf.reset_index()
+            if stadf.empty:
+                continue
+            stadf["name"] = sta.name
+            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
+
+        combdf = save_concat((concatlist))
+        combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name=("datetime", "obstype", "name")),
+            )
+        return combdf
 
     @property
     def metadf(self) -> pd.DataFrame:
         concatlist = []
         for sta in self.stations:
             concatlist.append(sta.metadf)
-        return pd.concat(concatlist).sort_index()
+        return save_concat((concatlist)).sort_index()
 
     @property
     def start_datetime(self):
@@ -157,6 +171,17 @@ class Dataset:
     # ------------------------------------------
 
     def get_station(self, stationname: str) -> Station:
+        """Get a Station by the station name.
+
+        Args:
+            stationname (str): The stationname
+
+        Raises:
+            MetObsStationNotFound: If the station is not found by name.
+
+        Returns:
+            Station: metobs_toolkit.Station
+        """
         # create lookup by name
         stationlookup = {sta.name: sta for sta in self.stations}
         try:
@@ -196,7 +221,7 @@ class Dataset:
         target_freq,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
-        direction="nearest",
+        origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
@@ -205,7 +230,7 @@ class Dataset:
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
-                direction=direction,
+                origin_simplify_tolerance=origin_simplify_tolerance,
             )
 
     # ------------------------------------------
@@ -648,7 +673,7 @@ class Dataset:
             )
             dflist.append(geedf)
 
-        geedf = pd.concat(dflist)
+        geedf = save_concat((dflist))
 
         # update the station attributes
         if update_stations:
@@ -965,6 +990,124 @@ class Dataset:
                     outliertimestamps=outldt,
                     check_kwargs=qc_kwargs,
                 )
+
+    # ------------------------------------------
+    #    Other methods
+    # ------------------------------------------
+
+    def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
+        for sta in self.stations:
+            sta.convert_outliers_to_gaps(
+                all_observations=all_observations, obstype=obstype
+            )
+
+    # ------------------------------------------
+    #    Gapfilling
+    # ------------------------------------------
+    @copy_doc(Station.interpolate_gaps)
+    def interpolate_gaps(
+        self,
+        target_obstype: str,
+        method: str = "time",
+        max_consec_fill: int = 10,
+        n_leading_anchors: int = 1,
+        n_trailing_anchors: int = 1,
+        max_lead_to_gap_distance: pd.Timedelta | None = None,
+        max_trail_to_gap_distance: pd.Timedelta | None = None,
+        method_kwargs={},
+    ):
+        # special formatters
+        max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
+        max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
+
+        for sta in self.stations:
+            sta.interpolate_gaps(
+                target_obstype=target_obstype,
+                method=method,
+                max_consec_fill=max_consec_fill,
+                n_leading_anchors=n_leading_anchors,
+                n_trailing_anchors=n_trailing_anchors,
+                max_lead_to_gap_distance=max_lead_to_gap_distance,
+                max_trail_to_gap_distance=max_trail_to_gap_distance,
+                method_kwargs=method_kwargs,
+            )
+
+    @copy_doc(Station.fill_gaps_with_raw_modeldata)
+    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill=False):
+        for sta in self.stations:
+            sta.fill_gaps_with_raw_modeldata(
+                target_obstype=target_obstype, overwrite_fill=overwrite_fill
+            )
+
+    @copy_doc(Station.fill_gaps_with_debiased_modeldata)
+    def fill_gaps_with_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        min_leading_records_total: int = 60,
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_trailing_records_total: int = 60,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        for sta in self.stations:
+            sta.fill_gaps_with_debiased_modeldata(
+                target_obstype=target_obstype,
+                leading_period_duration=leading_period_duration,
+                min_leading_records_total=min_leading_records_total,
+                trailing_period_duration=trailing_period_duration,
+                min_trailing_records_total=min_trailing_records_total,
+                overwrite_fill=overwrite_fill,
+            )
+
+    @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
+    def fill_gaps_with_diurnal_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_debias_sample_size: int = 6,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        for sta in self.stations:
+            sta.fill_gaps_with_diurnal_debiased_modeldata(
+                target_obstype=target_obstype,
+                leading_period_duration=leading_period_duration,
+                trailing_period_duration=trailing_period_duration,
+                min_debias_sample_size=min_debias_sample_size,
+                overwrite_fill=overwrite_fill,
+            )
+
+    @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
+    def fill_gaps_with_weighted_diurnal_debiased_modeldata(
+        self,
+        target_obstype: str,
+        leading_period_duration=pd.Timedelta("24h"),
+        trailing_period_duration=pd.Timedelta("24h"),
+        min_lead_debias_sample_size: int = 2,
+        min_trail_debias_sample_size: int = 2,
+        overwrite_fill=False,
+    ):
+        # special formatters
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        for sta in self.stations:
+            sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+                target_obstype=target_obstype,
+                leading_period_duration=leading_period_duration,
+                trailing_period_duration=trailing_period_duration,
+                min_lead_debias_sample_size=min_lead_debias_sample_size,
+                min_trail_debias_sample_size=min_trail_debias_sample_size,
+                overwrite_fill=overwrite_fill,
+            )
 
 
 def _qc_grossvalue_generatorfunc(input):

@@ -61,6 +61,9 @@ def repetitions_check(records, max_N_repetitions):
     outlier_groups = group_sizes[group_sizes > max_N_repetitions]
 
     # combine all outlier groups
+    if outlier_groups.empty:
+        return pd.DatetimeIndex([])
+
     outliers = pd.concat(
         [groups.get_group((outlgroup,)) for outlgroup in outlier_groups.index]
     )

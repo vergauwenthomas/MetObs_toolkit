@@ -34,7 +34,7 @@ from metobs_toolkit.plotting_functions import qc_stats_pie
 from metobs_toolkit.qc_statistics import get_freq_statistics
 from metobs_toolkit.backend_collection.df_helpers import (
     xs_save,
-    concat_save,
+    save_concat,
 )
 
 
@@ -47,7 +47,7 @@ class DatasetQCCore:
         # Keep_all_nan_cols is True, because else the 'value' column is not
         # concated if all values are Nan (the case when invalidcheck is applied)
         self._set_outliersdf(
-            concat_save([self.outliersdf, add_to_outliersdf], keep_all_nan_cols=True)
+            save_concat([self.outliersdf, add_to_outliersdf], keep_all_nan_cols=True)
         )
 
     def get_qc_stats(self, obstype="temp", stationname=None, make_plot=True):
@@ -452,7 +452,7 @@ class DatasetQCCore:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
+                    self.outliersdf = save_concat([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
@@ -473,7 +473,7 @@ class DatasetQCCore:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
+                    self.outliersdf = save_concat([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
@@ -494,7 +494,7 @@ class DatasetQCCore:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
+                    self.outliersdf = save_concat([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
@@ -514,7 +514,7 @@ class DatasetQCCore:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
+                    self.outliersdf = save_concat([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
@@ -534,7 +534,7 @@ class DatasetQCCore:
                 # update the dataset and outliers
                 self.df = obsdf
                 if not outl_df.empty:
-                    self.outliersdf = concat_save([self.outliersdf, outl_df])
+                    self.outliersdf = save_concat([self.outliersdf, outl_df])
 
                 # add this check to the applied checks
                 self._append_to_applied_qc(obstype, checkname)
@@ -780,7 +780,7 @@ class DatasetQCCore:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
+                self.outliersdf = save_concat([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
             self._append_to_applied_qc(obstype, checkname)
@@ -1010,7 +1010,7 @@ class DatasetQCCore:
             # update the dataset and outliers
             self.df = obsdf
             if not outliersdf.empty:
-                self.outliersdf = concat_save([self.outliersdf, outliersdf])
+                self.outliersdf = save_concat([self.outliersdf, outliersdf])
 
             # add this check to the applied checks
             self._append_to_applied_qc(obstype, checkname)
@@ -1166,7 +1166,7 @@ class DatasetQCCore:
     #         # update the dataset and outliers
     #         self.df = obsdf
     #         if not outliersdf.empty:
-    #             self.outliersdf = concat_save([self.outliersdf, outliersdf])
+    #             self.outliersdf = save_concat([self.outliersdf, outliersdf])
 
     #         # add this check to the applied checks
     #         self._append_to_applied_qc(obstype, checkname)

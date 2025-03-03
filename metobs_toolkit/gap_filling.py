@@ -36,7 +36,12 @@ def _add_diurnal_timestamps(df):
 
 
 def _create_anchor_df_for_leading_trailing_periods_by_size(
-    Gap, Dataset, n_lead_records, n_trail_records, max_lead_duration, max_trail_duration
+    Gap,
+    Sensordata,
+    n_lead_records,
+    n_trail_records,
+    max_lead_duration,
+    max_trail_duration,
 ):
     """Helper for constructing an anchorsdf (used by interpolation)
 
@@ -55,8 +60,8 @@ def _create_anchor_df_for_leading_trailing_periods_by_size(
     ----------
     Gap : metobs_toolkit.Gap
         The gap to construct the anchorsdf for.
-    Dataset : metobs_toolkit.Dataset
-        The Dataset where the Gap is located in.
+    Sensordata : metobs_toolkit.Sensordata
+        The Sensordata where the Gap is located in.
     n_lead_records : int
         The number of required leading records.
     n_trail_records : int
@@ -78,40 +83,41 @@ def _create_anchor_df_for_leading_trailing_periods_by_size(
     """
 
     obsname = Gap.obstype.name
-    sta_obs_series = xs_save(Dataset.df, Gap.name, "name", drop_level=True)
-    sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
-    sta_obs_series = sta_obs_series["value"]
+    # sta_obs_series = xs_save(Dataset.df, Gap.name, "name", drop_level=True)
+    # sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
+    # sta_obs_series = sta_obs_series["value"]
+    sta_obs_series = Sensordata.series
 
     # Reuse the _create_anchor_df_leading_trailing_periods method as much as possible,
     # therefore, convert the n_.. to timedelta
 
     # covert nlead_records to leading_period duration
     lead_period = (
-        sta_obs_series[sta_obs_series.index < Gap.startdt].dropna().sort_index()
+        sta_obs_series[sta_obs_series.index < Gap.start_datetime].dropna().sort_index()
     )
     if max_lead_duration is not None:
         lead_period = lead_period[
-            lead_period.index >= (Gap.startdt - max_lead_duration)
+            lead_period.index >= (Gap.start_datetime - max_lead_duration)
         ]
 
     lead_period_startdt = lead_period[-n_lead_records:].index.min()
-    lead_duration = Gap.startdt - lead_period_startdt
+    lead_duration = Gap.start_datetime - lead_period_startdt
 
     # covert ntrail_records to trailing_period duration
     trail_period = (
-        sta_obs_series[sta_obs_series.index > Gap.enddt].dropna().sort_index()
+        sta_obs_series[sta_obs_series.index > Gap.end_datetime].dropna().sort_index()
     )
     if max_trail_duration is not None:
         trail_period = trail_period[
-            trail_period.index <= (Gap.enddt + max_trail_duration)
+            trail_period.index <= (Gap.end_datetime + max_trail_duration)
         ]
 
     trail_period_enddt = trail_period[:n_trail_records].index.max()
-    trail_duration = trail_period_enddt - Gap.enddt
+    trail_duration = trail_period_enddt - Gap.end_datetime
 
     anchor_df = _create_anchor_df_for_leading_trailing_periods(
         Gap=Gap,
-        Dataset=Dataset,
+        Sensordata=Sensordata,
         leading_period_duration=lead_duration,
         trailing_period_duration=trail_duration,
     )
@@ -144,7 +150,7 @@ def _create_anchor_df_for_leading_trailing_periods_by_size(
 
 
 def _create_anchor_df_for_leading_trailing_periods(
-    Gap, Dataset, leading_period_duration, trailing_period_duration
+    Gap, Sensordata, leading_period_duration, trailing_period_duration
 ):
     """
     Helper method to construct the anchordf (the dataframe with all anchor
@@ -152,8 +158,8 @@ def _create_anchor_df_for_leading_trailing_periods(
 
     Parameters
     ----------
-    Dataset : metobs_toolkit.Dataset
-        The dataset that contains the observations for the anchor records.
+    Sensordata : metobs_toolkit.Sensordata
+        The Sensordata that contains the observations for the anchor records.
     leading_period_duration : Timedelta or str
         Size (in time) of the leading period.
     trailing_period_duration : Timedelta or str
@@ -168,9 +174,10 @@ def _create_anchor_df_for_leading_trailing_periods(
 
     """
     obsname = Gap.obstype.name
-    sta_obs_series = xs_save(Dataset.df, Gap.name, "name", drop_level=True)
-    sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
-    sta_obs_series = sta_obs_series["value"]
+    # sta_obs_series = xs_save(Dataset.df, Gap.name, "name", drop_level=True)
+    # sta_obs_series = xs_save(sta_obs_series, obsname, "obstype", drop_level=True)
+    # sta_obs_series = sta_obs_series["value"]
+    sta_obs_series = Sensordata.series
 
     # 1. Get leading and trailing info
     # get leading record, check validity and add to the gapfilldf

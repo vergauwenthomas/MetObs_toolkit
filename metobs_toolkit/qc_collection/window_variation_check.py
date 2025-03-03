@@ -100,9 +100,9 @@ def window_variation_check(
         if (max(window) - min(window) > max_window_decrease) & (
             window.idxmax() < window.idxmin()
         ):
-            return True
+            return 1
         else:
-            return False
+            return 0
 
     # apply rolling window
     window_outliers = input_series.rolling(

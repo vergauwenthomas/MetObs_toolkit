@@ -39,10 +39,10 @@ template_file = os.path.join(
     str(lib_folder), "tests", "test_data", "template_breaking.json"
 )
 
-dataset_coarsened = metobs_toolkit.Dataset()
-dataset_coarsened.update_file_paths(
-    input_data_file=testdata, template_file=template_file
-)
+# dataset_coarsened = metobs_toolkit.Dataset()
+# dataset_coarsened.update_file_paths(
+#     input_data_file=testdata, template_file=template_file
+# )
 
 
 #####################################################################
@@ -61,7 +61,7 @@ max_increase_per_second = (
     8.0 / 3600.0
 )  # Maximal allowed increase per second (for window variation check)
 max_decrease_per_second = (
-    10.0 / 3600.0
+    -10.0 / 3600.0
 )  # Maximal allowed decrease per second (for window variation check)
 time_window_to_check = "1h"  # Use this format as example: "1h20min50s"
 min_window_members = 3  # Minimal number of records in window to perform check
@@ -76,34 +76,75 @@ max_decrease_per_second_step = (
 
 # %%
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(input_data_file=testdata, template_file=template_file)
-dataset.update_qc_settings(
-    obstype="temp",
-    dupl_timestamp_keep=dupl_dropping,
-    persis_time_win_to_check=persistence_time_window_to_check,
-    persis_min_num_obs=min_num_obs,
-    rep_max_valid_repetitions=max_valid_repetitions,
-    gross_value_min_value=min_value,
-    win_var_max_increase_per_sec=max_increase_per_second,
-    win_var_max_decrease_per_sec=max_decrease_per_second,
-    win_var_time_win_to_check=time_window_to_check,
-    win_var_min_num_obs=min_window_members,
-    step_max_increase_per_sec=max_increase_per_second_step,
-    step_max_decrease_per_sec=max_decrease_per_second_step,
+# dataset.update_file_paths(input_data_file=testdata, template_file=template_file)
+# dataset.update_qc_settings(
+# obstype="temp",
+# dupl_timestamp_keep=dupl_dropping,
+# persis_time_win_to_check=persistence_time_window_to_check,
+# persis_min_num_obs=min_num_obs,
+# rep_max_valid_repetitions=max_valid_repetitions,
+# gross_value_min_value=min_value,
+# win_var_max_increase_per_sec=max_increase_per_second,
+# win_var_max_decrease_per_sec=max_decrease_per_second,
+# win_var_time_win_to_check=time_window_to_check,
+# win_var_min_num_obs=min_window_members,
+# step_max_increase_per_sec=max_increase_per_second_step,
+# step_max_decrease_per_sec=max_decrease_per_second_step,
+# )
+
+dataset.import_data_from_file(
+    input_data_file=testdata,
+    template_file=template_file,
+    origin_simplify_tolerance="1min",
 )
 
-dataset.import_data_from_file(origin_simplify_tolerance="1min")
-dataset.apply_quality_control()
+# apply QC
+dataset.gross_value_check(
+    target_obstype="temp", lower_threshold=min_value, upper_threshold=max_value
+)
+
+dataset.persistence_check(
+    target_obstype="temp",
+    timewindow=persistence_time_window_to_check,
+    min_records_per_window=min_num_obs,
+    use_mp=False,
+)
+
+dataset.repetitions_check(
+    target_obstype="temp", max_N_repetitions=max_valid_repetitions, use_mp=True
+)
+
+dataset.step_check(
+    target_obstype="temp",
+    max_increase_per_second=max_increase_per_second_step,
+    max_decrease_per_second=max_decrease_per_second_step,
+)
+
+dataset.window_variation_check(
+    target_obstype="temp",
+    timewindow=time_window_to_check,
+    min_records_per_window=min_window_members,
+    max_increase_per_second=max_increase_per_second,
+    max_decrease_per_second=max_decrease_per_second,
+    use_mp=True,
+)
 
 
-_ = dataset.get_qc_stats()
+# dataset.apply_quality_control()
 
-dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
+
+# _ = dataset.get_qc_stats()
+dataset.get_station("Fictional").make_plot(colorby="label", show_outliers=True)
+# dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
 
 # %% Debug
 
-combdf = dataset.get_full_status_df()
-tlk_temp_df = dataset.get_full_status_df()["temp"]
+# combdf = dataset.get_full_status_df()
+# tlk_temp_df = dataset.get_full_status_df()["temp"]
+
+
+tlk_temp_df = dataset.df.reset_index().set_index(["name", "datetime"])
+tlk_temp_df = tlk_temp_df[tlk_temp_df["obstype"] == "temp"]
 
 # %% Copare with manual labels
 
@@ -111,7 +152,11 @@ man_df = pd.read_csv(testdata)
 # create datetime coumn
 man_df["datetime"] = man_df["date"] + " " + man_df["time"]
 man_df["datetime"] = pd.to_datetime(man_df["datetime"])
-man_df["datetime"] = man_df["datetime"].dt.tz_localize(dataset._get_tz())
+man_df["datetime"] = man_df["datetime"].dt.tz_localize(dataset.template.tz)
+
+# drop the rows with an irregular timestamp
+man_df = man_df[man_df["irregular stamps"] != "irregular timestamp"]
+
 
 # create double index
 man_df["name"] = man_df["station"]
@@ -148,13 +193,8 @@ def _create_qc_solutions():
     dataset.outliersdf.to_pickle(
         os.path.join(solution.solutions_dir, breaking_outliers_csv)
     )
-    dataset.get_full_status_df().to_pickle(
-        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
-    )
 
-    dataset.get_gaps_fill_df().to_pickle(
-        os.path.join(solution.solutions_dir, breaking_gapsfill_df)
-    )
+    dataset.gapsdf.to_pickle(os.path.join(solution.solutions_dir, breaking_gapsfill_df))
 
 
 # _create_qc_solutions()
@@ -165,16 +205,14 @@ def get_solutions():
     sol_outliersdf = pd.read_pickle(
         os.path.join(solution.solutions_dir, breaking_outliers_csv)
     )
-    sol_combdf = pd.read_pickle(
-        os.path.join(solution.solutions_dir, breaking_combined_df_csv)
-    )
+
     sol_gapsfilldf = pd.read_pickle(
         os.path.join(solution.solutions_dir, breaking_gapsfill_df)
     )
-    return sol_df, sol_outliersdf, sol_combdf, sol_gapsfilldf
+    return sol_df, sol_outliersdf, sol_gapsfilldf
 
 
-sol_df, sol_outliersdf, sol_combdf, sol_gapsfilldf = get_solutions()
+sol_df, sol_outliersdf, sol_gapsfilldf = get_solutions()
 
 
 # 1 Test the df attribute
@@ -186,13 +224,10 @@ solution.test_df_are_equal(testdf=dataset.df, solutiondf=sol_df)
 
 solution.test_df_are_equal(testdf=dataset.outliersdf, solutiondf=sol_outliersdf)
 
-
-# 3 Test the combined df
-solution.test_df_are_equal(testdf=dataset.get_full_status_df(), solutiondf=sol_combdf)
-
-
-# 4 Test the gapsfilldf
-solution.test_df_are_equal(testdf=dataset.get_gaps_fill_df(), solutiondf=sol_gapsfilldf)
+# 3 Test the gapsfilldf
+solution.test_df_are_equal(testdf=dataset.gapsdf, solutiondf=sol_gapsfilldf)
 
 
 print("Done")
+
+# %%

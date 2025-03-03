@@ -135,21 +135,22 @@ class TimestampMatcher:
             )
         )  # TYPO
 
-    def _reindex_from_perfect_to_perfect(
+    def _map_to_perfect_timestamps(
         self,
         target_freq,
         shift_tolerance,
         origin=None,
+        closing=None,
         direction="nearest",
     ):
 
         target_freq = pd.to_timedelta(target_freq)
-        # check if the records are perfect
-        freq = pd.infer_freq(self.orig_records.index)
-        if freq is None:
-            raise ValueError(
-                f"{self} does not hold perfec-freq-records, and thus reindexing is not possible without introducing errors"
-            )
+        # # check if the records are perfect
+        # freq = pd.infer_freq(self.orig_records.index)
+        # if freq is None:
+        #     raise ValueError(
+        #         f"{self} does not hold perfec-freq-records, and thus reindexing is not possible without introducing errors"
+        #     )
 
         # get origin
         if origin is None:
@@ -160,13 +161,20 @@ class TimestampMatcher:
             origin = origin.floor(target_freq)  # make sure origin is floored
 
         # get closing timestamp
-        closing = pd.Timestamp(
-            origin
-            + (
-                int((self.orig_records.index.max() - origin) / target_freq)
-                * target_freq
+        if closing is None:
+
+            closing = pd.Timestamp(
+                origin
+                + (
+                    int((self.orig_records.index.max() - origin) / target_freq)
+                    * target_freq
+                )
             )
-        )  # TYPO
+        else:
+            # test if the closing is a good candidate
+            assert (closing - origin) % target_freq == pd.Timedelta(
+                0
+            ), f"{closing} is not a good candidate with origin: {origin} and freq {target_freq}."
 
         target_dtrange = pd.date_range(
             start=origin,
@@ -201,13 +209,16 @@ class TimestampMatcher:
 
         self.conv_df = mergedf
 
-    def _make_equispaced_timestamps_mapper(
+    def make_equispaced_timestamps_mapper(
         self,
         freq_estimation_method: Literal["highest", "median"],
         freq_estimation_simplify_tolerance: pd.Timedelta | str,
         origin_simplify_tolerance: pd.Timedelta | str,
         timestamp_tolerance: pd.Timedelta | str,
-    ) -> Tuple[pd.Series, pd.DataFrame]:
+        force_freq=None,
+        force_origin=None,
+        force_closing=None,
+    ) -> None:
         """
         Create a mapper for irregular records to perfect-freq-timestamps.
 
@@ -240,27 +251,38 @@ class TimestampMatcher:
         if not isinstance(timestamp_tolerance, (pd.Timedelta, str)):
             raise TypeError("timestamp_tolerance must be a pd.Timedelta or str")
 
-        logger.debug(
-            "Estimating target frequency using method: %s", freq_estimation_method
-        )
+        if force_freq is None:
+            logger.debug(
+                "Estimating target frequency using method: %s", freq_estimation_method
+            )
 
-        target_freq = get_likely_frequency(
-            timestamps=self.orig_records.index,  # TYPO
-            method=freq_estimation_method,
-            max_simplify_error=freq_estimation_simplify_tolerance,
-        )  # TYPO
+            target_freq = get_likely_frequency(
+                timestamps=self.orig_records.index,  # TYPO
+                method=freq_estimation_method,
+                max_simplify_error=freq_estimation_simplify_tolerance,
+            )  # TYPO
+        else:
+            target_freq = pd.to_timedelta(force_freq)
+            logger.debug(f"Force the frequency to {target_freq}")
 
-        logger.debug(
-            "Simplifying origin timestamp with tolerance: %s", origin_simplify_tolerance
-        )
+        if force_origin is None:
+            logger.debug(
+                "Simplifying origin timestamp with tolerance: %s",
+                origin_simplify_tolerance,
+            )
 
-        target_origin = simplify_time(
-            time=self.orig_records.index.min().floor(target_freq),
-            max_simplify_error=origin_simplify_tolerance,
-        )
+            target_origin = simplify_time(
+                time=self.orig_records.index.min().floor(target_freq),
+                max_simplify_error=origin_simplify_tolerance,
+            )
 
-        self._reindex_from_perfect_to_perfect(
+        else:
+            target_origin = pd.to_datetime(force_origin)
+            logger.debug(f"Force origin to {target_origin}")
+
+        self._map_to_perfect_timestamps(
             target_freq=target_freq,
             shift_tolerance=timestamp_tolerance,
             origin=target_origin,
+            closing=force_closing,
         )

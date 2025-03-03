@@ -15,13 +15,13 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": "Temperatuur",
-                "unit": "Celsius",
+                "unit": "degC",
                 "description": "2mT passive"
             },
             {
                 "tlk_obstype": "humidity",
                 "columnname": "Vochtigheid",
-                "unit": "%",
+                "unit": "percent",
                 "description": "2m relative humidity passive"
             },
             {
@@ -33,8 +33,8 @@
             {
                 "tlk_obstype": "wind_direction",
                 "columnname": "Windrichting",
-                "unit": "° from north (CW)",
-                "description": "Average 2m  10-min windspeed"
+                "unit": "degrees",
+                "description": "Average 2m  10-min windspeed, north is zero in CW direction."
             }
         ]
     },

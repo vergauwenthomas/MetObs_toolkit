@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 import numpy as np
 import pandas as pd
-import urllib
+import requests
 import json
 import pickle
 
@@ -10,13 +10,17 @@ import pickle
 # from metobs_toolkit.data_import import read_csv
 from abc import ABC, abstractmethod
 
+
 logger = logging.getLogger(__name__)
 
 
 class FileReader(ABC):
     def __init__(self, file_path: str, is_url: bool = False):
         # filepath
-        self.file_path = Path(file_path)
+        if is_url:
+            self.file_path = str(file_path)
+        else:
+            self.file_path = Path(file_path)
 
         # helping methods
         self.is_url = is_url
@@ -40,7 +44,7 @@ class FileReader(ABC):
 
 class CsvFileReader(FileReader):
     def __init__(self, file_path: str, is_url: bool = False):
-        super().__init__(file_path)
+        super().__init__(file_path, is_url=is_url)
         self.logger = logging.getLogger(__name__)
 
     def read(self, **readkwargs):
@@ -60,7 +64,7 @@ class CsvFileReader(FileReader):
 
 class JsonFileReader(FileReader):
     def __init__(self, file_path: str, is_url: bool = False):
-        super().__init__(file_path)
+        super().__init__(file_path, is_url=is_url)
         self.logger = logging.getLogger(__name__)
 
     def read(self, **readkwargs):
@@ -80,14 +84,14 @@ class JsonFileReader(FileReader):
         return data
 
     def read_as_remote_file(self, **readkwargs):
-        with urllib.request.urlopen(self.file_path) as url:
-            data = json.load(url, **readkwargs)
+        r = requests.get(self.file_path, **readkwargs)
+        data = r.json()
         return data
 
 
 class PickleFileReader(FileReader):
     def __init__(self, file_path: str, is_url: bool = False):
-        super().__init__(file_path)
+        super().__init__(file_path, is_url=is_url)
         self.logger = logging.getLogger(__name__)
 
     def read(self, **readkwargs):

@@ -14,7 +14,10 @@ def persistence_check(
 ) -> pd.DatetimeIndex:
     """Test observations to change over a specific period.
 
-    Looking for values of an observation type that do not change during a timewindow. These are flagged as outliers.
+    Looking for values that do not change during a timewindow. If no change is detected,
+    the center of the window is flagged as outlier.
+
+    Note that this is a moving-window check, and is thus numerically intensive.
 
     In order to perform this check, at least N observations should be in that time window.
 

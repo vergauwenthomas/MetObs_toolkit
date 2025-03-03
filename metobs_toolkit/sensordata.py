@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 from matplotlib.pyplot import Axes
 
+from metobs_toolkit.backend_collection.df_helpers import save_concat
 import metobs_toolkit.settings_files.default_formats_settings as defaults
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
-from metobs_toolkit.gap import Gap
+from metobs_toolkit.newgap import Gap
 import metobs_toolkit.qc_collection as qc
 import metobs_toolkit.backend_collection.timeseries_plotting as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
@@ -87,28 +88,46 @@ class SensorData:
         # gaps
         self.gaps = []  # list of Gap's
 
-        self._freqsettings = {
-            "freq_estimation_method": freq_estimation_method,
-            "freq_estimation_simplify_tolerance": freq_estimation_simplify_tolerance,
-            "orig_simplify_tolerance": origin_simplify_tolerance,
-            "timestamp_tolerance": timestamp_tolerance,
-        }
-
         # Setup the SensorData --> apply qc control on import, find gaps, unit conversions etc
-        self._setup()
+        self._setup(
+            freq_estimation_method=freq_estimation_method,
+            freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+            origin_simplify_tolerance=origin_simplify_tolerance,
+            timestamp_tolerance=timestamp_tolerance,
+            apply_invalid_check=True,
+            apply_dupl_check=True,
+            apply_unit_conv=True,
+        )
+
         logger.info("SensorData initialized successfully.")
+
+    def __repr__(self):
+        return f"Sensordata instance of {self.obstype.name} -> {self.stationname}"
 
     def __str__(self) -> str:
         """Return a string representation of the SensorData object."""
         return f"{self.obstype.name} data of station {self.stationname}."
 
-    def _setup(self) -> None:
+    def _setup(
+        self,
+        freq_estimation_method,
+        freq_estimation_simplify_tolerance,
+        origin_simplify_tolerance,
+        timestamp_tolerance,
+        apply_invalid_check=True,
+        apply_dupl_check=True,
+        apply_unit_conv=True,
+        force_origin=None,
+        force_freq=None,
+        force_closing=None,
+    ) -> None:
         """
         Setup the SensorData object.
 
         This includes:
-        1. Invalid check (records that could not be typecast to numeric)
-        2. Find the duplicates (remove them from observations + add them to outliers)
+
+        1. Find the duplicates (remove them from observations + add them to outliers)
+        2. Invalid check (records that could not be typecast to numeric) --> are interpreted as gaps.
         3. Convert the values to standard units + update the observation types
         4. Find gaps in the records (duplicates are excluded from the gaps)
         5. Get a frequency estimate per station
@@ -117,24 +136,30 @@ class SensorData:
         """
         logger.debug("Setting up SensorData for %s", self.stationname)
 
-        # invalid check
-        self.invalid_value_check()  # must be applied first!
+        if apply_dupl_check:
+            # remove duplicated timestamps
+            self.duplicated_timestamp_check()
 
-        # remove duplicated timestamps
-        self.duplicated_timestamp_check()
+        if apply_invalid_check:
+            # invalid check
+            self.invalid_value_check(
+                skip_records=self.outliers[0]["df"].index
+            )  # skip the records already labeld as duplicates
 
-        # convert units to standard units
-        self.convert_to_standard_units()
+        if apply_unit_conv:
+            # convert units to standard units
+            self.convert_to_standard_units()
 
         # format to perfect time records
         timestamp_matcher = TimestampMatcher(orig_records=self.series)
-        timestamp_matcher._make_equispaced_timestamps_mapper(
-            freq_estimation_method=self._freqsettings["freq_estimation_method"],
-            freq_estimation_simplify_tolerance=self._freqsettings[
-                "freq_estimation_simplify_tolerance"
-            ],
-            origin_simplify_tolerance=self._freqsettings["orig_simplify_tolerance"],
-            timestamp_tolerance=self._freqsettings["timestamp_tolerance"],
+        timestamp_matcher.make_equispaced_timestamps_mapper(
+            freq_estimation_method=freq_estimation_method,
+            freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+            origin_simplify_tolerance=origin_simplify_tolerance,
+            timestamp_tolerance=timestamp_tolerance,
+            force_closing=force_closing,
+            force_origin=force_origin,
+            force_freq=force_freq,
         )
 
         # update all the attributes holding data
@@ -165,22 +190,51 @@ class SensorData:
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
         )
 
+    def convert_outliers_to_gaps(self):
+
+        cur_freq = self.freq
+        cur_orig = self.start_datetime
+        cur_closing = self.end_datetime
+
+        # Create holes for all the outliers timestamps
+        self.series = self.series.loc[~self.series.index.isin(self.outliersdf.index)]
+
+        # Flush the outliers
+        logger.warning("Outliers are flushed!")
+        self.outliers = []
+
+        # Now do a setup without unit conv
+        self._setup(
+            freq_estimation_method="highest",  # irrelevant
+            freq_estimation_simplify_tolerance=pd.Timedelta("0min"),  # irrelevant
+            origin_simplify_tolerance=pd.Timedelta("0min"),  # irrelevant
+            timestamp_tolerance=pd.Timedelta("0min"),  # irrelevant
+            apply_invalid_check=False,
+            apply_dupl_check=False,
+            apply_unit_conv=False,
+            force_freq=cur_freq,
+            force_closing=cur_closing,
+            force_origin=cur_orig,
+        )
+
     def resample(
         self,
         target_freq,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
-        direction="nearest",
+        origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
 
         target_freq = pd.to_timedelta(target_freq)
         # Create a timestampmatcher
         timestampmatcher = TimestampMatcher(orig_records=self.series)
-        timestampmatcher._reindex_from_perfect_to_perfect(
-            target_freq=target_freq,
-            shift_tolerance=shift_tolerance,
-            origin=origin,
-            direction=direction,
+        timestampmatcher.make_equispaced_timestamps_mapper(
+            freq_estimation_method="highest",  # irrelevant
+            freq_estimation_simplify_tolerance=pd.Timedelta(0),  # irrelevant
+            origin_simplify_tolerance=origin_simplify_tolerance,
+            timestamp_tolerance=shift_tolerance,
+            force_freq=target_freq,
+            force_origin=origin,
         )
         # update all the attributes holding data
         self.series = timestampmatcher.target_records
@@ -188,7 +242,9 @@ class SensorData:
         # update the outliers (replace the raw timestamps with the new)
         outl_datetime_map = timestampmatcher.get_outlier_map()
         for outlinfo in self.outliers:
+            # add mapped timestamps
             outlinfo["df"]["new_datetime"] = outlinfo["df"].index.map(outl_datetime_map)
+            # reformat the dataframe
             outlinfo["df"] = (
                 outlinfo["df"]
                 .reset_index()
@@ -197,6 +253,8 @@ class SensorData:
                 )
                 .set_index("datetime")
             )
+            # Drop references to NaT datetimes (when qc is applied before resampling)
+            outlinfo["df"] = outlinfo["df"].loc[outlinfo["df"].index.notnull()]
 
         # create gaps
         if bool(self.gaps):
@@ -246,6 +304,7 @@ class SensorData:
         )
 
         outliersdf = self.outliersdf[["value", "label"]]
+
         gapsdf = self.gapsdf[["value", "label"]]
 
         # concat all together (do not change order)
@@ -254,7 +313,7 @@ class SensorData:
             to_concat.append(outliersdf)
         if not gapsdf.empty:
             to_concat.append(gapsdf)
-        df = pd.concat(to_concat)
+        df = save_concat((to_concat))
         # remove duplicates
         df = df[~df.index.duplicated(keep="last")].sort_index()
 
@@ -284,8 +343,15 @@ class SensorData:
             checkdf["label"] = defaults.label_def[checkname]["label"]
             to_concat.append(checkdf)
 
-        totaldf = pd.concat(to_concat)
-        totaldf.sort_index(inplace=True)
+        if bool(to_concat):
+            totaldf = save_concat(to_concat)
+            totaldf.sort_index(inplace=True)
+        else:
+            # return empty dataframe
+            totaldf = pd.DataFrame(
+                columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
+            )
+
         logger.debug("Outliers DataFrame created successfully for %s", self.stationname)
         return totaldf
 
@@ -294,19 +360,12 @@ class SensorData:
         to_concat = []
         if bool(self.gaps):
             for gap in self.gaps:
-                gapdf = (
-                    gap.gapdf.reset_index()
-                    .set_index("datetime")
-                    .drop(columns=["name"])
-                    .rename(columns={self.obstype.name: "value"})
-                    .assign(label="gap")
-                )
-
-                to_concat.append(gapdf)
-            return pd.concat(to_concat).sort_index()
+                to_concat.append(gap.df)
+            return save_concat((to_concat)).sort_index()
         else:
             return pd.DataFrame(
-                columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name="datetime"),
             )
 
     @property
@@ -504,11 +563,13 @@ class SensorData:
         gaps = []
         for _idx, gapgroup in missing.groupby("gap_group"):
             gap = Gap(
-                name=self.stationname,
-                startdt=gapgroup.index.min(),
-                enddt=gapgroup.index.max(),
+                gaprecords=pd.date_range(
+                    gapgroup.index.min(),
+                    gapgroup.index.max(),
+                    freq=pd.to_timedelta(target_freq),
+                ),
                 obstype=self.obstype,
-                records_freq=pd.to_timedelta(target_freq),
+                stationname=self.stationname,
             )
             gaps.append(gap)
         return gaps
@@ -583,7 +644,7 @@ class SensorData:
     #    Quality Control (techincal qc + valuebased qc)
     # ------------------------------------------
 
-    def invalid_value_check(self) -> None:
+    def invalid_value_check(self, skip_records: pd.DatetimeIndex) -> None:
         """
         Check for invalid values in the series.
 
@@ -594,17 +655,33 @@ class SensorData:
         MetobsQualityControlError
             If the check is already applied.
         """
+
         logger.info("Performing invalid value check for %s", self.stationname)
 
-        outlier_timestamps = self.series[~self.series.notnull()]
+        skipped_data = self.series.loc[skip_records]
+        targets = self.series.drop(skip_records)
+        # Option 1: Create a outlier label for these invalid inputs,
+        # and treath them as outliers
+        # outlier_timestamps = targets[~targets.notnull()]
 
-        self._update_outliers(
-            qccheckname="invalid_input",
-            outliertimestamps=outlier_timestamps.index,
-            check_kwargs={},
-            extra_columns={},
-            overwrite=False,
-        )
+        # self._update_outliers(
+        #     qccheckname="invalid_input",
+        #     outliertimestamps=outlier_timestamps.index,
+        #     check_kwargs={},
+        #     extra_columns={},
+        #     overwrite=False,
+        # )
+
+        # Option 2: Since there is not numeric value present, these timestamps are
+        # interpreted as gaps --> remove the timestamp, so that it is captured by the
+        # gap finder.
+
+        # Note: do not treat the first/last timestamps differently. That is
+        # a philosiphycal choice.
+
+        self.series = targets[targets.notnull()]  # subset to numerical casted values
+        # add the skipped records back
+        self.series = pd.concat([self.series, skipped_data]).sort_index()
 
     def duplicated_timestamp_check(self) -> None:
         """
@@ -687,6 +764,81 @@ class SensorData:
             extra_columns={},
             overwrite=False,
         )
+
+    # ------------------------------------------
+    #    Gaps related
+    # ------------------------------------------
+    def fill_gap_with_modeldata(
+        self, modeltimeseries, method="raw", overwrite_fill=False, method_kwargs={}
+    ):
+        for gap in self.gaps:
+            if not gap.flag_can_be_filled(overwrite_fill):
+                logger.warning(
+                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                )
+                continue
+
+            else:
+                logger.debug(f"filling {gap} with {method} modeldata.")
+                match method:
+                    case "raw":
+                        gap.raw_model_gapfill(
+                            modeltimeseries=modeltimeseries, **method_kwargs
+                        )
+                    case "debiased":
+                        gap.debiased_model_gapfill(
+                            sensordata=self,
+                            modeltimeseries=modeltimeseries,
+                            **method_kwargs,
+                        )
+                    case "diurnal_debiased":
+                        gap.diurnal_debiased_model_gapfill(
+                            sensordata=self,
+                            modeltimeseries=modeltimeseries,
+                            **method_kwargs,
+                        )
+
+                    case "weighted_diurnal_debiased":
+                        gap.weighted_diurnal_debiased_model_gapfill(
+                            sensordata=self,
+                            modeltimeseries=modeltimeseries,
+                            **method_kwargs,
+                        )
+                    case _:
+                        raise NotImplementedError(
+                            f"modeldata gapfill method: {method} is not implemented!"
+                        )
+
+    def interpolate_gaps(
+        self,
+        overwrite_fill=False,
+        method="time",
+        max_consec_fill=10,
+        n_leading_anchors=1,
+        n_trailing_anchors=1,
+        max_lead_to_gap_distance=None,
+        max_trail_to_gap_distance=None,
+        method_kwargs={},
+    ):
+
+        for gap in self.gaps:
+            if not gap.flag_can_be_filled(overwrite_fill):
+                logger.warning(
+                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                )
+                continue
+            else:
+                logger.debug(f"filling {gap} with {method} interpolation.")
+                gap.interpolate(
+                    sensordata=self,
+                    method=method,
+                    max_consec_fill=max_consec_fill,
+                    n_leading_anchors=n_leading_anchors,
+                    n_trailing_anchors=n_trailing_anchors,
+                    max_lead_to_gap_distance=max_lead_to_gap_distance,
+                    max_trail_to_gap_distance=max_trail_to_gap_distance,
+                    method_kwargs=method_kwargs,
+                )
 
 
 # ------------------------------------------

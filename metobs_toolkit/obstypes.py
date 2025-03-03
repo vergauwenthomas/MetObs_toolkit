@@ -1,164 +1,73 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Class defenition for regular observation types. The default observationtypes
-are define here aswell.
-"""
-
-import sys
 import logging
-from collections.abc import Iterable
-
+import pint
 import numpy as np
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
-
-# =============================================================================
-# Standard toolkit units for each observation type
-# =============================================================================
-
-tlk_std_units = {
-    "temp": "Celsius",
-    "radiation_temp": "Celsius",
-    "humidity": "%",
-    "precip": "mm/m²",
-    "precip_sum": "mm/m² from midnight",
-    "wind_speed": "m/s",
-    "wind_gust": "m/s",
-    "wind_direction": "° from north (CW)",
-    "pressure": "pa",
-    "pressure_at_sea_level": "pa",
-}
-
-
-# =============================================================================
-# Aliases for units
-# =============================================================================
-
-temp_aliases = {
-    "Celsius": [
-        "celsius",
-        "°C",
-        "°c",
-        "celcius",
-        "Celcius",
-    ],  # for the dyselectic developper..
-    "Kelvin": ["K", "kelvin"],
-    "Fahrenheit": ["fahrenheit"],
-}
-pressure_aliases = {
-    "pa": ["Pascal", "pascal", "Pa"],
-    "hpa": ["hecto pascal", "hPa"],
-    "psi": ["Psi"],
-    "bar": ["Bar"],
-}
-
-precip_aliases = {"mm/m²": ["mm", "liter", "liters", "l/m²", "millimeter"]}
-
-wind_aliases = {
-    "m/s": ["meters/second", "m/sec"],
-    "km/h": ["kilometers/hour", "kph"],
-    "mph": ["miles/hour"],
-}
-direction_aliases = {"° from north (CW)": ["°", "degrees"]}
-
-
-# conversion between standard-NAMES and aliases
-all_units_aliases = {
-    "temp": temp_aliases,
-    "radiation_temp": temp_aliases,
-    "humidity": {"%": ["percent", "percentage"]},
-    "pressure": pressure_aliases,
-    "pressure_at_sea_level": pressure_aliases,
-    "precip": precip_aliases,
-    "precip_sum": precip_aliases,
-    "wind_speed": wind_aliases,
-    "wind_gust": wind_aliases,
-    "wind_direction": direction_aliases,
-}
-
-# =============================================================================
-# Unit conversion expressions
-# =============================================================================
-
-all_conversion_table = {
-    "temp": {
-        "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Fahrenheit": ["x-32.0", "x/1.8"],
-    },  # -->execute from left to write  = (x-32)/1.8
-    "radiation_temp": {
-        "Kelvin": ["x - 273.15"],  # result is in tlk_std_units
-        "Fahrenheit": ["x-32.0", "x/1.8"],
-    },
-    "humidity": {},
-    "pressure": {"hpa": ["x * 100"], "psi": ["x * 6894.7573"], "bar": ["x * 100000."]},
-    "pressure_at_sea_level": {
-        "hpa": ["x * 100"],
-        "psi": ["x * 6894.7573"],
-        "bar": ["x * 100000."],
-    },
-    "precip": {},
-    "precip_sum": {},
-    "wind_speed": {"km/h": ["x / 3.6"], "mph": ["x * 0.44704"]},
-    "wind_gust": {"km/h": ["x / 3.6"], "mph": ["x * 0.44704"]},
-    "wind_direction": {},
-}
-
-# =============================================================================
-# Observation type class
-# =============================================================================
+# ------------------------------------------
+#    Setup unit registry
+# ------------------------------------------
+ureg = pint.UnitRegistry(system="SI")
+ureg.formatter.default_format = ".3f"
+pint.set_application_registry(ureg)
 
 
 class Obstype:
-    """Object with all info and methods for a specific observation type."""
+    def __init__(self, obsname: str, std_unit: str | pint.Unit, description: str):
+        # set name
+        self._name = str(obsname)
 
-    def __init__(
-        self, obsname, std_unit, description=None, unit_aliases={}, unit_conversions={}
-    ):
-        """Initiate an observation type.
+        # set standard unit
+        self._std_unit = _fmtunit(std_unit)
 
-        Parameters
-        ----------
-        obsname : str
-            The name of the new observation type (i.g. 'sensible_heat_flux').
-        std_unit : str
-            The standard unit for the observation type (i.g. 'J/m²')
-        obstype_description : str, optional
-            A more detailed description of the obstype (i.g. '2m SE inside
-            canopy'). The default is None.
-        unit_aliases : dict, optional
-            A dictionary containing unit alias names. Keys represent a unit and
-            values are lists with aliases for the units at the keys. The default is {}.
-        unit_conversions : dict, optional
-            A dictionary containing the conversion information to map to the
-            standard units. Here is an example of temperatures (with Celcius
-            as standard unit):
+        # set description
+        self._description = str(description)
 
-                {'Kelvin': ["x - 273.15"], #result is in tlk_std_units
-                'Fahrenheit' : ["x-32.0", "x/1.8"]}, # -->execute from left to write  = (x-32)/1.8
+        # open slots
+        self._original_name = None
+        self._original_unit = None
 
-                The default is {}.
+    @property
+    def name(self):
+        return str(self._name)
 
-        Returns
-        -------
-        None.
+    @property
+    def std_unit(self):
+        return str(self._std_unit)
 
-        """
-        self.name = str(obsname)  # Standard name for the observation type
-        self.std_unit = str(std_unit)  # standard unit fot the observation type
-        self.description = str(description)
+    @property
+    def description(self):
+        return str(self._description)
 
-        # Conversion info and mappers
-        self.units_aliases = unit_aliases
-        self.conv_table = unit_conversions
+    @description.setter
+    def description(self, value):
+        self._description = str(value)
 
-        # Original column name and units in the data
-        self.original_name = None  # Updated on IO
-        self.original_unit = None  # updated on IO
+    @property
+    def orginal_name(self):
+        return str(self._original_name)
 
-        self._check_attributes()
+    @orginal_name.setter
+    def original_name(self, value):
+        self._original_name = str(value)
+
+    @property
+    def original_unit(self):
+        if isinstance(self._original_unit, pint.Quantity):
+            if self._original_unit.magnitude == 1:
+                return self._original_unit.u
+        return self._original_unit
+
+    @original_unit.setter
+    def original_unit(self, value):
+        self._original_unit = _fmtunit(value)
+        # test if it is a compatible unit wrt the standard unit
+        if not self._original_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitUnknown(
+                f"{self._original_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
+            )
 
     def __repr__(self):
         """Instance representation."""
@@ -168,33 +77,7 @@ class Obstype:
         """Text representation."""
         return f"{type(self).__name__} instance of {self.name}"
 
-    def __eq__(self, other):
-        is_eq = (
-            (self.name == other.name)
-            & (self.std_unit == other.std_unit)
-            & (self.description == other.description)
-            & (self.units_aliases == other.units_aliases)
-            & (self.conv_table == other.conv_table)
-        )
-        return is_eq
-
-    # -----  Setters -------
-
-    def set_description(self, desc):
-        """Set the description of the observation type."""
-        self.description = str(desc)
-
-    def set_original_name(self, columnname):
-        """Set the original name of the observation type."""
-        self.original_name = str(columnname)
-
-    def set_original_unit(self, original_unit):
-        """Set the original unit of the observation type."""
-        self.original_unit = str(original_unit)
-
-    # ------ Getters --------
-
-    def get_info(self):
+    def get_info(self, printout=True):
         """Print out detailed information of the observation type.
 
         Returns
@@ -205,295 +88,224 @@ class Obstype:
         info_str = f"{self.name} observation with: \n \
     * standard unit: {self.std_unit} \n \
     * data column as {self.original_name} in {self.original_unit} \n \
-    * known units and aliases: {self.units_aliases} \n \
-    * description: {self.description} \n \
-    * conversions to known units: {self.conv_table} \n \
-    * originates from data column: {self.original_name} with {self.original_unit} as native unit."
-        print(info_str)
-
-    def get_orig_name(self):
-        """Return the original name of the observation type."""
-        return self.original_name
-
-    def get_description(self):
-        """Return the descrition of the observation type."""
-        if self.description == str(None):
-            return "No description available"
+    * description: {self.description}"
+        if printout:
+            print(info_str)
         else:
-            return str(self.description)
+            return info_str
 
-    def get_all_units(self):
-        """Return a list with all the known units (in standard naming)."""
-        units = list(self.units_aliases.keys())
-        units.append(self.get_standard_unit())
-        units = list(set(units))
-        units.sort()
-        return units
-
-    def get_standard_unit(self):
-        """Return the standard unit of the observation type."""
-        return self.std_unit
-
-    def _get_plot_y_label(self, mapname=None):
+    def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""
         return f"{self.name} ({self.std_unit})"
 
-    def add_unit(self, unit_name, conversion=["x"]):
-        """Add a new unit to an observation type.
+    def convert_to_standard_units(self, input_data, input_unit):
 
-        Parameters
-        ----------
-        unit_name : str
-            The name of the new unit.
-        conversion : list, optional
-            The conversion description to the standard unit. The default is
-            ["x"].
+        # format input unit
+        input_unit = _fmtunit(input_unit)
+        # Test if inputunit is compatible with std unit
+        if not input_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitUnknown(
+                f"{input_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
+            )
 
-        Returns
-        -------
-        None.
-
-        """
-        # check if unit name is already known
-        known = self.test_if_unit_is_known(unit_name)
-        if known:
-            return
-
-        # convert expression to list if it is a string
-        if isinstance(conversion, str):
-            conversion = [conversion]
-
-        # add converstion to the table
-        self.conv_table[str(unit_name)] = conversion
-
-        # add to alias table (without aliasses)
-        self.units_aliases[unit_name] = []
-
-        logger.info(
-            f"{unit_name} is added as a {self.name} unit with coversion: {conversion} to {self.std_unit}"
+        # convert data
+        return convert_units(
+            records=input_data, cur_unit=input_unit, trg_unit=self._std_unit
         )
 
-    def convert_to_standard_units(self, input_data, input_unit):
-        """Convert data from a known unit to the standard unit.
 
-        The data can be a collection of numeric values or a single numeric
-        value.
+class ModelObstype(Obstype):
+    def __init__(self, obstype, model_unit, model_band):
+        # set regular obstype
+        super().__init__(
+            obsname=obstype.name,
+            std_unit=obstype.std_unit,
+            description=obstype.description,
+        )
 
-        Parameters
-        ----------
-        input_data : (collection of) numeric
-            The data to convert to the standard unit.
-        input_unit : str
-            The known unit the inputdata is in.
-
-        Returns
-        -------
-        data  numeric / numpy.array / pd.Series
-            The data in standard units. (Returned in the same structure and
-            format as the input_data.)
-
-        """
-        # check if input unit is known
-        known = self.test_if_unit_is_known(input_unit)
-
-        # error when unit is not know
-        if not known:
-            sys.exit(
-                f"{input_unit} is an unknown unit for {self.name}. No coversion possible!"
+        # Set modelunit
+        self._model_unit = _fmtunit(model_unit)
+        # test if it is a compatible unit wrt the standard unit
+        if not self._model_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitUnknown(
+                f"{self._model_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
             )
 
-        # Get conversion
-        std_unit_name = self._get_std_unit_name(input_unit)
-        if std_unit_name == self.std_unit:
-            # No conversion needed because already the standard unit
-            return input_data
+        # Set modelband
+        self._model_band = str(model_band)
 
-        conv_expr_list = self.conv_table[std_unit_name]
+    @property
+    def model_unit(self):
+        return str(self._model_unit)
 
-        # covert data
-        data = input_data
-        for conv in conv_expr_list:
-            data = expression_calculator(conv, data)
+    @property
+    def model_band(self):
+        return str(self._model_band)
 
-        # convert output to same type as input
-        if (isinstance(input_data, int)) | (isinstance(input_data, float)):
-            return float(
-                data
-            )  # always float because int can be converted to fload due to conversiontable
 
-        elif isinstance(input_data, pd.core.series.Series):
-            data = pd.Series(index=input_data.index, data=data, name=input_data.name)
-            return data
+class ModelObstype_Vectorfield(Obstype):
+    def __init__(
+        self,
+        obstype,
+        model_unit,
+        model_band_u,
+        model_band_v,
+        amplitude_obstype_name,
+        direction_obstype_name,
+    ):
+        # set regular obstype
+        super().__init__(
+            obsname=obstype.name,
+            std_unit=obstype.std_unit,
+            description=obstype.description,
+        )
 
-        elif isinstance(input_data, np.ndarray):
-            return np.asarray(data)
-
-        else:
-            logger.warning(
-                f"The dtype ({type(input_data)}), of input data for unit conversion is not a default."
+        # Set modelunit
+        self._model_unit = _fmtunit(model_unit)
+        # test if it is a compatible unit wrt the standard unit
+        if not self._model_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitUnknown(
+                f"{self._model_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
             )
-            return data
 
-    # ------------- Helpers ----------------------------------
+        # Set bandnames
+        self.model_band_u = str(model_band_u)
+        self.model_band_v = str(model_band_v)
 
-    def _check_attributes(self):
-        """Add units from the conv_table to the aliases if needed."""
-        add_to_aliases = {}
-        all_std_unit_names = []
-        all_aliases = []
-        for std_unit, alias_units in self.units_aliases.items():
-            all_std_unit_names.append(std_unit)
-            all_aliases.extend(alias_units)
+        self._amp_obs_name = str(amplitude_obstype_name)
+        self._dir_obs_name = str(direction_obstype_name)
 
-        # add empty alias for all obstype present in conv table if no aliases are given
-        for unit in self.conv_table.keys():
-            if unit not in all_std_unit_names:
-                if unit not in all_aliases:
-                    add_to_aliases[unit] = []
-        # add std unit to aliases if it is not already present
-        if self.get_standard_unit() not in all_std_unit_names:
-            add_to_aliases[self.get_standard_unit()] = []
+    @property
+    def model_unit(self):
+        return str(self._model_unit)
 
-        self.units_aliases.update(add_to_aliases)
 
-    def _get_std_unit_name(self, unit_name):
-        """Get the standard name for a unit by scanning through the aliases."""
-        for std_unit_name, aliases in self.units_aliases.items():
-            if unit_name == std_unit_name:
-                return unit_name
-            if unit_name in aliases:
-                return std_unit_name
-        sys.exit(f"No standard unit name is found for {unit_name} for {self.name}")
+# ------------------------------------------
+#    Helpers
+# ------------------------------------------
 
-    def test_if_unit_is_known(self, unit_name):
-        """Test is the unit is known.
 
-        Parameters
-        ----------
-        unit_name : str
-            The unit name to test.
-
-        Returns
-        -------
-        bool
-            True if knonw, False else.
-
-        """
-        if unit_name == self.std_unit:
-            return True
-        for std_unit_name, aliases in self.units_aliases.items():
-            if unit_name == std_unit_name:
-                return True
-            if unit_name in aliases:
-                return True
+def is_known_unit(unit):
+    try:
+        ureg.parse_expression(unit)
+        return True
+    except pint.errors.UndefinedUnitError:
         return False
 
 
-def expression_calculator(equation, x):
-    """Convert array by equation."""
-    if isinstance(x, Iterable):
-        x = np.array(x)
+def _fmtunit(value):
+    """Convert unit input to pint.Unit"""
+    if isinstance(value, pint.Unit):
+        return value
+    elif isinstance(value, pint.Quantity):
+        if value.magnitude == 1:
+            return value.u
+        else:
+            raise MetObsUnitUnknown(
+                f"{value} is a pint.Quantity with non-1 magnitude and cannot be converted to a unit."
+            )
 
-    if "+" in equation:
-        y = equation.split("+")
-        return x + float(y[1])
-    elif "-" in equation:
-        y = equation.split("-")
-        return x - float(y[1])
-    elif "/" in equation:
-        y = equation.split("/")
-        return x / float(y[1])
-    elif "*" in equation:
-        y = equation.split("*")
-        return x * float(y[1])
+    elif isinstance(value, str):
+        if not is_known_unit(value):
+            raise MetObsUnitUnknown(
+                f"{value} is not a known unit. (See https://github.com/hgrecco/pint/blob/master/pint/default_en.txt for all known units.)"
+            )
+        else:
+            return ureg.parse_expression(value)
     else:
-        sys.exit(f"expression {equation}, can not be converted to mathematical.")
+        raise MetObsUnitUnknown(f"{value} is not a string or pint.Unit.")
 
 
-# =============================================================================
-# Create observation types
-# =============================================================================
+def convert_units(records, cur_unit, trg_unit):
+    logger.debug(f"Converting data from {cur_unit} --> {trg_unit} ")
+    if isinstance(records, pd.Series):
+        trgvalues = ureg.Quantity(records.to_numpy(), cur_unit).to(trg_unit)
+        return pd.Series(
+            index=records.index, data=trgvalues.magnitude, name=records.name
+        )
+    elif isinstance(records, np.ndarray):
+        return ureg.Quantity(records, cur_unit).to(trg_unit).magnitude
+    elif isinstance(records, int):
+        return ureg.Quantity(records, cur_unit).to(trg_unit).magnitude
+    elif isinstance(records, float):
+        return ureg.Quantity(records, cur_unit).to(trg_unit).magnitude
+    else:
+        raise NotImplementedError(f"{records} is not a supported input type.")
+
+
+# ------------------------------------------
+#    Errors
+# ------------------------------------------
+
+
+class MetObsUnitUnknown(Exception):
+    """Raised when an invalid unit is set."""
+
+    pass
+
+
+# ------------------------------------------
+#    Default obstypes
+# ------------------------------------------
 
 temperature = Obstype(
-    obsname="temp",
-    std_unit=tlk_std_units["temp"],
-    description="2m - temperature",
-    unit_aliases=all_units_aliases["temp"],
-    unit_conversions=all_conversion_table["temp"],
+    obsname="temp", std_unit=ureg.degC, description="2m - temperature"
 )
 
 humidity = Obstype(
     obsname="humidity",
-    std_unit=tlk_std_units["humidity"],
+    std_unit=ureg.percent,
     description="2m - relative humidity",
-    unit_aliases=all_units_aliases["humidity"],
-    unit_conversions=all_conversion_table["humidity"],
 )
 
 radiation_temp = Obstype(
     obsname="radiation_temp",
-    std_unit=tlk_std_units["radiation_temp"],
+    std_unit=ureg.degC,
     description="2m - Black globe",
-    unit_aliases=all_units_aliases["radiation_temp"],
-    unit_conversions=all_conversion_table["radiation_temp"],
 )
 
 pressure = Obstype(
     obsname="pressure",
-    std_unit=tlk_std_units["pressure"],
+    std_unit=ureg.hectopascal,
     description="atmospheric pressure (at station)",
-    unit_aliases=all_units_aliases["pressure"],
-    unit_conversions=all_conversion_table["pressure"],
 )
 
 pressure_at_sea_level = Obstype(
     obsname="pressure_at_sea_level",
-    std_unit=tlk_std_units["pressure_at_sea_level"],
+    std_unit=ureg.hectopascal,
     description="atmospheric pressure (at sea level)",
-    unit_aliases=all_units_aliases["pressure_at_sea_level"],
-    unit_conversions=all_conversion_table["pressure_at_sea_level"],
 )
 
 precip = Obstype(
     obsname="precip",
-    std_unit=tlk_std_units["precip"],
+    std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="precipitation intensity",
-    unit_aliases=all_units_aliases["precip"],
-    unit_conversions=all_conversion_table["precip"],
 )
 
 precip_sum = Obstype(
     obsname="precip_sum",
-    std_unit=tlk_std_units["precip"],
+    std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="Cummulated precipitation",
-    unit_aliases=all_units_aliases["precip_sum"],
-    unit_conversions=all_conversion_table["precip_sum"],
 )
 wind_speed = Obstype(
     obsname="wind_speed",
-    std_unit=tlk_std_units["wind_speed"],
+    std_unit=ureg.meter / ureg.second,
     description="wind speed",
-    unit_aliases=all_units_aliases["wind_speed"],
-    unit_conversions=all_conversion_table["wind_speed"],
 )
 
 windgust = Obstype(
     obsname="wind_gust",
-    std_unit=tlk_std_units["wind_gust"],
+    std_unit=ureg.meter / ureg.second,
     description="wind gust",
-    unit_aliases=all_units_aliases["wind_gust"],
-    unit_conversions=all_conversion_table["wind_gust"],
 )
 
 wind_direction = Obstype(
     obsname="wind_direction",
-    std_unit=tlk_std_units["wind_direction"],
+    std_unit=ureg.degree,
     description="wind direction",
-    unit_aliases=all_units_aliases["wind_direction"],
-    unit_conversions=all_conversion_table["wind_direction"],
 )
 
-# The order of the dictionary is also the order on how columns in dataset are presetnted
+
 tlk_obstypes = {
     "temp": temperature,
     "humidity": humidity,
@@ -508,10 +320,36 @@ tlk_obstypes = {
 }
 
 
-# =============================================================================
-# Docstring test
-# =============================================================================
-if __name__ == "__main__":
-    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+temp_era5 = ModelObstype(
+    obstype=temperature, model_unit=ureg.degK, model_band="temperature_2m"
+)
+temp_era5.description = "Temperature of air at 2m above the surface of land, sea or in-land waters. 2m temperature is calculated by interpolating between the lowest model level and the Earth's surface, taking account of the atmospheric conditions."
 
-    setup_and_run_doctest()
+
+pressure_era5 = ModelObstype(
+    obstype=pressure, model_unit="pascal", model_band="surface_pressure"
+)
+pressure_era5.description = (
+    "Pressure (force per unit area) of the atmosphere on the surface of land, sea and in-land water. It is a measure of the weight of all the air in a column vertically above the area of the Earth's surface represented at a fixed point. Surface pressure is often used in combination with temperature to calculate air density. The strong variation of pressure with altitude makes it difficult to see the low and high pressure systems over mountainous areas, so mean sea level pressure, rather than surface pressure, is normally used for this purpose. The units of this variable are Pascals (Pa). Surface pressure is often measured in hPa and sometimes is presented in the old units of millibars, mb (1 hPa = 1 mb = 100 Pa).",
+)
+
+
+# create a new obstype that represent the vectorfield of wind
+wind_components = Obstype(
+    "wind",
+    std_unit=wind_speed.std_unit,
+    description=None,
+)
+
+wind_era5 = ModelObstype_Vectorfield(
+    obstype=wind_components,
+    model_unit=ureg.meter / ureg.second,
+    model_band_u="u_component_of_wind_10m",
+    model_band_v="v_component_of_wind_10m",
+    amplitude_obstype_name="wind_speed",
+    direction_obstype_name="wind_direction",
+)
+wind_era5.description = "2D-vector combined 10m windspeed. Care should be taken when comparing this variable with observations, because wind observations vary on small space and time scales and are affected by the local terrain, vegetation and buildings that are represented only on average in the ECMWF Integrated Forecasting System."
+
+
+default_era5_obstypes = [temp_era5, pressure_era5, wind_era5]
