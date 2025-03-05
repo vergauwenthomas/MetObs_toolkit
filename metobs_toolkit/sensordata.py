@@ -11,7 +11,7 @@ from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.newgap import Gap
 import metobs_toolkit.qc_collection as qc
-import metobs_toolkit.backend_collection.timeseries_plotting as plotting
+import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
 
 logger = logging.getLogger(__file__)
@@ -179,12 +179,14 @@ class SensorData:
             )
 
         # create gaps
+
         if bool(self.gaps):
             logger.warning(
                 "The present gaps are removed, new gaps are constructed for %s.", self
             )
             self.gaps = []
 
+        # Construct gaps
         self.gaps = self._find_gaps(
             missingrecords=timestamp_matcher.gap_records,
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
@@ -257,14 +259,23 @@ class SensorData:
             outlinfo["df"] = outlinfo["df"].loc[outlinfo["df"].index.notnull()]
 
         # create gaps
+        orig_gapsdf = self.gapsdf
         if bool(self.gaps):
             logger.warning(
                 "The present gaps are removed, new gaps are constructed for %s.", self
             )
             self.gaps = []
 
+        # new created-by-resampling missing timestamps
+        new_missing = timestampmatcher.gap_records
+        # the original gaps timestamp
+        orig_missing = orig_gapsdf["value"]
+
+        # combine both sets and construct new gaps
+        all_missing = pd.concat([new_missing, orig_missing]).sort_index()
+        # Construct gaps
         self.gaps = self._find_gaps(
-            missingrecords=timestampmatcher.gap_records,
+            missingrecords=all_missing,
             target_freq=pd.to_timedelta(timestampmatcher.target_freq),
         )
 
@@ -522,18 +533,6 @@ class SensorData:
 
         self.series.loc[outliertimestamps] = np.nan
 
-    def convert_to_standard_units(self) -> None:
-        """
-        Convert the data records to the standard units defined in the observation type.
-        """
-        logger.info(
-            "Converting data records to standard units for %s", self.stationname
-        )
-
-        self.series = self.obstype.convert_to_standard_units(
-            input_data=self.series, input_unit=self.obstype.original_unit
-        )
-
     def _find_gaps(self, missingrecords: pd.Series, target_freq: pd.Timedelta) -> list:
         """
         Identify gaps in the missing records based on the target frequency.
@@ -573,6 +572,27 @@ class SensorData:
             )
             gaps.append(gap)
         return gaps
+
+    def _rename(self, trgname: str):
+        self._stationname = str(trgname)
+        for gap in self.gaps:
+            gap.name = str(trgname)
+
+    # ------------------------------------------
+    #    Specials
+    # ------------------------------------------
+
+    def convert_to_standard_units(self) -> None:
+        """
+        Convert the data records to the standard units defined in the observation type.
+        """
+        logger.info(
+            "Converting data records to standard units for %s", self.stationname
+        )
+
+        self.series = self.obstype.convert_to_standard_units(
+            input_data=self.series, input_unit=self.obstype.original_unit
+        )
 
     # ------------------------------------------
     #    plots
@@ -764,6 +784,44 @@ class SensorData:
             extra_columns={},
             overwrite=False,
         )
+
+    def get_qc_freq_statistics(self):
+        infodict = {}  # checkname : details
+        ntotal = self.series.shape[0]  # gaps included !!
+        already_rejected = self.gapsdf.shape[0]  # initial gap records
+        # add the 'ok' labels
+        infodict[defaults.label_def["goodrecord"]["label"]] = {
+            "N_all": ntotal,
+            "N_labeled": self.series[self.series.notnull()].shape[0],
+        }
+        # add the 'gap' labels
+
+        infodict[defaults.label_def["regular_gap"]["label"]] = {
+            "N_all": ntotal,
+            "N_labeled": already_rejected,
+        }
+
+        # add the qc check labels
+        for check in self.outliers:
+            n_outliers = check["df"].shape[0]
+            n_checked = ntotal - already_rejected
+            outlierlabel = defaults.label_def[check["checkname"]]["label"]
+            infodict[outlierlabel] = {
+                "N_labeled": n_outliers,
+                "N_checked": n_checked,
+                "N_all": ntotal,
+            }
+
+            # remove the outliers of the previous check
+            already_rejected = already_rejected + n_outliers
+
+        # Convert to a dataframe
+        checkdf = pd.DataFrame(infodict).transpose()
+        checkdf.index.name = "qc_check"
+        checkdf["name"] = self.stationname
+        checkdf = checkdf.reset_index().set_index(["name", "qc_check"])
+
+        return checkdf
 
     # ------------------------------------------
     #    Gaps related

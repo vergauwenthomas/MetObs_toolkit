@@ -14,7 +14,6 @@ import datetime
 import metobs_toolkit.gap_filling as gap_filling
 
 from metobs_toolkit.backend_collection.df_helpers import (
-    init_multiindexdf,
     xs_save,
     save_concat,
 )

@@ -81,16 +81,14 @@ plot_settings["spatial_geo"] = {
 
 plot_settings["pie_charts"] = {
     # shape
-    "figsize": (10, 10),
-    "anchor_legend_big": (-0.25, 0.75),
-    "anchor_legend_small": (-3.5, 2.2),
-    "radius_big": 2.0,
-    "radius_small": 5.0,
-    "effectiveness_colormap": {
-        "ok": "green",
-        "not checked": "orange",
-        "outlier": "red",
-    },
+    "figsize": (15, 10),
+    "ncols": 4,
+    # "anchor_legend_big": (-0.25, 0.75),
+    # "anchor_legend_small": (-3.5, 2.2),
+    "radius_big": 1.0,
+    "radius_small": 0.7,
+    "txt_size_big_pies": 7,
+    "txt_size_small_pies": 5,
 }
 
 # =============================================================================

@@ -8,19 +8,42 @@ Created on Wed May 24 10:25:45 2023
 
 import os
 import sys
+import inspect
 import pandas as pd
 import numpy as np
 import copy
 from datetime import datetime
 import pytz
 
-
+from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.template import _get_empty_templ_dict, _pwrite_templdict_to_json
 
+from metobs_toolkit.Newdataset import Dataset
+from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
+from metobs_toolkit.filereaders import CsvFileReader
 
-from metobs_toolkit.obstypes import Obstype, tlk_obstypes
 
-# from metobs_toolkit.data_import import _read_csv_to_df
+def get_function_defaults(func):
+    # return the keyword args with default values as a dict of a function
+    signature = inspect.signature(func)
+    return {
+        k: v.default
+        for k, v in signature.parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }
+
+
+def test_unit(unitstring):
+    """Test if a unit can be interpreted by pint"""
+    try:
+        Obstype(obsname="dummy", std_unit=unitstring, description="dummy")
+        return True
+    except MetObsUnitUnknown:
+        print(
+            f"!! {unitstring} is not a known Pint-unit. See https://github.com/hgrecco/pint/blob/master/pint/default_en.txt for a complete list.\n \
+(Note that you can use prefixes (kilo, hecto, ... ) and expressions (meter/second, liter/second**2, ...)"
+        )
+        return False
 
 
 def add_new_obstype():
@@ -38,80 +61,69 @@ def add_new_obstype():
             name_ok = True
 
     # get std unit
-    std_unit = str(
-        input(
-            "Give the standard unit (how the toolkit should store/present the data): "
-        )
+    print(
+        "(Note: Units are handled by the pint-package. See a list of all available units here: https://github.com/hgrecco/pint/blob/master/pint/default_en.txt) "
     )
+    stdunit_ok = False
+    while not stdunit_ok:
+        std_unit = str(
+            input(
+                "Give the standard unit (how the toolkit should store/present the data): "
+            )
+        )
+        # test if the unit is valid
+        stdunit_ok = test_unit(std_unit)
 
     # Get input data unit
-    is_std_unit = yes_no_ques(f" Are the {obsname} values in your data in {std_unit}")
-    if is_std_unit:
-        cur_unit = std_unit
-        unit_conv = {std_unit: ["x"]}
-    else:
-        cur_unit = str(input("Give the unit your data is in: "))
-        print(
-            f"Give the expression on how to convert {cur_unit} values to {std_unit}. "
-        )
-        print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
-        print(
-            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
-        )
+    cur_unit = get_unit(
+        trgobstype=Obstype(obsname=obsname, std_unit=std_unit, description="_dummy")
+    )
 
-        conv_str = str(input(" : "))
-        # cleanup and make list if needend
-        conv_str = list(conv_str.replace(" ", "").split(";"))
-
-        unit_conv = {cur_unit: conv_str}
     # Description
     description = str(
         input(f"Give a detailed description of the {obsname} type (optional): ")
     )
-
-    # Aliases and coversions
-
-    # Do not add this in the prompt, the prompt should not check the more advanced
-    # settigns. If the prompt could cover 95% of all user needs, that would be great.
-    # The others should help themself with the documentation to create aliases
-    # and conversions
-
-    unit_aliases = {}
-
     # create obstype:
     new_obstype = Obstype(
         obsname=obsname,
         std_unit=std_unit,
         description=description,
-        unit_aliases=unit_aliases,
-        unit_conversions=unit_conv,
     )
     return new_obstype, cur_unit
 
 
-def get_unit(obstype):
+def get_unit(trgobstype):
 
-    available_units = obstype.get_all_units()
-    available_units.append("ADD A NEW UNIT")
+    is_std_unit = yes_no_ques(
+        f" Are the {trgobstype} values in your data in {trgobstype.std_unit}?"
+    )
+    if is_std_unit:
+        cur_unit = trgobstype.std_unit
+        return cur_unit
 
-    print(f"\n Select the unit your {obstype.name} data is in:  \n")
-    conv_str = None
-    unit = col_option_input(available_units)
-    if unit == "ADD A NEW UNIT":
-        unit = str(input("Give the unit your data is in: "))
-        print(
-            f"Give the expression on how to convert {unit} values to {obstype.get_standard_unit()}. "
-        )
-        print("  * Example: Kelvin (= new unit) to °C :  x - 273.15 ")
-        print(
-            "  * Example: Fahrenheit to °C : x-32.0; x/1.8    (executed left to right)"
-        )
+    else:
+        compatible_units = trgobstype.get_compatible_units()
+        curunit_ok = False
+        while not curunit_ok:
+            print(
+                f"The following units are compatible with {trgobstype}: \n {compatible_units}"
+            )
+            cur_unit = str(
+                input(
+                    "Give the unit your data is in (you can add prefixes like kilo/hecto/etc if you need): "
+                )
+            )
 
-        conv_str = str(input(" : "))
-        # cleanup and make list if needend
-        conv_str = list(conv_str.replace(" ", "").split(";"))
-
-    return unit, conv_str
+            # test unit
+            try:
+                trgobstype.original_unit = cur_unit  # This will check the compatibility
+                curunit_ok = True
+            except MetObsUnitUnknown:
+                print(
+                    f"!! {cur_unit} is not compatible with {trgobstype}. Provide a compatible unit."
+                )
+                pass
+        return cur_unit
 
 
 def col_option_input(columns):
@@ -242,7 +254,6 @@ def build_template_prompt():
     tmpl_dict["data_related"]["obstype_mapping"] = []
 
     known_obstypes = copy.copy(tlk_obstypes)
-    new_units = {}
 
     print(
         "This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. \n \n"
@@ -269,7 +280,9 @@ def build_template_prompt():
 
         # datafilepath = usr_input_file('Give the full path to your data file')
         print(" ... opening the data file ...")
-        data = _read_csv_to_df(datafilepath, {"nrows": 10})
+        datareader = CsvFileReader(file_path=datafilepath, is_url=False)
+
+        data = datareader.read(nrows=10)
         columnnames = data.columns.to_list()
 
         format_dict = {
@@ -312,11 +325,23 @@ def build_template_prompt():
             tmpl_dict["data_related"]["timestamp"]["datetime_column"] = datetimecolumn
             columnnames.remove(datetimecolumn)
 
-            example = data[datetimecolumn].iloc[0]
-            tmpl_dict["data_related"]["timestamp"]["datetime_fmt"] = input(
-                f"Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : "
-            )
+            fmt_is_ok = False
+            while not fmt_is_ok:
+                example = data[datetimecolumn].iloc[0]
+                datetimefmt = input(
+                    f"Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : "
+                )
+                # Test datetime format
+                try:
+                    _ = pd.to_datetime(data[datetimecolumn], format=datetimefmt)
+                    fmt_is_ok = True
+                except ValueError:
+                    print(
+                        f" !! {datetimefmt} is not a suitable format for your {datetimecolumn}-column, check your data and input a suitable format."
+                    )
+                    pass
 
+            tmpl_dict["data_related"]["timestamp"]["datetime_fmt"] = datetimefmt
         else:
             # Date mapping
             print("Which column represents the DATES : ")
@@ -324,32 +349,62 @@ def build_template_prompt():
             tmpl_dict["data_related"]["timestamp"]["date_column"] = datecolumn
             columnnames.remove(datecolumn)
 
-            example = data[datecolumn].iloc[0]
-            tmpl_dict["data_related"]["timestamp"]["date_fmt"] = input(
-                f"Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : "
-            )
+            fmt_is_ok = False
+            while not fmt_is_ok:
+                example = data[datecolumn].iloc[0]
+                datefmt = input(
+                    f"Type your date format (ex. %Y-%m-%d), (your first timestamp: {example}) : "
+                )
+                # test format
+                try:
+                    _ = pd.to_datetime(data[datecolumn], format=datefmt)
+                    fmt_is_ok = True
+                except ValueError:
+                    print(
+                        f" !! {datefmt} is not a suitable format for your {datecolumn}-column, check your data and input a suitable format."
+                    )
+                    pass
+            tmpl_dict["data_related"]["timestamp"]["date_fmt"] = datefmt
 
             print(" \n")
 
             # Time mapping
-
             print("Which column represents the TIMES : ")
             timecolumn = col_option_input(columnnames)
             tmpl_dict["data_related"]["timestamp"]["time_column"] = timecolumn
             columnnames.remove(timecolumn)
 
-            example = data[timecolumn].iloc[0]
-            tmpl_dict["data_related"]["timestamp"]["time_fmt"] = input(
-                f"Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : "
-            )
+            fmt_is_ok = False
+            while not fmt_is_ok:
+                example = data[timecolumn].iloc[0]
+                timefmt = input(
+                    f"Type your time format (ex. %H:%M:%S), (your first timestamp: {example}) : "
+                )
+
+                # test format
+                try:
+                    _ = pd.to_datetime(data[timecolumn], format=timefmt)
+                    fmt_is_ok = True
+                except ValueError:
+                    print(
+                        f" !! {timefmt} is not a suitable format for your {timecolumn}-column, check your data and input a suitable format."
+                    )
+                    pass
+
+            tmpl_dict["data_related"]["timestamp"]["time_fmt"] = timefmt
+        # Set the timezone
+        tzchange = yes_no_ques("\n Are the timestamps in UTC?")
+        if tzchange is False:
+            print("\n Select a timezone: ")
+            tzstring = col_option_input(pytz.all_timezones)
+            tmpl_dict["data_related"]["timestamp"]["timezone"] = tzstring
+        else:
+            tmpl_dict["data_related"]["timestamp"]["timezone"] = "UTC"
 
         # Obstype mapping in long format:
         obstype_desc = {"name": "name (name of the stations represented by strings)"}
         obstype_desc.update(
-            {
-                ob.name: f"{ob.name} : {ob.get_description()}"
-                for ob in known_obstypes.values()
-            }
+            {ob.name: f"{ob.name} : {ob.description}" for ob in known_obstypes.values()}
         )
         obstype_desc.update(
             {
@@ -386,11 +441,11 @@ def build_template_prompt():
                     new_obstype, cur_unit = add_new_obstype()
 
                     known_obstypes[new_obstype.name] = (
-                        new_obstype  # add to knonw obstypes
+                        new_obstype  # add to known obstypes
                     )
                     obstype = new_obstype.name
                     units = cur_unit
-                    description = new_obstype.get_description()
+                    description = new_obstype.description
 
                 # 2) name column is mapped
                 elif inv_obstype_desc[desc_return] == "name":
@@ -402,18 +457,15 @@ def build_template_prompt():
 
                 # 3) existing obstype
                 else:
-                    obstype = inv_obstype_desc[desc_return]
-
-                    # add unit
-                    units, conv_str = get_unit(known_obstypes[obstype])
-                    if conv_str is not None:
-                        # add new units to the dict
-                        new_units[obstype] = {"unit": units, "conv": conv_str}
+                    knownobstype = known_obstypes[inv_obstype_desc[desc_return]]
+                    obstype = knownobstype.name
+                    # get unit
+                    units = get_unit(knownobstype)
 
                     description = input(
                         "Some more details on the observation (optional): "
                     )
-                    obstype_options.remove(obstype_desc[obstype])
+                    obstype_options.remove(obstype_desc[knownobstype.name])
 
                 # update template
 
@@ -437,7 +489,7 @@ def build_template_prompt():
                     "\n In a Wide-format, REMOVE THE COLUMNS that do not represent different stations, before proceeding! \n"
                 )
             else:
-                stationnames = columnnames
+                pass
 
             print("\n What observation type does you data represent : ")
             obstype_options.remove(obstype_desc["name"])
@@ -445,30 +497,26 @@ def build_template_prompt():
             if desc_return is None:
                 print("This is not an option, select an observation type.")
                 sys.exit("invalid obstype for wide dataset, see last message. ")
-            wide_obstype = inv_obstype_desc[desc_return]
+            wide_obstype_name = inv_obstype_desc[desc_return]
 
             # 1) add a new obstype
-            if wide_obstype == "ADD NEW OBSERVATION TYPE":
+            if wide_obstype_name == "ADD NEW OBSERVATION TYPE":
                 new_obstype, cur_unit = add_new_obstype()
-                wide_obstype = new_obstype.name
+                wide_obstype_name = new_obstype.name
                 known_obstypes[new_obstype.name] = new_obstype  # add to knonw obstypes
                 units = cur_unit
-                description = new_obstype.get_description()
+                description = new_obstype.description
 
-            # 2) Knonw obstype
+            # 2) Known obstype
             else:
                 # add unit
-                units, conv_str = get_unit(known_obstypes[wide_obstype])
-                if conv_str is not None:
-                    # add new units to the dict
-                    new_units[wide_obstype] = {"unit": units, "conv": conv_str}
-
+                units = get_unit(known_obstypes[wide_obstype_name])
                 description = input("Some more details on the observation (optional): ")
 
             # update template
 
             obsdict = {
-                "tlk_obstype": wide_obstype,
+                "tlk_obstype": wide_obstype_name,
                 "columnname": None,
                 "unit": str(units),
                 "description": str(description),
@@ -482,11 +530,11 @@ def build_template_prompt():
 
     print("\n \n *******      Meta Data   ***********")
 
-    metatemplate_dict = {}
-
     if meta_avail:
         print(" ... opening the metadata file ...")
-        metadata = _read_csv_to_df(metadatafilepath, {"nrows": 10})
+        metadatareader = CsvFileReader(file_path=metadatafilepath, is_url=False)
+
+        metadata = metadatareader.read(nrows=10)
         metacolumnnames = metadata.columns.to_list()
 
         # map the required columns (name)
@@ -510,7 +558,7 @@ def build_template_prompt():
             tmpl_dict["metadata_related"]["name_column"] = name_column
             metacolumnnames.remove(name_column)
 
-        # map columns that are used by the toolit (lat, lon)
+        # map columns that required for the template (lat, lon, altitude)
         with_coords = yes_no_ques(
             "\n are there coordinates (latitude, longitude) columns in the metadata?"
         )
@@ -525,6 +573,15 @@ def build_template_prompt():
             tmpl_dict["metadata_related"]["lon_column"] = lon_column
             metacolumnnames.remove(lon_column)
 
+        with_altitude = yes_no_ques(
+            "\n Is there a columns in the metadata representing the ALTITUDE (in meter) of the stations?"
+        )
+        if with_altitude:
+            print("Which column does represent the ALTITUDE?")
+            altitude_column = col_option_input(metacolumnnames)
+            tmpl_dict["metadata_related"]["altitude_column"] = altitude_column
+            metacolumnnames.remove(altitude_column)
+
         # Which other (not used by the toolkit) to add.
         if len(metacolumnnames) > 0:
             add_cols = yes_no_ques(
@@ -537,16 +594,6 @@ def build_template_prompt():
                         tmpl_dict["metadata_related"]["columns_to_include"].append(
                             str(col)
                         )
-
-    print("\n \n *******      Extra options    ***********")
-    if data_avail:
-        tzchange = yes_no_ques("\n Are the timestamps in UTC?")
-        if tzchange is False:
-            print("\n Select a timezone: ")
-            tzstring = col_option_input(pytz.all_timezones)
-            tmpl_dict["data_related"]["timestamp"]["timezone"] = tzstring
-        else:
-            tmpl_dict["data_related"]["timestamp"]["timezone"] = "UTC"
 
     # =============================================================================
     # Saving the template
@@ -572,7 +619,7 @@ def build_template_prompt():
 
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
-        print("\n#1. Define the paths to your files: \n")
+        print("\n# Define the paths to your files: ")
         if data_avail:
             print(f'data_file = r"{datafilepath}"')
         if meta_avail:
@@ -580,17 +627,8 @@ def build_template_prompt():
 
         print(f'template = r"{templatefilepath}"')
 
-        print("\n#2. initiate a dataset: \n")
+        print("\n# Initiate a dataset:")
         print("your_dataset = metobs_toolkit.Dataset()")
-
-        print("\n#3. Update the paths to your files: \n")
-        print("your_dataset.update_file_paths(")
-        if data_avail:
-            print("    input_data_file = data_file,")
-        if meta_avail:
-            print("    input_metadata_file = meta_data_file,")
-        print("    template_file = template,")
-        print("    )")
 
         # add new obstypes if needed
         to_add_obstypes = [
@@ -600,43 +638,49 @@ def build_template_prompt():
         ]
         if bool(to_add_obstypes):
             print(
-                "\n# Define non-standard observation types, and add them to the dataset: \n"
+                "\n# Define non-standard observation types, and add them to the dataset: "
             )
             for newob in to_add_obstypes:
                 new_obstype = known_obstypes[newob]
                 print("new_obstype = metobs_toolkit.Obstype(")
                 print(f'                 obsname="{new_obstype.name}",')
-                print(f'                 std_unit="{new_obstype.get_standard_unit()}",')
-                print(
-                    f'                 description="{new_obstype.get_description()}",'
-                )
-                print(f"                 unit_aliases={new_obstype.units_aliases},")
-                print(f"                 unit_conversions={new_obstype.conv_table})")
+                print(f'                 std_unit="{new_obstype.std_unit}",')
+                print(f'                 description="{new_obstype.description}",')
+                print("                 )")
                 print("\n\n #add the new obstype to your dataset. \n")
-                print("your_dataset.add_new_observationtype(Obstype=new_obstype)")
+                print("your_dataset.add_new_observationtype(obstype=new_obstype)")
                 print("\n\n")
 
         # add new units if needed
 
-        if bool(new_units):
-            print(
-                "\n# Define non-standard units, and add them to the corresponding units: \n"
-            )
-            for obstype, unit_info in new_units.items():
-                print("your_dataset.add_new_unit(")
-                print(f'                         obstype="{obstype}",')
-                print(f'                         new_unit="{unit_info["unit"]}",')
-                print(
-                    f'                         conversion_expression={unit_info["conv"]})'
-                )
-
-                print("\n\n")
-
-        print("\n#4. Import your data : \n")
+        print("\n# Import your data :")
         if data_avail:
-            print("your_dataset.import_data_from_file()")
+            print("your_dataset.import_data_from_file(")
+            print("    input_data_file = data_file,")
+            if meta_avail:
+                print("    input_metadata_file = meta_data_file,")
+
+            print("    template_file = template,")
+            print("    #The following arguments are filled with default values.")
+            # add defualt arguments
+            skiplist = ["input_data_file", "input_metadata_file", "template_file"]
+            kwargdict = get_function_defaults(Dataset.import_data_from_file)
+            for kwarg, kwargvalue in kwargdict.items():
+                if kwarg in skiplist:
+                    continue
+                if isinstance(kwargvalue, str):
+
+                    print(f'    {kwarg} = "{kwargvalue}",')
+                else:
+                    print(f"    {kwarg} = {kwargvalue},")
+
+            print(")")
+
         else:
-            print("your_dataset.import_only_metadata_from_file()")
+            print("your_dataset.import_only_metadata_from_file(")
+            print("    input_metadata_file = meta_data_file,")
+            print("    template_file = template,")
+            print(")")
 
     return
 

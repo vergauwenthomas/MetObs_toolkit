@@ -15,13 +15,13 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": "temperature air",
-                "unit": "fake_temp",
+                "unit": "kelvin",
                 "description": "bladibla"
             },
             {
                 "tlk_obstype": "wetbulptemp",
                 "columnname": "dewpoint temp",
-                "unit": "\u00b0C",
+                "unit": "degC",
                 "description": "The dewopoint temperature at 2m "
             }
         ]
@@ -30,6 +30,7 @@
         "name_column": "station",
         "lat_column": "lat",
         "lon_column": "lon",
+        "altitude_column": null,
         "columns_to_include": []
     },
     "single_station_name": "dummy_station_name"

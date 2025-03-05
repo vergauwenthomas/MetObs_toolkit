@@ -107,7 +107,7 @@ dataset.persistence_check(
     target_obstype="temp",
     timewindow=persistence_time_window_to_check,
     min_records_per_window=min_num_obs,
-    use_mp=False,
+    use_mp=True,
 )
 
 dataset.repetitions_check(
@@ -130,12 +130,11 @@ dataset.window_variation_check(
 )
 
 
-# dataset.apply_quality_control()
+dataset.get_qc_stats(target_obstype="temp", make_plot=True)
 
 
-# _ = dataset.get_qc_stats()
 dataset.get_station("Fictional").make_plot(colorby="label", show_outliers=True)
-# dataset.make_plot(stationnames=["Fictional"], colorby="label", show_outliers=True)
+
 
 # %% Debug
 

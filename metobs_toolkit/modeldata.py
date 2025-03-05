@@ -18,10 +18,10 @@ import ee
 
 
 from metobs_toolkit.backend_collection.df_helpers import (
-    init_multiindexdf,
-    conv_tz_multiidxdf,
+    # init_multiindexdf,
+    # conv_tz_multiidxdf,
     xs_save,
-    multiindexdf_datetime_subsetting,
+    # multiindexdf_datetime_subsetting,
 )
 
 import metobs_toolkit.gee_api as gee_api
@@ -2500,88 +2500,88 @@ class GeeDynamicDataset(_GeeModelData):
         )
         return longdf
 
-    def _interpolate_modeldata(self, to_multiidx, method="time"):
-        """Interpolate modeldata in time.
+    # def _interpolate_modeldata(self, to_multiidx, method="time"):
+    #     """Interpolate modeldata in time.
 
-        Interpolate the modeldata timeseries, to a given name-datetime
-        multiindex.
+    #     Interpolate the modeldata timeseries, to a given name-datetime
+    #     multiindex.
 
-        The modeldata will be converted to the timezone of the multiindex.
+    #     The modeldata will be converted to the timezone of the multiindex.
 
-        If no interpolation can be done, Nan values are used.
+    #     If no interpolation can be done, Nan values are used.
 
-        Parameters
-        ----------
-        to_multiidx : pandas.MultiIndex
-            A name - datetime (tz-aware) multiindex to interpolate the
-            modeldata timeseries to.
-        method : str, optional
-            The interpolation method to use. Is passed to
-            pandas.DataFrame.interpolate() method. The default is 'time'.
+    #     Parameters
+    #     ----------
+    #     to_multiidx : pandas.MultiIndex
+    #         A name - datetime (tz-aware) multiindex to interpolate the
+    #         modeldata timeseries to.
+    #     method : str, optional
+    #         The interpolation method to use. Is passed to
+    #         pandas.DataFrame.interpolate() method. The default is 'time'.
 
-        Returns
-        -------
-        returndf : pandas.DataFrame
-            A dataframe with to_multiidx as an index.
-            The values are the interpolated values.
+    #     Returns
+    #     -------
+    #     returndf : pandas.DataFrame
+    #         A dataframe with to_multiidx as an index.
+    #         The values are the interpolated values.
 
-        """
-        returndf = init_multiindexdf()
+    #     """
+    #     returndf = init_multiindexdf()
 
-        recordsdf = init_multiindexdf()
-        recordsdf.index = to_multiidx
-        # iterate over stations check to avoid extrapolation is done per stations
-        for sta in recordsdf.index.get_level_values("name").unique():
-            sta_recordsdf = xs_save(recordsdf, sta, level="name", drop_level=False)
-            sta_moddf = xs_save(self.modeldf, sta, level="name", drop_level=False)
+    #     recordsdf = init_multiindexdf()
+    #     recordsdf.index = to_multiidx
+    #     # iterate over stations check to avoid extrapolation is done per stations
+    #     for sta in recordsdf.index.get_level_values("name").unique():
+    #         sta_recordsdf = xs_save(recordsdf, sta, level="name", drop_level=False)
+    #         sta_moddf = xs_save(self.modeldf, sta, level="name", drop_level=False)
 
-            if sta_moddf.empty:
-                logger.warning(f"There are not modeldata records for {sta}!")
-                # empyt sta_moddg --> not model data --> empyt return
-                mergedf = sta_recordsdf  # overload the records index
-                mergedf = mergedf.reindex(
-                    columns=list(self.modeldf.columns)
-                )  # add all present obstypes as nan columns
+    #         if sta_moddf.empty:
+    #             logger.warning(f"There are not modeldata records for {sta}!")
+    #             # empyt sta_moddg --> not model data --> empyt return
+    #             mergedf = sta_recordsdf  # overload the records index
+    #             mergedf = mergedf.reindex(
+    #                 columns=list(self.modeldf.columns)
+    #             )  # add all present obstypes as nan columns
 
-            else:
-                # convert modeldata to timezone of observations
-                sta_moddf = conv_tz_multiidxdf(
-                    df=sta_moddf,
-                    timezone=sta_recordsdf.index.get_level_values("datetime").tz,
-                )
+    #         else:
+    #             # convert modeldata to timezone of observations
+    #             sta_moddf = conv_tz_multiidxdf(
+    #                 df=sta_moddf,
+    #                 timezone=sta_recordsdf.index.get_level_values("datetime").tz,
+    #             )
 
-                # check if modeldata is will not be extrapolated !
-                if min(sta_recordsdf.index.get_level_values("datetime")) < min(
-                    sta_moddf.index.get_level_values("datetime")
-                ):
-                    logger.warning("Modeldata will be extrapolated")
-                if max(sta_recordsdf.index.get_level_values("datetime")) > max(
-                    sta_moddf.index.get_level_values("datetime")
-                ):
-                    logger.warning("Modeldata will be extrapolated")
+    #             # check if modeldata is will not be extrapolated !
+    #             if min(sta_recordsdf.index.get_level_values("datetime")) < min(
+    #                 sta_moddf.index.get_level_values("datetime")
+    #             ):
+    #                 logger.warning("Modeldata will be extrapolated")
+    #             if max(sta_recordsdf.index.get_level_values("datetime")) > max(
+    #                 sta_moddf.index.get_level_values("datetime")
+    #             ):
+    #                 logger.warning("Modeldata will be extrapolated")
 
-                # combine model and records
-                mergedf = sta_recordsdf.merge(
-                    sta_moddf, how="outer", left_index=True, right_index=True
-                )
+    #             # combine model and records
+    #             mergedf = sta_recordsdf.merge(
+    #                 sta_moddf, how="outer", left_index=True, right_index=True
+    #             )
 
-                # reset index for time interpolation
-                mergedf = mergedf.reset_index().set_index("datetime").sort_index()
+    #             # reset index for time interpolation
+    #             mergedf = mergedf.reset_index().set_index("datetime").sort_index()
 
-                # interpolate missing modeldata
-                mergedf = mergedf.drop(columns=["name"])
-                mergedf.interpolate(method=method, limit_area="inside", inplace=True)
-                mergedf["name"] = sta
+    #             # interpolate missing modeldata
+    #             mergedf = mergedf.drop(columns=["name"])
+    #             mergedf.interpolate(method=method, limit_area="inside", inplace=True)
+    #             mergedf["name"] = sta
 
-                # convert back to multiindex
-                mergedf = (
-                    mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
-                )
-                # filter only records
-                mergedf = mergedf.loc[sta_recordsdf.index]
+    #             # convert back to multiindex
+    #             mergedf = (
+    #                 mergedf.reset_index().set_index(["name", "datetime"]).sort_index()
+    #             )
+    #             # filter only records
+    #             mergedf = mergedf.loc[sta_recordsdf.index]
 
-            returndf = pd.concat([returndf, mergedf])
-        return returndf
+    #         returndf = pd.concat([returndf, mergedf])
+    #     return returndf
 
     def save_modeldata(
         self,

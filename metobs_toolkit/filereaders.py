@@ -49,12 +49,15 @@ class CsvFileReader(FileReader):
 
     def read(self, **readkwargs):
         if self.is_url:
-            data = self.read_as_local_file(**readkwargs)
-        else:
             data = self.read_as_remote_file(**readkwargs)
+        else:
+            data = self.read_as_local_file(**readkwargs)
+
         return data
 
     def read_as_local_file(self, **readkwargs):
+        if not self.file_exist():
+            raise FileNotFoundError(f"{self.file_path} is not a file.")
         return read_csv(filepath=self.file_path, **readkwargs)
 
     def read_as_remote_file(self, **readkwargs):

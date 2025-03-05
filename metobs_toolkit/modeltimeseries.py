@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.pyplot import Axes
 
 from metobs_toolkit.obstypes import Obstype
-import metobs_toolkit.backend_collection.timeseries_plotting as plotting
+import metobs_toolkit.plot_collection.timeseries_plotting as plotting
 
 
 class ModelTimeSeries:

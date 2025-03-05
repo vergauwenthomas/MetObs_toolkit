@@ -14,6 +14,18 @@ ureg.formatter.default_format = ".3f"
 pint.set_application_registry(ureg)
 
 
+def fmt_unit_to_str(unit):
+    if isinstance(unit, pint.Unit):
+        return str(unit)
+    if isinstance(unit, pint.Quantity):
+        if unit.magnitude == 1:
+            return unit.u
+        else:
+            # a non-trivial quantity
+            return str(unit)
+    return str(unit)
+
+
 class Obstype:
     def __init__(self, obsname: str, std_unit: str | pint.Unit, description: str):
         # set name
@@ -35,7 +47,7 @@ class Obstype:
 
     @property
     def std_unit(self):
-        return str(self._std_unit)
+        return fmt_unit_to_str(self._std_unit)
 
     @property
     def description(self):
@@ -53,12 +65,16 @@ class Obstype:
     def original_name(self, value):
         self._original_name = str(value)
 
+    def get_compatible_units(self):
+        # Get all units related to the same dimension
+        compunits = list(ureg.get_compatible_units(self._std_unit.dimensionality))
+
+        # return the units as strings
+        return [fmt_unit_to_str(uni) for uni in compunits]
+
     @property
     def original_unit(self):
-        if isinstance(self._original_unit, pint.Quantity):
-            if self._original_unit.magnitude == 1:
-                return self._original_unit.u
-        return self._original_unit
+        return fmt_unit_to_str(self._original_unit)
 
     @original_unit.setter
     def original_unit(self, value):

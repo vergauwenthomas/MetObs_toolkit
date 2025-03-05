@@ -9,7 +9,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
 )
-import metobs_toolkit.backend_collection.timeseries_plotting as plotting
+import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import save_concat
@@ -145,19 +145,39 @@ class Station:
         else:
             return infostr
 
+    def sync_records(self, **kwargs):
+        raise MetObsStationClassError(
+            "sync_records() can only be applied on metobs.Dataset instances, not on metobs.Station instances."
+        )
+
     def resample(
         self,
         target_freq,
+        target_obstype: str | None = None,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
         origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
+        # NOTE: if target_obstype is none, all sensors are resampled to the same freq!
 
+        # format arguments
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
 
-        for sensor in self.obsdata.values():
-            sensor.resample(
+        if target_obstype is None:
+            for sensor in self.obsdata.values():
+                sensor.resample(
+                    target_freq=target_freq,
+                    shift_tolerance=shift_tolerance,
+                    origin=origin,
+                    origin_simplify_tolerance=origin_simplify_tolerance,
+                )
+        else:
+            # check if target obstype is knonw
+            self._obstype_is_known_check(target_obstype)
+
+            # resample
+            self.obsdata[target_obstype].resample(
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
@@ -172,6 +192,16 @@ class Station:
         else:
             self._obstype_is_known_check(obstype)
             self.obsdata[obstype].convert_outliers_to_gaps()
+
+    def _rename(self, targetname):
+        # Note: Not for users, one could accidentaly rename to another station in the dataset.
+        # So --> only accecible as method in the dataset, that checks this possible error.
+
+        # rename all
+        self._name = str(targetname)
+        self._site._stationname = str(targetname)
+        for sensordat in self.obsdata.values():
+            sensordat._rename(targetname)
 
     # ------------------------------------------
     #    Modeldata extraction
@@ -404,6 +434,23 @@ class Station:
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
         )
+
+    def get_qc_stats(self, target_obstype="temp", make_plot=True):
+        # argument checks
+        self._obstype_is_known_check(target_obstype)
+        # get freq statistics
+        qc_df = self.obsdata[target_obstype].get_qc_freq_statistics()
+
+        if make_plot:
+            plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
+
+            fig = plotting.qc_overview_pies(df=plotdf)
+            fig.suptitle(
+                f"QC frequency statistics of {target_obstype} on Station level: {self.stationname}."
+            )
+            return fig
+        else:
+            return qc_df
 
     # ------------------------------------------
     #    Getters

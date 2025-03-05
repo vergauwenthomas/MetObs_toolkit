@@ -53,3 +53,15 @@ class MetObsModelDataError(Exception):
     """Exception raised when something is wrong or missing with Modeldata"""
 
     pass
+
+
+class MetObsTimeSimplifyError(Exception):
+    """Exception raised when something is wrong with time resampling/syncing/simplifying"""
+
+    pass
+
+
+class MetObsStationClassError(Exception):
+    """Raises general errors related to the station class."""
+
+    pass

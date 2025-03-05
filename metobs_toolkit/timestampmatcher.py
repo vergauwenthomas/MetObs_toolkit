@@ -1,10 +1,15 @@
 import logging
 from typing import Literal, Tuple
 import pandas as pd
-from metobs_toolkit.backend_collection.df_helpers import (
-    get_likely_frequency,
-    simplify_time,
-)
+import numpy as np
+
+
+from metobs_toolkit.backend_collection.errorclasses import *
+
+# from metobs_toolkit.backend_collection.df_helpers import (
+#     get_likely_frequency,
+#     simplify_time,
+# )
 
 logger = logging.getLogger(__file__)
 
@@ -154,11 +159,9 @@ class TimestampMatcher:
 
         # get origin
         if origin is None:
-            origin = self.orig_records.index.min().floor(
-                target_freq
-            )  # floor target freq!
+            origin = self.orig_records.index.min()
         else:
-            origin = origin.floor(target_freq)  # make sure origin is floored
+            origin = origin
 
         # get closing timestamp
         if closing is None:
@@ -272,7 +275,7 @@ class TimestampMatcher:
             )
 
             target_origin = simplify_time(
-                time=self.orig_records.index.min().floor(target_freq),
+                time=self.orig_records.index.min(),
                 max_simplify_error=origin_simplify_tolerance,
             )
 
@@ -286,3 +289,119 @@ class TimestampMatcher:
             origin=target_origin,
             closing=force_closing,
         )
+
+
+def simplify_time(
+    time: pd.Timestamp | pd.Timedelta,
+    max_simplify_error: pd.Timedelta,
+    zero_protection: bool = False,
+):
+    """Simplifies a time (or timedelta) to a rounded value, within a tolerance.
+
+    time can be a timestamp of a timedelta.
+
+    zero_protections make shure that the returned simplified time is not zero.
+    This is in practice used when applied to frequencies.
+    """
+
+    # NOTE: Make sure that the sequence goes from coarce to fine AND
+    # That all elements are natural multiplicatives of each other !! (this
+    # is required since the syncronization relies on it)
+    simplify_sequence = ["1d", "1h", "30min", "10min", "5min", "1min", "30s"]
+
+    for simpl_resolution in simplify_sequence:
+        candidate = time.round(pd.Timedelta(simpl_resolution))
+        if zero_protection:
+            if candidate == pd.Timedelta(0):
+                # try the ceil as candidate (is never zero)
+                candidate = time.ceil(pd.Timedelta(simpl_resolution))
+
+        # Tests if candidate mets conditions
+        if abs(time - candidate) < pd.to_timedelta(max_simplify_error):
+            return candidate
+
+    # No simplyfication posible
+    if zero_protection:
+        if time == pd.Timedelta(0):
+            raise MetObsTimeSimplifyError(
+                f"No simplification possible for {time}, and zero_protection is set to True."
+            )
+    return time
+
+
+def get_likely_frequency(
+    timestamps: pd.DatetimeIndex,
+    method: Literal["highest", "median"] = "highest",
+    max_simplify_error: str | pd.Timedelta = "2min",
+) -> pd.Timedelta:
+    """Find the most likely observation frequency of a datetimeindex.
+
+    Parameters
+    ----------
+    timestamps : pandas.Datetimeindex()
+        Datetimeindex of the dataset.df.
+    method : 'highest' or 'median', optional
+        Select wich method to use. If 'highest', the highest apearing frequency is used.
+        If 'median', the median of the apearing frequencies is used. The default is 'highest'.
+    max_simplify_error : datetimestring, optional
+        The maximum deviation from the found frequency when simplifying. The default is '2min'.
+
+    Returns
+    -------
+    assume_freq : datetime.timedelta
+        The assumed (and simplified) frequency of the datetimeindex.
+
+    """
+    logger.debug(
+        f"Starting get_likely_frequency with method={method} and max_simplify_error={max_simplify_error}"
+    )
+    assert method in [
+        "highest",
+        "median",
+    ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
+
+    try:
+        pd.to_timedelta(max_simplify_error)
+    except ValueError:
+        raise MetObsTimeSimplifyError(
+            f'{max_simplify_error} is not valid timeindication. Example: "5min" indicates 5 minutes.'
+        )
+
+    # simplify is true if a non-zero simplify_error is provided
+    if pd.to_timedelta(max_simplify_error).seconds < 1:
+        simplify = False
+    else:
+        simplify = True
+
+    logger.debug(f"Simplify is set to {simplify}")
+
+    freqs_blacklist = [pd.Timedelta(0), np.nan]  # avoid a zero frequency
+
+    freqs = timestamps.to_series().diff()
+    freqs = freqs[~freqs.isin(freqs_blacklist)]
+
+    if method == "highest":
+        assume_freq = freqs.min()  # highest frequency
+    elif method == "median":
+        assume_freq = freqs.median()
+
+    logger.debug(f"Assumed frequency before simplification: {assume_freq}")
+
+    if simplify:
+        assume_freq = simplify_time(
+            time=assume_freq,
+            max_simplify_error=max_simplify_error,
+            zero_protection=True,
+        )
+
+        logger.debug(f"Assumed frequency after simplification: {assume_freq}")
+
+    # if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
+    #     # select the second highest frequency
+    #     assume_freq = abs(
+    #         timestamps.to_series().diff().value_counts().index
+    #     ).sort_values(ascending=True)[1]
+
+    logger.debug(f"Final assumed frequency: {assume_freq}")
+
+    return pd.to_timedelta(assume_freq)

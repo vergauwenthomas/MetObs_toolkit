@@ -43,7 +43,8 @@ from metobs_toolkit.oldstation import Station  # after all Dataset extensions !!
 
 # from metobs_toolkit.modeldata import Modeldata
 from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
-from metobs_toolkit.analysis import Analysis
+
+# from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
 from metobs_toolkit.gap import (
     Gap,

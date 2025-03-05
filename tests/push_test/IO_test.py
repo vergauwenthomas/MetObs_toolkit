@@ -11,29 +11,21 @@ Test importing a variaty of data/metadata combinations and formats
 
 import sys, os
 from pathlib import Path
+import pandas as pd
 
-repodir = Path(os.getcwd()).parents[1]
-sys.path.insert(0, str(repodir))
-import metobs_toolkit
-
+repodir = str(Path(__file__).resolve().parents[2])
 
 # add the solutions
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+print(sys.path)
+import solutions.solutions_creator as solution
 
-import importlib.util
+# point to current version of the toolkit
+lib_folder = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(lib_folder))
+import metobs_toolkit
 
-
-def import_module_from_path(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-solutions_creator = import_module_from_path(
-    "solutions_creator",
-    os.path.join(repodir, "tests", "push_test", "solutions", "solutions_creator.py"),
-)
-
+# %%
 
 # point to current version of the toolkit
 lib_folder = repodir
@@ -60,7 +52,7 @@ dataloc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/mast
 template_loc = "https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/metobs_toolkit/datafiles/demo_template.json"
 
 
-dataset = metobs_toolkit.Dataset()
+# dataset = metobs_toolkit.Dataset()
 # dataset.import_data_from_file(input_data_file=dataloc,
 #                                template_file=template_loc,
 #                               templatefile_is_url=True)
@@ -106,15 +98,14 @@ dataset.import_data_from_file(
 )
 
 
-import pandas as pd
+assert int(dataset.df["value"].min()) == -268, "Unit is not converted properly "
 
+assert dataset.df.shape == (197, 2), "Shape of synced widedata is not correct."
 
-assert dataset.df["value"].min() == -268.45, "Unit is not converted properly "
-
-assert dataset.metadf["dataset_resolution"].iloc[0] == pd.Timedelta(
-    "4min"
-), "wrong freq estimate for unsynced data"
-assert dataset.df.shape == (4284, 1), "Shape of unsynced widedata is not correct."
+for sta in dataset.stations:
+    assert sta.obsdata["temp"].freq == pd.Timedelta(
+        "1h"
+    ), "frequency of records not correct synchronized"
 
 
 # %% Test syncronizing wide
@@ -127,11 +118,9 @@ def _create_widesync_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
     # Sycnronize data
     dataset.sync_records(
-        timestamp_shift_tolerance="5min", freq_shift_tolerance="2min", fixed_freq="1h"
+        timestamp_shift_tolerance="5min2s", freq_shift_tolerance="2min"
     )
-    dataset.get_full_status_df().to_pickle(
-        os.path.join(solution.solutions_dir, syncedwidedf_file)
-    )
+    dataset.df.to_pickle(os.path.join(solution.solutions_dir, syncedwidedf_file))
 
 
 # _create_widesync_solutions()
@@ -143,13 +132,12 @@ def get_synced_solutions():
 
 
 # Sycnronize data
-dataset.sync_records(
-    timestamp_shift_tolerance="5min", freq_shift_tolerance="2min", fixed_freq="1h"
-)
+dataset.sync_records(timestamp_shift_tolerance="5min2s", freq_shift_tolerance="2min")
 
+assert dataset.df.shape == (196, 2), "something wrong with syncronization"
 
 diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_full_status_df(), solutiondf=get_synced_solutions()
+    testdf=dataset.df, solutiondf=get_synced_solutions()
 )
 assert diff_df is None
 
@@ -166,23 +154,21 @@ singlestationmetadata = os.path.join(
 )
 
 
-# #% Setup dataset
+# %% Setup dataset
 
 dataset_single = metobs_toolkit.Dataset()
-dataset_single.update_file_paths(
+dataset_single.import_data_from_file(
     input_data_file=singlestationdatafile,
     input_metadata_file=singlestationmetadata,
     template_file=singlestationtemplate,
 )
 
-
-dataset_single.import_data_from_file()
-
-assert dataset_single.df.shape == (26, 1), "Shape singlestation dataset is not correct."
+assert dataset_single.df.shape == (26, 2), "Shape singlestation dataset is not correct."
 
 assert (
-    dataset_single.df.index.get_level_values("name")[0] == "whats_the_name"
-), "The single station name in the metadata is not set for the data."
+    dataset_single.df.index.get_level_values("name")[0]
+    == "dummy2_station_name"  # Must be the name defined in the template/data rather than in the matedata
+), "The single station name in the data/template is not set for the metadata."
 
 assert (
     dataset_single.metadf.shape[0] == 1
@@ -194,7 +180,8 @@ assert (
 ), "Metadf latitde is not merged correct."
 
 assert (
-    dataset_single.df.index.get_level_values("name").unique()[0] == "whats_the_name"
+    dataset_single.df.index.get_level_values("name").unique()[0]
+    == "dummy2_station_name"
 ), "single station name not represented correctly."
 
 
@@ -222,26 +209,23 @@ del_file(os.path.join(outfolder, file + ".pkl"))
 # save dataset as pickle
 
 
-dataset.update_default_name("this_is_a_test_name")
+dataset.rename_stations({"MolenhofWeer - Temperatuur (°C)": "this_is_a_test_name"})
 
-dataset.save_dataset(outputfolder=outfolder, filename=file)
+dataset.save_dataset_to_pkl(target_folder=outfolder, filename=file)
 
 
 del dataset  # remove from kernel
 
 
 # read dataset
-new_dataset = metobs_toolkit.import_dataset(
-    folder_path=outfolder, filename=file + ".pkl"
+new_dataset = metobs_toolkit.import_dataset_from_pkl(
+    target_path=os.path.join(outfolder, file + ".pkl")
 )
 
 del_file(os.path.join(outfolder, file + ".pkl"))
 
-assert (
-    new_dataset.settings.app["default_name"] == "this_is_a_test_name"
-), "some attributes are not correctly saved when pickled."
 
-
+# %%
 # =============================================================================
 # Testing the IO properties for new observation types and units
 # =============================================================================
@@ -249,30 +233,17 @@ assert (
 dataset = metobs_toolkit.Dataset()
 
 n_obstypes = len(dataset.obstypes)
-# add unit to unexisting obstype
-dataset.add_new_unit(
-    obstype="wetbulptem", new_unit="fake_wbtemp", conversion_expression=["x+100"]
-)
 
-new_n_obstypes = len(dataset.obstypes)
-
-assert (
-    n_obstypes == new_n_obstypes
-), "Adding a new unit to unexisting obstype creates and obstype!"
-
-
-# test addition of obstype and unit
-dataset.add_new_unit(
-    obstype="temp", new_unit="fake_temp", conversion_expression=["x+100"]
-)
+# test addition of obstype
 
 wetbulp_obstype = metobs_toolkit.Obstype(
     obsname="wetbulptemp",
-    std_unit="Celcius",
+    std_unit="°F",
     description="THe wet bulb temperature",
-    unit_aliases={"Celcius": ["°C"], "Kelvin": ["K"]},
-    unit_conversions={"Kelvin": ["x-273"]},
 )
+wetbulp_obstype.get_info()
+
+
 dataset.add_new_observationtype(wetbulp_obstype)
 new_n_obstypes = len(dataset.obstypes)
 
@@ -291,14 +262,13 @@ testtemplate = os.path.join(
     str(lib_folder), "tests", "test_data", "single_station_new_obstype_template.json"
 )
 
-dataset.update_file_paths(
+
+dataset.import_data_from_file(
     input_data_file=testdata,
     input_metadata_file=testmetadata,
     template_file=testtemplate,
 )
-
-dataset.import_data_from_file()
-dataset.template.show()
+dataset.template.get_info()
 
 
 # test if all obstypes are present in the dataset
@@ -309,16 +279,16 @@ assert dataset.df.index.get_level_values("obstype").unique().to_list() == [
 
 # check if the unist of the obstypes are correct (the default)
 assert (
-    dataset.obstypes["temp"].get_standard_unit() == "Celsius"
+    dataset.obstypes["temp"].std_unit == "degree_Celsius"
 ), "Standard unit not correct"
 assert (
-    dataset.obstypes["wetbulptemp"].get_standard_unit() == "Celcius"
+    dataset.obstypes["wetbulptemp"].std_unit == "degree_Fahrenheit"
 ), "Standard unit not correct"
 
 # Check if unit conversion is done
 
 assert (
-    dataset.df.xs("temp", level="obstype").mean().value > 100.0
+    dataset.df.xs("temp", level="obstype")["value"].mean() < -200.0
 ), "THe units of the temperature observations are not converted to std units"
 
 
@@ -333,23 +303,26 @@ testtemplate = os.path.join(
 )
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(input_metadata_file=testmetadata, template_file=testtemplate)
-dataset.import_only_metadata_from_file()
+
+dataset.import_data_from_file(
+    input_metadata_file=testmetadata, template_file=testtemplate
+)
 
 assert dataset.df.empty, "metadata only dataset has data"
 assert dataset.metadf.shape == (1, 3), "metadata not correct in metadata only dataset"
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
-    input_data_file=metobs_toolkit.demo_datafile,
+
+dataset.import_data_from_file(
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
 )
 
-dataset.import_only_metadata_from_file()
 dataset.get_info()
 
 
 assert dataset.df.empty, "metadata only dataset has data"
 assert dataset.metadf.shape == (28, 4), "metadata not correct in metadata only dataset"
+
+# %%

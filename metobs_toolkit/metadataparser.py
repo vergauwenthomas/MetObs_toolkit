@@ -128,9 +128,52 @@ class MetaDataParser:
             logger.warning(f"{stationname} is not found in the metadata!")
             return False
 
+    def _overwrite_name(self, target_single_name: str):
+        """Special case:
+        in single-station case the name can be define in the template,
+        but a (different) name can be present in the metadata file for the same station.
+
+        This results in incompatible data-metadata.
+
+        #1. if target_single_name is present in self.datadf --> no problem, names match
+
+        #2. if not present:
+         - raise error when multiple stations are in the datadf --> no idea which is which?
+         - rename if there is only one station
+
+        """
+        # 1. target_single_name is included in the metadata
+        if target_single_name in self.datadf.index:
+            return
+        else:
+            # 2. not present in the metadata
+            if self.datadf.shape[0] > 1:
+                raise MetObsInconsistentStationName(
+                    f"""
+    The stationname used in the single-station-data is {target_single_name} (is a column in the datafile,
+    or defined in the templatefile). This stationname is NOT present in the metadata, and mulitple stations are
+    present. Make sure that the single station name used by the data is the same
+    as in the metadatafile. (Or make sure that there is only one station present
+    in the metadatafile).
+    """
+                )
+            else:
+                logger.warning(
+                    f"By a mismatch in single-station-name, the metadata name:{self.datadf.index[0]} --> {target_single_name} is renamed to be in line with the datafile and template."
+                )
+                # rename
+                self.datadf.index = pd.Index(name="name", data=[target_single_name])
+                return
+
     # ------------------------------------------
     #    Getters
     # ------------------------------------------
 
     def get_df(self) -> pd.DataFrame:
         return self.datadf
+
+
+class MetObsInconsistentStationName(Exception):
+    """Special case only --> mismatch in data-metadata stationnames"""
+
+    pass

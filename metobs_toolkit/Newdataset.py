@@ -22,11 +22,14 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes, ModelObstype
+from metobs_toolkit.obstypes import Obstype
 
-from metobs_toolkit.backend_collection.timeseries_plotting import (
+from metobs_toolkit.plot_collection import (
     create_axes,
     create_station_color_map,
+    qc_overview_pies,
 )
 from metobs_toolkit.qc_collection import toolkit_buddy_check
 from metobs_toolkit.backend_collection.docstring_wrapper import copy_doc
@@ -113,6 +116,8 @@ class Dataset:
         concatlist = []
         for sta in self.stations:
             stadf = sta.df.reset_index()
+            if stadf.empty:
+                continue
             stadf["name"] = sta.name
             concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
 
@@ -192,16 +197,18 @@ class Dataset:
         return station
 
     def get_info(self, printout=True):
-
+        infostr = ""
         df = self.df
+        if df.empty:
+            infostr += "Dataset instance without observation records."
+        else:
+            present_obstypes = list(df.index.get_level_values("obstype").unique())
 
-        present_obstypes = list(df.index.get_level_values("obstype").unique())
-
-        infostr = " --- General Info --- \n\n"
-        infostr += "Dataset instance with:\n"
-        infostr += f"  *{len(self.stations)} number of stations\n"
-        infostr += f"  *{len(present_obstypes)} types of sensor data are present.\n"
-        infostr += f'  *Observations from {df.index.get_level_values("datetime").min()} -> {df.index.get_level_values("datetime").max()}\n'
+            infostr += " --- General Info --- \n\n"
+            infostr += "Dataset instance with:\n"
+            infostr += f"  *{len(self.stations)} number of stations\n"
+            infostr += f"  *{len(present_obstypes)} types of sensor data are present.\n"
+            infostr += f'  *Observations from {df.index.get_level_values("datetime").min()} -> {df.index.get_level_values("datetime").max()}\n'
 
         infostr += "\n --- Observational info ---\n\n"
         # TODO
@@ -216,18 +223,67 @@ class Dataset:
         else:
             return infostr
 
+    def sync_records(
+        self,
+        target_obstype: str = "temp",
+        timestamp_shift_tolerance="2min",
+        freq_shift_tolerance="1min",
+        fixed_origin=None,
+    ):
+
+        # NOTE: cumulative tolerance errors with the settings used to import the dataset !!!
+
+        # format arguments
+        fixed_origin = fmt_timedelta_arg(fixed_origin)
+        freq_shift_tolerance = fmt_timedelta_arg(freq_shift_tolerance)
+        timestamp_shift_tolerance = fmt_timedelta_arg(timestamp_shift_tolerance)
+
+        for sta in self.stations:
+            # check if has sensordata
+            if target_obstype in sta.obsdata.keys():
+                sensor = sta.obsdata[target_obstype]
+
+                freq_target = simplify_time(
+                    time=sensor.freq,
+                    max_simplify_error=freq_shift_tolerance,
+                    zero_protection=True,
+                )
+
+                # Note that simplify_time (tries to) simplifies to a target,
+                # all targets are natural multipicates of each other --> ensuring syncing
+                # over different sensors.
+
+                sensor.resample(
+                    target_freq=freq_target,
+                    shift_tolerance=timestamp_shift_tolerance,
+                    origin=fixed_origin,
+                    origin_simplify_tolerance=timestamp_shift_tolerance,
+                )
+            else:
+                logger.warning(
+                    f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronisation."
+                )
+
     def resample(
         self,
         target_freq,
+        target_obstype: str | None = None,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
         origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
+        # NOTE: cumulative tolerance errors with the settings used to import the dataset !!!
+        # NOTE: if target_obstype is none, all sensors are resampled to the same freq!
+
+        # format arguments
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
+
+        # apply over all station
         for sta in self.stations:
             sta.resample(
                 target_freq=target_freq,
+                target_obstype=target_obstype,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
                 origin_simplify_tolerance=origin_simplify_tolerance,
@@ -293,6 +349,21 @@ class Dataset:
 
         return totaldf
 
+    def add_new_observationtype(self, obstype: Obstype):
+        # Check type
+        if not isinstance(obstype, Obstype):
+            raise MetObsWrongType(
+                f"{obstype} is not an instance of metobs_toolkit.Obstype."
+            )
+        # Check if the name is unique
+        if obstype.name in self.obstypes.keys():
+            raise MetObsDataAlreadyPresent(
+                f"An Obstype with {obstype.name} as name is already present in {self}."
+            )
+
+        # add it to the knonw obstypes
+        self.obstypes.update({obstype.name: obstype})
+
     def save_dataset_to_pkl(
         self, target_folder, filename="saved_dataset.pkl", overwrite=False
     ):
@@ -321,9 +392,9 @@ class Dataset:
 
     def import_data_from_file(
         self,
+        template_file: str | Path,
         input_data_file: str | Path = None,
         input_metadata_file: str | Path = None,
-        template_file: str | Path = None,
         freq_estimation_method: Literal["highest", "median"] = "median",
         freq_estimation_simplify_tolerance: str | pd.Timedelta = "2min",
         origin_simplify_tolerance: str | pd.Timedelta = "5min",
@@ -460,13 +531,9 @@ class Dataset:
         timestamp_tolerance = fmt_timedelta_arg(timestamp_tolerance)
 
         # check input file args
-        if (input_data_file is not None) & (template_file is None):
+        if (input_data_file is None) & (template_file is None):
             raise MetObsMissingFile(
-                f"A input_data_file is provided, but the template_file is missing."
-            )
-        if (input_data_file is None) & (template_file is not None):
-            raise MetObsMissingFile(
-                f"A template_file is provided, but the input_data_file is missing."
+                f"No input_data_file or input_metadata_file is provided"
             )
 
         assert template_file is not None, "No templatefile is specified."
@@ -478,11 +545,17 @@ class Dataset:
         )
 
         # Read Datafile
-        dataparser = DataParser(
-            datafilereader=CsvFileReader(file_path=input_data_file),
-            template=self.template,
-        )
-        dataparser.parse(**kwargs_data_read)  # read and parse to a dataframe
+        if input_data_file is not None:
+            use_data = True
+            dataparser = DataParser(
+                datafilereader=CsvFileReader(file_path=input_data_file),
+                template=self.template,
+            )
+            dataparser.parse(**kwargs_data_read)  # read and parse to a dataframe
+        else:
+            logger.info("No datafile is provided --> metadata-only mode")
+            dataparser = None  # will not be used
+            use_data = False
 
         # Read Metadata
         if input_metadata_file is not None:
@@ -497,23 +570,35 @@ class Dataset:
             use_metadata = False
             metadataparser = None  # will not be used
 
-        # Add original columnname and units to the known obstypes
-        self.obstypes = update_known_obstype_with_original_data(
-            known_obstypes=self.obstypes, template=self.template
-        )
+        if use_data:
+            # Add original columnname and units to the known obstypes
+            self.obstypes = update_known_obstype_with_original_data(
+                known_obstypes=self.obstypes, template=self.template
+            )
+
+        # Special case: in single-station case the name can be define in the template,
+        # but a (different) name can be present in the metadata file for the same station.
+        # This results in incompatible data-metadata.
+        if (use_metadata) & (use_data) & (self.template.data_is_single_station):
+            templatename = self.template.single_station_name
+            metadataparser._overwrite_name(target_single_name=templatename)
 
         # Construct Stations
-        stations = createstations(
-            data_parser=dataparser,
-            metadata_parser=metadataparser,
-            use_metadata=use_metadata,
-            known_obstypes=self.obstypes,
-            timezone=self.template.tz,
-            freq_estimation_method=freq_estimation_method,
-            freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
-            origin_simplify_tolerance=origin_simplify_tolerance,
-            timestamp_tolerance=timestamp_tolerance,
-        )
+        if use_data:
+            stations = createstations(
+                data_parser=dataparser,
+                metadata_parser=metadataparser,
+                use_metadata=use_metadata,
+                known_obstypes=self.obstypes,
+                timezone=self.template.tz,
+                freq_estimation_method=freq_estimation_method,
+                freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+                origin_simplify_tolerance=origin_simplify_tolerance,
+                timestamp_tolerance=timestamp_tolerance,
+            )
+        else:
+            # metadata-only mode
+            stations = create_metadata_only_stations(metadata_parser=metadataparser)
 
         # Set stations attribute
         self.stations = stations
@@ -991,9 +1076,53 @@ class Dataset:
                     check_kwargs=qc_kwargs,
                 )
 
+    def get_qc_stats(self, target_obstype="temp", make_plot=True):
+
+        freqdf_list = [
+            sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
+            for sta in self.stations
+        ]
+
+        dfagg = (
+            pd.concat(freqdf_list)
+            .reset_index()
+            .groupby(["qc_check"])
+            .sum()
+            .drop(columns=["name"])
+        )
+
+        if make_plot:
+            fig = qc_overview_pies(df=dfagg)
+            fig.suptitle(
+                f"QC frequency statistics of {target_obstype} on Dataset level."
+            )
+            return fig
+        else:
+            return dfagg
+
     # ------------------------------------------
     #    Other methods
     # ------------------------------------------
+
+    def rename_stations(self, renamtdict: dict):
+
+        if not isinstance(renamtdict, dict):
+            raise TypeError(f"{renamtdict} is not a Dict")
+
+        for origname, trgname in renamtdict.items():
+            # test if the station exist
+            if origname not in [sta.name for sta in self.stations]:
+                logger.warning(f"{origname} is not present, skipped.")
+                continue
+
+            # test if targetname is unknown
+            if trgname in [sta.name for sta in self.stations]:
+                logger.warning(
+                    f"{trgname} is already present, renaming {origname} --> {trgname} is skipped."
+                )
+                continue
+            # rename
+            self.get_station(origname)._rename(targetname=trgname)
 
     def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
         for sta in self.stations:
@@ -1147,6 +1276,29 @@ def _qc_window_var_generatorfunc(input):
 
 def _create_qc_arg_set(dataset, **qckwargs):
     return [([sta, dict(**qckwargs)]) for sta in dataset.stations]
+
+
+def create_metadata_only_stations(metadata_parser: MetaDataParser):
+
+    stations = []
+
+    for stationname in metadata_parser.get_df().index:
+        stationsite = Site(
+            stationname=stationname,
+            latitude=metadata_parser.get_station_lat(stationname),
+            longitude=metadata_parser.get_station_lon(stationname),
+            extradata=metadata_parser.get_station_extra_metadata(stationname),
+        )
+
+        # Combine into a Station
+        station = Station(
+            stationname=stationname,
+            site=stationsite,
+            all_sensor_data=[],  # No sensordata!
+        )
+
+        stations.append(station)
+    return stations
 
 
 def createstations(

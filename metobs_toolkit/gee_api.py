@@ -13,7 +13,6 @@ import pytz
 import pandas as pd
 import ee
 
-from metobs_toolkit.backend_collection.df_helpers import init_multiindexdf
 
 logger = logging.getLogger(__name__)
 
