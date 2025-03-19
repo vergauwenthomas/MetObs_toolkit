@@ -104,7 +104,7 @@ label_def = {
         "label": "duplicated timestamp outlier",
         "color": "#a32a1f",
     },
-    "invalid_input": {"label": "invalid input", "color": "#900357"},
+    # "invalid_input": {"label": "invalid input", "color": "#900357"},
     "gross_value": {"label": "gross value outlier", "color": "#f1ff2b"},
     "persistence": {"label": "persistence outlier", "color": "#f0051c"},
     "repetitions": {"label": "repetitions outlier", "color": "#056ff0"},
@@ -181,7 +181,7 @@ failed_gapfill_label_group = [
 
 qc_label_group = [
     "duplicated_timestamp",
-    "invalid_input",
+    # "invalid_input",
     "gross_value",
     "persistence",
     "repetitions",

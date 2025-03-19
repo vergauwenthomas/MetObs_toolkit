@@ -6,6 +6,8 @@ from math import radians, cos, sin, asin, sqrt
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.backend_collection.df_helpers import to_timedelta
+
 
 logger = logging.getLogger(__file__)
 
@@ -52,7 +54,7 @@ def synchronize_series(series_list, max_shift):
     pd.DataFrame: DataFrame with synchronized Series.
     """
     # find highest frequency
-    frequencies = [pd.Timedelta(s.index.inferred_freq) for s in series_list]
+    frequencies = [to_timedelta(s.index.inferred_freq) for s in series_list]
     trg_freq = min(frequencies)
 
     # find origin and closing timestamp (earliest/latest)
@@ -278,7 +280,7 @@ def toolkit_buddy_check(
     for i in range(N_iter):
         # convert values to Nan, if they are labeled as outlier in previous iteration
         if bool(outliersbin):
-            for outlier_station, outlier_time in outliersbin:
+            for outlier_station, outlier_time, _msg in outliersbin:
                 if outlier_station in combdf.columns:
                     combdf.loc[outlier_time, outlier_station] = np.nan
 
@@ -350,8 +352,22 @@ def find_buddy_group_outlier(inputarg):
     # locate the most extreme outlier per timestamp
     buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
 
-    # add (outlierstationname: timestamp) to outliers
-    return list(zip(buddydf["is_the_most_extreme_outlier"], buddydf.index))
+    def msgcreator(row):
+        retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
+        retstr += f" with chi value {row[row['is_the_most_extreme_outlier']]:.2f},"
+        retstr += f"is part of {buddygroup}, with mean: {row['mean']:.2f}, std: {row['std']:.2f}"
+        return retstr
+
+    # detail infostring
+    buddydf["detail_msg"] = buddydf.apply(
+        lambda row: msgcreator(row), axis=1, result_type="reduce"
+    )
+
+    return list(
+        zip(
+            buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
+        )
+    )
 
 
 # def toolkit_buddy_check(

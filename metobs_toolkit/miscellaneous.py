@@ -23,7 +23,7 @@ def _tlk_print_standard_obstypes():
     ncol = 24
     for std_obs in tlk_obstypes.values():
         print(
-            f"{std_obs.name.ljust(ncol)} | {std_obs.get_description().ljust(ncol)} | {std_obs.get_standard_unit().ljust(ncol)} "
+            f"{std_obs.name.ljust(ncol)} | {std_obs.get_description().ljust(ncol)} | {std_obs.std_unit.ljust(ncol)} "
         )
 
 

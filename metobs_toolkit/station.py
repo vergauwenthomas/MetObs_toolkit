@@ -13,9 +13,12 @@ import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-
-from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
-from metobs_toolkit.modeldata import default_datasets as default_gee_datasets
+from metobs_toolkit.settings_files.default_formats_settings import label_def
+from metobs_toolkit.geedatasetmanagers import (
+    GEEStaticDatasetManager,
+    GEEDynamicDatasetManager,
+)
+from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 
@@ -34,6 +37,16 @@ class Station:
 
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
+
+    def __eq__(self, other):
+        if not isinstance(other, Station):
+            return False
+        return (
+            self.name == other.name
+            and self.site == other.site
+            and self.obsdata == other.obsdata
+            and self._modeldata == other._modeldata
+        )
 
     def __repr__(self):
         return f"Station instance of {self.name}"
@@ -69,6 +82,14 @@ class Station:
 
         combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
+        if combdf.empty:
+
+            combdf = pd.DataFrame(
+                columns=["value", "label"],
+                index=pd.MultiIndex(
+                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
+                ),
+            )
         return combdf
 
     @property
@@ -85,7 +106,9 @@ class Station:
         if combdf.empty:
             combdf = pd.DataFrame(
                 columns=["value", "label", "details"],
-                index=pd.DatetimeIndex([], name=("datetime", "obstype")),
+                index=pd.MultiIndex(
+                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
+                ),
             )
 
         return combdf
@@ -93,6 +116,31 @@ class Station:
     @property
     def metadf(self) -> pd.DataFrame:
         return self.site.metadf
+
+    @property
+    def modeldatadf(self) -> pd.DataFrame:
+        concatlist = []
+        for modeldata in self.modeldata.values():
+            df = (
+                modeldata.df.assign(obstype=modeldata.obstype.name)
+                .assign(
+                    details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.obstype.model_unit} -> {modeldata.obstype.std_unit}"
+                )
+                .reset_index()
+                .set_index(["datetime", "obstype"])
+            )
+            concatlist.append(df)
+        combdf = save_concat(concatlist)
+        combdf = combdf[["value", "details"]]
+        combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "details"],
+                index=pd.MultiIndex(
+                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
+                ),
+            )
+        return combdf
 
     @property
     def start_datetime(self):
@@ -210,7 +258,7 @@ class Station:
     def get_gee_point_data(
         self, geestaticdataset, overwrite: bool = True, initialize_gee: bool = True
     ):
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
             )
@@ -246,7 +294,7 @@ class Station:
         initialize_gee: bool = True,
     ):
 
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
             )
@@ -284,7 +332,7 @@ class Station:
     ):
 
         # Check geedynamic dataset
-        if not isinstance(geedynamicdataset, GeeDynamicDataset):
+        if not isinstance(geedynamicdataset, GEEDynamicDatasetManager):
             raise ValueError(
                 f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdataset)}"
             )
@@ -342,7 +390,7 @@ class Station:
                     modelname=geedynamicdataset.name,
                     modelvariable=geedynamicdataset.modelobstypes[
                         modelobscol
-                    ].get_modelband(),
+                    ].model_band,
                 )
                 # todo: duplicacy check
                 self._modeldata.append(modeltimeseries)
@@ -479,14 +527,67 @@ class Station:
         ax=None,
         figkwargs: dict = {},
         title: str | None = None,
+        linestyle="--",
     ) -> Axes:
 
         # test if the obstype has modeldata
         self._obstype_has_modeldata_check(obstype)
 
-        ax = self.sensordata[obstype].make_plot(
-            linecolor=linecolor, ax=ax, figkwargs=figkwargs, title=title
+        # Create new axes if needed
+        if ax is None:
+            ax = plotting.create_axes(**figkwargs)
+
+        plotdf = (
+            self.modeldatadf.xs(obstype, level="obstype", drop_level=False)
+            .assign(name=self.name)
+            .reset_index()
+            .set_index(["name", "obstype", "datetime"])
+            .sort_index()
         )
+
+        plotdf = plotdf[["value"]]
+        plotdf["label"] = label_def["goodrecord"][
+            "label"
+        ]  # Just so that they are plotted as lines
+
+        # Define linecolor (needed here if modeldata is added )
+        if linecolor is None:
+            colormap = plotting.create_station_color_map([self.name])
+        else:
+            colormap = {self.name: linecolor}
+        ax = plotting.plot_timeseries_color_by_station(
+            plotdf=plotdf,
+            colormap=colormap,
+            show_outliers=False,  # will not be used,
+            show_gaps=False,  # will not be used
+            ax=ax,
+            linestyle=linestyle,
+            legend_prefix=f"{self.modeldata[obstype].modelname}:{self.modeldata[obstype].modelvariable}@",
+        )
+        # Styling
+        obstypeinstance = self.modeldata[obstype].obstype
+
+        # Set title:
+        if title is None:
+            plotting.set_title(
+                ax, f"{obstypeinstance.name} data for station {self.name}"
+            )
+        else:
+            plotting.set_title(ax, title)
+
+        # Set ylabel
+        plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
+
+        # Set xlabel
+        cur_tz = plotdf.index.get_level_values("datetime").tz
+        plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
+
+        # Format timestamp ticks
+        plotting.format_datetime_axes(ax)
+
+        # Add legend
+        plotting.set_legend(ax)
+
         return ax
 
     def make_plot(
@@ -505,30 +606,85 @@ class Station:
         # test if obstype have sensordata
         self._obstype_is_known_check(obstype)
 
-        # Define linecolor (needed here if modeldata is added )
-        if linecolor is None:
-            linecolor = plotting.create_station_color_map(["dummy"])["dummy"]
+        # Create new axes if needed
+        if ax is None:
+            ax = plotting.create_axes(**figkwargs)
 
-        # first the metadata (so that styling attributes are overwritten by the sensordata)
         if show_modeldata:
+            if linecolor is None:
+                colormap = plotting.create_station_color_map([self.name])
+            else:
+                colormap = {self.name: linecolor}
+
             ax = self.make_plot_of_modeldata(
-                ax=ax,
                 obstype=obstype,
                 linecolor=linecolor,
+                ax=ax,
                 figkwargs=figkwargs,
-                title=None,
+                title=title,
             )
 
-        # add the records to the axes
-        ax = self.obsdata[obstype].make_plot(
-            colorby=colorby,
-            linecolor=linecolor,
-            show_outliers=show_outliers,
-            show_gaps=show_gaps,
-            ax=ax,
-            figkwargs=figkwargs,
-            title=title,
+        # Create plotdf
+        plotdf = (
+            self.df.xs(obstype, level="obstype", drop_level=False)
+            .assign(name=self.name)
+            .reset_index()
+            .set_index(["name", "obstype", "datetime"])
+            .sort_index()
         )
+
+        if colorby == "station":
+            # Define linecolor (needed here if modeldata is added )
+            if linecolor is None:
+                colormap = plotting.create_station_color_map([self.name])
+            else:
+                colormap = {self.name: linecolor}
+            ax = plotting.plot_timeseries_color_by_station(
+                plotdf=plotdf,
+                colormap=colormap,
+                show_outliers=show_outliers,
+                show_gaps=show_gaps,
+                ax=ax,
+                linestyle="-",
+            )
+
+        elif colorby == "label":
+            ax = plotting.plot_timeseries_color_by_label(
+                plotdf=plotdf,
+                show_outliers=show_outliers,
+                show_gaps=show_gaps,
+                ax=ax,
+            )
+
+        else:
+            raise ValueError(
+                f'colorby is either "station" or "label" but not {colorby}'
+            )
+
+        # Styling
+        obstypeinstance = self.obsdata[obstype].obstype
+
+        # Set title:
+        if title is None:
+            plotting.set_title(
+                ax, f"{obstypeinstance.name} data for station {self.name}"
+            )
+        else:
+            plotting.set_title(ax, title)
+
+        # Set ylabel
+        plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
+
+        # Set xlabel
+        cur_tz = plotdf.index.get_level_values("datetime").tz
+        plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
+
+        # Format timestamp ticks
+        plotting.format_datetime_axes(ax)
+
+        # Add legend
+        plotting.set_legend(ax)
+
         return ax
 
     # ------------------------------------------
@@ -681,7 +837,6 @@ class Station:
 
         # interpolate all the gaps
         self.obsdata[target_obstype].interpolate_gaps(
-            Sensordata=self.obsdata[target_obstype],
             overwrite_fill=overwrite_fill,
             method=method,
             max_consec_fill=max_consec_fill,

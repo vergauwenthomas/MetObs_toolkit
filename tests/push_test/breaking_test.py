@@ -6,7 +6,7 @@
 """
 Created on Tue Nov 29 12:19:03 2022
 
-@author: mivieijra
+@authors: thoverga, mivieijra
 """
 
 import sys, os

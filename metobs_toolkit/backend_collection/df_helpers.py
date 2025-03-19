@@ -66,6 +66,22 @@ def save_concat(targets, **kwargs):
         return pd.DataFrame(columns=list(all_columns), index=list(all_index))
 
 
+def to_timedelta(inputdelta):
+    """Convert input to a pandas timedelta object."""
+    if isinstance(inputdelta, pd.Timedelta):
+        return inputdelta
+    elif isinstance(inputdelta, str):
+        # Clue: When freq is extracted for datetimeindex,
+        # the string representation does nt always start with
+        # a number (ex: 'T' for minutes). This is not accepted by
+        # pd.to_timedelta. Therefore, add a '1' in front of the string.
+        if not inputdelta[0].isdigit():
+            inputdelta = "1" + inputdelta
+        return pd.to_timedelta(inputdelta)
+    else:
+        raise TypeError(f"Input {inputdelta} is not a valid timedelta.")
+
+
 # def save_concat(df_list, keep_all_nan_cols=False, **kwargs):
 #     """Concat dataframes row-wise without triggering the Futurwarning of concating empyt df's."""
 

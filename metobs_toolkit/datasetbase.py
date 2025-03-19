@@ -33,7 +33,7 @@ from metobs_toolkit.backend_collection.df_helpers import (
 from metobs_toolkit.template import Template
 from metobs_toolkit.settings import Settings
 from metobs_toolkit.obstypes import tlk_obstypes
-from metobs_toolkit.modeldata import default_datasets
+from metobs_toolkit.geedatasetmanagers import default_datasets
 
 # from metobs_toolkit.gap import find_gaps
 

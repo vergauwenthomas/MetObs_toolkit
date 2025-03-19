@@ -5,6 +5,7 @@ Created on Fri Oct 28 08:18:09 2022
 
 @author: thoverga
 """
+# %%
 import copy
 import sys, os
 from pathlib import Path
@@ -12,45 +13,46 @@ import pandas as pd
 from datetime import datetime
 import numpy as np
 
+# construct libfolder
+libfolder = Path(str(Path(__file__).resolve()).split("MetObs_toolkit")[0]).joinpath(
+    "MetObs_toolkit"
+)
 
 # add the solutions
-sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+pushtestdir = libfolder.joinpath("tests").joinpath("push_test")
+sys.path.insert(0, str(pushtestdir))
 print(sys.path)
 import solutions.solutions_creator as solution
 
 # point to current version of the toolkit
-lib_folder = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(lib_folder))
+sys.path.insert(1, str(libfolder))
 import metobs_toolkit
-
-from metobs_toolkit.backend_collection.df_helpers import (
-    init_multiindexdf,
-    conv_tz_multiidxdf,
-)
 
 
 # %% Import data
 
 testdatafile = os.path.join(
-    str(lib_folder), "tests", "test_data", "testdata_with_gaps.csv"
+    str(libfolder), "tests", "test_data", "testdata_with_gaps.csv"
 )
 
-static_data = os.path.join(str(lib_folder), "static_data", "vlinder_metadata.csv")
+static_data = os.path.join(str(libfolder), "static_data", "vlinder_metadata.csv")
 
 templatefile = os.path.join(
-    str(lib_folder), "tests", "test_data", "template_testdata_with_gaps.json"
+    str(libfolder), "tests", "test_data", "template_testdata_with_gaps.json"
 )
 
 
 # #% import data
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
+
+dataset.import_data_from_file(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
     template_file=templatefile,
 )
-dataset.import_data_from_file()
-dataset.coarsen_time_resolution()
+
+
+dataset.resample(target_freq="1h")
 
 
 # %% Basic tests on the gaps location and gaps functions
@@ -62,12 +64,8 @@ gapsdf_file = "gaps_gapdf.pkl"
 
 def _create_gap_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
-    dataset.get_full_status_df().to_pickle(
-        os.path.join(solution.solutions_dir, combdf_gaps_file)
-    )
-    dataset.get_gaps_fill_df().to_pickle(
-        os.path.join(solution.solutions_dir, gapsdf_file)
-    )
+    dataset.df.to_pickle(os.path.join(solution.solutions_dir, combdf_gaps_file))
+    dataset.gapsdf.to_pickle(os.path.join(solution.solutions_dir, gapsdf_file))
 
 
 # _create_gap_solutions()
@@ -80,27 +78,14 @@ def get_unfilled_solutions():
 
 
 sol_combdf, sol_gapsdf = get_unfilled_solutions()
+
 # Check if gaps are well found and converted to dataframes
 
-_ = dataset.get_full_status_df()
-
-
-diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_full_status_df(), solutiondf=sol_combdf
-)
+diff_df = solution.test_df_are_equal(testdf=dataset.df, solutiondf=sol_combdf)
 assert diff_df is None
 
-diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_gaps_fill_df(), solutiondf=sol_gapsdf
-)
+diff_df = solution.test_df_are_equal(testdf=dataset.gapsdf, solutiondf=sol_gapsdf)
 assert diff_df is None
-
-
-# %% Test gap relate methods (execution tests)
-
-_ = dataset.get_gaps_fill_df()
-
-_ = dataset.gaps[1].get_info()
 
 
 # %%
@@ -113,7 +98,7 @@ station_combdf_gaps_file = "station_gapsdf.pkl"
 
 def _create_station_gap_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
-    dataset.get_station("vlinder01").get_gaps_fill_df().to_pickle(
+    dataset.get_station("vlinder01").gapsdf.to_pickle(
         os.path.join(solution.solutions_dir, station_combdf_gaps_file)
     )
 
@@ -131,7 +116,7 @@ def get_unfilled_station_solutions():
 sol_sta_gapsdf = get_unfilled_station_solutions()
 # Check if gaps are well found and converted to dataframes
 diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_station("vlinder01").get_gaps_fill_df(),
+    testdf=dataset.get_station("vlinder01").gapsdf,
     solutiondf=sol_sta_gapsdf,
 )
 
@@ -142,15 +127,24 @@ diff_df = solution.test_df_are_equal(
 # =============================================================================
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
+
+
+dataset.import_data_from_file(
     input_data_file=testdatafile,
     input_metadata_file=static_data,
     template_file=templatefile,
 )
 
-dataset.import_data_from_file()
-dataset.coarsen_time_resolution(freq="1h")
-dataset.apply_quality_control()
+dataset.resample(target_freq="1h")
+
+# apply QC
+dataset.gross_value_check(lower_threshold=5)
+dataset.persistence_check()
+dataset.repetitions_check()
+dataset.step_check()
+dataset.window_variation_check()
+
+
 dataset.convert_outliers_to_gaps()
 
 
@@ -160,7 +154,7 @@ combdf_demo_startpoin_file = "gapfill_startpoint_combdf.pkl"
 
 def _create_startpoint_solutions():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
-    dataset.get_full_status_df().to_pickle(
+    dataset.df.to_pickle(
         os.path.join(solution.solutions_dir, combdf_demo_startpoin_file)
     )
 
@@ -173,7 +167,7 @@ def get_startpoint_solution():
 
 
 diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_full_status_df(), solutiondf=get_startpoint_solution()
+    testdf=dataset.df, solutiondf=get_startpoint_solution()
 )
 assert diff_df is None
 
@@ -185,7 +179,7 @@ station_inter_sol_df = "interp_sol_sta_df_file.pkl"
 def _create_interpolation_solution():
     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
     dataset.interpolate_gaps(
-        obstype="temp",
+        target_obstype="temp",
         overwrite_fill=True,
         method="time",
         max_consec_fill=10,
@@ -194,11 +188,11 @@ def _create_interpolation_solution():
     )
 
     trg_file = os.path.join(solution.solutions_dir, inter_sol_df_file)
-    dataset.get_full_status_df().to_pickle(trg_file)
+    dataset.df.to_pickle(trg_file)
 
     sta = dataset.get_station("vlinder04")
     sta.interpolate_gaps(
-        obstype="temp",
+        target_obstype="temp",
         overwrite_fill=True,
         method="nearest",
         max_consec_fill=4,
@@ -206,7 +200,7 @@ def _create_interpolation_solution():
         max_trail_to_gap_distance=None,
     )
     trg_sta_file = os.path.join(solution.solutions_dir, station_inter_sol_df)
-    sta.get_full_status_df().to_pickle(trg_sta_file)
+    sta.df.to_pickle(trg_sta_file)
 
 
 # _create_interpolation_solution()
@@ -226,7 +220,7 @@ dataset_sol, sta_solution = get_interp_solution()
 
 # interpolate the gaps
 dataset.interpolate_gaps(
-    obstype="temp",
+    target_obstype="temp",
     overwrite_fill=True,
     method="time",
     max_consec_fill=10,
@@ -236,15 +230,13 @@ dataset.interpolate_gaps(
 
 
 # test interpolation on dataset level
-diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_full_status_df(), solutiondf=dataset_sol
-)
+diff_df = solution.test_df_are_equal(testdf=dataset.df, solutiondf=dataset_sol)
 assert diff_df is None
 
-
+# %%
 sta = dataset.get_station("vlinder04")
 sta.interpolate_gaps(
-    obstype="temp",
+    target_obstype="temp",
     overwrite_fill=True,
     method="linear",
     max_consec_fill=4,
@@ -253,7 +245,7 @@ sta.interpolate_gaps(
 )
 # check if this methods overwrites the linear fille
 sta.interpolate_gaps(
-    obstype="temp",
+    target_obstype="temp",
     overwrite_fill=True,
     method="nearest",
     max_consec_fill=4,
@@ -279,7 +271,7 @@ def _create_polynom_interpolation_solution():
 
     sta = dataset.get_station("vlinder04")
     sta.interpolate_gaps(
-        obstype="temp",
+        target_obstype="temp",
         overwrite_fill=True,
         method="polynomial",
         max_consec_fill=5,
@@ -291,7 +283,7 @@ def _create_polynom_interpolation_solution():
     )
 
     trg_sta_file = os.path.join(solution.solutions_dir, highorder_inter_sol_df_file)
-    sta.get_gaps_fill_df().to_pickle(trg_sta_file)
+    sta.df.to_pickle(trg_sta_file)
 
 
 # _create_polynom_interpolation_solution()
@@ -307,7 +299,7 @@ def get_polynom_interp_solution():
 
 sta = dataset.get_station("vlinder04")
 sta.interpolate_gaps(
-    obstype="temp",
+    target_obstype="temp",
     overwrite_fill=True,
     method="polynomial",
     max_consec_fill=5,
@@ -321,7 +313,7 @@ sta.interpolate_gaps(
 
 # test interpolation on station level
 diff_df = solution.test_df_are_equal(
-    testdf=sta.get_gaps_fill_df(), solutiondf=get_polynom_interp_solution()
+    testdf=sta.df, solutiondf=get_polynom_interp_solution()
 )
 assert diff_df is None
 

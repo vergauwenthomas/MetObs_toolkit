@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.pyplot import Axes
 
-from metobs_toolkit.backend_collection.df_helpers import save_concat
+from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
 import metobs_toolkit.settings_files.default_formats_settings as defaults
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
@@ -101,6 +101,15 @@ class SensorData:
 
         logger.info("SensorData initialized successfully.")
 
+    def __eq__(self, other):
+        if not isinstance(other, SensorData):
+            return False
+        return (
+            self.stationname == other.stationname
+            and self.df.equals(other.df)  # the df contains outliers and gaps as well
+            and self.obstype == other.obstype
+        )
+
     def __repr__(self):
         return f"Sensordata instance of {self.obstype.name} -> {self.stationname}"
 
@@ -195,28 +204,22 @@ class SensorData:
     def convert_outliers_to_gaps(self):
 
         cur_freq = self.freq
-        cur_orig = self.start_datetime
-        cur_closing = self.end_datetime
-
         # Create holes for all the outliers timestamps
-        self.series = self.series.loc[~self.series.index.isin(self.outliersdf.index)]
+        self.series.loc[self.outliersdf.index] = np.nan
 
         # Flush the outliers
-        logger.warning("Outliers are flushed!")
+        logger.warning(f"Outliers are flushed of {self}!")
         self.outliers = []
 
-        # Now do a setup without unit conv
-        self._setup(
-            freq_estimation_method="highest",  # irrelevant
-            freq_estimation_simplify_tolerance=pd.Timedelta("0min"),  # irrelevant
-            origin_simplify_tolerance=pd.Timedelta("0min"),  # irrelevant
-            timestamp_tolerance=pd.Timedelta("0min"),  # irrelevant
-            apply_invalid_check=False,
-            apply_dupl_check=False,
-            apply_unit_conv=False,
-            force_freq=cur_freq,
-            force_closing=cur_closing,
-            force_origin=cur_orig,
+        # Flush the gaps
+        if bool(self.gaps):
+            logger.warning(f"Flushing current gaps of {self}")
+        self.gaps = []
+
+        # Finding new gaps
+        self.gaps = self._find_gaps(
+            missingrecords=self.series[self.series.isnull()],
+            target_freq=cur_freq,
         )
 
     def resample(
@@ -270,9 +273,13 @@ class SensorData:
         new_missing = timestampmatcher.gap_records
         # the original gaps timestamp
         orig_missing = orig_gapsdf["value"]
+        orig_missing = orig_missing[
+            orig_missing.index.isin(self.series.index)
+        ]  # drop the records belonging to previous freq that does not exists anymore
 
         # combine both sets and construct new gaps
         all_missing = pd.concat([new_missing, orig_missing]).sort_index()
+
         # Construct gaps
         self.gaps = self._find_gaps(
             missingrecords=all_missing,
@@ -354,14 +361,15 @@ class SensorData:
             checkdf["label"] = defaults.label_def[checkname]["label"]
             to_concat.append(checkdf)
 
-        if bool(to_concat):
-            totaldf = save_concat(to_concat)
-            totaldf.sort_index(inplace=True)
-        else:
+        totaldf = save_concat(to_concat)
+
+        if totaldf.empty:
             # return empty dataframe
             totaldf = pd.DataFrame(
                 columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
             )
+        else:
+            totaldf.sort_index(inplace=True)
 
         logger.debug("Outliers DataFrame created successfully for %s", self.stationname)
         return totaldf
@@ -441,11 +449,7 @@ class SensorData:
         freq = pd.infer_freq(self.series.index)
         if freq is None:
             raise ValueError("Frequency could not be computed.")
-        # note: sometimes 'h' is returned, and this gives issues, so add a 1 in front
-        if not freq[0].isdigit():
-            freq = "1" + freq
-
-        return pd.Timedelta(freq)
+        return to_timedelta(freq)
 
     def _format_timestamp_index(
         self, timestamps: np.ndarray, tz: str | pd.Timedelta
@@ -598,67 +602,7 @@ class SensorData:
     #    plots
     # ------------------------------------------
 
-    def make_plot(
-        self,
-        colorby: Literal["station", "label"] = "label",
-        linecolor=None,
-        show_outliers=True,
-        show_gaps=True,
-        ax=None,
-        figkwargs: dict = {},
-        title: str | None = None,
-    ) -> Axes:
-        # define figure
-        if ax is None:
-            ax = plotting.create_axes(**figkwargs)
-
-        if colorby == "station":
-            # Define a color
-            if linecolor is None:
-                # create a new color
-                color = plotting.create_station_color_map(["dummy"])["dummy"]
-            else:
-                color = linecolor
-
-            ax = plotting.plot_timeseries_as_one_color(
-                sensordata=self,
-                color=color,
-                ax=ax,
-                show_gaps=show_gaps,
-                show_outliers=show_outliers,
-            )
-        elif colorby == "label":
-            if linecolor is not None:
-                logger.warning(
-                    f"linecolor (={linecolor} is ignore when colorby={colorby})"
-                )
-            # TODO: forward plotkwargs
-            ax = plotting.plot_timeseries_color_by_label(
-                sensordata=self, show_gaps=show_gaps, show_outliers=show_outliers, ax=ax
-            )
-
-        else:
-            raise Exception(
-                f'colorby is either "label" or "station", but not {colorby}'
-            )
-
-        # Add Styling attributes
-        # Set title:
-        if title is None:
-            plotting.set_title(
-                ax, f"{self.obstype.name} data for station {self.stationname}"
-            )
-        else:
-            plotting.set_title(ax, title)
-        # Set ylabel
-        plotting.set_ylabel(ax, self.obstype._get_plot_y_label())
-
-        # Set xlabel
-        plotting.set_xlabel(ax, f"Timestamps (in {self.tz})")
-
-        # Add legend
-        plotting.set_legend(ax)
-        return ax
+    # plots are defined on station and dataset level
 
     # ------------------------------------------
     #    Quality Control (techincal qc + valuebased qc)
@@ -835,37 +779,39 @@ class SensorData:
                     f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
                 )
                 continue
+            if overwrite_fill:
+                # clear previous fill info
+                gap.flush_fill()
 
-            else:
-                logger.debug(f"filling {gap} with {method} modeldata.")
-                match method:
-                    case "raw":
-                        gap.raw_model_gapfill(
-                            modeltimeseries=modeltimeseries, **method_kwargs
-                        )
-                    case "debiased":
-                        gap.debiased_model_gapfill(
-                            sensordata=self,
-                            modeltimeseries=modeltimeseries,
-                            **method_kwargs,
-                        )
-                    case "diurnal_debiased":
-                        gap.diurnal_debiased_model_gapfill(
-                            sensordata=self,
-                            modeltimeseries=modeltimeseries,
-                            **method_kwargs,
-                        )
+            logger.debug(f"filling {gap} with {method} modeldata.")
+            match method:
+                case "raw":
+                    gap.raw_model_gapfill(
+                        modeltimeseries=modeltimeseries, **method_kwargs
+                    )
+                case "debiased":
+                    gap.debiased_model_gapfill(
+                        sensordata=self,
+                        modeltimeseries=modeltimeseries,
+                        **method_kwargs,
+                    )
+                case "diurnal_debiased":
+                    gap.diurnal_debiased_model_gapfill(
+                        sensordata=self,
+                        modeltimeseries=modeltimeseries,
+                        **method_kwargs,
+                    )
 
-                    case "weighted_diurnal_debiased":
-                        gap.weighted_diurnal_debiased_model_gapfill(
-                            sensordata=self,
-                            modeltimeseries=modeltimeseries,
-                            **method_kwargs,
-                        )
-                    case _:
-                        raise NotImplementedError(
-                            f"modeldata gapfill method: {method} is not implemented!"
-                        )
+                case "weighted_diurnal_debiased":
+                    gap.weighted_diurnal_debiased_model_gapfill(
+                        sensordata=self,
+                        modeltimeseries=modeltimeseries,
+                        **method_kwargs,
+                    )
+                case _:
+                    raise NotImplementedError(
+                        f"modeldata gapfill method: {method} is not implemented!"
+                    )
 
     def interpolate_gaps(
         self,
@@ -885,18 +831,21 @@ class SensorData:
                     f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
                 )
                 continue
-            else:
-                logger.debug(f"filling {gap} with {method} interpolation.")
-                gap.interpolate(
-                    sensordata=self,
-                    method=method,
-                    max_consec_fill=max_consec_fill,
-                    n_leading_anchors=n_leading_anchors,
-                    n_trailing_anchors=n_trailing_anchors,
-                    max_lead_to_gap_distance=max_lead_to_gap_distance,
-                    max_trail_to_gap_distance=max_trail_to_gap_distance,
-                    method_kwargs=method_kwargs,
-                )
+            if overwrite_fill:
+                # clear previous fill info
+                gap.flush_fill()
+
+            logger.debug(f"filling {gap} with {method} interpolation.")
+            gap.interpolate(
+                sensordata=self,
+                method=method,
+                max_consec_fill=max_consec_fill,
+                n_leading_anchors=n_leading_anchors,
+                n_trailing_anchors=n_trailing_anchors,
+                max_lead_to_gap_distance=max_lead_to_gap_distance,
+                max_trail_to_gap_distance=max_trail_to_gap_distance,
+                method_kwargs=method_kwargs,
+            )
 
 
 # ------------------------------------------

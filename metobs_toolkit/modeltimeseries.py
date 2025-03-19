@@ -5,6 +5,7 @@ import numpy as np
 
 from matplotlib.pyplot import Axes
 
+from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.obstypes import Obstype
 import metobs_toolkit.plot_collection.timeseries_plotting as plotting
 
@@ -30,7 +31,7 @@ class ModelTimeSeries:
         # Data
         data = pd.Series(
             data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
-            index=pd.DatetimeIndex(data=timestamps, tz=timezone),
+            index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
             name=obstype.name,
         )
         self.series = data
@@ -42,6 +43,17 @@ class ModelTimeSeries:
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
+    def __eq__(self, other):
+        if not isinstance(other, ModelTimeSeries):
+            return False
+        return (
+            self.site == other.site
+            and self.obstype == other.obstype
+            and self.series.equals(other.series)
+            and self.modelname == other.modelname
+            and self.modelvariable == other.modelvariable
+        )
+
     @property
     def df(self):
         # get all records
@@ -115,9 +127,7 @@ class ModelTimeSeries:
         if freq is None:
             raise ValueError("Frequency could not be computed.")
         # note: sometimes 'h' is returned, and this gives issues, so add a 1 in front
-        if not freq[0].isdigit():
-            freq = "1" + freq
-        return pd.Timedelta(freq)
+        return to_timedelta(freq)
 
     def get_info(self, printout: bool = True):
         infostr = ""
@@ -128,6 +138,7 @@ class ModelTimeSeries:
         infostr += f"  * from {self.start_datetime} --> {self.end_datetime}\n"
         infostr += f"  * assumed frequency: {self.freq}\n"
         infostr += f"  * Number of records: {self.series.shape[0]}\n"
+        infostr += f"  * Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}\n"
         if printout:
             print(infostr)
         else:

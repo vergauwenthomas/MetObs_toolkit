@@ -1232,9 +1232,7 @@ class Analysis(Dataset):
         else:
             title = str(title)
 
-        y_label = (
-            f"{obstype.name} difference to {refstation} ({obstype.get_standard_unit()})"
-        )
+        y_label = f"{obstype.name} difference to {refstation} ({obstype.std_unit})"
 
         stats = self.get_aggregated_cycle_statistics(
             obstype=obstype,

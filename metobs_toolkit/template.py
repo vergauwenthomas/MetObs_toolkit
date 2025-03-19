@@ -14,7 +14,7 @@ import urllib.request
 
 import pandas as pd
 from pytz import all_timezones
-from metobs_toolkit.filereaders import JsonFileReader
+from metobs_toolkit.io_collection.filereaders import JsonFileReader
 
 logger = logging.getLogger(__file__)
 

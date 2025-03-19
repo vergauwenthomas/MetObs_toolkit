@@ -67,7 +67,7 @@ def persistence_check(
         logger.warning(
             "The minimum number of window members for the persistance check is not met!"
         )
-        return pd.DatetimeIndex()
+        return pd.DatetimeIndex(name="datetime", data=[])
 
     # apply persistance
     def is_unique(

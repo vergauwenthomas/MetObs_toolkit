@@ -13,6 +13,10 @@ def test_moving_window_condition(
     if freqstr is None:
         raise Exception("The input records do not have a perfect frequent timestamp.")
     # Convert to timedelta
+    # note: sometimes 'h' is returned, and this gives issues, so add a 1 in front
+    if not freqstr[0].isdigit():
+        freqstr = "1" + freqstr
+
     freq = pd.Timedelta(freqstr)
 
     # Test if minimum window members condition is met

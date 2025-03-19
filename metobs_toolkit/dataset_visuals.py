@@ -28,7 +28,10 @@ from metobs_toolkit.settings_files.default_formats_settings import (
 from metobs_toolkit.gee_api import _validate_metadf
 
 # from metobs_toolkit.landcover_functions import connect_to_gee, _validate_metadf
-from metobs_toolkit.modeldata import GeeStaticDataset, GeeDynamicDataset
+from metobs_toolkit.geedatasetmanagers import (
+    GEEStaticDatasetManager,
+    GEEDynamicDatasetManager,
+)
 from metobs_toolkit.backend_collection.df_helpers import (
     multiindexdf_datetime_subsetting,
     metadf_to_gdf,
@@ -523,7 +526,7 @@ class DatasetVisuals:
             gdf=combgdf,
             variable_column="value",
             var_display_name=obstype.name,
-            var_unit=obstype.get_standard_unit(),
+            var_unit=obstype.std_unit,
             label_column="label",
             label_col_map=label_col_map,
             vmin=vmin,
@@ -710,7 +713,7 @@ class DatasetVisuals:
             if title is None:
                 title = f"{self.obstypes[variable].get_orig_name()} at {timeinstance}."
             if (legend) & (legend_title is None):
-                legend_title = f"{self.obstypes[variable].get_standard_unit()}"
+                legend_title = f"{self.obstypes[variable].std_unit}"
 
         # situation 2: variable is an observationtype
         elif variable in self.metadf.columns:
@@ -851,7 +854,7 @@ class DatasetVisuals:
                     f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
                 )
 
-        if isinstance(Model, GeeStaticDataset):
+        if isinstance(Model, GEEStaticDatasetManager):
             pass
         else:
             raise MetobsDatasetVisualisationError(
@@ -1039,7 +1042,7 @@ class DatasetVisuals:
                     f"{Model} is not a known Model (name), these are the knonw Gee Modeldata: {self.gee_datasets}."
                 )
 
-        if isinstance(Model, GeeDynamicDataset):
+        if isinstance(Model, GEEDynamicDatasetManager):
             pass
         else:
             raise MetobsDatasetVisualisationError(

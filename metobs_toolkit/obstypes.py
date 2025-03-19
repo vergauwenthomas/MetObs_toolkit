@@ -1,5 +1,6 @@
 import logging
 import pint
+import math
 import numpy as np
 import pandas as pd
 
@@ -19,7 +20,7 @@ def fmt_unit_to_str(unit):
         return str(unit)
     if isinstance(unit, pint.Quantity):
         if unit.magnitude == 1:
-            return unit.u
+            return str(unit.u)
         else:
             # a non-trivial quantity
             return str(unit)
@@ -40,6 +41,15 @@ class Obstype:
         # open slots
         self._original_name = None
         self._original_unit = None
+
+    def __eq__(self, other):
+        if not isinstance(other, Obstype):
+            return False
+        return (
+            self._name == other._name
+            and self._std_unit == other._std_unit
+            and self._description == other._description
+        )
 
     @property
     def name(self):
@@ -81,7 +91,7 @@ class Obstype:
         self._original_unit = _fmtunit(value)
         # test if it is a compatible unit wrt the standard unit
         if not self._original_unit.is_compatible_with(self._std_unit):
-            raise MetObsUnitUnknown(
+            raise MetObsUnitsIncompatible(
                 f"{self._original_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
             )
 
@@ -185,8 +195,8 @@ class ModelObstype_Vectorfield(Obstype):
             )
 
         # Set bandnames
-        self.model_band_u = str(model_band_u)
-        self.model_band_v = str(model_band_v)
+        self._model_band_u = str(model_band_u)
+        self._model_band_v = str(model_band_v)
 
         self._amp_obs_name = str(amplitude_obstype_name)
         self._dir_obs_name = str(direction_obstype_name)
@@ -194,6 +204,138 @@ class ModelObstype_Vectorfield(Obstype):
     @property
     def model_unit(self):
         return str(self._model_unit)
+
+    @property
+    def model_band_u(self):
+        return str(self._model_band_u)
+
+    @property
+    def model_band_v(self):
+        return str(self._model_band_v)
+
+    @property
+    def amplitude_obstype_name(self):
+        return str(self._amp_obs_name)
+
+    @property
+    def direction_obstype_name(self):
+        return str(self._dir_obs_name)
+
+    def _get_plot_y_label(self):
+        """Return a string to represent the vertical axes of a plot."""
+        return f"{self.name} ({self.std_unit})\n originates from {self.original_name}"
+
+    def _compute_angle(self, df):
+        """Compute vector direction of 2D vectorfield components.
+
+        The direction column is added to the dataframe and a new ModelObstype,
+        representing the angle is returned. The values represent the angles in
+        degrees, from north in clockwise rotation.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            The dataframe with the vector components present as columns.
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            The df with an extra column representing the directions.
+        amplitude_obstype : ModelObstype
+            The (scalar) Modelobstype representation of the angles.
+
+        """
+
+        def unit_vector(vector):
+            """Returns the unit vector of the vector."""
+            return vector / np.linalg.norm(vector)
+
+        def angle_between(u_comp, v_comp):
+            """Returns the angle in ° from North (CW) from 2D Vector components."""
+
+            v2 = (u_comp, v_comp)
+            v1_u = unit_vector((0, 1))  # North unit arrow
+            v2_u = unit_vector(v2)
+
+            angle_rad = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+            angle_degrees = angle_rad * ((180.0 / math.pi))
+            # return angle_degrees
+            # fix the quadrants
+            if (v2[0] >= 0) & (v2[1] >= 0):
+                # N-E quadrant
+                return angle_degrees
+            if (v2[0] >= 0) & (v2[1] < 0):
+                # S-E quadrant
+                return angle_degrees
+            if (v2[0] < 0) & (v2[1] < 0):
+                # S-W quadrant
+                return 180.0 + (180.0 - angle_degrees)
+            if (v2[0] < 0) & (v2[1] >= 0):
+                # N-W quadrant
+                return 360.0 - angle_degrees
+
+        u_column = self.model_band_u
+        v_column = self.model_band_v
+
+        data = df.apply(lambda x: angle_between(x[u_column], x[v_column]), axis=1)
+
+        # Create a new obstype for the direction
+        direction_obstype = Obstype(
+            obsname=self.direction_obstype_name,
+            std_unit=ureg.degree,
+            description=f"Direction of 2D-vector of {self.name} components.",
+        )
+        # convert to model obstype
+        direction_modelobstype = ModelObstype(
+            obstype=direction_obstype,
+            model_unit=ureg.degree,  # indep of units
+            model_band=self.direction_obstype_name,  # NOTE: this band does not exist, but column is created with this name by the toolkit
+        )
+        direction_modelobstype._originates_from_vectorfield = True
+
+        return data, direction_modelobstype
+
+    def compute_amplitude(self, df):
+        """Compute amplitude of 2D vectorfield components.
+
+        The amplitude column is added to the dataframe and a new ModelObstype,
+        representing the amplitude is returned. All attributes wrt the units are
+        inherited from the ModelObstype_vectorfield.
+
+        Parameters
+        ------------
+        df : pandas.DataFrame
+            The dataframe with the vector components present as columns.
+
+        Returns
+        -------
+        data : pandas.DataFrame
+            The df with an extra column representing the amplitudes.
+        amplitude_obstype : ModelObstype
+            The (scalar) Modelobstype representation of the amplitudes.
+
+        """
+        # Compute the data
+        data = ((df[self.model_band_u].pow(2)) + (df[self.model_band_v].pow(2))).pow(
+            1.0 / 2
+        )
+
+        # Create a new Obstype for the amplitude
+        amplitude_obstype = Obstype(
+            obsname=self.amplitude_obstype_name,
+            std_unit=self.std_unit,
+            description=f"2D-vector amplitde of {self.name} components.",
+        )
+
+        # convert to model obstype
+        amplitude_modelobstype = ModelObstype(
+            obstype=amplitude_obstype,
+            model_unit=self.model_unit,
+            model_band=self.amplitude_obstype_name,
+        )  # NOTE: this band does not exist, but column is created with this name by the toolkit
+        amplitude_modelobstype._originates_from_vectorfield = True
+
+        return data, amplitude_modelobstype
 
 
 # ------------------------------------------
@@ -252,6 +394,10 @@ def convert_units(records, cur_unit, trg_unit):
 # ------------------------------------------
 #    Errors
 # ------------------------------------------
+class MetObsUnitsIncompatible(Exception):
+    """Raised when an incompatible unit is set."""
+
+    pass
 
 
 class MetObsUnitUnknown(Exception):

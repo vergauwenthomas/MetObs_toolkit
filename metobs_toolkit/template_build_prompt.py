@@ -20,7 +20,7 @@ from metobs_toolkit.template import _get_empty_templ_dict, _pwrite_templdict_to_
 
 from metobs_toolkit.Newdataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
-from metobs_toolkit.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.filereaders import CsvFileReader
 
 
 def get_function_defaults(func):

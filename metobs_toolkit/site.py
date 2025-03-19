@@ -5,9 +5,9 @@ import pandas as pd
 import geopandas as gpd
 
 
-from metobs_toolkit.modeldata import GeeStaticDataset
+from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
-from metobs_toolkit.modeldata import default_datasets as default_gee_datasets
+from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 
 logger = logging.getLogger(__file__)
 
@@ -34,6 +34,26 @@ class Site:
         self._geedata = {}  # example: "lcz": 'LCZ-4
         self._gee_buffered_fractions = {}  # example: {100: {pervious: 0.8,
         #                                                impervious: 0.2}}
+
+    def __eq__(self, other):
+        if not isinstance(other, Site):
+            return False
+
+        lat_equal = (self.lat == other.lat) or (
+            pd.isnull(self.lat) and pd.isnull(other.lat)
+        )
+        lon_equal = (self.lon == other.lon) or (
+            pd.isnull(self.lon) and pd.isnull(other.lon)
+        )
+
+        return (
+            self.stationname == other.stationname
+            and lat_equal
+            and lon_equal
+            and self.extradata == other.extradata
+            and self._geedata == other._geedata
+            and self._gee_buffered_fractions == other._gee_buffered_fractions
+        )
 
     @property
     def stationname(self):
@@ -111,6 +131,8 @@ class Site:
         self._geedata[dataname] = value
 
     def set_gee_buffered_frac_data(self, buffer, data: dict):
+        # Replace NaNs in data with 0
+        data = {k: (0 if pd.isna(v) else v) for k, v in data.items()}
         self._gee_buffered_fractions.update({buffer: data})
 
     def add_metadata(self, metadata: dict):
@@ -150,7 +172,7 @@ class Site:
         self, geestaticdataset, initialize_gee: bool = True
     ) -> str | float:
         # test if modeldata is static
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
             )
@@ -175,7 +197,7 @@ class Site:
     ) -> dict:
 
         # test if modeldata is static
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
             )

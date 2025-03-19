@@ -5,11 +5,8 @@ import numpy as np
 
 
 from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
-# from metobs_toolkit.backend_collection.df_helpers import (
-#     get_likely_frequency,
-#     simplify_time,
-# )
 
 logger = logging.getLogger(__file__)
 
@@ -59,11 +56,7 @@ class TimestampMatcher:
         freq = pd.infer_freq(self.conv_df["datetimedummy_target"])
         if freq is None:
             raise ValueError("Frequency could not be computed.")
-        # note: sometimes 'h' is returned, and this gives issues, so add a 1 in front
-        if not freq[0].isdigit():
-            freq = "1" + freq
-
-        return pd.Timedelta(freq)
+        return to_timedelta(freq)
 
     @property
     def target_records(self) -> pd.Series:

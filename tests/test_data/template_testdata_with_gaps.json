@@ -15,7 +15,7 @@
             {
                 "tlk_obstype": "temp",
                 "columnname": "Temperatuur",
-                "unit": "Celsius",
+                "unit": "°C",
                 "description": "2mT passive"
             },
             {
@@ -30,6 +30,7 @@
         "name_column": "Vlinder",
         "lat_column": "lat",
         "lon_column": "lon",
+        "altitude_column": null,
         "columns_to_include": [
             "school"
         ]

@@ -17,17 +17,18 @@ plot_as_line_labels = present_as_line_labels = [
     defaults.label_def["uncheckedrecord"]["label"],  #'not checked'
 ] + [defaults.label_def[trglab]["label"] for trglab in defaults.gapfill_label_group]
 
-plot_as_vertical_line_labels = [
+
+all_gap_without_val_labels = [
     defaults.label_def["regular_gap"]["label"],  #'gap'
-    defaults.label_def["duplicated_timestamp"]["label"],  # duplicated timestamp outlier
-    defaults.label_def["invalid_input"]["label"],
+    # defaults.label_def["duplicated_timestamp"]["label"],  # duplicated timestamp outlier
+    # defaults.label_def["invalid_input"]["label"],
 ] + [
     defaults.label_def[trglab]["label"]
     for trglab in defaults.failed_gapfill_label_group
 ]
 
 
-plot_as_scatter_labels = [
+all_outlier_labels = [
     defaults.label_def[cat]["label"]
     for cat in defaults.qc_label_group
     if cat not in ["dupliacted_timestamp", "invalid_input"]
@@ -48,8 +49,20 @@ def add_lines_to_axes(
     linewidth: int = 2,
     zorder: int | float = 1,
 ) -> plt.Axes:
-    series.plot(
-        ax=ax,
+    # plotting trough pandas is problematic when the existing axes,
+    # has a timerange different from the line that is added ???
+    # ax = series.plot(kind='line',
+    #             ax=ax,
+    #             color=color,
+    #             linewidth=linewidth,
+    #             linestyle=linestyle,
+    #             zorder=zorder,
+    #             label=legend_label,
+    #             )
+
+    ax.plot(
+        series.index,  # x
+        series.values,  # y
         color=color,
         linewidth=linewidth,
         linestyle=linestyle,
@@ -71,7 +84,7 @@ def add_vertical_lines_to_axes(
     zorder: int | float = 1,
 ) -> plt.Axes:
     ax.vlines(
-        x=idx.to_numpy(),
+        x=idx,
         ymin=ymin,
         ymax=ymax,
         linestyle=linestyle,
@@ -105,21 +118,25 @@ def add_scatters_to_axes(
 # ------------------------------------------
 #    High level plotting
 # ------------------------------------------
+
+
 def plot_timeseries_color_by_label(
-    sensordata: SensorData, show_gaps: bool, show_outliers: bool, ax: plt.Axes
+    plotdf: pd.DataFrame, show_gaps: bool, show_outliers: bool, ax: plt.Axes
 ) -> plt.Axes:
-    # to use the same continious x-records for all plotlayers
-    target_dt = pd.date_range(
-        start=sensordata.start_datetime,
-        end=sensordata.end_datetime,
-        freq=sensordata.freq,
+    # drop obstype column (not relevant for now)
+    plotdf = (
+        plotdf.reset_index()
+        .drop(columns=["obstype"])
+        .set_index(["name", "datetime"])
+        .sort_index()
     )
 
     # Create labels to filter
     labels_to_plot = [
         defaults.label_def["goodrecord"]["label"],  #'ok'
-        defaults.label_def["uncheckedrecord"]["label"],
-    ]  #'not checked'
+        defaults.label_def["uncheckedrecord"]["label"],  #'not checked'
+    ]
+
     if show_gaps:
         # add all labels related to gaps
         labels_to_plot += (
@@ -137,100 +154,141 @@ def plot_timeseries_color_by_label(
             defaults.label_def[cat]["label"] for cat in defaults.qc_label_group
         ]  #'duplicated_timestamp', 'gross_value', ...
 
-    # Get data in DataFrame style
-    plotdf = (
-        sensordata.df.reset_index()
-        .drop(columns=["obstype"])  # is this oke when called from station/dataset obj
-        .set_index("datetime")
-    )
-    # filter to relevant records
-    plotdf = plotdf[plotdf["label"].isin(labels_to_plot)]
-    # ymin, ymax are required for vertical lines
+    # get min max values for the vertical lines
     ymin, ymax = plotdf["value"].min(), plotdf["value"].max()
+    if pd.isnull(ymin):
+        # ymin and ymax are nan
+        ymin = 0.0
+        ymax = 10
 
-    # 1. Plot data in line representation
-    for label in plot_as_line_labels:
-        labelseries = plotdf[plotdf["label"] == label]["value"]
-        # skip if label is not present
-        if labelseries.empty:
+    for label in labels_to_plot:  # iterate over all labels to plot
+        if label not in plotdf["label"].values:
             continue
-        # solid lines for good records, else dashed
-        if label == defaults.label_def["goodrecord"]["label"]:
-            linestyle = "-"
+
+        # 1. Plot the lines --> be aware of interpolation issues!
+        if label in plot_as_line_labels:
+            # solid lines for good records, else dashed
+            if label == defaults.label_def["goodrecord"]["label"]:
+                linestyle = "-"
+            else:
+                linestyle = "--"
+            # iterate over stations --> to avoid interpolation over multiple stations
+            for _staname, stadf in plotdf.groupby(
+                plotdf.index.get_level_values("name")
+            ):
+                # filter to label, convert all other records to nan values (to avoid interpoltion over other labeled records)
+                stalabeldf = stadf[stadf["label"] == label]
+                if stalabeldf.empty:
+                    continue
+
+                # IMPORTANT!: add all other records as Nan (otherwise interpolation issue)
+                stalabeldf = stalabeldf.reindex(stadf.index, method=None)
+
+                # format the series to plot
+                plotseries = stalabeldf["value"]
+                plotseries.index = plotseries.index.droplevel("name")
+
+                # add the line to the axes
+                ax = add_lines_to_axes(
+                    ax=ax,
+                    # Reindex to continious timestamps (timestaps without this label have nan values)
+                    series=plotseries,
+                    legend_label=label,
+                    linestyle=linestyle,
+                    color=defaults.label_to_color_map[label],
+                )
+
+        # Note: no need to add it in the itergroups, no interpolation can be done
+        # over different stations, sinc the plot representation (scatter/vlines)
+        # do not interpolate.
+
+        # 2. Plot data in vertical line representation (= no numerical values)
+        elif label in all_gap_without_val_labels:
+
+            # Note: a regular subset must be done since data is represented as vlines (thus no false interpolation)
+            labelseries = plotdf[plotdf["label"] == label]["value"]
+            if labelseries.empty:
+                continue
+
+            # format the series to plot
+
+            labelseries.index = labelseries.index.droplevel("name")
+            labelseries = labelseries.sort_index()  # testing
+            # plot
+            ax = add_vertical_lines_to_axes(
+                ax=ax,
+                ymin=ymin,
+                ymax=ymax,
+                idx=labelseries.index,
+                legend_label=label,
+                color=defaults.label_to_color_map[label],
+            )
+
+        # 3. Plot data in scatter representation (=outliers with numerical values)
+        elif label in all_outlier_labels:
+            # Note: a regular subset must be done since data is represented as scatters (thus no false interpolation)
+            labelseries = plotdf[plotdf["label"] == label]["value"]
+            if labelseries.empty:
+                continue
+            # format the series to plot
+            labelseries.index = labelseries.index.droplevel("name")
+            ax = add_scatters_to_axes(
+                ax=ax,
+                series=labelseries,
+                legend_label=label,
+                color=defaults.label_to_color_map[label],
+            )
         else:
-            linestyle = "--"
-        # add the line to the axes
-        ax = add_lines_to_axes(
-            ax=ax,
-            # Reindex to continious timestamps (timestaps without this label have nan values)
-            series=labelseries.reindex(target_dt, method=None),
-            legend_label=label,
-            linestyle=linestyle,
-            color=defaults.label_to_color_map[label],
-        )
-
-    # 2. Plot data in vertical line representation (= no numerical values)
-    for label in plot_as_vertical_line_labels:
-        labelseries = plotdf[plotdf["label"] == label]["value"]
-        if labelseries.empty:
-            continue
-        ax = add_vertical_lines_to_axes(
-            ax=ax,
-            ymin=ymin,
-            ymax=ymax,
-            idx=labelseries.index,
-            legend_label=label,
-            color=defaults.label_to_color_map[label],
-        )
-
-    # 3. Plot data in scatter representation (=outliers with numerical values)
-    for label in plot_as_scatter_labels:
-        labelseries = plotdf[plotdf["label"] == label]["value"]
-        if labelseries.empty:
-            continue
-        ax = add_scatters_to_axes(
-            ax=ax,
-            series=labelseries,
-            legend_label=label,
-            color=defaults.label_to_color_map[label],
-        )
+            print(f"{label} is not plotted ERROR !! ")
 
     return ax
 
 
-def plot_timeseries_as_one_color(
-    sensordata: SensorData,
-    color: str,
+def plot_timeseries_color_by_station(
+    plotdf: pd.DataFrame,
+    colormap: dict,  # {stationname: color}
     ax: plt.Axes,
     show_gaps: bool,
     show_outliers: bool,
     linestyle: str = "-",
+    legend_prefix: str = "",
 ) -> plt.Axes:
 
     # Get the main data in DataFrame style
+    # drop obstype column (not relevant for now)
     plotdf = (
-        sensordata.df.reset_index()
-        .drop(columns=["obstype"])  # is this okay when called from station/dataset obj
-        .set_index("datetime")
+        plotdf.reset_index()
+        .drop(columns=["obstype"])
+        .set_index(["name", "datetime"])
+        .sort_index()
     )
 
     # Handle gaps
     if not show_gaps:
-        gaps_idx = sensordata.gapsdf.index
-        plotdf.loc[gaps_idx, "value"] = np.nan
+        all_gap_labels = all_gap_without_val_labels + [
+            defaults.label_def[trglab]["label"]
+            for trglab in defaults.gapfill_label_group
+        ]
+        plotdf.loc[plotdf["value"].isin(all_gap_labels), "value"] = np.nan
 
     # Handle outliers
     if not show_outliers:
-        outliers_idx = sensordata.outliersdf.index
-        plotdf.loc[outliers_idx, "value"] = np.nan
+        plotdf.loc[plotdf["value"].isin(all_outlier_labels), "value"] = np.nan
 
     # Plot the data as a single color line
-    ax = add_lines_to_axes(
-        ax=ax,
-        series=plotdf["value"],
-        legend_label=sensordata.stationname,
-        linestyle=linestyle,
-        color=color,
-    )
+    # iterate over stations --> to avoid interpolation over multiple stations
+    for staname, stadf in plotdf.groupby(plotdf.index.get_level_values("name")):
+
+        # format the series to plot
+        plotseries = stadf["value"]
+        plotseries.index = plotseries.index.droplevel("name")
+
+        ax = add_lines_to_axes(
+            ax=ax,
+            series=plotseries,
+            legend_label=f"{legend_prefix}{staname}",
+            linestyle=linestyle,
+            color=colormap[staname],
+        )
 
     return ax

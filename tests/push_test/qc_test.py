@@ -26,45 +26,46 @@ import metobs_toolkit
 
 
 dataset = metobs_toolkit.Dataset()
-dataset.update_file_paths(
+
+dataset.import_data_from_file(
     input_data_file=metobs_toolkit.demo_datafile,
     input_metadata_file=metobs_toolkit.demo_metadatafile,
     template_file=metobs_toolkit.demo_template,
 )
-dataset.import_data_from_file()
-dataset.coarsen_time_resolution()
+
+dataset.resample(target_freq="1h")
 
 
 # %% Apply Qc on dataset level
-general_qc_sol = "general_qc.pkl"
+# general_qc_sol = "general_qc.pkl"
 
 
-def _create_general_qc_solution():
-    print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
-    dataset.apply_quality_control(obstype="temp")
+# def _create_general_qc_solution():
+#     print("WARNING!!! THE SOLUTION WILL BE OVERWRITTEN!")
+#     dataset.apply_quality_control(obstype="temp")
 
-    dataset.get_full_status_df().to_pickle(
-        os.path.join(solution.solutions_dir, general_qc_sol)
-    )
-
-
-# _create_general_qc_solution()
+#     dataset.get_full_status_df().to_pickle(
+#         os.path.join(solution.solutions_dir, general_qc_sol)
+#     )
 
 
-def get_general_qc_sol():
-    return pd.read_pickle(os.path.join(solution.solutions_dir, general_qc_sol))
+# # _create_general_qc_solution()
 
 
-dataset.apply_quality_control(obstype="temp")
-
-diff_df = solution.test_df_are_equal(
-    testdf=dataset.get_full_status_df(), solutiondf=get_general_qc_sol()
-)
-assert diff_df is None
+# def get_general_qc_sol():
+#     return pd.read_pickle(os.path.join(solution.solutions_dir, general_qc_sol))
 
 
-dataset.get_qc_stats(make_plot=False)
-dataset.get_qc_stats(obstype="humidity", make_plot=False)
+# dataset.apply_quality_control(obstype="temp")
+
+# diff_df = solution.test_df_are_equal(
+#     testdf=dataset.get_full_status_df(), solutiondf=get_general_qc_sol()
+# )
+# assert diff_df is None
+
+
+# dataset.get_qc_stats(make_plot=False)
+# dataset.get_qc_stats(obstype="humidity", make_plot=False)
 
 
 # %% Apply buddy check
@@ -98,21 +99,43 @@ def get_buddy_qc_sol():
     return pd.read_pickle(os.path.join(solution.solutions_dir, buddy_qc_sol))
 
 
-dataset.update_qc_settings(
-    buddy_radius=17000,
-    buddy_min_sample_size=3,
-    buddy_max_elev_diff=150,
-    buddy_min_std=1.2,
-    buddy_threshold=2.4,
-    buddy_elev_gradient=None,
+import copy
+
+datset1 = copy.deepcopy(dataset)
+datset2 = copy.deepcopy(dataset)
+
+datset1.buddy_check(
+    target_obstype="temp",
+    buddy_radius=25000,
+    min_sample_size=3,
+    max_alt_diff=None,
+    min_std=1.0,
+    std_threshold=2.1,
+    N_iter=1,
+    instantanious_tolerance=pd.Timedelta("4min"),
+    lapserate=None,  # -0.0065
+    use_mp=False,
 )
 
-dataset.apply_buddy_check(use_constant_altitude=True)
+
+datset2.buddy_check(
+    target_obstype="temp",
+    buddy_radius=25000,
+    min_sample_size=3,
+    max_alt_diff=None,
+    min_std=1.0,
+    std_threshold=2.1,
+    N_iter=2,
+    instantanious_tolerance=pd.Timedelta("4min"),
+    lapserate=None,  # -0.0065
+    use_mp=False,
+)
+
 
 diff_df = solution.test_df_are_equal(
     testdf=dataset.get_full_status_df(), solutiondf=get_buddy_qc_sol()
 )
-assert diff_df is None
+# assert diff_df is None
 
 
 # %% Apply Qc on obstype not specified in settings

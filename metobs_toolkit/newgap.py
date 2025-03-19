@@ -515,6 +515,22 @@ class Gap:
     #    Helping methods
     # ------------------------------------------
 
+    def flush_fill(self):
+        """Clears all fill info"""
+
+        logger.debug(f"Flushing fill values of {self}")
+        # 1. set nan for all records
+        self._records.loc[:] = np.nan
+
+        # 2. Convert all labels to 'gap'
+        self._labels.loc[:] = label_def["regular_gap"]["label"]
+
+        # 3. Clears the extra data (per record)
+        self._extra_info.loc[:] = "no details"
+
+        # 4. Empty the fillkwargs
+        self._fillkwargs = {}
+
     def _setup_lead_and_trail_for_debias_gapfill(
         self,
         sensordata,

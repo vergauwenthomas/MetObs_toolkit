@@ -77,7 +77,7 @@ def window_variation_check(
         logger.warning(
             "The minimum number of window members for the window variation check is not met!"
         )
-        return pd.DatetimeIndex()
+        return pd.DatetimeIndex(name="datetime", data=[])
 
     # drop outliers from the series (these are Nan's)
     input_series = records.dropna()

@@ -12,9 +12,9 @@ import concurrent.futures
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
-from metobs_toolkit.metadataparser import MetaDataParser
-from metobs_toolkit.dataparser import DataParser
-from metobs_toolkit.filereaders import CsvFileReader, PickleFileReader
+from metobs_toolkit.io_collection.metadataparser import MetaDataParser
+from metobs_toolkit.io_collection.dataparser import DataParser
+from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.printing import dataset_string_repr
@@ -26,20 +26,17 @@ from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes, ModelObstype
 from metobs_toolkit.obstypes import Obstype
 
-from metobs_toolkit.plot_collection import (
-    create_axes,
-    create_station_color_map,
-    qc_overview_pies,
-)
+import metobs_toolkit.plot_collection as plotting
+
 from metobs_toolkit.qc_collection import toolkit_buddy_check
 from metobs_toolkit.backend_collection.docstring_wrapper import copy_doc
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
+from metobs_toolkit.settings_files.default_formats_settings import label_def
 
-
-from metobs_toolkit.modeldata import (
-    GeeStaticDataset,
-    GeeDynamicDataset,
+from metobs_toolkit.geedatasetmanagers import (
+    GEEStaticDatasetManager,
+    GEEDynamicDatasetManager,
     default_datasets,
 )
 from metobs_toolkit.gee_api import connect_to_gee
@@ -69,9 +66,20 @@ class Dataset:
     #    specials
     # ------------------------------------------
 
+    def __eq__(self, other):
+        if not isinstance(other, Dataset):
+            return False
+        return (
+            self.stations
+            == other.stations
+            # and self.obstypes == other.obstypes #tested on sensor level
+            # self.template == other.template #template is only for creation needed
+        )
+
     def __str__(self):
         """Represent as text."""
-        return dataset_string_repr(self)
+        return "Dataset instance"
+        # return dataset_string_repr(self)
 
     def __repr__(self):
         """Info representation."""
@@ -92,16 +100,8 @@ class Dataset:
         return self._obstypes
 
     @property
-    def settings(self):
-        return self._settings
-
-    @property
     def template(self):
         return self._template
-
-    @property
-    def gee_datasets(self):
-        return self._gee_datasets
 
     @stations.setter
     def stations(self, stationlist: list) -> None:
@@ -135,6 +135,15 @@ class Dataset:
 
         combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "label"],
+                index=pd.MultiIndex(
+                    levels=[[], [], []],
+                    codes=[[], [], []],
+                    names=["datetime", "obstype", "name"],
+                ),
+            )
         return combdf
 
     @property
@@ -152,7 +161,34 @@ class Dataset:
         if combdf.empty:
             combdf = pd.DataFrame(
                 columns=["value", "label", "details"],
-                index=pd.DatetimeIndex([], name=("datetime", "obstype", "name")),
+                index=pd.MultiIndex(
+                    levels=[[], [], []],
+                    codes=[[], [], []],
+                    names=["datetime", "obstype", "name"],
+                ),
+            )
+        return combdf
+
+    @property
+    def modeldatadf(self) -> pd.DataFrame:
+        concatlist = []
+        for sta in self.stations:
+            stadf = sta.modeldatadf.reset_index()
+            if stadf.empty:
+                continue
+            stadf["name"] = sta.name
+            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
+
+        combdf = save_concat((concatlist))
+        combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "details"],
+                index=pd.MultiIndex(
+                    levels=[[], [], []],
+                    codes=[[], [], []],
+                    names=["datetime", "obstype", "name"],
+                ),
             )
         return combdf
 
@@ -296,7 +332,7 @@ class Dataset:
     def import_gee_data_from_file(
         self,
         filepath: str,
-        geedynamicdataset: GeeDynamicDataset,
+        geedynamicdatasetmanager: GEEDynamicDatasetManager,
         force_update=True,
         _force_from_dataframe=None,
     ) -> pd.DataFrame:
@@ -307,20 +343,20 @@ class Dataset:
             force_update = True
 
             # 1. format the data
-            totaldf = geedynamicdataset._format_gee_df_structure(data)
+            totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
 
             # 2. convert units
-            totaldf = geedynamicdataset._convert_units(totaldf)
+            totaldf = geedynamicdatasetmanager._convert_units(totaldf)
             # this totaldf will be returned
         else:
             totaldf = _force_from_dataframe
 
         # 3. Subset to known obstypes
-        known_obstypes = list(geedynamicdataset.modelobstypes.keys())
+        known_obstypes = list(geedynamicdatasetmanager.modelobstypes.keys())
         cols_to_skip = list(set(totaldf.columns) - set(known_obstypes))
         if bool(cols_to_skip):
             logger.warning(
-                f"The folowing columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdataset}: {cols_to_skip}"
+                f"The folowing columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdatasetmanager}: {cols_to_skip}"
             )
 
         known_and_present = set(totaldf.columns) & set(known_obstypes)
@@ -339,10 +375,12 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdataset.modelobstypes[col],
+                    obstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
-                    modelname=geedynamicdataset.name,
-                    modelvariable=geedynamicdataset.modelobstypes[col].get_modelband(),
+                    modelname=geedynamicdatasetmanager.name,
+                    modelvariable=geedynamicdatasetmanager.modelobstypes[
+                        col
+                    ].model_band,
                 )
                 # add it to the station
                 sta.add_to_modeldata(modeltimeseries, force_update=force_update)
@@ -358,7 +396,7 @@ class Dataset:
         # Check if the name is unique
         if obstype.name in self.obstypes.keys():
             raise MetObsDataAlreadyPresent(
-                f"An Obstype with {obstype.name} as name is already present in {self}."
+                f"An Obstype with {obstype.name} as name is already present in the obstypes: {self.obstypes}"
             )
 
         # add it to the knonw obstypes
@@ -607,6 +645,84 @@ class Dataset:
     #    Plotting
     # ------------------------------------------
 
+    def make_plot_of_modeldata(
+        self,
+        obstype: str = "temp",
+        colormap: dict | None = None,
+        ax=None,
+        figkwargs: dict = {},
+        title: str | None = None,
+        linestyle="--",
+    ) -> Axes:
+
+        modeldatadf = self.modeldatadf
+        if obstype not in modeldatadf.index.get_level_values("obstype"):
+            raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
+
+        # Get the modelobstype --> find a Station that holds it
+        for sta in self.stations:
+            if obstype in sta.modeldata.keys():
+                modelobstype = sta.modeldata[obstype].obstype
+                modelname = sta.modeldata[obstype].modelname
+                modelvar = sta.modeldata[obstype].modelname
+                break
+
+        # Create new axes if needed
+        if ax is None:
+            ax = plotting.create_axes(**figkwargs)
+
+        plotdf = (
+            modeldatadf.xs(obstype, level="obstype", drop_level=False)
+            .reset_index()
+            .set_index(["name", "obstype", "datetime"])
+            .sort_index()
+        )
+
+        plotdf = plotdf[["value"]]
+        plotdf["label"] = label_def["goodrecord"][
+            "label"
+        ]  # Just so that they are plotted as lines
+
+        # Define linecolor
+        if colormap is None:
+            # create color defenitions
+            colormap = plotting.create_station_color_map(
+                catlist=plotdf.index.get_level_values("name").unique()
+            )
+
+        ax = plotting.plot_timeseries_color_by_station(
+            plotdf=plotdf,
+            colormap=colormap,
+            show_outliers=False,  # will not be used,
+            show_gaps=False,  # will not be used
+            ax=ax,
+            linestyle=linestyle,
+            legend_prefix=f"{modelname}:{modelvar}@",
+        )
+        # Styling
+        # Set title:
+        if title is None:
+            plotting.set_title(
+                ax, f"{modelobstype.name} data of {modelname} at stations locations."
+            )
+        else:
+            plotting.set_title(ax, title)
+
+        # Set ylabel
+        plotting.set_ylabel(ax, modelobstype._get_plot_y_label())
+
+        # Set xlabel
+        cur_tz = plotdf.index.get_level_values("datetime").tz
+        plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
+
+        # Format timestamp ticks
+        plotting.format_datetime_axes(ax)
+
+        # Add legend
+        plotting.set_legend(ax)
+
+        return ax
+
     def make_plot(
         self,
         obstype: str = "temp",
@@ -619,43 +735,94 @@ class Dataset:
         title: str | None = None,
     ) -> Axes:
 
+        # Create an axis
         if ax is None:
-            ax = create_axes(**figkwargs)
+            ax = plotting.create_axes(**figkwargs)
 
-        if title is None:
-            title = f"{obstype} data of the dataset"
+        # construct plotdf
+        plotdf = (
+            self.df.xs(obstype, level="obstype", drop_level=False)
+            .reset_index()
+            .set_index(["name", "obstype", "datetime"])
+            .sort_index()
+        )
 
+        if plotdf.empty:
+            raise MetObsObstypeNotFound(
+                f"There are no records of {obstype} for plotting."
+            )
+
+        colormap = None
+        if show_modeldata:
+            # create color defenitions
+            colormap = plotting.create_station_color_map(
+                catlist=plotdf.index.get_level_values("name").unique()
+            )
+            ax = self.make_plot_of_modeldata(
+                obstype=obstype,
+                colormap=colormap,
+                ax=ax,
+                figkwargs=figkwargs,
+                title=title,  # will always be overwritten
+            )
         # Set colors scheme
         if colorby == "station":
-            # create color defenitions
-            colormap = create_station_color_map(
-                catlist=[sta.name for sta in self.stations]
+            if colormap is None:  # when no modeldata is added
+                # create color defenitions
+                colormap = plotting.create_station_color_map(
+                    catlist=plotdf.index.get_level_values("name").unique()
+                )
+            ax = plotting.plot_timeseries_color_by_station(
+                plotdf=plotdf,
+                colormap=colormap,
+                show_outliers=show_outliers,
+                show_gaps=show_gaps,
+                ax=ax,
+                linestyle="-",
             )
+
         elif colorby == "label":
-            colormap = {sta.name: None for sta in self.stations}
+            ax = plotting.plot_timeseries_color_by_label(
+                plotdf=plotdf,
+                # linecolor=linecolor,
+                show_outliers=show_outliers,
+                show_gaps=show_gaps,
+                ax=ax,
+            )
         else:
             raise ValueError(
                 f'colorby is either "station" or "label" but not {colorby}'
             )
 
-        for sta in self.stations:
-            ax = sta.make_plot(
-                obstype=obstype,
-                colorby=colorby,
-                linecolor=colormap[sta.name],
-                show_modeldata=show_modeldata,
-                show_outliers=show_outliers,
-                show_gaps=show_gaps,
-                ax=ax,
-                figkwargs=figkwargs,
-                title=title,
-            )
+        # Styling
+        obstypeinstance = self.obstypes[obstype]
+
+        # Set title:
+        if title is None:
+            plotting.set_title(ax, f"{obstypeinstance.name} data.")
+        else:
+            plotting.set_title(ax, title)
+
+        # Set ylabel
+        plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
+
+        # Set xlabel
+        cur_tz = plotdf.index.get_level_values("datetime").tz
+        plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
+
+        # Format timestamp ticks
+        plotting.format_datetime_axes(ax)
+
+        # Add legend
+        plotting.set_legend(ax)
 
         return ax
 
     def make_gee_plot(
         self,
-        geedataset: GeeStaticDataset | GeeDynamicDataset = default_datasets["lcz"],
+        geedatasetmanager: (
+            GEEStaticDatasetManager | GEEDynamicDatasetManager
+        ) = default_datasets["lcz"],
         timeinstance=None,
         modelobstype: str = None,
         outputfolder=os.getcwd(),
@@ -666,7 +833,7 @@ class Dataset:
         overwrite=False,
     ):
         # check model type
-        if isinstance(geedataset, GeeStaticDataset):
+        if isinstance(geedatasetmanager, GEEStaticDatasetManager):
             kwargs = dict(
                 outputfolder=outputfolder,
                 filename=filename,
@@ -676,11 +843,15 @@ class Dataset:
                 overwrite=overwrite,
             )
 
-        elif isinstance(geedataset, GeeDynamicDataset):
+        elif isinstance(geedatasetmanager, GEEDynamicDatasetManager):
+            if timeinstance is None:
+                raise ValueError(
+                    f"Timeinstance is None, but is required for a dynamic dataset like {geedatasetmanager}"
+                )
             timeinstance = fmt_datetime_arg(timeinstance, input_tz="UTC")
-            if modelobstype not in geedataset.modelmobstypes:
+            if modelobstype not in geedatasetmanager.modelobstypes:
                 raise MetObsObstypeNotFound(
-                    f"{modelobstype} is not a known modelobstype of {geedataset}. These are knonw: {geedataset.modelobstypes} "
+                    f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are knonw: {geedatasetmanager.modelobstypes} "
                 )
 
             kwargs = dict(
@@ -694,7 +865,7 @@ class Dataset:
                 overwrite=overwrite,
             )
 
-        return geedataset.make_gee_plot(metadf=self.metadf, **kwargs)
+        return geedatasetmanager.make_gee_plot(metadf=self.metadf, **kwargs)
 
     # ------------------------------------------
     #    Gee extracting
@@ -702,7 +873,7 @@ class Dataset:
 
     def get_static_gee_point_data(
         self,
-        geestaticdataset: GeeStaticDataset,
+        geestaticdatasetmanager: GEEStaticDatasetManager,
         update_stations: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
@@ -711,19 +882,19 @@ class Dataset:
 
         Faster: construct the metadf with all stations, and get the lcs from one api call
         """
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
             )
 
         # initialize gee api
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdataset.extract_static_point_data(self.metadf)
+        geedf = geestaticdatasetmanager.extract_static_point_data(self.metadf)
 
         # update the station attributes
-        varname = geestaticdataset.name
+        varname = geestaticdatasetmanager.name
         if update_stations:
             for staname, geedict in geedf.to_dict(orient="index").items():
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
@@ -731,7 +902,7 @@ class Dataset:
 
     def get_static_gee_buffer_fraction_data(
         self,
-        geestaticdataset: GeeStaticDataset,
+        geestaticdatasetmanager: GEEStaticDatasetManager,
         buffers=[100],
         aggregate=False,
         update_stations: bool = True,
@@ -742,9 +913,9 @@ class Dataset:
 
         Faster: construct the metadf with all stations, and get the lcs from one api call
         """
-        if not isinstance(geestaticdataset, GeeStaticDataset):
+        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
             )
 
         # initialize gee api
@@ -753,7 +924,7 @@ class Dataset:
 
         dflist = []
         for bufferradius in buffers:
-            geedf = geestaticdataset.extract_static_buffer_frac_data(
+            geedf = geestaticdatasetmanager.extract_static_buffer_frac_data(
                 metadf=self.metadf, bufferradius=bufferradius, agg_bool=aggregate
             )
             dflist.append(geedf)
@@ -798,7 +969,7 @@ class Dataset:
     ) -> pd.DataFrame:
 
         return self.get_static_gee_buffer_fraction_data(
-            geestaticdataset=default_datasets["worldcover"],
+            geestaticdatasetmanager=default_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
             update_stations=update_stations,
@@ -807,7 +978,7 @@ class Dataset:
 
     def get_gee_timeseries_data(
         self,
-        geedynamicdataset: GeeDynamicDataset,
+        geedynamicdatasetmanager: GEEDynamicDatasetManager,
         startdt_utc=None,
         enddt_utc=None,
         target_obstypes=["temp"],
@@ -819,34 +990,42 @@ class Dataset:
     ):
 
         # Check geedynamic dataset
-        if not isinstance(geedynamicdataset, GeeDynamicDataset):
+        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
             raise ValueError(
-                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdataset)}"
+                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
             )
 
         # Format datetime arguments
         if startdt_utc is None:
+            if self.df.empty:
+                raise MetObsMissingArgument(
+                    "No data is present in the dataset, thus a startdt_utc is required."
+                )
             startdt_utc = self.start_datetime.tz_convert("UTC")
         else:
             startdt_utc = fmt_datetime_arg(startdt_utc, input_tz="UTC")
 
         if enddt_utc is None:
+            if self.df.empty:
+                raise MetObsMissingArgument(
+                    "No data is present in the dataset, thus a enddt_utc is required."
+                )
             enddt_utc = self.end_datetime.tz_convert("UTC")
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, input_tz="UTC")
 
         # check if target_obstypes are mapped to bands
         for obst in target_obstypes:
-            if obst not in geedynamicdataset.modelobstypes.keys():
+            if obst not in geedynamicdatasetmanager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {geedynamicdataset}."
+                    f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
                 )
 
         # create specific name for the file that might be written to Drive
         if drive_filename is None:
-            drive_filename = f"{geedynamicdataset.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations.csv"
+            drive_filename = f"{geedynamicdatasetmanager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"  # do not include csv extension here
 
-        df = geedynamicdataset.extract_timeseries_data(
+        df = geedynamicdatasetmanager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
@@ -869,7 +1048,7 @@ class Dataset:
         # Thus we call that function, by providing it to _force_from_dataframe, these steps are skipped.
         _ = self.import_gee_data_from_file(
             filepath=None,
-            geedynamicdataset=geedynamicdataset,
+            geedynamicdatasetmanager=geedynamicdatasetmanager,
             force_update=True,
             _force_from_dataframe=df,
         )
@@ -1028,11 +1207,11 @@ class Dataset:
     ):
 
         instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
-        if lapserate is not None:
+        if (lapserate is not None) | (max_alt_diff is not None):
             # test if altitude data is available
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
-                    "Not all stations have altitude data, lapserate correction could not be applied."
+                    "Not all stations have altitude data, lapserate correction and max_alt_diff filetering could not be applied."
                 )
 
         qc_kwargs = dict(
@@ -1049,12 +1228,12 @@ class Dataset:
         )
 
         outlierslist, timestamp_map = toolkit_buddy_check(dataset=self, **qc_kwargs)
-        # outlierslist is a list of tuples (stationname, datetime) that are outliers
+        # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
         # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
         # timestamps to the original timestamps
 
         # convert to a dataframe
-        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime"])
+        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
 
         # update all the sensordata
         for station in self.stations:
@@ -1065,15 +1244,21 @@ class Dataset:
                 # get outlier datetimeindex
                 outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
 
-                # convert to original timestamps
-                dtmap = timestamp_map[station.name]
-                outldt = outldt.map(dtmap)
+                if not outldt.empty:
+                    # convert to original timestamps
+                    dtmap = timestamp_map[station.name]
+                    outldt = outldt.map(dtmap)
 
                 # update the sensordata
                 sensorddata._update_outliers(
                     qccheckname="buddy_check",
                     outliertimestamps=outldt,
                     check_kwargs=qc_kwargs,
+                    extra_columns={
+                        "detail_msg": df[df["name"] == station.name][
+                            "detail_msg"
+                        ].to_numpy()
+                    },
                 )
 
     def get_qc_stats(self, target_obstype="temp", make_plot=True):
@@ -1092,7 +1277,7 @@ class Dataset:
         )
 
         if make_plot:
-            fig = qc_overview_pies(df=dfagg)
+            fig = plotting.qc_overview_pies(df=dfagg)
             fig.suptitle(
                 f"QC frequency statistics of {target_obstype} on Dataset level."
             )
@@ -1104,12 +1289,12 @@ class Dataset:
     #    Other methods
     # ------------------------------------------
 
-    def rename_stations(self, renamtdict: dict):
+    def rename_stations(self, renamedict: dict):
 
-        if not isinstance(renamtdict, dict):
-            raise TypeError(f"{renamtdict} is not a Dict")
+        if not isinstance(renamedict, dict):
+            raise TypeError(f"{renamedict} is not a Dict")
 
-        for origname, trgname in renamtdict.items():
+        for origname, trgname in renamedict.items():
             # test if the station exist
             if origname not in [sta.name for sta in self.stations]:
                 logger.warning(f"{origname} is not present, skipped.")
@@ -1143,6 +1328,7 @@ class Dataset:
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: pd.Timedelta | None = None,
         max_trail_to_gap_distance: pd.Timedelta | None = None,
+        overwrite_fill=False,
         method_kwargs={},
     ):
         # special formatters
@@ -1158,6 +1344,7 @@ class Dataset:
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
+                overwrite_fill=False,
                 method_kwargs=method_kwargs,
             )
 
@@ -1402,7 +1589,7 @@ def createstations(
         )
         if bool(missing_in_data):
             logger.warning(
-                "The following stations are defined in the metadatafile but no records are found in the data:\n {missing_in_data}"
+                f"The following stations are defined in the metadatafile but no records are found in the data:\n {missing_in_data}"
             )
 
     return stations

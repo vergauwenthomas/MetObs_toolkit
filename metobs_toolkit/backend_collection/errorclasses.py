@@ -65,3 +65,9 @@ class MetObsStationClassError(Exception):
     """Raises general errors related to the station class."""
 
     pass
+
+
+class MetObsMissingArgument(Exception):
+    """Raises general errors when a argument is required for a specic situation. (like metadata-only)"""
+
+    pass

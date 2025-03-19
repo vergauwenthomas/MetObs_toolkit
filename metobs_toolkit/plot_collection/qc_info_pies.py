@@ -62,6 +62,14 @@ def qc_overview_pies(
     ]
 
     colors = [defaults.label_to_color_map[label] for label in plotdf.index]
+
+    if plotdf.empty:
+        # no outliers --> full pie with "No QX outliers" in the color of 'ok
+        plotdf = pd.DataFrame(
+            data={"N_labeled": [100]}, index=pd.Index(data=["No QC outliers"])
+        )
+        colors = [defaults.label_def["goodrecord"]["color"]]
+
     plotdf.plot(
         ax=ax_thr,
         kind="pie",

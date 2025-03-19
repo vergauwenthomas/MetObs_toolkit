@@ -21,9 +21,9 @@ import pickle
 
 
 from metobs_toolkit.backend_collection.printing import print_dataset_info
-from metobs_toolkit.filereaders import CsvFileReader
-from metobs_toolkit.dataparser import DataParser
-from metobs_toolkit.metadataparser import MetaDataParser
+from metobs_toolkit.io_collection.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.dataparser import DataParser
+from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.station import Station
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
@@ -702,7 +702,7 @@ class Dataset(
 
         You can get the standard unit of an Obsytype by calling the ``get_standard_unit()`` on it.
 
-        >>> dataset.obstypes['temp'].get_standard_unit()
+        >>> dataset.obstypes['temp'].std_unit
         'Celsius'
 
         To see all known units for an Obstype, use the `get_all_units()` on it.
@@ -1053,7 +1053,7 @@ class Dataset(
             # add present obstype info to the metadf
             for obs in self.df.index.get_level_values("obstype").unique():
                 obstype = self.obstypes[obs]
-                metadf[f"{obs}_unit"] = obstype.get_standard_unit()
+                metadf[f"{obs}_unit"] = obstype.std_unit
                 metadf[f"{obs}_description"] = obstype.get_description()
 
             write_df_to_csv(

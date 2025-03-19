@@ -18,9 +18,9 @@ import pytz
 #     lc_fractions_extractor,
 # )
 
-from metobs_toolkit.modeldata import (
-    GeeStaticDataset,
-    GeeDynamicDataset,
+from metobs_toolkit.geedatasetmanagers import (
+    GEEStaticDatasetManager,
+    GEEDynamicDatasetManager,
 )
 
 from metobs_toolkit.gee_api import connect_to_gee
@@ -229,7 +229,7 @@ class DatasetModelData:
                     f"{Model} is not a known GeeDynamicDataset of {self}."
                 )
             Model = self.gee_datasets[str(Model)]
-        elif isinstance(Model, GeeDynamicDataset):
+        elif isinstance(Model, GEEDynamicDatasetManager):
             pass
         else:
             raise MetobsDatasetGeeModelDataHandlingError(
@@ -809,8 +809,8 @@ class DatasetModelData:
 
         # Check instance
         if not (
-            (isinstance(Modeldata, GeeStaticDataset))
-            | (isinstance(Modeldata, GeeDynamicDataset))
+            (isinstance(Modeldata, GEEStaticDatasetManager))
+            | (isinstance(Modeldata, GEEDynamicDatasetManager))
         ):
             raise MetobsDatasetGeeModelDataHandlingError(
                 f"{Modeldata} is not an instance of GeeStaticDataset or GeeDynamicDataset."
