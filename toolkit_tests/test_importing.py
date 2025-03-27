@@ -119,6 +119,62 @@ class TestDemoData:
         station.site.get_info()
         station.obsdata["temp"].get_info()
 
+    def test_subset_by_stations(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        # 1. get_startpoint data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+
+        # 2. apply a metobs manipulation
+        # Subset by valid stations
+        data_to_test = dataset.subset_by_stations(
+            stationnames=[" blabla", "vlinder01", "vlinder02"]
+        )
+
+        # 3. overwrite solution?
+        if overwrite_solution:
+            TestDemoData.solutionfixer.create_solution(
+                solutiondata=data_to_test,
+                **TestDemoData.solkwargs,
+                methodname=_method_name
+            )
+
+        # 4. Get solution
+        solutionobj = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname=_method_name
+        )
+
+        # 5. Construct the equality tests
+        test_expr = data_to_test == solutionobj  # Dataset comparison
+
+        # 5. save comparison, create difference (only used when debugging, so no terminal output)
+        if not test_expr:
+            debug_diff = TestDemoData.solutionfixer.create_a_diff(
+                to_check=data_to_test, solution=solutionobj
+            )
+        # 6. assert the equality
+        assert test_expr
+
+    def test_subset_by_stations_invalid(self):
+        # 1. get_startpoint data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+        #  Test invalid input IDs
+        with pytest.raises(TypeError):
+            dataset.subset_by_stations(stationnames="vlinder01")
+
+        #  Test invalid input IDs
+        with pytest.raises(ValueError):
+            dataset.subset_by_stations(stationnames=["vlinder01"])
+
+        #  Test if a warning is thrown for invalid station names
+        with pytest.warns(UserWarning):
+            dataset.subset_by_stations(stationnames=["a", "b"])
+
     def test_get_info(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
@@ -361,11 +417,21 @@ class TestWideSingleStationData:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    # pytest.main([__file__])
+    demo_tester = TestDemoData()
+    # demo_tester.test_version()
+    # demo_tester.test_import_demo_data(overwrite_solution=False)
+    # demo_tester.test_calling_methods_without_solution_on_dataset()
+    # demo_tester.test_calling_methods_without_solution_on_station()
+    # demo_tester.test_subset_by_stations(overwrite_solution=False)
+    # demo_tester.test_subset_by_stations_invalid()
+    # demo_tester.test_get_info(overwrite_solution=False)
+    # demo_tester.test_get_station(overwrite_solution=False)
+    # demo_tester.test_pickling_dataset()
 
-    # widedatatester = TestWideData()
-    # widedatatester.test_import_wide_data(False)
-    # widedatatester.test_sync_wide_records(False)
+    # wide_data_tester = TestWideData()
+    # wide_data_tester.test_import_wide_data(overwrite_solution=False)
+    # wide_data_tester.test_sync_wide_records(overwrite_solution=False)
 
-    # singletest = TestWideSingleStationData()
-    # singletest.test_import_wide_data(False)
+    # single_station_tester = TestWideSingleStationData()
+    # single_station_tester.test_import_wide_data(overwrite_solution=False)

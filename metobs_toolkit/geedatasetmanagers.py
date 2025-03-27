@@ -27,11 +27,10 @@ from metobs_toolkit.backend_collection.df_helpers import (
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.obstypes import default_era5_obstypes
 
-from metobs_toolkit.plotting_functions import (
-    model_timeseries_plot,
-    timeseries_plot,
+from metobs_toolkit.plot_collection import (
     folium_map,
     add_title_to_folium_map,
+    add_stations_to_folium_map,
 )
 from metobs_toolkit.gee_api import connect_to_gee
 
@@ -1039,7 +1038,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             df = self.extract_static_point_data(metadf=metadf)
             metadf = metadf.merge(df, how="left", left_index=True, right_index=True)
 
-            _add_stations_to_folium_map(
+            add_stations_to_folium_map(
                 Map=MAP, metadf=metadf, display_cols=["name", self.name]
             )
             # fix center
@@ -1742,7 +1741,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             vmax = 1.0
 
         else:
-            _add_stations_to_folium_map(Map=MAP, metadf=metadf, display_cols=["name"])
+            MAP = add_stations_to_folium_map(
+                Map=MAP, metadf=metadf, display_cols=["name"]
+            )
             # fix center
             centroid = metadf.dissolve().centroid
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
@@ -2877,23 +2878,23 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 #     return modeldata
 
 
-def _add_stations_to_folium_map(Map, metadf, display_cols=["name"]):
-    """Add stations as markers to the folium map."""
+# def _add_stations_to_folium_map(Map, metadf, display_cols=["name"]):
+#     """Add stations as markers to the folium map."""
 
-    import folium
+#     import folium
 
-    metadf = metadf.reset_index()
-    metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
-    for _, row in metadf.iterrows():
-        point = row["geometry"]
-        popuptext = ""
-        for disp in display_cols:
-            popuptext = f"{popuptext}{row[disp]}\n"
-        folium.Marker(
-            location=[point.y, point.x], fill_color="#43d9de", popup=popuptext, radius=8
-        ).add_to(Map)
+#     metadf = metadf.reset_index()
+#     metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
+#     for _, row in metadf.iterrows():
+#         point = row["geometry"]
+#         popuptext = ""
+#         for disp in display_cols:
+#             popuptext = f"{popuptext}{row[disp]}\n"
+#         folium.Marker(
+#             location=[point.y, point.x], fill_color="#43d9de", popup=popuptext, radius=8
+#         ).add_to(Map)
 
-    return Map
+#     return Map
 
 
 # =============================================================================

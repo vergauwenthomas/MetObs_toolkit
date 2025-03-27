@@ -194,11 +194,4 @@ if __name__ == "__main__":
     )
 
     test = TestDemoDataset()
-
-#  1. get_startpoint data
-dataset = TestDemoDataset.solutionfixer.get_solution(
-    **TestDemoDataset.solkwargs, methodname="test_import_data"
-)
-
-# 2. apply a metobs manipulation
-ax = dataset.make_plot(colorby="station")
+    test.test_import_data(overwrite_solution=False)

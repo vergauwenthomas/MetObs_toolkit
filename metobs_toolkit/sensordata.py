@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib.pyplot import Axes
 
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
-import metobs_toolkit.settings_files.default_formats_settings as defaults
+from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.newgap import Gap
@@ -318,7 +318,7 @@ class SensorData:
         df = (
             self.series.to_frame()
             .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(label=defaults.label_def["goodrecord"]["label"])
+            .assign(label=label_def["goodrecord"]["label"])
         )
 
         outliersdf = self.outliersdf[["value", "label"]]
@@ -358,7 +358,7 @@ class SensorData:
         for outlierinfo in self.outliers:
             checkname = outlierinfo["checkname"]
             checkdf = outlierinfo["df"]
-            checkdf["label"] = defaults.label_def[checkname]["label"]
+            checkdf["label"] = label_def[checkname]["label"]
             to_concat.append(checkdf)
 
         totaldf = save_concat(to_concat)
@@ -734,13 +734,13 @@ class SensorData:
         ntotal = self.series.shape[0]  # gaps included !!
         already_rejected = self.gapsdf.shape[0]  # initial gap records
         # add the 'ok' labels
-        infodict[defaults.label_def["goodrecord"]["label"]] = {
+        infodict[label_def["goodrecord"]["label"]] = {
             "N_all": ntotal,
             "N_labeled": self.series[self.series.notnull()].shape[0],
         }
         # add the 'gap' labels
 
-        infodict[defaults.label_def["regular_gap"]["label"]] = {
+        infodict[label_def["regular_gap"]["label"]] = {
             "N_all": ntotal,
             "N_labeled": already_rejected,
         }
@@ -749,7 +749,7 @@ class SensorData:
         for check in self.outliers:
             n_outliers = check["df"].shape[0]
             n_checked = ntotal - already_rejected
-            outlierlabel = defaults.label_def[check["checkname"]]["label"]
+            outlierlabel = label_def[check["checkname"]]["label"]
             infodict[outlierlabel] = {
                 "N_labeled": n_outliers,
                 "N_checked": n_checked,

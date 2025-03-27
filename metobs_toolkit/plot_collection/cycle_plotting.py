@@ -1,0 +1,92 @@
+import logging  # Python default package
+
+
+import matplotlib
+import matplotlib.pyplot as plt  # Dependency package
+import pandas as pd
+
+from metobs_toolkit.plot_collection import (  # Local modules
+    create_axes,
+    create_categorical_color_map,
+    default_plot_settings,
+)
+
+# Set up logging
+logger = logging.getLogger(__file__)
+
+default_cycle_settings = default_plot_settings["cycle_plot"]
+
+
+def make_diurnal_plot(
+    plotdf: pd.DataFrame,
+    ax: "matplotlib.axes.Axes",
+    colordict: dict,
+    refstation: str,
+    figkwargs: dict,
+) -> "matplotlib.axes.Axes":
+    """
+    Create a diurnal plot for the given data.
+
+    Parameters
+    ----------
+    plotdf : pd.DataFrame
+        DataFrame containing the data to plot. Each column represents a station or category.
+    ax : matplotlib.axes.Axes
+        The matplotlib Axes object where the plot will be drawn.
+    colordict : dict
+        Dictionary mapping column names to colors. If None, a default colormap will be created.
+    refstation : str
+        The reference station to be plotted as a dashed line. If None, no reference is plotted.
+    figkwargs : dict
+        Additional keyword arguments for figure customization.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The Axes object with the plot.
+    """
+    logger.info("Entering make_diurnal_plot function.")
+
+    # Create and check colordict
+    if colordict is None:
+        logger.info("Creating default colormap.")
+        colmap = create_categorical_color_map(
+            catlist=plotdf.columns, cmapname=default_cycle_settings["cmap_categorical"]
+        )
+    else:
+        colmap = colordict
+
+    if refstation is not None:
+        logger.info(f"Plotting reference station: {refstation}.")
+        # Plot reference as dashed line
+        ax.plot(
+            plotdf.index,
+            plotdf[refstation],
+            label=f"Reference:{refstation}",
+            color="black",
+            linestyle="--",
+        )
+        # Drop the reference station column from the DataFrame
+        plotdf = plotdf.drop(columns=[refstation])
+
+    # Check if colormap is valid for the data
+    if not all([col in colmap.keys() for col in plotdf.columns]):
+        missing = list(set(plotdf.columns) - set(colmap.keys()))
+        logger.error(f"Missing labels in colormap: {missing}.")
+        raise ValueError(
+            f"Not all present labels are in the colmap, these are missing: {missing}"
+        )
+
+    # Plot each column as a solid line
+    for column in plotdf.columns:
+        logger.info(f"Plotting column: {column}.")
+        ax.plot(
+            plotdf.index,
+            plotdf[column],
+            label=column,
+            color=colmap[column],
+            linestyle="-",
+        )
+
+    logger.info("Exiting make_diurnal_plot function.")
+    return ax

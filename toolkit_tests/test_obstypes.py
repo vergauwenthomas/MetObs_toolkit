@@ -111,9 +111,7 @@ class TestObstype:
         temp.description = None
         assert isinstance(temp.description, str)
 
-    def test_creating_new_obstypes(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+    def test_creating_new_obstypes(self):
 
         # 1. Create a new Obstype instance
         new_obstype = metobs_toolkit.obstypes.Obstype(
@@ -181,5 +179,4 @@ if __name__ == "__main__":
     # pytest.main([__file__])
 
     testobstype = TestObstype()
-    # testobstype.test_import_demo_data(False)
-    testobstype.test_units_io()
+    testobstype.test_import_demo_data(overwrite_solution=False)

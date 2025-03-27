@@ -35,13 +35,17 @@ def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
     return ax
 
 
-def format_datetime_axes(ax: plt.Axes) -> plt.Axes:
-    """Set the x-axes to autodateformat."""
+def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.Axes:
+    """Set the x-axes to autodateformat. Optionally set diurnal format."""
     xtick_locator = matplotlib.dates.AutoDateLocator()
-    xtick_formatter = matplotlib.dates.AutoDateFormatter(xtick_locator)
+    if set_diurnal_format:
+        xtick_formatter = matplotlib.dates.DateFormatter("%H:%M")
+    else:
+        xtick_formatter = matplotlib.dates.AutoDateFormatter(xtick_locator)
 
     ax.xaxis.set_major_locator(xtick_locator)
     ax.xaxis.set_major_formatter(xtick_formatter)
+    return ax
 
 
 # ------------------------------------------
@@ -161,7 +165,7 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
 # ------------------------------------------
 
 
-def create_station_color_map(catlist: list, cmapname: str = "tab20") -> dict:
+def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict:
     unique_elements = list(set(catlist))
     unique_elements = sorted(
         unique_elements

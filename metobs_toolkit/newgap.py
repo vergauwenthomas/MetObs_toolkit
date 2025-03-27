@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from metobs_toolkit.backend_collection.errorclasses import *
-from metobs_toolkit.settings_files.default_formats_settings import label_def
+from metobs_toolkit.settings_collection import label_def
 
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
 from metobs_toolkit.gf_collection.debias_gapfill import fill_regular_debias

@@ -13,7 +13,7 @@ import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.settings_files.default_formats_settings import label_def
+from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
@@ -552,7 +552,7 @@ class Station:
 
         # Define linecolor (needed here if modeldata is added )
         if linecolor is None:
-            colormap = plotting.create_station_color_map([self.name])
+            colormap = plotting.create_categorical_color_map([self.name])
         else:
             colormap = {self.name: linecolor}
         ax = plotting.plot_timeseries_color_by_station(
@@ -612,7 +612,7 @@ class Station:
 
         if show_modeldata:
             if linecolor is None:
-                colormap = plotting.create_station_color_map([self.name])
+                colormap = plotting.create_categorical_color_map([self.name])
             else:
                 colormap = {self.name: linecolor}
 
@@ -636,7 +636,7 @@ class Station:
         if colorby == "station":
             # Define linecolor (needed here if modeldata is added )
             if linecolor is None:
-                colormap = plotting.create_station_color_map([self.name])
+                colormap = plotting.create_categorical_color_map([self.name])
             else:
                 colormap = {self.name: linecolor}
             ax = plotting.plot_timeseries_color_by_station(

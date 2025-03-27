@@ -155,7 +155,7 @@ class ModelTimeSeries:
         # Define a color
         if linecolor is None:
             # create a new color
-            color = plotting.create_station_color_map(["dummy"])["dummy"]
+            color = plotting.create_categorical_color_map(["dummy"])["dummy"]
         else:
             color = linecolor
 
