@@ -228,8 +228,9 @@ class DataParser:
             logger.warning(
                 f"The following variables are mapped in the template, but are not found in the data!\n {mapped_but_unpresent}"
             )
-
-        return rawdf[mapped_columns]
+        # mapped and present
+        mapped_and_present = list(set(mapped_columns).intersection(set(rawdf.columns)))
+        return rawdf[mapped_and_present]
 
     def get_df(self) -> pd.DataFrame:
         """
