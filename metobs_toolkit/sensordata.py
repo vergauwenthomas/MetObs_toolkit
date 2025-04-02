@@ -87,6 +87,9 @@ class SensorData:
 
         # gaps
         self.gaps = []  # list of Gap's
+        
+        # filled gaps
+        self.filled_gaps = [] # list of filled Gap's (filled_gaps test Noah)
 
         # Setup the SensorData --> apply qc control on import, find gaps, unit conversions etc
         self._setup(
@@ -325,12 +328,16 @@ class SensorData:
 
         gapsdf = self.gapsdf[["value", "label"]]
 
+        filled_gapsdf = self.filled_gapsdf[["value", "label"]] # filled_gaps test Noah
+
         # concat all together (do not change order)
         to_concat = [df]
         if not outliersdf.empty:
             to_concat.append(outliersdf)
         if not gapsdf.empty:
             to_concat.append(gapsdf)
+        if not filled_gapsdf.empty: # filled_gaps test Noah
+            to_concat.append(filled_gapsdf) # filled_gaps test Noah
         df = save_concat((to_concat))
         # remove duplicates
         df = df[~df.index.duplicated(keep="last")].sort_index()
@@ -380,6 +387,27 @@ class SensorData:
         if bool(self.gaps):
             for gap in self.gaps:
                 to_concat.append(gap.df)
+            return save_concat((to_concat)).sort_index()
+        else:
+            return pd.DataFrame(
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name="datetime"),
+            )
+        
+    @property # filled_gaps test Noah
+    def filled_gapsdf(self) -> pd.DataFrame:
+        """
+        Format all filled gaps and their labels in one pandas.DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing all filled gaps and their labels.
+        """
+        to_concat = []
+        if bool(self.filled_gaps):
+            for filled_gap in self.filled_gaps:
+                to_concat.append(filled_gap.df)
             return save_concat((to_concat)).sort_index()
         else:
             return pd.DataFrame(
@@ -812,6 +840,9 @@ class SensorData:
                     raise NotImplementedError(
                         f"modeldata gapfill method: {method} is not implemented!"
                     )
+            
+            self.filled_gaps.append(gap) # filled_gaps test Noah
+            self.gaps.remove(gap) # filled_gaps test Noah
 
     def interpolate_gaps(
         self,
@@ -846,6 +877,9 @@ class SensorData:
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
             )
+
+            self.filled_gaps.append(gap) # filled_gaps test Noah
+            self.gaps.remove(gap) # filled_gaps test Noah
 
 
 # ------------------------------------------
