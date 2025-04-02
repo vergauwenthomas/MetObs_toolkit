@@ -75,13 +75,13 @@ def check_if_modeltimeseries_is_compatible(
         )
 
     # Check if the model represents the same obstype as the gap
-    if modeltimeseries.obstype.is_compatible_with(gap.obstype):
-        pass
-    else:
-        return (
-            False,
-            f"The obstypes of the modeltimeseries is not compatible to that of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
-        )
+    # if modeltimeseries.obstype.is_compatible_with(gap.obstype):
+    #    pass
+    # else:
+    #    return (
+    #        False,
+    #        f"The obstypes of the modeltimeseries is not compatible to that of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
+    #    )
 
     return True, "_"
 
