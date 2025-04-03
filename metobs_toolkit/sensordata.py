@@ -87,9 +87,6 @@ class SensorData:
 
         # gaps
         self.gaps = []  # list of Gap's
-        
-        # filled gaps
-        self.filled_gaps = [] # list of filled Gap's (filled_gaps test Noah)
 
         # Setup the SensorData --> apply qc control on import, find gaps, unit conversions etc
         self._setup(
@@ -328,16 +325,12 @@ class SensorData:
 
         gapsdf = self.gapsdf[["value", "label"]]
 
-        filled_gapsdf = self.filled_gapsdf[["value", "label"]] # filled_gaps test Noah
-
         # concat all together (do not change order)
         to_concat = [df]
         if not outliersdf.empty:
             to_concat.append(outliersdf)
         if not gapsdf.empty:
             to_concat.append(gapsdf)
-        if not filled_gapsdf.empty: # filled_gaps test Noah
-            to_concat.append(filled_gapsdf) # filled_gaps test Noah
         df = save_concat((to_concat))
         # remove duplicates
         df = df[~df.index.duplicated(keep="last")].sort_index()
@@ -802,12 +795,12 @@ class SensorData:
         self, modeltimeseries, method="raw", overwrite_fill=False, method_kwargs={}
     ):
         for gap in self.gaps:
-            if not gap.flag_can_be_filled(overwrite_fill):
+            if not gap.flag_can_be_filled(overwrite_fill): # if flag_can_be_filled returns False, Gaps won't be filled
                 logger.warning(
                     f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
                 )
                 continue
-            if overwrite_fill:
+            if overwrite_fill: # Inorder to chain methods, overwrite_fill must be False
                 # clear previous fill info
                 gap.flush_fill()
 
@@ -840,9 +833,6 @@ class SensorData:
                     raise NotImplementedError(
                         f"modeldata gapfill method: {method} is not implemented!"
                     )
-            
-            self.filled_gaps.append(gap) # filled_gaps test Noah
-            self.gaps.remove(gap) # filled_gaps test Noah
 
     def interpolate_gaps(
         self,
@@ -877,9 +867,6 @@ class SensorData:
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
             )
-
-            self.filled_gaps.append(gap) # filled_gaps test Noah
-            self.gaps.remove(gap) # filled_gaps test Noah
 
 
 # ------------------------------------------

@@ -88,12 +88,12 @@ class Gap:
     # ------------------------------------------
 
     def flag_can_be_filled(self, overwrite: bool = False):
-        if overwrite:
+        if overwrite: # If overwrite is True, this returns True and all gaps will get flushed and filled 
             return True
-        if self.fillstatus == "unfilled":
-            return True
-        else:
+        if self.fillstatus == "succesfull gapfill": # If a gap is already filled, it shouldn't be filled again, so 
             return False
+        else:
+            return True
 
     def get_info(self, printout: bool = True):
         """Print out detailed info about the Gap.

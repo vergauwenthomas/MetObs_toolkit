@@ -112,27 +112,6 @@ class Station:
             )
 
         return combdf
-    
-    @property
-    def filled_gapsdf(self) -> pd.DataFrame:
-
-        concatlist = []
-        for sensordata in self.obsdata.values():
-            stadf = sensordata.filled_gapsdf.reset_index()
-            stadf["obstype"] = sensordata.obstype.name
-            concatlist.append(stadf.set_index(["datetime", "obstype"]))
-
-        combdf = save_concat(concatlist)
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
-                ),
-            )
-
-        return combdf
 
     @property
     def metadf(self) -> pd.DataFrame:
