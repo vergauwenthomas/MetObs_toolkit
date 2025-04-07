@@ -61,7 +61,7 @@ class Station:
 
     @property
     def sensordata(self):
-        return dict(self._modeldata)
+        return dict(self.obsdata)
 
     @property
     def df(self):

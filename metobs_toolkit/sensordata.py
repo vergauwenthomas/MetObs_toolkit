@@ -202,6 +202,20 @@ class SensorData:
         )
 
     def convert_outliers_to_gaps(self):
+        """Convert all outliers to gaps.
+
+        This method will convert all outliers to gaps. Doing so new gaps are constructed.
+
+
+        Returns
+        -------
+        None.
+
+        Warning
+        ------
+        All progress on present gaps is ereased, since new gaps are constructed.
+        Information on the value and QC flag of the outliers will be lost.
+        """
 
         cur_freq = self.freq
         # Create holes for all the outliers timestamps
@@ -229,6 +243,54 @@ class SensorData:
         origin=None,
         origin_simplify_tolerance=pd.Timedelta("4min"),
     ):
+        """Resample to a new time resolution.
+
+        All observational records, outliers and gaps are resampled to a new
+        target frequency. Each present timestamp is mapped to a target timestamp,
+        present at the timeseries of target_freq, respecting a maximum shift
+        set by the shift_tolerance.
+
+        A new origin (=start timestamp) can be set by the argument, or it can be
+        deduced from the current present origin.
+
+
+
+        Parameters
+        ----------
+        origin : datetime.datetime, optional
+            Define the origin (first timestamp) for the observations. The origin
+            is timezone naive and is assumed to have the same timezone as the
+            obervations. If None, the earliest occurring timestamp is used as
+            origin. The default is None.
+        freq : DateOffset, Timedelta or str, optional
+            The target frequency to coarsen all records to.
+            Ex: '15min' is 15 minutes, '1h', is one hour. The default is '60min'.
+        direction : 'backward', 'forward', or 'nearest'
+            Whether to search for prior, subsequent, or closest matches for
+            mapping to ideal timestamps. The default is 'nearest'.
+        timestamp_shift_tolerance : Timedelta or str
+            The tolerance string or object representing the maximum translation
+            (in time) to map a timestamp to a target timestamp.
+            Ex: '5min' is 5 minutes. The default is '4min'.
+
+
+        Returns
+        -------
+        None.
+
+
+        Warning
+        ---------
+        Since the gaps depend on the record's frequency and origin, all gaps are
+        removed and re-located. All progress in gap(filling) will be lost.
+
+        Note
+        -------
+        It is technically possible to increase the time resolution. This will
+        however not result in an information increase, more gaps are
+        created instead.
+
+        """
 
         target_freq = pd.to_timedelta(target_freq)
         # Create a timestampmatcher
@@ -287,6 +349,30 @@ class SensorData:
         )
 
     def get_info(self, printout: bool = True) -> str | None:
+        """
+        Retrieve and optionally print basic information about the sensor data.
+
+        Parameters
+        ----------
+        printout : bool, optional
+            If True, the information will be printed to the console. If False,
+            the information will be returned as a string. Default is True.
+
+        Returns
+        -------
+        str or None
+            If `printout` is False, returns a string containing the information
+            about the sensor data. If `printout` is True, returns None.
+
+        Notes
+        -----
+        The information includes:
+        - Observation type and station name.
+        - Start and end datetime of the records.
+        - Assumed frequency of the data.
+        - Number of records and the count of outliers.
+        - Number of gaps in the data.
+        """
 
         infostr = ""
         infostr += f"{self.obstype.name} records of {self.stationname}:\n"
@@ -304,12 +390,12 @@ class SensorData:
     @property
     def df(self) -> pd.DataFrame:
         """
-        Create a DataFrame from SensorData series.
+        Create a DataFrame of the sensor records.
 
         Returns
         -------
         pd.DataFrame
-            DataFrame with ['datetime', 'obstype'] as index and ['value'] as column.
+            DataFrame with ['datetime', 'obstype'] as index and ['value', 'label'] as columns.
         """
         logger.debug(
             "Creating DataFrame from SensorData series for %s", self.stationname
@@ -346,7 +432,7 @@ class SensorData:
     @property
     def outliersdf(self) -> pd.DataFrame:
         """
-        Format all outliers and their labels in one pandas.DataFrame.
+        Create a DataFrame of the outlier-records.
 
         Returns
         -------
@@ -376,6 +462,16 @@ class SensorData:
 
     @property
     def gapsdf(self) -> pd.DataFrame:
+        """
+        Create a DataFrame of the gap-records. Gap-records are all the
+        timestamps that make up a gap.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing all gap-records and their labels.
+        """
+
         to_concat = []
         if bool(self.gaps):
             for gap in self.gaps:

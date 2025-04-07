@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from metobs_toolkit.sensordata import SensorData
 import metobs_toolkit.settings_collection as settings
 
 # ------------------------------------------

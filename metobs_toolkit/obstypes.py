@@ -82,6 +82,10 @@ class Obstype:
         # return the units as strings
         return [fmt_unit_to_str(uni) for uni in compunits]
 
+    def is_compatible_with(self, other: "Obstype"):
+        """Test if the other obstype is compatible with this one. Thus they represent the same enitity."""
+        return self._std_unit.is_compatible_with(other._std_unit)
+
     @property
     def original_unit(self):
         return fmt_unit_to_str(self._original_unit)

@@ -62,7 +62,7 @@ def check_if_modeltimeseries_is_compatible(
     else:
         return (
             False,
-            f"start of modeltimeseries is not compatible with the start of the gap: {modeltimeseries.start_datetime} <= ({gap.start_datetime} - {lp_duration}) == False.",
+            f"start of modeltimeseries is not compatible with the start of the gap (minus the leading period size): {modeltimeseries.start_datetime} <= ({gap.start_datetime} - {lp_duration}) == False.",
         )
 
     # check if end of modeldata is after gapend
@@ -71,7 +71,7 @@ def check_if_modeltimeseries_is_compatible(
     else:
         return (
             False,
-            f"end of modeltimeseries is not compatible with the end of the gap: {modeltimeseries.end_datetime} >= ({gap.end_datetime} + {tp_duration}) == False.",
+            f"end of modeltimeseries is not compatible with the end of the gap (plus the trailing period size): {modeltimeseries.end_datetime} >= ({gap.end_datetime} + {tp_duration}) == False.",
         )
 
     # Check if the model represents the same obstype as the gap
@@ -174,8 +174,11 @@ def get_leading_period(
 
     # lp should have a minimum samplesize
     if lp.shape[0] < n_records:
-        logger.debug(f"to few leading records: {lp}, but needed {n_records}.")
-        msg = f"to few leading records ({lp.shape[0]} found but {n_records} needed"
+        if duration is not None:
+            msg = f"to few leading records ({lp.shape[0]} (with a maximum distance of {duration} wrt {gap.start_datetime}) found but {n_records} needed"
+        else:
+            msg = f"to few leading records ({lp.shape[0]} found but {n_records} needed"
+        logger.debug(msg)
         continueflag = False
     else:
         msg = "ok"

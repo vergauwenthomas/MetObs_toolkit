@@ -1,10 +1,16 @@
 import logging
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.modeltimeseries import ModelTimeSeries
+from metobs_toolkit.backend_collection.argumentcheckers import (
+    fmt_timedelta_arg,
+    fmt_datetime_arg,
+)
 
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.settings_collection import label_def
-
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
 from metobs_toolkit.gf_collection.debias_gapfill import fill_regular_debias
 from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
@@ -16,7 +22,41 @@ logger = logging.getLogger(__file__)
 
 
 class Gap:
+    """
+    Represents a gap in observational data for a specific station and observation type.
+
+    Parameters
+    ----------
+    gaprecords : pd.DatetimeIndex
+        The datetime index representing the gap records.
+    obstype : object
+        The type of observation (e.g., temperature, humidity).
+    stationname : str
+        The name of the station where the gap occurred.
+
+    Attributes
+    ----------
+    records : pd.Series
+        Series holding the values of the gap (NaN when not filled).
+    labels : pd.Series
+        Series holding the labels for each gap record.
+    extra_info : pd.Series
+        Series holding extra details per record of the gap fill method.
+    fillkwargs : dict
+        Dictionary storing the settings applied to the fill method.
+    obstype : object
+        The type of observation.
+    stationname : str
+        The name of the station.
+    """
+
     def __init__(self, gaprecords: pd.DatetimeIndex, obstype, stationname: str):
+        if not isinstance(gaprecords, pd.DatetimeIndex):
+            raise TypeError("gaprecords must be a pd.DatetimeIndex.")
+        if not isinstance(stationname, str):
+            raise TypeError("stationname must be a string.")
+
+        logger.info(f"Initializing Gap object for station: {stationname}")
 
         gaprecords.name = "datetime"  # set dtindex name
         # holds the values of the gap (nan when not filled)
@@ -40,19 +80,55 @@ class Gap:
         self._stationname = stationname
 
     @property
-    def records(self):
+    def records(self) -> pd.Series:
+        """
+        Returns the records of the gap.
+
+        Returns
+        -------
+        pd.Series
+            Series containing the gap records.
+        """
         return self._records
 
     @property
-    def obstype(self):
+    def obstype(self) -> Obstype:
+        """
+        Returns the observation type.
+
+        Returns
+        -------
+        object
+            The observation type.
+        """
         return self._obstype
 
     @property
-    def stationname(self):
+    def stationname(self) -> str:
+        """
+        Returns the station name.
+
+        Returns
+        -------
+        str
+            The name of the station.
+        """
         return self._stationname
 
     @property
-    def fillstatus(self):
+    def fillstatus(self) -> str:
+        """
+        Returns the fill status of the gap.
+
+        Returns
+        -------
+        str
+            The fill status, which can be one of the following:
+            - 'unfilled'
+            - 'failed gapfill'
+            - 'partially successful gapfill'
+            - 'successful gapfill'
+        """
         if self.records.isna().all() and not bool(self._fillkwargs):
             return "unfilled"
 
@@ -60,25 +136,49 @@ class Gap:
             return "failed gapfill"
 
         elif self.records.isna().any() and bool(self._fillkwargs):
-            return "partially succesfull gapfill"
+            return "partially successful gapfill"
 
         elif not self.records.isna().any() and bool(self._fillkwargs):
-            return "succesfull gapfill"
+            return "successful gapfill"
         else:
             raise NotImplementedError(
-                "This situation is unforseen! Please notify developers."
+                "This situation is unforeseen! Please notify developers."
             )
 
     @property
-    def start_datetime(self):
+    def start_datetime(self) -> pd.Timestamp:
+        """
+        Returns the start datetime of the gap.
+
+        Returns
+        -------
+        pd.Timestamp
+            The start datetime of the gap.
+        """
         return min(self.records.index)
 
     @property
-    def end_datetime(self):
+    def end_datetime(self) -> pd.Timestamp:
+        """
+        Returns the end datetime of the gap.
+
+        Returns
+        -------
+        pd.Timestamp
+            The end datetime of the gap.
+        """
         return max(self.records.index)
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
+        """
+        Returns a DataFrame representation of the gap.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the gap records, labels, and extra details.
+        """
         return pd.DataFrame(
             {"value": self.records, "label": self._labels, "details": self._extra_info}
         )
@@ -87,7 +187,27 @@ class Gap:
     #    Get info methods
     # ------------------------------------------
 
-    def flag_can_be_filled(self, overwrite: bool = False):
+    def flag_can_be_filled(self, overwrite: bool = False) -> bool:
+        """
+        Determine if the gap can be filled.
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            If True, allows filling regardless of the current fill status. Default is False.
+
+        Returns
+        -------
+        bool
+            True if the gap can be filled, False otherwise.
+        """
+        logger.info(
+            f"Entering flag_can_be_filled for {self} with overwrite={overwrite}"
+        )
+
+        if not isinstance(overwrite, bool):
+            raise TypeError("Argument 'overwrite' must be of type bool.")
+
         if overwrite:
             return True
         if self.fillstatus == "unfilled":
@@ -95,18 +215,27 @@ class Gap:
         else:
             return False
 
-    def get_info(self, printout: bool = True):
-        """Print out detailed info about the Gap.
+    def get_info(self, printout: bool = True) -> str | None:
+        """
+        Print or return detailed information about the Gap.
+
+        Parameters
+        ----------
+        printout : bool, optional
+            If True, prints the information. If False, returns the information as a string. Default is True.
 
         Returns
         -------
-        None.
-
+        str or None
+            The gap information as a string if printout is False, otherwise None.
         """
+        logger.info(f"Entering get_info for {self} with printout={printout}")
+
+        if not isinstance(printout, bool):
+            raise TypeError("Argument 'printout' must be of type bool.")
 
         retstr = ""
         retstr += "---- Gap info -----\n"
-
         retstr += f"  * Gap of {self.obstype.name} for station: {self.stationname} \n"
         retstr += f"  * Start gap: {self.start_datetime}\n"
         retstr += f"  * End gap: {self.end_datetime}\n"
@@ -120,13 +249,35 @@ class Gap:
 
     def debiased_model_gapfill(
         self,
-        sensordata,
-        modeltimeseries,
-        leading_period_duration: pd.Timedelta,
+        sensordata: "SensorData",  # PEP 484 - Type Hints (use string to avoid cycle import)
+        modeltimeseries: ModelTimeSeries,
+        leading_period_duration: str | pd.Timedelta,
         min_leading_records_total: int,
-        trailing_period_duration: pd.Timedelta,
+        trailing_period_duration: str | pd.Timedelta,
         min_trailing_records_total: int,
-    ):
+    ) -> None:
+        """ """
+        logger.info(f"Entering debiased_model_gapfill for {self}")
+
+        leading_period_duration = fmt_timedelta_arg(leading_period_duration)
+        trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+
+        if not isinstance(modeltimeseries, ModelTimeSeries):
+            raise TypeError("Argument 'modeltimeseries' must be of type pd.Series.")
+        if not isinstance(leading_period_duration, pd.Timedelta):
+            raise TypeError(
+                "Argument 'leading_period_duration' must be of type pd.Timedelta."
+            )
+        if not isinstance(min_leading_records_total, int):
+            raise TypeError("Argument 'min_leading_records_total' must be of type int.")
+        if not isinstance(trailing_period_duration, pd.Timedelta):
+            raise TypeError(
+                "Argument 'trailing_period_duration' must be of type pd.Timedelta."
+            )
+        if not isinstance(min_trailing_records_total, int):
+            raise TypeError(
+                "Argument 'min_trailing_records_total' must be of type int."
+            )
 
         self._fillkwargs = {
             "applied_gapfill_method": "debias_model_gapfill",
@@ -163,7 +314,7 @@ class Gap:
             )
         )
         if not continueflag:
-            # warnings and gap attributes are already been updated
+            # warnings and gap attributes are already updated
             return
 
         # 3. Fill the gap
@@ -179,7 +330,6 @@ class Gap:
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
 
         # 4. Update attributes
-        # Update attributes
         self._records = filleddf["fillvalue"].rename(
             "value"
         )  # set the new filled records

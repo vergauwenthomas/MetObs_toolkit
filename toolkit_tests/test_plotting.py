@@ -184,6 +184,72 @@ class TestDemoDataset:
         return fig
 
 
+# ------------------------------------------
+#    test plotting timeseries with GF labels
+# ------------------------------------------
+
+
+class TestDataWithGaps:
+    # to pass to the solutionfixer
+    solkwargs = {"testfile": Path(__file__).name, "classname": "testdatawithgaps"}
+    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+
+    @pytest.mark.mpl_image_compare
+    def test_interpolated_timeseries_plot(self):
+        dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_interpolation_on_dataset_A",
+        )
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_raw_modeldata_gf_timeseries_plot(self):
+        dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_raw_modeldata_gapfill_A",
+        )
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_debias_modeldata_gf_timeseries_plot(self):
+        dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_debias_modeldata_gapfill_A",
+        )
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_diurnal_debias_modeldata_gf_timeseries_plot(self):
+        dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_diurnal_debias_modeldata_gapfill_A",
+        )
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_weighted_diurnal_debias_modeldata_gf_timeseries_plot(self):
+        dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_weighted_diurnal_debias_modeldata_gapfill_A",
+        )
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        return fig
+
+
 if __name__ == "__main__":
     print(
         "To Overwrite the solutions, run: \n pytest test_plotting.py  --mpl --mpl-generate-path=baseline"
