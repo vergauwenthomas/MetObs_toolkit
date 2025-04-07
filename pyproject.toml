@@ -68,7 +68,7 @@ sphinx = ">=7"
 sphinx-copybutton = "^0.5.2"
 sphinx-rtd-theme = "^3.0.1"
 
-[tool.poetry.group.titan.dependencies]
-# titanlib requires C-compilers, which are not by default present on windows.
-# Make a seperate group for titan
-titanlib = "^0.3.3"
+# [tool.poetry.group.titan.dependencies]
+# # titanlib requires C-compilers, which are not by default present on windows.
+# # Make a seperate group for titan
+# titanlib = "^0.3.3"

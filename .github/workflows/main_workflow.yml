@@ -28,8 +28,8 @@ jobs:
               pip install poetry
         - name: Install dependencies and build
           run: |
-              poetry update --without titan,documentation
-              poetry install --without titan,documentation
+              poetry update --without documentation
+              poetry install --without documentation
               poetry build
         - name: get distribution file name
           id: base_def
@@ -48,7 +48,7 @@ jobs:
               poetry install --all-extras
         - name: export documentation requirement group
           run: |
-              poetry export -f requirements.txt --without-hashes --with=documentation,dev,titan --format=requirements.txt -o doc_build_req.txt
+              poetry export -f requirements.txt --without-hashes --with=documentation,dev --format=requirements.txt -o doc_build_req.txt
         - name: convert doc requirments to artifact
           uses: actions/upload-artifact@v4
           with:
@@ -402,4 +402,3 @@ jobs:
          name: |
              package_build
              documentation_requirements
-             titan_requirements
