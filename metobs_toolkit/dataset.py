@@ -1374,7 +1374,7 @@ class Dataset:
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
-                overwrite_fill=False,
+                overwrite_fill=overwrite_fill,
                 method_kwargs=method_kwargs,
             )
 
