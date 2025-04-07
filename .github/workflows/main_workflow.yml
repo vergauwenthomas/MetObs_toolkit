@@ -73,7 +73,7 @@ jobs:
        # You can use PyPy versions in python-version.
        # For example, pypy-2.7 and pypy-3.8
          matrix:
-           python-version: ["3.9", "3.10"]
+           python-version: ["3.9", "3.10", "3.11"]
          # os: [ubuntu-latest, windows-latest]
            os: [ubuntu-latest]
            node-version: [12.x]
@@ -94,22 +94,19 @@ jobs:
          - name: Install the package
            run: |
                python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-         - name: get titanlib requirements
-           uses: actions/download-artifact@v3
-           with:
-             name: titan_requirements
-         - name: install titanlib
-           run: |
-               pip install -r only_titan_req.txt
          - name: Run tests
            run: |
-             python tests/push_test/gap_and_fill_test.py
-             python tests/push_test/IO_test.py
-             python tests/push_test/qc_test.py
-             python tests/push_test/breaking_test.py
-             #python tests/push_test/gui_launch_test.py
-             python tests/push_test/analysis_test.py
-             python tests/push_test/irregular_and_add_test.py
+             pytest
+
+        #  - name: Run tests
+        #    run: |
+        #      python tests/push_test/gap_and_fill_test.py
+        #      python tests/push_test/IO_test.py
+        #      python tests/push_test/qc_test.py
+        #      python tests/push_test/breaking_test.py
+        #      #python tests/push_test/gui_launch_test.py
+        #      python tests/push_test/analysis_test.py
+        #      python tests/push_test/irregular_and_add_test.py
 
 #--- Package os installation ---
    mac_install_testing:
