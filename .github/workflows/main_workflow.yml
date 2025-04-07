@@ -11,10 +11,10 @@ jobs:
         pkg_file: ${{ steps.base_def.outputs.filename }}
       steps:
         - uses: actions/checkout@v3
-        - name: Set up Python39
+        - name: Set up Python310
           uses: actions/setup-python@v4
           with:
-            python-version: '3.9'
+            python-version: '3.10'
             #cache: 'poetry'
         # You can test your matrix by printing the current Python version
         - name: Display Python version
@@ -38,7 +38,7 @@ jobs:
               echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
 
         - name: save package as artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: package_build
             path: dist/*.tar.gz
@@ -50,18 +50,18 @@ jobs:
           run: |
               poetry export -f requirements.txt --without-hashes --with=documentation,dev,titan --format=requirements.txt -o doc_build_req.txt
         - name: convert doc requirments to artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: documentation_requirements
             path: doc_build_req.txt
-        - name: export titan requirement group
-          run: |
-              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
-        - name: convert titan requirements to artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: titan_requirements
-            path: only_titan_req.txt
+        # - name: export titan requirement group
+        #   run: |
+        #       poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
+        # - name: convert titan requirements to artifact
+        #   uses: actions/upload-artifact@v4
+        #   with:
+        #     name: titan_requirements
+        #     path: only_titan_req.txt
 
 
 #---- Run tests -----#
