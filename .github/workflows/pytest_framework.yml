@@ -34,4 +34,5 @@ jobs:
       # Run tests
       - name: Run Pytest
         run: |
-          pytest toolkit_tests --mpl
+          # Run all tests except the gee test (auth tokens required, only local testing)
+          pytest toolkit_tests --mpl --ignore=toolkit_tests/test_gee.py
