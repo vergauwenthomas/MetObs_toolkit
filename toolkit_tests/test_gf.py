@@ -32,32 +32,46 @@ class TestDataWithGaps:
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        pass
+        if overwrite_solution:  # GEE INTERACTION !!
 
-        # 2. apply a metobs manipulation
-        dataset = metobs_toolkit.Dataset()
-        dataset.import_data_from_file(
-            template_file=metobs_toolkit.demo_template,
-            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            input_data_file=datadir.joinpath("testdata_with_gaps.csv"),
-        )
-        # To other resolution!!
-        dataset.resample(target_freq="15min")
+            dataset = metobs_toolkit.Dataset()
+            dataset.import_data_from_file(
+                template_file=metobs_toolkit.demo_template,
+                input_metadata_file=metobs_toolkit.demo_metadatafile,
+                input_data_file=datadir.joinpath("testdata_with_gaps.csv"),
+            )
+            # To other resolution!!
+            dataset.resample(target_freq="15min")
 
-        # extracting modeldata
-        era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
-        era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_manager,
-            startdt_utc=None,  # raises error in metadata-only case
-            enddt_utc=None,
-            target_obstypes=["temp"],
-            get_all_bands=False,
-            drive_filename=None,
-            # drive_folder="gee_timeseries_data",
-            force_direct_transfer=True,
-            force_to_drive=False,
-        )
+            # extracting modeldata
+            era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+            era5_data = dataset.get_gee_timeseries_data(
+                geedynamicdatasetmanager=era5_manager,
+                startdt_utc=None,  # raises error in metadata-only case
+                enddt_utc=None,
+                target_obstypes=["temp"],
+                get_all_bands=False,
+                drive_filename=None,
+                # drive_folder="gee_timeseries_data",
+                force_direct_transfer=True,
+                force_to_drive=False,
+            )
 
+            dataset.save_dataset_to_pkl(
+                target_folder=(
+                    solutionsdir.joinpath("test_gf_solutions").joinpath(
+                        "testdatawithgaps"
+                    )
+                ),
+                target_filename="test_import_data.pkl",
+                overwrite=True,
+            )
+        else:
+            dataset = metobs_toolkit.import_dataset_from_pkl(
+                solutionsdir.joinpath("test_gf_solutions")
+                .joinpath("testdatawithgaps")
+                .joinpath("test_import_data.pkl")
+            )
         # 3. overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
@@ -139,7 +153,7 @@ class TestDataWithGaps:
         # Test plotting
         _statsdf = sta.make_plot()
 
-    def test_interpolation_on_dataset(self, overwrite_solution):
+    def test_interpolation_on_dataset(self, overwrite_solution=False):
 
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -458,7 +472,6 @@ if __name__ == "__main__":
     tester = TestDataWithGaps()
     tester.test_import_data(overwrite_solution=False)
     tester.test_interpolation_on_station(overwrite_solution=False)
-    tester.test_interpolation_on_dataset(overwrite_solution=False)
     tester.test_interpolation_on_dataset(overwrite_solution=False)
     tester.test_raw_modeldata_gapfill(overwrite_solution=False)
     tester.test_debias_modeldata_gapfill(overwrite_solution=False)
