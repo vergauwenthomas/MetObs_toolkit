@@ -31,6 +31,7 @@ version = "0.3.1a"
 cartopy = "^0.23"
 # cartopy = '^0.21.1'
 earthengine-api = "^1.1.3"
+folium = "^0.19.5"  # needed for geemap
 geemap = "^0.34.5"
 geopandas = "^1.0.1"
 geos = "^0.2.3"

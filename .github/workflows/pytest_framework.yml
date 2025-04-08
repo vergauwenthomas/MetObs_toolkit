@@ -25,6 +25,11 @@ jobs:
           pip install pytest
           pip install pytest-mpl
 
+      # List installed packages
+      - name: List installed packages
+        run: |
+          pip list
+
       # Run tests
       - name: Run Pytest
         run: |
