@@ -11,12 +11,7 @@ the MetObs toolkit to be used by a user and developer.
 
   Dataset <reference/dataset>
   Station <reference/station>
-  Obstype <reference/obstype>
-  Analysis <reference/analysis>
-  Gee modeldata <reference/geemodeldata>
-  Template <reference/template>
-  Gap <reference/gap>
-  Special functions <reference/special_functions>
+
 
 ********************************************
 Modules for MetObs toolkit Developers

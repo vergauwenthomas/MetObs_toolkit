@@ -255,7 +255,7 @@ class Station:
     #    Modeldata extraction
     # ------------------------------------------
 
-    def get_gee_point_data(
+    def get_static_gee_point_data(
         self, geestaticdataset, overwrite: bool = True, initialize_gee: bool = True
     ):
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
@@ -271,21 +271,21 @@ class Station:
 
         return value
 
-    def get_lcz_from_gee(self, overwrite=True, initialize_gee=True):
-        return self.get_gee_point_data(
+    def get_lcz(self, overwrite=True, initialize_gee=True):
+        return self.get_static_gee_point_data(
             geestaticdataset=default_gee_datasets["lcz"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
 
-    def get_altitude_from_gee(self, overwrite=True, initialize_gee=True):
-        return self.get_gee_point_data(
+    def get_altitude(self, overwrite=True, initialize_gee=True):
+        return self.get_static_gee_point_data(
             geestaticdataset=default_gee_datasets["altitude"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
 
-    def get_gee_pointbuffer_data(
+    def get_static_gee_buffer_fraction_data(
         self,
         geestaticdataset,
         buffers=[100],
@@ -311,7 +311,7 @@ class Station:
         return nesteddict
 
     def get_landcover_fractions(self, buffers=[100], aggregate=False, overwrite=True):
-        self.get_gee_pointbuffer_data(
+        self.get_static_gee_buffer_fraction_data(
             geestaticdataset=default_gee_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,

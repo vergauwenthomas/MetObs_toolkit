@@ -94,6 +94,7 @@ class Dataset:
 
     @property
     def stations(self):
+        """The list of Stations present in the Dataset."""
         return self._stations
 
     @property

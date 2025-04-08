@@ -31,16 +31,7 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
    :maxdepth: 5
 
    Home <self>
-   Getting started <intro>
-   Specific topics <specific_topics>
-   Examples <examples/index>
    Documentation <MetObs_documentation_flat>
-   Contributing <topics/contributing_link.md>
-
-.. container:: button
-
-    :doc:`Getting started <intro>` :doc:`Specific topics <specific_topics>`
-    :doc:`Examples <examples/index>` :doc:`Documentation <MetObs_documentation_flat>`
 
 
 
