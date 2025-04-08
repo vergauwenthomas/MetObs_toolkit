@@ -99,10 +99,12 @@ class Dataset:
 
     @property
     def obstypes(self):
+        """Dictionary of known Obstypes by the Dataset."""
         return self._obstypes
 
     @property
     def template(self):
+        """The Template instance used when the data was imported."""
         return self._template
 
     @stations.setter

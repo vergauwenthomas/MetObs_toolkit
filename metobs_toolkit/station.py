@@ -53,18 +53,22 @@ class Station:
 
     @property
     def name(self):
+        """The name of the station."""
         return str(self._name)
 
     @property
     def site(self):
+        """The Site instance of the station."""
         return self._site
 
     @property
     def sensordata(self):
+        """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
 
     @property
     def df(self):
+        """A DataFrame representation of all the SensorData."""
         # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
         concatdf = save_concat(([sensor.df for sensor in self.obsdata.values()]))
 

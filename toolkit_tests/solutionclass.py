@@ -21,7 +21,7 @@ class SolutionFixer:
         )
         if not solutionfile.exists():
             raise SolutionNotExisting(
-                f"The solution of {testfile} -->{classname}:{methodname} does not exist!"
+                f"The solution of {testfile} -->{classname}:{methodname} does not exist (at {solutionfile})!"
             )
 
         with open(solutionfile, "rb") as file:
