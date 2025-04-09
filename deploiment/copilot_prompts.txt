@@ -1,10 +1,17 @@
 Insert code adaptations to fulfill the following needs:
 
 
-Insert docstrings in Numpy style for all classes, methods and functions in this module.
+/doc Insert docstrings in Numpy style for all classes, methods and functions in this module.
 If a docstring is already present, make sure it is in the Numpy style and that the references to the arguments are correct.
 If a docstring is already present, check if it is still valid and change accordingly.
+If a docstring is already present, check for grammer and spelling errors.
 
+
+Check for typos whenever a new variable is declared, add #TYPO at the end of that line when a typo is detected in the name of the variable.
+
+Check for typos, grammer and spelling issues in the docstrings and fix them.
+
+/edit
 Check if type hinting is defined for all methods and functions. Add it if it is missing or wrong.
 
 Import the logging module and set the logger to __file __. Insert appropriate logging statements in all methods and functions. Log entering a method or function at the info-level, and refer to self in the message.  If the name of the method starts with an underscore, all logging statements in it are at debug level.
@@ -14,7 +21,3 @@ Insert in the beginning of all method and functions checks that validate if the 
 Fix the identation of the code if needed.
 
 Rearange the imports to start with python default packages, then dependency packages and lastly  local modules
-
-Check for typos whenever a new variable is declared, add #TYPO at the end of that line when a typo is detected in the name of the variable.
-
-Check for typos, grammer and spelling issues in the docstrings and fix them.

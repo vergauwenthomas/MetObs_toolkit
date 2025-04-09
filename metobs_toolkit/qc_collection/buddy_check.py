@@ -173,13 +173,13 @@ def toolkit_buddy_check(
       4. Buddy groups are defined as sets with stations near each other.
       5. The timestamps are synchronized towards the highest frequency, earlyest and latest timestamps.
       6. For each buddy group:
+
         * Observations of buddies are extracted from all observations.
         * These observations are corrected for altitude differences if a lapsrate is specified.
         * For each buddy group, the mean, standard deviation (std), and sample size are computed.
         * If the std is lower than the minimum std, it is replaced by the minimum std.
         * Chi values are calculated for all records.
-        * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
-        If so, that record (stationname + timestamp) is flagged as an outlier.
+        * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold. If so, that record (stationname + timestamp) is flagged as an outlier.
 
 
     Parameters

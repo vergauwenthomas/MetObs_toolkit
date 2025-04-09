@@ -7,10 +7,11 @@ the MetObs toolkit to be used by a user and developer.
 
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 4
 
   Dataset <reference/dataset>
   Station <reference/station>
+  Gap <reference/gap>
 
 
 ********************************************

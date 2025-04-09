@@ -20,6 +20,7 @@ from metobs_toolkit.geedatasetmanagers import (
 )
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
+import logging
 
 
 logger = logging.getLogger(__file__)
@@ -52,23 +53,29 @@ class Station:
         return f"Station instance of {self.name}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The name of the station."""
         return str(self._name)
 
     @property
-    def site(self):
+    def site(self) -> "Site":
         """The Site instance of the station."""
         return self._site
 
     @property
-    def sensordata(self):
+    def sensordata(self) -> dict:
         """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
 
     @property
-    def df(self):
-        """A DataFrame representation of all the SensorData."""
+    def df(self) -> pd.DataFrame:
+        """Construct a DataFrame representation of the observations.
+
+        Returns
+        --------
+            pd.DataFrame: A pandas DataFrame with a single column 'value'.
+        """
+
         # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
         concatdf = save_concat(([sensor.df for sensor in self.obsdata.values()]))
 
@@ -77,7 +84,20 @@ class Station:
         return concatdf
 
     @property
-    def outliersdf(self):
+    def outliersdf(self) -> pd.DataFrame:
+        """Construct a DataFrame representation of all the outliers.
+
+        Outliers are the observations that are flagged by the performed quality control.
+
+
+        Returns
+        --------
+        pandas.DataFrame:
+            A DataFrame with two columns ['value', 'label'], representing
+            the value and details of the flagged observation.
+
+        """
+
         concatlist = []
         for sensordata in self.obsdata.values():
             stadf = sensordata.outliersdf[["value", "label"]].reset_index()
@@ -98,7 +118,15 @@ class Station:
 
     @property
     def gapsdf(self) -> pd.DataFrame:
+        """Construct a DataFrame representation of all the gaps.
 
+        Returns
+        --------
+        pandas.DataFrame:
+            A DataFrame with columns ['value', 'label', 'details'], representing
+            the value, the gap-label and details of the gap record.
+
+        """
         concatlist = []
         for sensordata in self.obsdata.values():
             stadf = sensordata.gapsdf.reset_index()
@@ -119,10 +147,34 @@ class Station:
 
     @property
     def metadf(self) -> pd.DataFrame:
+        """Construct a DataFrame representation of metadata.
+
+        Metadata is the information related to the sensors, that does not change over time.
+        The metadata is extracted from the site instance.
+
+        Returns
+        --------
+        pandas.DataFrame:
+            A DataFrame with the station names as index, and the metadata as columns.
+
+        """
+
         return self.site.metadf
 
     @property
     def modeldatadf(self) -> pd.DataFrame:
+        """Construct a DataFrame representation of all the present modeldata.
+
+        Modeldata is stored as ´ModelTimeSeries´ instances, and is set as an attribute of
+        a ´Station´.
+
+        Returns
+        --------
+        pandas.DataFrame:
+            A DataFrame with columns ['value', 'details'], representing
+            the value, and details of the corresponding modeldata.
+
+        """
         concatlist = []
         for modeldata in self.modeldata.values():
             df = (
@@ -148,21 +200,67 @@ class Station:
 
     @property
     def start_datetime(self):
+        """Get the earliest start datetime from the observation data.
+
+        Returns
+        -------
+        pd.Timestamp
+            The earliest start datetime among all sensor data.
+        """
+
         return min([sensdata.start_datetime for sensdata in self.obsdata.values()])
 
     @property
     def end_datetime(self):
+        """Get the latest end datetime from the observation data.
+
+        Returns
+        -------
+        pd.Timestamp
+            The maximum end datetime across all sensor data in the observation data.
+        """
         return max([sensdata.end_datetime for sensdata in self.obsdata.values()])
 
     @property
     def modeldata(self):
+        """
+        Retrieve the model data associated with the station.
+
+        Returns
+        -------
+        dict
+            A dictionary with the observation type as key and the corresponding
+            ModelTimeSeries as values.
+        """
         return self._modeldata
 
-    def add_to_modeldata(self, new_modeltimeseries, force_update=False):
+    def add_to_modeldata(
+        self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
+    ) -> None:
+        """
+        Add a new ModelTimeSeries to the Station.
+
+        Parameters
+        ----------
+        new_modeltimeseries : ModelTimeSeries
+            The new model time series to be added. Must be an instance of `ModelTimeSeries`.
+        force_update : bool, optional
+            If True, overwrite existing model data for the same observation type. Default is False.
+
+        Returns
+        --------
+        None.
+
+        """
+        logger = logging.getLogger(__file__)
+        logger.info(f"Entering add_to_modeldata method of {self}")
+        # Validate argument types
         if not isinstance(new_modeltimeseries, ModelTimeSeries):
-            raise MetObsWrongType(
-                f"{new_modeltimeseries} is not an instance of ModelTimeSeries."
+            raise TypeError(
+                "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
+        if not isinstance(force_update, bool):
+            raise TypeError("force_update must be a boolean.")
 
         # Test if there is already modeldata for the same obstype available
         if (new_modeltimeseries.obstype.name in self.sensordata) & (not force_update):
@@ -176,6 +274,23 @@ class Station:
     #    Specials
     # ------------------------------------------
     def get_info(self, printout: bool = True) -> str | None:
+        """Get printout overview info.
+
+        Retrieve and optionally print detailed information about the station,
+        including sensor data, site information, and model data.
+
+        Parameters
+        ----------
+        printout : bool, optional
+            If True, prints the information to the console. If False, returns
+            the information as a string. Default is True.
+
+        Returns
+        -------
+        str or None
+            A string containing the station information if `printout` is False.
+            Otherwise, returns None.
+        """
 
         infostr = f"Station {self.name} with: \n"
         infostr += "\n --- Sensor Data ---\n"
@@ -197,24 +312,79 @@ class Station:
         else:
             return infostr
 
-    def sync_records(self, **kwargs):
-        raise MetObsStationClassError(
-            "sync_records() can only be applied on metobs.Dataset instances, not on metobs.Station instances."
-        )
+    # def sync_records(self, **kwargs):
+    #     raise MetObsStationClassError(
+    #         "sync_records() can only be applied on metobs.Dataset instances, not on metobs.Station instances."
+    #     )
 
     def resample(
         self,
-        target_freq,
+        target_freq: str | pd.Timedelta,
         target_obstype: str | None = None,
-        shift_tolerance=pd.Timedelta("4min"),
-        origin=None,
-        origin_simplify_tolerance=pd.Timedelta("4min"),
-    ):
+        shift_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
+        origin: None | pd.Timestamp = None,
+        origin_simplify_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
+    ) -> None:
+        """
+        Resample observation data to a specified frequency.
+
+        Resampling is done by creating target timestamps, aligning them with the present timestamps,
+        and transfer the nearest (in time) value to the target timestamp. There is no interpolation in time.
+
+        Aligning restrictions can be specified by setting the shif_tolerance, which indicates the maximum shift
+        (in time) that alligned timestamps can have.
+
+        Since the origin (the first timestamp in the current observations) is in general not a suitable candidate
+        to serve as origin for the target frequency, a suitable origin is deduced. This can be done by specifying
+        the origin argument, or if None it is done automatically. This is done by simplifying the
+        current origin by rounding it down, and testing if the shift in the new tolerance is smaller than origin_simplify_tolerance.
+
+
+        Parameters
+        ----------
+        target_freq : str or pandas.Timedelta
+            The target frequency to which the data should be resampled. Can be
+            specified as a pandas frequency string (e.g., '5T' for 5 minutes)
+            or a pandas.Timedelta object.
+        target_obstype : str or None, optional
+            The observation type (sensor) to resample. If None, all sensors
+            will be resampled to the same frequency. Default is None.
+        shift_tolerance : str or pandas.Timedelta, optional
+            The maximum allowed time shift tolerance for aligning data during
+            resampling. Default is 4 minutes.
+        origin : pandas.Timestamp, or None, optional
+            The origin timestamp (=first timestamp) of the target records. Can be a pandas.Timestamp or None.
+            If None, then a suitable origin is used by simplifying the current origing and making
+            sure that origin_simplify_tolerance is met. Default is None.
+        origin_simplify_tolerance : pandas.Timedelta, optional
+            This is only used when origin is None. The tolerance for simplifying the origin
+            alignment during resampling. Default is 4 minutes.
+
+
+        Notes
+        -----
+        - If `target_obstype` is None, all sensors in `self.obsdata` will be
+          resampled to the same frequency.
+        - If `target_obstype` is specified, it must be a known observation type.
+
+        Warning
+        ----------
+        Since the gaps depend on the record’s frequency and origin, all gaps
+        are removed and re-located. All progress in gap(filling) will be lost.
+
+        Warning
+        --------
+        Cumulative tolerance errors can be introduced when this method is called multiple times.
+
+
+        """
+
         # NOTE: if target_obstype is none, all sensors are resampled to the same freq!
 
         # format arguments
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
+        origin = fmt_datetime_arg(origin, none_is_none=True)
 
         if target_obstype is None:
             for sensor in self.obsdata.values():
@@ -236,7 +406,36 @@ class Station:
                 origin_simplify_tolerance=origin_simplify_tolerance,
             )
 
-    def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
+    def convert_outliers_to_gaps(
+        self, all_observations: bool = False, obstype: str = "temp"
+    ) -> None:
+        """
+        Convert outlier values in the observation data to gaps.
+
+        This method replaces outlier values with gaps, effectively marking them as missing.
+        In practice, this method is used so that generated gaps can be filled, to obtain a continious timeseries.
+
+        The operation can be applied to all observation types or a specific observation type.
+
+        Parameters
+        ----------
+        all_observations : bool, optional
+            If True, convert outliers to gaps for all observation types.
+            If False, only convert outliers specified by the obstype argument. The default is False.
+        obstype : str, optional
+            The type of observation to convert outliers for. This parameter is
+            only used if `all_observations` is False. The default is "temp".
+
+        Returns
+        -------
+        None
+            This method modifies the observation data in place and does not return anything.
+
+        Warning
+        -------
+        QC labels are lost when outliers are converted to gaps.
+
+        """
         if all_observations:
             for sensor in self.obsdata.values():
                 sensor.convert_outliers_to_gaps()
@@ -694,7 +893,36 @@ class Station:
     # ------------------------------------------
     #    Gapfilling
     # ------------------------------------------
-    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill=False):
+
+    def fill_gaps_with_raw_modeldata(
+        self, target_obstype: str, overwrite_fill: bool = False
+    ) -> None:
+        """Fill the gap(s) using model data without correction.
+
+        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        the model data to the missing records.
+
+        Parameters
+        ----------
+        target_obstype :  str
+            The target obstype to fill the gaps for.
+        overwrite_fill : bool, optional
+            If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
+            If False, only gaps without gapfill data are filled. Defaults to False.
+
+        Notes
+        -----
+        A schematic description of the raw model data gap fill:
+
+        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        2. Iterate over the gaps of the target_obstype.
+        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        4. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
+        5. Interpolate the model data to match the missing records in the gap.
+        6. Update the `gap` attributes with the interpolated values, labels, and details.
+
+
+        """
 
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
@@ -720,7 +948,51 @@ class Station:
         trailing_period_duration=pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill=False,
-    ):
+    ) -> None:
+        """Fill the gaps using modeldata corrected for the bias.
+
+        This method fills the gaps using model data corrected for bias.
+        The bias is estimated using a leading (before the gap)
+        and trailing (after the gap) period. The bias is computed by combining the
+        leading and trailing period, and comparing the model with the observations
+        (not labeled as outliers). The model data is then interpolated to the missing
+        records, and corrected with the estimated bias.
+
+        Parameters
+        -------------
+        target_obstype :  str
+            The target obstype to fill the gaps for.
+        leading_period_duration : str | pd.Timedelta, optional
+            The duration of the leading period. The default is "24h".
+        min_leading_records_total : int, optional
+            The minimum number of records required in the leading period. The default is 60.
+        trailing_period_duration : str | pd.Timedelta, optional
+            The duration of the trailing period. The default is "24h".
+        min_trailing_records_total : int, optional
+            The minimum number of records required in the trailing period. The default is 60.
+        overwrite_fill : bool, optional
+            If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
+            If False, only gaps without gapfill data are filled. The default is False.
+
+
+        Returns
+        ----------
+        None.
+
+        Notes
+        -----
+        A schematic description of the debiased modeldata gap fill:
+
+        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        2. Iterate over the gaps of the target_obstype.
+        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        4. Construct a leading and trailing sample, and test if they meet the required conditions.
+        5. Compute the bias of the modeldata (combine leading and trailing samples).
+        6. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
+        7. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        """
+
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -756,7 +1028,60 @@ class Station:
         trailing_period_duration=pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill=False,
-    ):
+    ) -> None:
+        """Fill the gaps using modeldata corrected for the diurnal-bias.
+
+        This method fills the gap using model data corrected for its diuranal-bias.
+        The diurnal bias is a bias that is estimated for each timestamp in the leading
+        and trailing period. All biases are averaged over hour, minute and second, to
+        obtain a diurnal bias (for each timestamp).
+
+
+        Parameters
+        -------------
+        target_obstype :  str
+            The target obstype to fill the gaps for.
+        leading_period_duration :  str | pd.Timedelta, optional
+            The duration of the leading period. That is the period before the gap, used
+            for bias estimation. The default is "24h".
+        trailing_period_duration :  str | pd.Timedelta, optional
+            The duration of the trailing period. That is the period after the gap, used
+            for bias estimation. The default is "24h".
+        min_debias_sample_size : int, optional
+            The minimum number of samples required for bias estimation. If this condition is not met, the gap
+            is not filled. The default is 6.
+        overwrite_fill : bool, optional
+            If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
+            If False, only gaps without gapfill data are filled. The default is False.
+
+        Returns
+        ---------
+        None.
+
+        Notes
+        -----
+        A schematic description of the diurnal debiased modeldata gap fill:
+
+        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        2. Iterate over the gaps of the target_obstype.
+        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        4. Construct a leading and trailing sample, and test if they meet the required conditions.
+        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
+        5. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
+        6. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        7. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        Notes
+        --------
+        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+
+        """
+
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -793,6 +1118,68 @@ class Station:
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,
     ):
+        """Fill the gaps using a weighted sum of modeldata corrected for the diurnal-bias and weights wrt the start of the gap.
+
+        This method fills the gaps using model data corrected for its diuranal-bias.
+        The diurnal bias is a bias that is estimated for each timestamp in the leading
+        and trailing period (seperatly). For both periods seperatly, all biases are averaged over hour, minute and second, to
+        obtain a diurnal bias (for each timestamp).
+
+        In addition, a normalized weight is computed for each gap-record indicating the distance (in time) to
+        the start and end of the gap. The correction applied on the interpolated (in time) modeldata, is
+        thus a weighted sum of corrections comming from both the leading and trailing period.
+
+
+        Parameters
+        ------------
+        target_obstype :  str
+            The target obstype to fill the gaps for.
+        leading_period_duration : str | pd.Timedelta, optional
+            The duration of the leading period. That is the period before the gap, used
+            for bias estimation. The default is "24h".
+        trailing_period_duration : str | pd.Timedelta, optional
+            The duration of the trailing period. That is the period after the gap, used
+            for bias estimation. The default is "24h".
+        min_lead_debias_sample_size : int, optional
+            The minimum number of leading-samples required for bias estimation. If this condition is not met, the gap
+            is not filled. The default is 2.
+        min_trail_debias_sample_size : int, optional
+            The minimum number of trailing-samples required for bias estimation. If this condition is not met, the gap
+            is not filled. The default is 2.
+        overwrite_fill : bool, optional
+            If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
+            If False, only gaps without gapfill data are filled. The default is False.
+
+        Returns
+        --------
+        None.
+
+
+        Notes
+        -----
+        A schematic description of the weighted diurnal debiased modeldata gap fill:
+
+        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        2. Iterate over the gaps of the target_obstype.
+        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        4. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        5. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
+        6. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
+        7. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        8. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        Notes
+        --------
+        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
+
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+
+        """
+
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -833,6 +1220,69 @@ class Station:
         overwrite_fill=False,
         method_kwargs={},
     ):
+        """Fill the gap(s) using interpolation of SensorData.
+
+        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        corresponding SensorData. Each gap is interpolated using the leading and trailing periods of the gap. One can select different
+        interpolation methods. By using restrictions on the leading and trailing periods, one can
+        ensure that the interpolation is only done when there are enough leading and trailing data available.
+
+        Parameters
+        ----------
+        target_obstype :  str
+            The target obstype to fill the gaps for.
+         method:  str, optional
+            Interpolation technique to use. See pandas.DataFrame.interpolate
+            method argument for possible values. Make sure that
+            `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
+            set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".. Defaults to "time".
+        max_consec_fill: int, optional
+            The maximum number of consecutive timestamps to fill. The result is
+            dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
+        n_leading_anchors : int, optional
+            The number of leading anchors to use for the interpolation. A leading anchor is
+            a near record (not rejected by QC) just before the start of the gap, that is used for interpolation.
+            Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
+        n_trailing_anchors : int, optional
+            The number of trailing anchors to use for the interpolation. A trailing anchor is
+            a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
+            Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
+        max_lead_to_gap_distance:  pd.Timedelta | None, optional
+            The maximum time difference between the start of the gap and a
+            leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
+        max_trail_to_gap_distance : pd.Timedelta | None, optional
+            The maximum time difference between the end of the gap and a
+            trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
+        overwrite_fill : bool, optional
+            If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
+            If False, only gaps without gapfill data are filled. Defaults to False.
+        method_kwargs : dict, optional
+            Extra arguments that are passed to pandas.Dataframe.interpolate() structured in a dict. Defaults to {}.
+
+        Notes
+        -----
+        A schematic description:
+
+        1. Iterate over all gaps related to the target obstype.
+        2. Get the leading and trailing periods of the gap.
+        3. Check if the leading and trailing periods are valid.
+        4. Create a combined DataFrame with the leading, trailing, and gap data.
+        5. Interpolate the missing records using the specified method.
+        6. Update the gap attributes with the interpolated values, labels, and details.
+
+        Note
+        -------
+        The impact of `max_consec_fill` is highly dependent on the resolution
+        of your records.
+
+        Note
+        ------
+        If you want to use a higher-order method of interpolation, make sure to
+        increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
+        For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
+
+        """
+
         # special formatters
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)

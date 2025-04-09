@@ -46,22 +46,50 @@ logger = logging.getLogger(__file__)
 
 
 class Dataset:
+    """Dataset class for managing and processing meteorological observation data.
+
+    This class provides functionality to handle datasets containing observations from multiple stations.
+    It includes methods for data synchronization, quality control, gap filling, and integration with
+    Google Earth Engine (GEE) datasets. The Dataset class also supports importing and exporting data,
+    as well as generating plots for visualization.
+    Attributes:
+        stations (list): A list of Station objects representing the stations in the dataset.
+        obstypes (dict): A dictionary of observation types known to the dataset.
+        template (Template): The template instance used for data import and processing.
+    Methods:
+        subset_by_stations: Create a subset of the dataset based on station names.
+        get_station: Retrieve a specific station by its name.
+        sync_records: Synchronize sensor data records across stations.
+        resample: Resample data to a target frequency.
+        import_data_from_file: Import observation and metadata from files using a template.
+        save_dataset_to_pkl: Save the dataset to a pickle file.
+        gross_value_check: Perform a gross value quality control check.
+        persistence_check: Perform a persistence quality control check.
+        repetitions_check: Perform a repetitions quality control check.
+        step_check: Perform a step quality control check.
+        window_variation_check: Perform a window variation quality control check.
+        buddy_check: Perform a buddy quality control check.
+        interpolate_gaps: Interpolate gaps in the dataset.
+        fill_gaps_with_raw_modeldata: Fill gaps using raw model data.
+        fill_gaps_with_debiased_modeldata: Fill gaps using debiased model data.
+        fill_gaps_with_diurnal_debiased_modeldata: Fill gaps using diurnal debiased model data.
+        fill_gaps_with_weighted_diurnal_debiased_modeldata: Fill gaps using weighted diurnal debiased model data.
+        make_plot: Generate a plot of observation data.
+        make_plot_of_modeldata: Generate a plot of model data.
+        get_qc_stats: Retrieve quality control statistics for the dataset.
+        rename_stations: Rename stations in the dataset.
+        convert_outliers_to_gaps: Convert outliers to gaps in the dataset.
+
+    """
 
     def __init__(self):
 
         self._stations = []  # stationname: Station
         # dictionary storing present observationtypes
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
-        # self._settings = copy.deepcopy(Settings())
-
-        # Gaps are stored as a list of Gap()
-        # self.gaps = None
 
         # Template
         self._template = Template()
-
-        # GEE datasets defenitions
-        # self._gee_datasets = copy.deepcopy(default_datasets)
 
     # ------------------------------------------
     #    specials
@@ -115,6 +143,7 @@ class Dataset:
     def obstypes(self, obstypesdict: dict) -> None:
         self._obstypes = obstypesdict
 
+    @copy_doc(Station.df)
     @property
     def df(self) -> pd.DataFrame:
         concatlist = []
@@ -129,6 +158,7 @@ class Dataset:
         combdf.sort_index(inplace=True)
         return combdf
 
+    @copy_doc(Station.outliersdf)
     @property
     def outliersdf(self) -> pd.DataFrame:
         concatlist = []
@@ -150,6 +180,7 @@ class Dataset:
             )
         return combdf
 
+    @copy_doc(Station.gapsdf)
     @property
     def gapsdf(self) -> pd.DataFrame:
         concatlist = []
@@ -173,6 +204,7 @@ class Dataset:
             )
         return combdf
 
+    @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
         concatlist = []
@@ -196,6 +228,7 @@ class Dataset:
             )
         return combdf
 
+    @copy_doc(Station.metadf)
     @property
     def metadf(self) -> pd.DataFrame:
         concatlist = []
@@ -203,10 +236,12 @@ class Dataset:
             concatlist.append(sta.metadf)
         return save_concat((concatlist)).sort_index()
 
+    @copy_doc(Station.start_datetime)
     @property
     def start_datetime(self):
         return min([sta.start_datetime for sta in self.stations])
 
+    @copy_doc(Station.end_datetime)
     @property
     def end_datetime(self):
         return max([sta.end_datetime for sta in self.stations])
@@ -215,6 +250,21 @@ class Dataset:
     #   Extracting data
     # ------------------------------------------
     def subset_by_stations(self, stationnames: list, deepcopy=False) -> "Dataset":
+        """Subset the dataset by selecting specific stations
+
+        Parameters
+        ----------
+        stationnames : list
+            A list of station names to filter the dataset by.
+        deepcopy : bool, optional
+            If True, creates a deep copy of the selected stations. Default is False.
+
+        Returns
+        -------
+        Dataset
+            A new Dataset instance containing only the selected stations.
+
+        """
         if not isinstance(stationnames, list):
             raise TypeError(f"stationnames is not a list (it is a {type(stationnames)}")
 
@@ -245,17 +295,20 @@ class Dataset:
         return new_dataset
 
     def get_station(self, stationname: str) -> Station:
-        """Get a Station by the station name.
+        """Retrieve a Station by name.
 
-        Args:
-            stationname (str): The stationname
+        Parameters
+        ----------
+        stationname : str
+            The name of the station to retrieve.
 
-        Raises:
-            MetObsStationNotFound: If the station is not found by name.
+        Returns
+        -------
+        Station
+            The station object corresponding to the given name.
 
-        Returns:
-            Station: metobs_toolkit.Station
         """
+
         # create lookup by name
         stationlookup = {sta.name: sta for sta in self.stations}
         try:
@@ -265,6 +318,7 @@ class Dataset:
 
         return station
 
+    @copy_doc(Station.get_info)
     def get_info(self, printout=True):
         infostr = ""
         df = self.df
@@ -295,10 +349,51 @@ class Dataset:
     def sync_records(
         self,
         target_obstype: str = "temp",
-        timestamp_shift_tolerance="2min",
-        freq_shift_tolerance="1min",
-        fixed_origin=None,
-    ):
+        timestamp_shift_tolerance: str | pd.Timedelta = "2min",
+        freq_shift_tolerance: str | pd.Timedelta = "1min",
+        fixed_origin: None | pd.Timedelta = None,
+    ) -> None:
+        """Synchronize records of sensor data across stations.
+
+        Synchronize records of sensor data across stations (for a specific observation type).
+        This method aligns the sensor data of a specified observation type (`target_obstype`)
+        across all stations by resampling the data to a common frequency and ensuring
+        alignment errors of timestamps within specified tolerances.
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
+        timestamp_shift_tolerance : str or pandas.Timedelta, optional
+            The maximum allowed time shift tolerance for aligning data during
+            resampling. Default is 2 minutes.
+        freq_shift_tolerance : str or pandas.Timedelta, optional
+            The maximum allowed error in simplifying the target frequency. Default is "1min".
+        fixed_origin : pandas.Timestamp, or None, optional
+            A fixed origin timestamp for resampling. If None, the origin is
+            determined automatically. Default is None.
+
+        Returns
+        --------
+        None.
+
+        Note
+        ------
+        In general, this method is a wrapper for `Dataset.resample()` but making sure that
+        the target frequencies are naturel multiples of each other thus ensuring syncronisation
+        accros stations.
+
+        Warning
+        ----------
+        Since the gaps depend on the record’s frequency and origin, all gaps
+        are removed and re-located. All progress in gap(filling) will be lost.
+
+        Warning
+        --------
+        Cumulative tolerance errors can be introduced when this method is called multiple times.
+
+
+        """
 
         # NOTE: cumulative tolerance errors with the settings used to import the dataset !!!
 
@@ -333,6 +428,7 @@ class Dataset:
                     f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronisation."
                 )
 
+    @copy_doc(Station.resample)
     def resample(
         self,
         target_freq,
@@ -369,6 +465,41 @@ class Dataset:
         force_update=True,
         _force_from_dataframe=None,
     ) -> pd.DataFrame:
+        """Import Google Earth Engine (GEE) data from a CSV file
+
+        Import Google Earth Engine (GEE) data from a file, that was writen in your Google Drive,
+        and integrate it into the dataset. Start by downloading the target CSV file from your
+        Google Drive, then specify the path to the file in the `filepath` parameter.
+
+
+        Parameters
+        ----------
+        filepath : str
+            The path to the file containing the GEE data.
+        geedynamicdatasetmanager : GEEDynamicDatasetManager
+            An instance of `GEEDynamicDatasetManager` responsible for managing the GEE dataset
+            and its metadata.
+        force_update : bool, optional
+            If True, forces the update of model data for the stations, by default True.
+        _force_from_dataframe : pd.DataFrame, optional
+            A pre-processed DataFrame to be used instead of reading from the file, by default None.
+
+        Returns
+        -------
+        pd.DataFrame
+            The processed DataFrame containing the GEE data.
+
+        Notes
+        -----
+        - The method ensures that only known observation types (as defined in the
+          `geedynamicdatasetmanager`) are retained in the data.
+        - For each station, the method creates `ModelTimeSeries` objects for each variable
+          and adds them to the station's model data.
+        - If columns in the GEE data file are not present in the known observation types,
+          a warning is logged.
+
+        """
+
         if _force_from_dataframe is None:
             # Reading the data
             reader = CsvFileReader(file_path=filepath)
@@ -421,6 +552,19 @@ class Dataset:
         return totaldf
 
     def add_new_observationtype(self, obstype: Obstype):
+        """Add a new observation type to the dataset known-obstypes.
+
+        Parameters
+        ----------
+        obstype : Obstype
+            An instance of the `Obstype` class representing the observation type
+            to be added.
+
+        Returns
+        --------
+        None.
+
+        """
         # Check type
         if not isinstance(obstype, Obstype):
             raise MetObsWrongType(
@@ -436,8 +580,31 @@ class Dataset:
         self.obstypes.update({obstype.name: obstype})
 
     def save_dataset_to_pkl(
-        self, target_folder, filename="saved_dataset.pkl", overwrite=False
-    ):
+        self,
+        target_folder: str | Path,
+        filename: str = "saved_dataset.pkl",
+        overwrite: bool = False,
+    ) -> None:
+        """Save the dataset to a pickle (.pkl) file.
+
+        This method serializes the dataset object and saves it to a specified folder
+        with the given filename. If the file already exists, it can either be overwritten
+        or an exception will be raised based on the `overwrite` parameter.
+
+        Parameters
+        ----------
+        target_folder : str or Path
+            The folder where the pickle file will be saved. Must be an existing directory.
+        filename : str, optional
+            The name of the pickle file. Defaults to "saved_dataset.pkl". If the provided
+            filename does not have a ".pkl" extension, it will be automatically appended.
+        overwrite : bool, optional
+            Whether to overwrite the file if it already exists. Defaults to False.
+
+        Returns
+        --------
+        None.
+        """
 
         # Check if the targetfolder exist
         if not Path(target_folder).is_dir():
@@ -473,97 +640,72 @@ class Dataset:
         kwargs_data_read: dict = {},
         kwargs_metadata_read: dict = {},
         templatefile_is_url: bool = False,
-    ):
-        """Read observations from a csv file and fill the Dataset.
+    ) -> None:
+        """Import observational data and metadata from files.
+
+        Importing data requires a ´Template´ which is constructed from a template file (JSON).
+        (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
+
+        If `input_data_file` is provided, the method reads the raw observational data (CSV).
+        A basic quality control (duplicate timestamps and invalid input) is performed, and
+        a frequency estimation is made. Based on the estimated frequency, gaps are identified
+        if present.
+
+        The method performs the following steps:
+        - Estimates the frequency of observations using the ´freq_estimation_method´.
+        - Simplifies the estimated frequency and origin timestamps based on tolerances.
+        - Alligns the raw timestamps with target timestamps (by origin, and freq) using
+          a nearest merge, considering a specified timestamp tolerance.
+        - Executes checks for duplicates and invalid input.
+        - Identifies gaps in the data.
 
 
-        The input data (and metadata) are interpreted by using a template
-        (JSON file).
-
-        In order to locate gaps, an ideal set of timestamps is expected. This
-        set of timestamps is computed for each station separatly by:
-
-         * Assuming a constant frequency. This frequency is estimated by using
-           a freq_estimation_method. If multiple observationtypes are present,
-           the assumed frequency is the highest estimated frequency among
-           the differnt observationtypes. To simplify the estimated frequency a
-           freq_estimation_simplify_error can be specified.
-         * A start timestamp (origin) is found for each station. If multiple
-           observationtypes are present,
-           the start timestamp is the first timestamp among
-           the different observationtypes. The start
-           timestamp can be simplified by specifying an origin_simplify_tolerance.
-         * The last timestamp is found for each station by taking the timestamp
-           which is closest and smaller than the latest timestamp found of a station,
-           and is an element of the ideal set of timestamps.
-
-        Each present observation record is linked to a timestamp of this ideal set,
-        by using a 'nearest' merge. If the timedifference is smaller than the
-        timestamp_tolerance, the ideal timestamp is used. Otherwise, the timestamp
-        will be interpreted as a (part of a) gap.
-
-
-        The Dataset attributes are set and the following checks are executed:
-                * Duplicate check
-                * Invalid input check
-                * Find gaps
-
+        if `input_metadata_file` is provided, the method reads the metadata (CSV).
 
         Parameters
-        ----------
-        input_data_file : string, optional
-            Path to the input data file with observations. If None, the input
-            data path in the settings is used. If provided, the
-            template_file must be provided as well. The default is None.
-        input_metadata_file : string, optional
-            Path to the input metadata file. If None, the input metadata path
-            in the settings is used. The default is None
-        template_file : string, optional
-            Path to the template (JSON) file to be used on the observations
-            and metadata. If None, the template path in the settings is used.
-            If provided, the input_data_file must be provided as well. The
-            default is None.
-        freq_estimation_method : 'highest' or 'median', optional
-            Select which method to use for the frequency estimation. If
-            'highest', the highest appearing frequency is used. If 'median', the
-            median of the appearing frequencies is used. The default is 'highest'.
-        freq_estimation_simplify_tolerance : Timedelta or str, optional
-            The tolerance string or object represents the maximum translation
-            in time to form a simplified frequency estimation.
-            Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
-            simplification) can be set by '0min'. The default is '2min' (2 minutes).
-        origin_simplify_tolerance : Timedelta or str, optional
-            The tolerance string or object representing the maximum translation
-            in time to apply on the start timestamp to create a simplified timestamp.
-            Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
-            simplification) can be set by '0min'. The default is '5min' (5 minutes).
-        timestamp_tolerance : Timedelta or str, optional
-            The tolerance string or object represents the maximum translation
-            in time to apply on a timestamp for conversion to an ideal set of timestamps.
-            Ex: '5min' is 5 minutes, '1H', is one hour. A zero-tolerance (thus no
-            simplification) can be set by '0min'. The default is '4min' (4 minutes).
+        ------------
+
+        template_file : str or Path
+            Path to the template (JSON) file used to interpret the raw data/metadata files.
+            (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file)
+        input_data_file : str or Path, optional
+            Path to the input data file containing observations. If None, no data is read.
+            The default is None.
+        input_metadata_file : str or Path, optional
+            Path to the input metadata file. If None, no metadata is read. The default is None.
+        freq_estimation_method : {'highest', 'median'}, optional
+            Method to estimate the frequency of observations (per station per observationtype).
+            If 'highest', the highest appearing frequency is used. If 'median', the median of the
+            appearing frequencies is used. The default is 'median'.
+        freq_estimation_simplify_tolerance : str or pd.Timedelta, optional
+            The maximum allowed error in simplifying the target frequency.
+            A zero-tolerance (no simplification) can be set by '0min'. Default is "2min".
+        origin_simplify_tolerance : str or pd.Timedelta, optional
+            For each timeseries, the origin (first occuring timestamp) is set and simplification
+            is applied. A zero-tolerance (no simplification) can be set
+            by '0min'. The default is '5min'.
+        timestamp_tolerance : str or pd.Timedelta, optional
+            The maximum allowed time shift tolerance for aligning timestamps
+            to target (perfect-frequency) timestamps. Default is 4 minutes.
+
         kwargs_data_read : dict, optional
-            Keyword arguments are collected in a dictionary to pass to the
-            pandas.read_csv() function on the data file. The default is {}.
+            Additional keyword arguments to pass to `pandas.read_csv()` when
+            reading the data file. The default is an empty dictionary.
         kwargs_metadata_read : dict, optional
-            Keyword arguments are collected in a dictionary to pass to the
-            pandas.read_csv() function on the metadata file. The default is {}.
+            Additional keyword arguments to pass to `pandas.read_csv()` when
+            reading the metadata file. The default is an empty dictionary.
         templatefile_is_url : bool, optional
-            If the path to the template file, is a url to an online template file,
-            set templatefile_is_url to True. If False, the template_file is
-            interpreted as a path.
+            If True, the `template_file` is interpreted as a URL to an online
+            template file. If False, it is interpreted as a local file path.
+            The default is False.
 
         Returns
         -------
         None.
 
-        Note
-        --------
-        In practice, the default arguments will be sufficient for most applications.
-
-        Note
-        --------
-        If options are present in the template, these will have priority over the arguments of this function.
+        Notes
+        -----
+        The default arguments are sufficient for most applications.
 
         Warning
         ---------
@@ -573,25 +715,6 @@ class Dataset:
         encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is
         often solved by converting the CSV to UTF-8.
 
-        See Also
-        --------
-        update_settings: Update the (file paths) settings of a Dataset.
-        import_only_metadata_from_file: Import metadata without observational data.
-        import_dataset: Import a dataset from a pkl file.
-
-        Examples
-        --------
-
-        >>> import metobs_toolkit
-        >>>
-        >>> # Import data into a Dataset
-        >>> dataset = metobs_toolkit.Dataset()
-        >>> dataset.update_file_paths(
-        ...                         input_data_file=metobs_toolkit.demo_datafile,
-        ...                         input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                         template_file=metobs_toolkit.demo_template,
-        ...                         )
-        >>> dataset.import_data_from_file()
 
         """
         # Special argschecks
@@ -1342,6 +1465,7 @@ class Dataset:
             # rename
             self.get_station(origname)._rename(targetname=trgname)
 
+    @copy_doc(Station.convert_outliers_to_gaps)
     def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
         for sta in self.stations:
             sta.convert_outliers_to_gaps(

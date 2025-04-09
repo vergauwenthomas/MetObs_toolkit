@@ -34,20 +34,6 @@ class Gap:
     stationname : str
         The name of the station where the gap occurred.
 
-    Attributes
-    ----------
-    records : pd.Series
-        Series holding the values of the gap (NaN when not filled).
-    labels : pd.Series
-        Series holding the labels for each gap record.
-    extra_info : pd.Series
-        Series holding extra details per record of the gap fill method.
-    fillkwargs : dict
-        Dictionary storing the settings applied to the fill method.
-    obstype : object
-        The type of observation.
-    stationname : str
-        The name of the station.
     """
 
     def __init__(self, gaprecords: pd.DatetimeIndex, obstype, stationname: str):
@@ -256,7 +242,49 @@ class Gap:
         trailing_period_duration: str | pd.Timedelta,
         min_trailing_records_total: int,
     ) -> None:
-        """ """
+        """Fill the gaps using modeldata corrected for the bias.
+
+        This method fills the gap using model data corrected for bias.
+        The bias is estimated using a leading (before the gap)
+        and trailing (after the gap) period. The bias is computed by combining the
+        leading and trailing period, and comparing the model with the observations
+        (not labeled as outliers). The model data is then interpolated to the missing
+        records, and corrected with the estimated bias.
+
+        Parameters
+        -------------
+        sensordata : SensorData
+            The corresponding SensorData used in the computation of the bias. Only
+            the observations that are not labeled as outliers are used to compute the bias.
+        modeltimeseries : ModelTimeSeries
+            The model time series used to fill the gap records. The model data
+            must be compatible (equivalent obstype and related to the same Station as the gap.)
+        leading_period_duration : str | pd.Timedelta
+            The duration of the leading period.
+        min_leading_records_total : int
+            The minimum number of records required in the leading period.
+        trailing_period_duration : str | pd.Timedelta
+            The duration of the trailing period.
+        min_trailing_records_total : int
+            The minimum number of records required in the trailing period.
+
+
+        Returns
+        ----------
+        None.
+
+        Notes
+        -----
+        A schematic description of the debiased modeldata gap fill:
+
+        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        2. Construct a leading and trailing sample, and test if they meet the required conditions.
+        3. Compute the bias of the modeldata (combine leading and trailing samples).
+        4. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
+        5. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        """
+
         logger.info(f"Entering debiased_model_gapfill for {self}")
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
@@ -347,12 +375,62 @@ class Gap:
 
     def diurnal_debiased_model_gapfill(
         self,
-        sensordata,
-        modeltimeseries,
+        sensordata: "SensorData",
+        modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         trailing_period_duration: pd.Timedelta,
         min_debias_sample_size: int,
-    ):
+    ) -> None:
+        """Fill the gaps using modeldata corrected for the diurnal-bias.
+
+        This method fills the gap using model data corrected for its diuranal-bias.
+        The diurnal bias is a bias that is estimated for each timestamp in the leading
+        and trailing period. All biases are averaged over hour, minute and second, to
+        obtain a diurnal bias (for each timestamp).
+
+        Parameters
+        ------------
+        sensordata : SensorData
+            The corresponding SensorData used in the computation of the bias. Only
+            the observations that are not labeled as outliers are used to compute the bias.
+        modeltimeseries : ModelTimeSeries
+            The model time series used to fill the gap records. The model data
+            must be compatible (equivalent obstype and related to the same Station as the gap.)
+        leading_period_duration : pd.Timedelta
+            The duration of the leading period. That is the period before the gap, used
+            for bias estimation.
+        trailing_period_duration : pd.Timedelta
+            The duration of the trailing period. That is the period after the gap, used
+            for bias estimation.
+        min_debias_sample_size : int
+            The minimum number of samples required for bias estimation. If this condition is not met, the gap
+            is not filled.
+
+        Returns
+        ---------
+        None.
+
+        Notes
+        -----
+        A schematic description of the diurnal debiased modeldata gap fill:
+
+        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        2. Construct a leading and trailing sample, and test if they meet the required conditions.
+        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
+        3. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
+        4. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        5. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        Notes
+        --------
+        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+
+        """
 
         self._fillkwargs = {
             "applied_gapfill_method": "diurnal_debias_model_gapfill",
@@ -424,13 +502,75 @@ class Gap:
 
     def weighted_diurnal_debiased_model_gapfill(
         self,
-        sensordata,
-        modeltimeseries,
+        sensordata: "SensorData",
+        modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         min_lead_debias_sample_size: int,
         trailing_period_duration: pd.Timedelta,
         min_trail_debias_sample_size: int,
     ):
+        """Fill the gaps using a weighted sum of modeldata corrected for the diurnal-bias and weights wrt the start of the gap.
+
+        This method fills the gap using model data corrected for its diuranal-bias.
+        The diurnal bias is a bias that is estimated for each timestamp in the leading
+        and trailing period (seperatly). For both periods seperatly, all biases are averaged over hour, minute and second, to
+        obtain a diurnal bias (for each timestamp).
+
+        In addition, a normalized weight is computed for each gap-record indicating the distance (in time) to
+        the start and end of the gap. The correction applied on the interpolated (in time) modeldata, is
+        thus a weighted sum of corrections comming from both the leading and trailing period.
+
+
+
+        Parameters
+        ------------
+        sensordata : SensorData
+            The corresponding SensorData used in the computation of the bias. Only
+            the observations that are not labeled as outliers are used to compute the bias.
+        modeltimeseries : ModelTimeSeries
+            The model time series used to fill the gap records. The model data
+            must be compatible (equivalent obstype and related to the same Station as the gap.)
+        leading_period_duration : pd.Timedelta
+            The duration of the leading period. That is the period before the gap, used
+            for bias estimation.
+        min_lead_debias_sample_size : int
+            The minimum number of leading-samples required for bias estimation. If this condition is not met, the gap
+            is not filled.
+        trailing_period_duration : pd.Timedelta
+            The duration of the trailing period. That is the period after the gap, used
+            for bias estimation.
+        min_trail_debias_sample_size : int
+            The minimum number of trailing-samples required for bias estimation. If this condition is not met, the gap
+            is not filled.
+
+        Returns
+        --------
+        None.
+
+
+        Notes
+        -----
+        A schematic description of the weighted diurnal debiased modeldata gap fill:
+
+        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        2. Construct a leading and trailing sample, and test if they meet the required conditions.
+        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        3. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
+        4. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
+        5. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        6. Update the `gap` attributes with the interpolated values, labels, and details.
+
+        Notes
+        --------
+        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
+
+
+        References
+        -----------
+        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+
+        """
 
         self._fillkwargs = {
             "applied_gapfill_method": "weighted_diurnal_debias_model_gapfill",
@@ -508,7 +648,35 @@ class Gap:
         # update details
         self._extra_info = filleddf["msg"].rename("details")
 
-    def raw_model_gapfill(self, modeltimeseries):
+    def raw_model_gapfill(self, modeltimeseries: ModelTimeSeries) -> None:
+        """
+        Fill the gap using model data without correction.
+
+        This method fills the gap by directly interpolating
+        the model data to the missing records.
+
+        Parameters
+        ----------
+        modeltimeseries : ModelTimeSeries
+            The model time series used to fill the gap records. The model data
+            must be compatible (equivalent obstype and related to the same Station as the gap.)
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        A schematic description of the raw model data gap fill:
+
+        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        2. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
+        3. Interpolate the model data to match the missing records in the gap.
+        4. Update the `gap` attributes with the interpolated values, labels, and details.
+
+
+        """
+
         self._fillkwargs = {"applied_gapfill_method": "raw_model_gapfill"}
 
         # 1. Check validity of modeltimeseries
@@ -539,13 +707,12 @@ class Gap:
             .sort_index()
             .interpolate(method="time", limit_area="inside")
         )
-        # dulicates are introduced when timestamps are both in modelseries and gapseries
+        # duplicates are introduced when timestamps are both in modelseries and gapseries
         modelseries_reindexed = modelseries_reindexed[
             ~modelseries_reindexed.index.duplicated(keep="first")
         ]
 
         # 4. Update attributes
-        # Update attributes
         self._records = modelseries_reindexed.loc[
             self.records.index
         ]  # (save) set the new filled records
@@ -560,13 +727,13 @@ class Gap:
 
         # update details
         self._extra_info.loc[self.records.notna()] = (
-            f"Succesfull raw modeldata fill using {modeltimeseries.modelvariable} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelname}"
+            f"Successful raw modeldata fill using {modeltimeseries.modelvariable} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelname}"
         )
-        self._extra_info.loc[self.records.isna()] = f"Unsuccesfull raw modeldata fill."
+        self._extra_info.loc[self.records.isna()] = f"Unsuccessful raw modeldata fill."
 
     def interpolate(
         self,
-        sensordata,
+        sensordata: "SensorData",  # PEP 484 - Type Hints (use string to avoid cycle import)
         method="time",
         max_consec_fill=10,
         n_leading_anchors=1,
@@ -575,6 +742,67 @@ class Gap:
         max_trail_to_gap_distance: pd.Timedelta | None = None,
         method_kwargs={},
     ):
+        """Fill the gap using interpolation of SensorData.
+
+         The gap is interpolated using the leading and trailing periods of the gap. One can select different
+         interpolation methods. By using restrictions on the leading and trailing periods, one can
+         ensure that the interpolation is only done when there are enough leading and trailing data available.
+
+
+        Parameters
+         ----------
+         sensordata: Sensordata
+             The corresponding SensorData used to interpolate the gap.
+         method:  str, optional
+             Interpolation technique to use. See pandas.DataFrame.interpolate
+             'method' argument for possible values. Make sure that
+             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
+             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".. Defaults to "time".
+         max_consec_fill: int, optional
+             The maximum number of consecutive timestamps to fill. The result is
+             dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
+         n_leading_anchors : int, optional
+             The number of leading anchors to use for the interpolation. A leading anchor is
+             a near record (not rejected by QC) just before the start of the gap, that is used for interpolation.
+             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
+         n_trailing_anchors : int, optional
+             The number of trailing anchors to use for the interpolation. A trailing anchor is
+             a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
+             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
+         max_lead_to_gap_distance:  pd.Timedelta | None, optional
+             The maximum time difference between the start of the gap and a
+             leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
+         max_trail_to_gap_distance : pd.Timedelta | None, optional
+             The maximum time difference between the end of the gap and a
+             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
+         method_kwargs : dict, optional
+             Extra arguments that are passed to pandas.Dataframe.interpolate() structured in a dict. Defaults to {}.
+
+         Notes
+         -----
+         A schematic description:
+
+         1. Get the leading and trailing periods of the gap.
+         2. Check if the leading and trailing periods are valid.
+         3. Create a combined DataFrame with the leading, trailing, and gap data.
+         4. Interpolate the missing records using the specified method.
+         5. Update the gap attributes with the interpolated values, labels, and details.
+
+         Note
+         -------
+         The impact of `max_consec_fill` is highly dependent on the resolution
+         of your records.
+
+         Note
+         ------
+         If you want to use a higher-order method of interpolation, make sure to
+         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
+         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
+
+
+
+
+        """
         # store fill settings
         self._fillkwargs = {
             "applied_gapfill_method": "interpolation",
@@ -683,16 +911,66 @@ class Gap:
 
     def _setup_lead_and_trail_for_debias_gapfill(
         self,
-        sensordata,
-        fail_label,
+        sensordata: "SensorData",  # PEP 484 - Type Hints (use string to avoid cycle import)
+        fail_label: str,
         leading_period_duration: pd.Timedelta,
         min_leading_records_total: int,
         trailing_period_duration: pd.Timedelta,
         min_trailing_records_total: int,
-    ):
-        """In a seperate method because it is shared by multiple methods"""
+    ) -> tuple[pd.Series | None, pd.Series | None, bool]:
+        """
+        Construct leading and trailing periods.
 
-        # 2. Get leading period
+        This method is shared by multiple gap-filling methods to construct and validate
+        the leading and trailing periods required for bias estimation.
+
+        Parameters
+        ----------
+        sensordata : SensorData
+            The corresponding SensorData used to compute the bias.
+        fail_label : str
+            The label to assign to the gap records if the setup fails.
+        leading_period_duration : pd.Timedelta
+            The duration of the leading period.
+        min_leading_records_total : int
+            The minimum number of records required in the leading period.
+        trailing_period_duration : pd.Timedelta
+            The duration of the trailing period.
+        min_trailing_records_total : int
+            The minimum number of records required in the trailing period.
+
+        Returns
+        -------
+        tuple[pd.Series | None, pd.Series | None, bool]
+            A tuple containing the leading period, trailing period, and a flag indicating
+            whether the setup was successful. If unsuccessful, the leading and trailing
+            periods will be None, and the flag will be False.
+
+
+        """
+        logger.debug(f"Entering _setup_lead_and_trail_for_debias_gapfill for {self}")
+
+        # Validate argument types
+        if not isinstance(sensordata, SensorData):
+            raise TypeError("Argument 'sensordata' must be of type SensorData.")
+        if not isinstance(fail_label, str):
+            raise TypeError("Argument 'fail_label' must be of type str.")
+        if not isinstance(leading_period_duration, pd.Timedelta):
+            raise TypeError(
+                "Argument 'leading_period_duration' must be of type pd.Timedelta."
+            )
+        if not isinstance(min_leading_records_total, int):
+            raise TypeError("Argument 'min_leading_records_total' must be of type int.")
+        if not isinstance(trailing_period_duration, pd.Timedelta):
+            raise TypeError(
+                "Argument 'trailing_period_duration' must be of type pd.Timedelta."
+            )
+        if not isinstance(min_trailing_records_total, int):
+            raise TypeError(
+                "Argument 'min_trailing_records_total' must be of type int."
+            )
+
+        # 1. Get leading period
         lead_period, continueflag, err_msg = gf_methods.get_leading_period(
             gap=self,
             sensordata=sensordata,
@@ -703,15 +981,15 @@ class Gap:
         )
 
         if not continueflag:
-            # Interpolation failed due to failing leading period
+            # Setup failed due to an invalid leading period
             self._labels[:] = fail_label
             self._extra_info[:] = err_msg
             logger.warning(
-                f"Cannot fill {self} because leading no valid leading period can be found."
+                f"Cannot fill {self} because no valid leading period can be found."
             )
             return None, None, False
 
-        # 3. Get trailing period
+        # 2. Get trailing period
         trail_period, continueflag, err_msg = gf_methods.get_trailing_period(
             gap=self,
             sensordata=sensordata,
@@ -722,12 +1000,13 @@ class Gap:
         )
 
         if not continueflag:
-            # Interpolation failed due to failing trailing period
+            # Setup failed due to an invalid trailing period
             self._labels[:] = fail_label
             self._extra_info[:] = err_msg
             logger.warning(
-                f"Cannot fill {self} because leading no valid trailing period can be found."
+                f"Cannot fill {self} because no valid trailing period can be found."
             )
             return None, None, False
 
+        logger.debug(f"Exiting _setup_lead_and_trail_for_debias_gapfill for {self}")
         return lead_period, trail_period, True
