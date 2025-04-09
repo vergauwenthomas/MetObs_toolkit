@@ -1030,14 +1030,40 @@ class Dataset:
     def get_static_gee_point_data(
         self,
         geestaticdatasetmanager: GEEStaticDatasetManager,
-        update_stations: bool = True,
+        overwrite: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
-        """simple but slow option is to loop over all stations and get the lcz,
-        but this requires N-API calls (N number of stations).
+        """Extract static data from GEE dataset at Stations locations.
 
-        Faster: construct the metadf with all stations, and get the lcs from one api call
+        Retrieve Google Earth Engine (GEE) point data of a static dataset, for the stations.
+        The retrieved data is stored if overwrite is True.
+
+        Parameters
+        ----------
+        geestaticdataset : GEEStaticDatasetManager
+            An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
+        overwrite : bool, optional
+            If True, the retrieved data will overwrite existing data in the ´Station´'s metadata.
+            Default is True.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before fetching the data. Default is True.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame with the name of the station as index and de extracted value as a column.
+
+        Notes
+        -----
+        This method interacts with the GEE API to fetch metadata for the station's location.
+        Ensure that the GEE API is properly authenticated and initialized before using this method.
         """
+
+        # simple but slow option is to loop over all stations and get the lcz,
+        # but this requires N-API calls (N number of stations).
+
+        # Faster: construct the metadf with all stations, and get the lcs from one api call
+
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
@@ -1051,7 +1077,7 @@ class Dataset:
 
         # update the station attributes
         varname = geestaticdatasetmanager.name
-        if update_stations:
+        if overwrite:
             for staname, geedict in geedf.to_dict(orient="index").items():
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
         return geedf
@@ -1061,14 +1087,49 @@ class Dataset:
         geestaticdatasetmanager: GEEStaticDatasetManager,
         buffers=[100],
         aggregate=False,
-        update_stations: bool = True,
+        overwrite: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
-        """simple but slow option is to loop over all stations and get the lcz,
-        but this requires N-API calls (N number of stations).
+        """Extract circular buffer fractions of a GEE dataset at Stations locations.
 
-        Faster: construct the metadf with all stations, and get the lcs from one api call
+        Retrieve and optionally store static GEE buffer fraction data for the stations.
+        This method interacts with a GEEStaticDatasetManager to fetch buffer fraction
+        data for the station's location from Google Earth Engine (GEE). The results can be aggregated, stored, and
+        optionally overwrite existing data.
+
+        Parameters
+        ----------
+        geestaticdataset : GEEStaticDatasetManager
+            An instance of GEEStaticDatasetManager used to retrieve static GEE data.
+        buffers : list, optional
+            A list of buffer radii (in meters) for which to compute the buffer fractions.
+            Default is [100].
+        aggregate : bool, optional
+            If True, aggregate the buffer fraction data. Aggregation schemes are stored per ´GEEStaticDatasetManager´. Default is False.
+        overwrite : bool, optional
+            If True, overwrites existing fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the GEE environment before retrieving data. Default is True.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the buffer fraction data for the stations, with the station names as index.
+
+        Warning
+        --------
+        This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
+
+        Warning
+        --------
+        It can happen that for stations located on small islands, or close to the coast, the sea-mask is not used as a landcover fraction.
+
         """
+        # simple but slow option is to loop over all stations and get the lcz,
+        # but this requires N-API calls (N number of stations).
+
+        # Faster: construct the metadf with all stations, and get the lcs from one api call
+
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
@@ -1088,7 +1149,7 @@ class Dataset:
         geedf = save_concat((dflist))
 
         # update the station attributes
-        if update_stations:
+        if overwrite:
             for staname in geedf.index.get_level_values("name").unique():
                 asdict = geedf.loc[staname].to_dict(orient="index")
                 for radius, fractions in asdict.items():
@@ -1099,20 +1160,66 @@ class Dataset:
         return geedf
 
     def get_lcz(
-        self, update_stations: bool = True, initialize_gee: bool = True
+        self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
+        """Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
+
+        This method is a wrapper for the `get_static_gee_point_data()` method, specifically for
+        retrieving Local Climate Zone (LCZ) data.
+
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            If True, overwrite existing LCZ data if stored in the ´Site´ instances. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the LCZ data for the stations, with the station names as index
+
+        Notes
+        -----
+        This method relies on the `get_static_gee_point_data` function and the
+        `default_gee_datasets` dictionary to fetch the LCZ data.
+        """
         return self.get_static_gee_point_data(
             default_datasets["lcz"],
-            update_stations=update_stations,
+            overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
 
     def get_altitude(
-        self, update_stations: bool = True, initialize_gee: bool = True
+        self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
+        """Retrieve altitude for the stations using Google Earth Engine (GEE).
+
+        This method is a wrapper for the `get_static_gee_point_data()` method, specifically for
+        retrieving altitude data.
+
+
+        Parameters
+        ----------
+        overwrite : bool, optional
+            If True, overwrite existing altitude data if stored in the ´Site´ instances. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the altitude data for the stations, with the station names as index
+
+        Notes
+        -----
+        This method relies on the `get_static_gee_point_data` function and the
+        `default_gee_datasets` dictionary to fetch the LCZ data.
+        """
         return self.get_static_gee_point_data(
             default_datasets["altitude"],
-            update_stations=update_stations,
+            overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
 
@@ -1123,15 +1230,41 @@ class Dataset:
         update_stations: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
+        """Get landcover fractions for a circular buffer at the stations using GEE.
 
+        Wrapper method for `get_static_gee_buffer_fraction_data` to retrieve land cover fractions
+        based on the ESA worldcoverV200 dataset.
+
+        Parameters
+        ----------
+        buffers : list of int, optional
+            List of buffer sizes (in meters) to calculate land cover fractions for.
+            Default is [100].
+        aggregate : bool, optional
+            If True, aggregates the data over the buffers. Default is False.
+        overwrite : bool, optional
+            If True, overwrites existing landcover fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+
+        Returns
+        -------
+        dict
+            A nested dictionary where the keys are buffer radii and the values are the
+            corresponding (aggregated) landcoverclasses.
+
+        Warning
+        --------
+        This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
+
+        """
         return self.get_static_gee_buffer_fraction_data(
             geestaticdatasetmanager=default_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
-            update_stations=update_stations,
+            overwrite=update_stations,
             initialize_gee=initialize_gee,
         )
 
+    @copy_doc(Station.get_gee_timeseries_data)
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
