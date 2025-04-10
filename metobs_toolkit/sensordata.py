@@ -386,27 +386,6 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
-        
-    @property # filled_gaps test Noah
-    def filled_gapsdf(self) -> pd.DataFrame:
-        """
-        Format all filled gaps and their labels in one pandas.DataFrame.
-
-        Returns
-        -------
-        pd.DataFrame
-            DataFrame containing all filled gaps and their labels.
-        """
-        to_concat = []
-        if bool(self.filled_gaps):
-            for filled_gap in self.filled_gaps:
-                to_concat.append(filled_gap.df)
-            return save_concat((to_concat)).sort_index()
-        else:
-            return pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.DatetimeIndex([], name="datetime"),
-            )
 
     @property
     def stationname(self) -> str:
