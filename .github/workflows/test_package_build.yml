@@ -21,7 +21,7 @@ jobs:
 
               - name: Remove previous builds
                 run: |
-                    rm dist/metobs_toolkit-*
+                    rm -f dist/metobs_toolkit-*
                     rm -rf *.egg-info
 
               - name: Install dependencies
