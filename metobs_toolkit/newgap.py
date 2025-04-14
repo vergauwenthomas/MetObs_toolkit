@@ -20,6 +20,10 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
 
 logger = logging.getLogger(__file__)
 
+_unfilled_label = "unfilled"
+_failed_label = "failed gapfill"
+_succesful_label = "successful gapfill"
+
 
 class Gap:
     """
@@ -115,13 +119,13 @@ class Gap:
             - 'successful gapfill'
         """
         if self.records.isna().all() and not bool(self._fillkwargs):
-            return "unfilled"
+            return _unfilled_label
 
         elif self.records.isna().all() and bool(self._fillkwargs):
-            return "failed gapfill"
+            return _failed_label
 
         elif not self.records.isna().any() and bool(self._fillkwargs):
-            return "successful gapfill"
+            return _succesful_label
         else:
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
@@ -171,7 +175,11 @@ class Gap:
 
     def flag_can_be_filled(self, overwrite: bool = False) -> bool:
         """
-        Determine if the gap can be filled.
+        Determine if the gap can be filled. By default a gap can be filled if:
+         * it is not already filled
+         * if the previous gapfill method failed for the gap.
+
+        A gap that is already filled, can only be updated if the overwrite flag is set to True.
 
         Parameters
         ----------
@@ -193,7 +201,7 @@ class Gap:
         if overwrite:
             return True
         if (
-            self.fillstatus == "succesfull gapfill"
+            self.fillstatus == _succesful_label
         ):  # If a gap is already filled, it shouldn't be filled again, so
             return False
         else:
@@ -960,7 +968,8 @@ class Gap:
         logger.debug(f"Entering _setup_lead_and_trail_for_debias_gapfill for {self}")
 
         # Validate argument types
-        if not isinstance(sensordata, SensorData):
+
+        if not sensordata.__class__.__name__ == "SensorData":
             raise TypeError("Argument 'sensordata' must be of type SensorData.")
         if not isinstance(fail_label, str):
             raise TypeError("Argument 'fail_label' must be of type str.")

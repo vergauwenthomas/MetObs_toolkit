@@ -929,9 +929,9 @@ class SensorData:
                     f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
                 )
                 continue
-            if overwrite_fill:
-                # clear previous fill info
-                gap.flush_fill()
+
+            # clear previous fill info
+            gap.flush_fill()
 
             logger.debug(f"filling {gap} with {method} interpolation.")
             gap.interpolate(
