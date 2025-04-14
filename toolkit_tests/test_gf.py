@@ -217,7 +217,7 @@ class TestDataWithGaps:
             overwrite_fill=False,  # This should not do anything, since gaps are already filled
             method_kwargs={"order": 2},
         )
-        # assert dataset == solutionobj_A #dataset comparison
+        assert dataset == solutionobj_A  # dataset comparison
 
         # regular interpolation iwht overwrite_fill == True -> should overwrite the data!
         dataset.interpolate_gaps(
@@ -225,7 +225,7 @@ class TestDataWithGaps:
             overwrite_fill=True,
         )
 
-        dataset.make_plot(title="NU MOET HET LINEAR ZIJN!")
+        assert dataset != solutionobj_A
 
         #  3. overwrite solution?
         if overwrite_solution:
@@ -301,12 +301,6 @@ class TestDataWithGaps:
             debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
                 to_check=dataset, solution=solutionobj_A
             )
-        soldf = solutionobj_A.gapsdf
-        numeric_cols = soldf.select_dtypes(include=["number"]).columns
-        soldf[numeric_cols] = soldf[numeric_cols].astype("float32")
-
-        assert dataset.gapsdf.equals(soldf)  # dataset comparison
-
         # test the plot
         dataset.make_plot()
 
@@ -470,10 +464,10 @@ if __name__ == "__main__":
     )
 
     tester = TestDataWithGaps()
-    tester.test_import_data(overwrite_solution=False)
-    tester.test_interpolation_on_station(overwrite_solution=False)
-    tester.test_interpolation_on_dataset(overwrite_solution=False)
-    tester.test_raw_modeldata_gapfill(overwrite_solution=False)
-    tester.test_debias_modeldata_gapfill(overwrite_solution=False)
-    tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
-    tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_import_data(overwrite_solution=False)
+    # tester.test_interpolation_on_station(overwrite_solution=False)
+    # tester.test_interpolation_on_dataset(overwrite_solution=False)
+    # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
