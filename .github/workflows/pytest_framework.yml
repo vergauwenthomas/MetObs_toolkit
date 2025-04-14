@@ -6,6 +6,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # Dynamically create a matrix of test files
+    strategy:
+      matrix:
+        test_file:
+          - toolkit_tests/test_qc.py
+          - toolkit_tests/test_obstypes.py
+          - toolkit_tests/test_gf.py
+
+        # Exclude the test_gee.py file
+        exclude:
+          - test_file: toolkit_tests/test_gee.py #requires GEE credentials
+
     steps:
       # Checkout the repository
       - name: Checkout code
@@ -17,7 +29,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      # Install dependencies
+      # Install dependencies (only once, cached)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -31,10 +43,7 @@ jobs:
         run: |
           pip list
 
-      # Run tests
+      # Run tests for the specific test file
       - name: Run Pytest
         run: |
-          pwd
-          # Run all tests except the gee test (auth tokens required, only local testing)
-          #pytest toolkit_tests --mpl --ignore=toolkit_tests/test_gee.py
-          pytest toolkit_tests/test_obstypes.py
+          pytest ${{ matrix.test_file }} --mpl
