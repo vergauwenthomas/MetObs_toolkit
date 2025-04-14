@@ -59,9 +59,6 @@ class Gap:
         elif self.records.isna().all() and bool(self._fillkwargs):
             return "failed gapfill"
 
-        elif self.records.isna().any() and bool(self._fillkwargs):
-            return "partially succesfull gapfill"
-
         elif not self.records.isna().any() and bool(self._fillkwargs):
             return "succesfull gapfill"
         else:
@@ -88,9 +85,13 @@ class Gap:
     # ------------------------------------------
 
     def flag_can_be_filled(self, overwrite: bool = False):
-        if overwrite: # If overwrite is True, this returns True and all gaps will get flushed and filled 
+        if (
+            overwrite
+        ):  # If overwrite is True, this returns True and all gaps will get flushed and filled
             return True
-        if self.fillstatus == "succesfull gapfill": # If a gap is already filled, it shouldn't be filled again, so 
+        if (
+            self.fillstatus == "succesfull gapfill"
+        ):  # If a gap is already filled, it shouldn't be filled again, so
             return False
         else:
             return True
@@ -475,7 +476,18 @@ class Gap:
             )
             return
 
-        # 3. Combine the anchors with the observations
+        # 3. Check if the gap records do not exceed the max_consec_fill
+        if self.records.shape[0] > max_consec_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill}). Increase the max_consec_fill or use another gapfill method."
+            )
+            return
+
+        # 4. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
         )
@@ -506,7 +518,7 @@ class Gap:
         # update details
         self._extra_info.loc[self.records.notna()] = "Succesfull interpolation"
         self._extra_info.loc[self.records.isna()] = (
-            f"Unsuccesfull interpolation, likely due to exceeding maximumn number of consec fill (={max_consec_fill})."
+            f"Unsuccesfull interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
         )
 
         return
