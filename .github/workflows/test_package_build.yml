@@ -21,8 +21,7 @@ jobs:
 
               - name: Remove previous builds
                 run: |
-                    rm -rf dist/
-                    rm -rf build/
+                    rm dist/metobs_toolkit-*
                     rm -rf *.egg-info
 
               - name: Install dependencies
@@ -31,10 +30,13 @@ jobs:
               - name: Build the package
                 run: poetry build
 
+              - name: Debug dist contents
+                run: ls -l dist/
+
               - name: Upload package artifact
                 uses: actions/upload-artifact@v3
                 with:
-                    name: package
+                    name: regular_package
                     path: dist/
 
     test-install:
@@ -48,7 +50,7 @@ jobs:
               - name: Download package artifact
                 uses: actions/download-artifact@v3
                 with:
-                    name: package
+                    name: regular_package
 
               - name: Set up Python
                 uses: actions/setup-python@v4
