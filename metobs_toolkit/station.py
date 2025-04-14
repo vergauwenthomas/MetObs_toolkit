@@ -1063,7 +1063,42 @@ class Station:
             max_decrease_per_second=max_decrease_per_second,
         )
 
-    def get_qc_stats(self, target_obstype="temp", make_plot=True):
+    def get_qc_stats(
+        self, target_obstype: str = "temp", make_plot: bool = True
+    ) -> pd.DataFrame:
+        """Generate quality control (QC) frequency statistics.
+
+        This method calculates the frequency statistics for various QC checks
+        applied, and other labels. The order of checks is taken into
+        account.
+
+        Frequency of labels is combuted based on the set of all labels (for all
+        records including gaps). The effectiveness of a check is shown by
+        the frequency of outliers wrt the numer of records that were given
+        to the check (thus taking into account the order of checks).
+
+        The frequencies are retured in a dataframe, and can be plotted
+        as pie charts.
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observationtype for wich to compute frequency statistics, by default "temp".
+        make_plot : bool, optional
+            If True, an figure with pie charts representing the frequencies is generated. The default is True.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the QC frequency statistics. The DataFrame
+            has a multi-index with the station name and QC check label, and
+            includes the following columns:
+            - `N_all`: Total number of records in the dataset (including gaps).
+            - `N_labeled`: Number of records with the specific label.
+            - `N_checked`: Number of records checked for the specific QC check.
+
+        """
+
         # argument checks
         self._obstype_is_known_check(target_obstype)
         # get freq statistics
@@ -1103,12 +1138,40 @@ class Station:
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
-        linecolor=None,
-        ax=None,
-        figkwargs: dict = {},
+        linecolor: str | None = None,
         title: str | None = None,
-        linestyle="--",
+        linestyle: str = "--",
+        ax: None | Axes = None,
+        figkwargs: dict = {},
     ) -> Axes:
+        """Generate a timeseries plot of model data for a specific observation type.
+
+
+        Parameters
+        ----------
+        obstype : str, optional
+            The type of observation to plot (e.g., "temp") modeldata for, by default "temp".
+        linecolor : str or None, optional
+            The color of the line in the plot. If None, a default color map is used.
+        title : str or None, optional
+            The title of the plot. If None, a default title is generated, by default None.
+        linestyle : str, optional
+            The style of the line in the plot, by default "--".
+        ax : matplotlib.axes.Axes, optional
+            The axes on which to plot. If None, a new axes object is created.
+        figkwargs : dict, optional
+            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
+
+        Examples
+        --------
+        >>> station.make_plot_of_modeldata(obstype="temp", linecolor="blue")
+        >>> station.make_plot_of_modeldata(obstype="precip", ax=ax, title="Precipitation Data")
+        """
 
         # test if the obstype has modeldata
         self._obstype_has_modeldata_check(obstype)
@@ -1174,14 +1237,54 @@ class Station:
         self,
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
-        show_modeldata=False,
-        linecolor=None,
+        show_modeldata: bool = False,
+        linecolor: str | None = None,
         show_outliers=True,
         show_gaps=True,
+        title: str | None = None,
         ax=None,
         figkwargs: dict = {},
-        title: str | None = None,
     ) -> Axes:
+        """Generate a time series plot for observational data.
+
+        Parameters
+        ----------
+        obstype : str, optional
+            The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
+        colorby : {"station", "label"}, optional
+            Determines how the data is colored in the plot.
+            - "station": Colors by station.
+            - "label": Colors by label (the labels refer to the status of a record).
+            Default is "label".
+        show_modeldata : bool, optional
+            If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        linecolor : str or None, optional
+            The color of the line for the model data (recognizable color by matplotlib). If None, a default categorical color map is used. Default is None.
+        show_outliers : bool, optional
+            If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
+        show_gaps : bool, optional
+            If True, gaps are representd by vertical lines in the plot if the gap is unfilled.
+            If the gap is filled, it is plotted as a line. Default is True.
+        title : str or None, optional
+            The title of the plot. If None, a default title is generated. Default is None.
+        ax : matplotlib.axes.Axes or None, optional
+            The axes on which to draw the plot. If None, a new axes is created. Default is None.
+        figkwargs : dict, optional
+            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
+
+        Notes
+        -----
+        - The method checks if the specified `obstype` is known before proceeding.
+        - The plot can include observational data, model data, or both.
+        - The x-axis timestamps are formatted according to the timezone of the data.
+
+
+        """
 
         # test if obstype have sensordata
         self._obstype_is_known_check(obstype)

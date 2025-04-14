@@ -825,7 +825,28 @@ class SensorData:
             overwrite=False,
         )
 
-    def get_qc_freq_statistics(self):
+    def get_qc_freq_statistics(self) -> pd.DataFrame:
+        """
+        Generate quality control (QC) frequency statistics.
+
+        This method calculates the frequency statistics for various QC checks
+        applied, including the number of records labeled as
+        'good', 'gap', and outliers for each QC check. The results are returned
+        as a pandas DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing the QC frequency statistics. The DataFrame
+            has a multi-index with the station name and QC check label, and
+            includes the following columns:
+            - `N_all`: Total number of records in the dataset (including gaps).
+            - `N_labeled`: Number of records with the specific label.
+            - `N_checked`: Number of records checked for the specific QC check.
+              This is not nesesarily the same as `N_all`, as some records may be
+              excluded from the check due to previous QC checks.
+
+        """
         infodict = {}  # checkname : details
         ntotal = self.series.shape[0]  # gaps included !!
         already_rejected = self.gapsdf.shape[0]  # initial gap records

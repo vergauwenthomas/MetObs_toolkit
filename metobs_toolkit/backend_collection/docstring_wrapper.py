@@ -4,6 +4,7 @@ class methods."""
 
 from typing import Callable, TypeVar, Any, TypeAlias
 from typing_extensions import ParamSpec
+import re
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -11,7 +12,8 @@ WrappedFuncDeco: TypeAlias = Callable[[Callable[P, T]], Callable[P, T]]
 
 
 def copy_doc(
-    copy_func: Callable[..., Any], extra_param_desc: str = ""
+    copy_func: Callable[..., Any],
+    extra_param_desc: str = "",
 ) -> WrappedFuncDeco[P, T]:
     """Copies the docstring of the given function to another and optionally
     appends an extra parameter description in numpy style.
@@ -23,7 +25,6 @@ def copy_doc(
     extra_param_desc : str, optional
         A string representing an argument description in numpy style to be
         added to the "Parameters" section of the docstring.
-
     Returns
     -------
     Callable
@@ -49,6 +50,7 @@ def copy_doc(
     def wrapped(func: Callable[P, T]) -> Callable[P, T]:
         if copy_func.__doc__:
             trgdocstr = copy_func.__doc__
+
             if extra_param_desc:
                 trgdocstr = add_new_arg_in_docstr(trgdocstr, extra_param_desc)
             func.__doc__ = trgdocstr

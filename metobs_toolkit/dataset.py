@@ -805,11 +805,35 @@ class Dataset:
         self,
         obstype: str = "temp",
         colormap: dict | None = None,
-        ax=None,
-        figkwargs: dict = {},
         title: str | None = None,
-        linestyle="--",
+        linestyle: str = "--",
+        ax: Axes | None = None,
+        figkwargs: dict = {},
     ) -> Axes:
+        """Generate a timeseries plot of model data for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str, optional
+            The type of observation to plot (e.g., "temp") modeldata for, by default "temp".
+        colormap : dict | None,  optional
+            The colormap for the lines per stationname. The keys must be the names of the stations,
+            and the values the color. If None, a default color map is used.
+        title : str or None, optional
+            The title of the plot. If None, a default title is generated, by default None.
+        linestyle : str, optional
+            The style of the line in the plot, by default "--".
+        ax : matplotlib.axes.Axes, optional
+            The axes on which to plot. If None, a new axes object is created.
+        figkwargs : dict, optional
+            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
+
+        """
 
         modeldatadf = self.modeldatadf
         if obstype not in modeldatadf.index.get_level_values("obstype"):
@@ -886,10 +910,46 @@ class Dataset:
         show_modeldata=False,
         show_outliers=True,
         show_gaps=True,
+        title: str | None = None,
         ax=None,
         figkwargs: dict = {},
-        title: str | None = None,
     ) -> Axes:
+        """Generate a time series plot for observational data.
+
+        Parameters
+        ----------
+        obstype : str, optional
+            The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
+        colorby : {"station", "label"}, optional
+            Determines how the data is colored in the plot.
+            - "station": Colors by station.
+            - "label": Colors by label (the labels refer to the status of a record).
+            Default is "label".
+        show_modeldata : bool, optional
+            If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        show_outliers : bool, optional
+            If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
+        show_gaps : bool, optional
+            If True, gaps are representd by vertical lines in the plot if the gap is unfilled.
+            If the gap is filled, it is plotted as a line. Default is True.
+        title : str or None, optional
+            The title of the plot. If None, a default title is generated. Default is None.
+        ax : matplotlib.axes.Axes or None, optional
+            The axes on which to draw the plot. If None, a new axes is created. Default is None.
+        figkwargs : dict, optional
+            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
+
+        Notes
+        -----
+        - The method checks if the specified `obstype` is known before proceeding.
+        - The plot can include observational data, model data, or both.
+        - The x-axis timestamps are formatted according to the timezone of the data.
+        """
 
         # Create an axis
         if ax is None:
@@ -979,15 +1039,61 @@ class Dataset:
         geedatasetmanager: (
             GEEStaticDatasetManager | GEEDynamicDatasetManager
         ) = default_datasets["lcz"],
-        timeinstance=None,
+        timeinstance: pd.Timestamp | None = None,
         modelobstype: str = None,
-        outputfolder=os.getcwd(),
-        filename="gee_plot.html",
-        save=False,
-        vmin=None,
-        vmax=None,
-        overwrite=False,
+        save: bool = False,
+        outputfolder: str = os.getcwd(),
+        filename: str = "gee_plot.html",
+        vmin: int | float | None = None,
+        vmax: int | float | None = None,
+        overwrite: bool = False,
     ):
+        """Create an interactive spatial plot of the GEE dataset and stations.
+
+        This method generates an interactive plot of the GEE dataset and the stations
+        are added as markers on it. The interactive plot (a folium map) can be displayed
+        in a Jupyter notebook (or Ipython console) or saved as an HTML file.
+
+        If a GEEDynamicDatasetManager is used, the timeinstance and modelobstype
+        parameters are required to specify the time and model variable for the plot.
+
+
+
+        Parameters
+        ----------
+        geedatasetmanager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
+            The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["lcz"]
+        timeinstance :pandas.Timestamp or None, optional
+            The timinstance to plot the GEE dataset for. This is only used and
+            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+        modelobstype : str, optional
+            The modelobstype to plot the GEE dataset for. This is only used and
+            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+        save : bool, optional
+            If True, the plot will be saved as a (HTML) file, that can be opened by a webbrowser. The default is False.
+        outputfolder : str, optional
+            The folder to save the file too. This is only used when save is True. The default is os.getcwd() (the current working directory).
+        filename : str, optional
+            The name of the file to save the plot to. This is only used when save is True. The default is "gee_plot.html".
+        vmin : int | float | None, optional
+            The minimum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
+        vmax : int | float | None, optional
+            The maximum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
+        overwrite : bool, optional
+            If True, the plot will be overwritten if it already exists. This is only relevant when save is True. The default is False.
+
+
+        Returns
+        -------
+        geemap.foliummap.Map
+            The interactive map.
+
+        Warning
+        --------
+        To display the interactive map a graphical interactive backend is required, which could be missing. You can recognise this when no map is displayed, but the Python console prints out a message similar to <geemap.foliumap.Map at 0x7ff7586b8d90>.
+
+        In that case, you can specify a outputfolder and outputfile, save the map as a HTML file, and open it with a browser.
+        """
         # check model type
         if isinstance(geedatasetmanager, GEEStaticDatasetManager):
             kwargs = dict(
@@ -1616,6 +1722,7 @@ class Dataset:
                     },
                 )
 
+    @copy_doc(Station.get_qc_stats)
     def get_qc_stats(self, target_obstype="temp", make_plot=True):
 
         freqdf_list = [
@@ -1644,7 +1751,23 @@ class Dataset:
     #    Other methods
     # ------------------------------------------
 
-    def rename_stations(self, renamedict: dict):
+    def rename_stations(self, renamedict: dict) -> None:
+        """Rename stations in the dataset.
+
+        This method allows you to rename stations in the dataset using a dictionary.
+
+        Parameters
+        ----------
+        renamedict : dict
+            A dictionary where keys are the original station names and values are the new station names.
+
+        Warnings
+        --------
+        - If a station name in `renamedict` does not exist in the dataset, it will be skipped.
+        - If a target station name in `renamedict` already exists in the dataset, the renaming
+          operation for that station will be skipped.
+
+        """
 
         if not isinstance(renamedict, dict):
             raise TypeError(f"{renamedict} is not a Dict")
