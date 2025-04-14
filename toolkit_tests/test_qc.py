@@ -17,7 +17,7 @@ import metobs_toolkit
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer
-import shutil
+
 import pytest
 
 # data folder
@@ -400,11 +400,12 @@ class TestDemoDataset:
 
 if __name__ == "__main__":
     # pytest.main([__file__])
-    test = TestBreakingDataset()
-    test.test_import_data(overwrite_solution=False)
-    # test.test_apply_qc(overwrite_solution=False)
-    # test.test_qc_statistics(overwrite_solution=False)
+    # Run all methods with overwrite_solution=True
+    test_breaking_dataset = TestBreakingDataset()
+    test_breaking_dataset.test_import_data(overwrite_solution=False)
+    test_breaking_dataset.test_apply_qc(overwrite_solution=False)
+    test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
 
-    test = TestDemoDataset()
-    test.test_import_data(overwrite_solution=False)
-    test.test_buddy_check(overwrite_solution=False)
+    test_demo_dataset = TestDemoDataset()
+    test_demo_dataset.test_import_data(overwrite_solution=False)
+    test_demo_dataset.test_buddy_check(overwrite_solution=False)

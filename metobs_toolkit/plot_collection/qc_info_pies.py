@@ -1,43 +1,87 @@
+import logging
 import math
+from typing import Tuple
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from metobs_toolkit.settings_collection import label_def, label_to_color_map
+from metobs_toolkit.plot_collection import default_plot_settings
 
-import metobs_toolkit.settings_files.default_formats_settings as defaults
+# Configure logging
+logger = logging.getLogger(__file__)
 
-plotsettings = defaults.plot_settings["pie_charts"]
+pieplotsettings = default_plot_settings["pie_charts"]
 
 
 def qc_overview_pies(
-    df,
-    figsize=plotsettings["figsize"],
-    ncol=plotsettings["ncols"],
-    radius_big=plotsettings["radius_big"],
-    radius_small=plotsettings["radius_small"],
-    textsize_big_pies=plotsettings["txt_size_big_pies"],
-    textsize_small_pies=plotsettings["txt_size_small_pies"],
-):
+    df: pd.DataFrame,
+    figsize: Tuple[int, int] = pieplotsettings["figsize"],  # TYPO
+    ncol: int = pieplotsettings["ncols"],  # TYPO
+    radius_big: float = pieplotsettings["radius_big"],  # TYPO
+    radius_small: float = pieplotsettings["radius_small"],  # TYPO
+    textsize_big_pies: int = pieplotsettings["txt_size_big_pies"],  # TYPO
+    textsize_small_pies: int = pieplotsettings["txt_size_small_pies"],  # TYPO
+) -> plt.Figure:
+    """
+    Generate a quality control (QC) overview using pie charts.
 
-    # Specify rcParams
-    # plt.rcParams["axes.titlelocation"] = "center"
-    # plt.rcParams["axes.titlesize"] = 10
-    # plt.rcParams["axes.titleweight"] = 2
-    # plt.rcParams["axes.titlecolor"] = "black"
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing QC data. Must include columns 'N_labeled', 'N_all', and 'N_checked'.
+    figsize : tuple of int, optional
+        Size of the figure, by default pieplotsettings["figsize"].
+    ncol : int, optional
+        Number of columns in the layout, by default pieplotsettings["ncols"].
+    radius_big : float, optional
+        Radius of the large pie charts, by default pieplotsettings["radius_big"].
+    radius_small : float, optional
+        Radius of the small pie charts, by default pieplotsettings["radius_small"].
+    textsize_big_pies : int, optional
+        Font size for the large pie charts, by default pieplotsettings["txt_size_big_pies"].
+    textsize_small_pies : int, optional
+        Font size for the small pie charts, by default pieplotsettings["txt_size_small_pies"].
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        The generated figure containing the QC overview pie charts.
+
+    Raises
+    ------
+    TypeError
+        If any of the arguments are not of the expected type.
+    """
+    logger.info("Entering qc_overview_pies function.")
+
+    # Validate argument types
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("Argument 'df' must be of type pandas.DataFrame.")
+    if not isinstance(figsize, tuple):
+        raise TypeError("Argument 'figsize' must be of type tuple.")
+    if not isinstance(ncol, int):
+        raise TypeError("Argument 'ncol' must be of type int.")
+    if not isinstance(radius_big, (int, float)):
+        raise TypeError("Argument 'radius_big' must be of type int or float.")
+    if not isinstance(radius_small, (int, float)):
+        raise TypeError("Argument 'radius_small' must be of type int or float.")
+    if not isinstance(textsize_big_pies, int):
+        raise TypeError("Argument 'textsize_big_pies' must be of type int.")
+    if not isinstance(textsize_small_pies, int):
+        raise TypeError("Argument 'textsize_small_pies' must be of type int.")
 
     # Define layout
     fig = plt.figure(figsize=figsize)
     fig.tight_layout()
 
-    spec = fig.add_gridspec(
-        4,
-        ncol,
-    )
+    spec = fig.add_gridspec(4, ncol)
     ax_thl = fig.add_subplot(spec[0, :2])  # top half left
     ax_thr = fig.add_subplot(spec[0, 2:])  # top half right
 
-    # freq with all
+    # Frequency with all
     plotdf = df
-    colors = [defaults.label_to_color_map[label] for label in plotdf.index]
+    colors = [label_to_color_map[label] for label in plotdf.index]
     plotdf.plot(
         ax=ax_thl,
         kind="pie",
@@ -51,24 +95,24 @@ def qc_overview_pies(
     ax_thl.set_title("Label frequencies")
     ax_thl.set_ylabel("")
 
-    # outliers comparison
+    # Outliers comparison
     plotdf = df[
         ~df.index.isin(
             [
-                defaults.label_def["goodrecord"]["label"],
-                defaults.label_def["regular_gap"]["label"],
+                label_def["goodrecord"]["label"],  # TYPO
+                label_def["regular_gap"]["label"],  # TYPO
             ]
         )
     ]
 
-    colors = [defaults.label_to_color_map[label] for label in plotdf.index]
+    colors = [label_to_color_map[label] for label in plotdf.index]
 
     if plotdf.empty:
-        # no outliers --> full pie with "No QX outliers" in the color of 'ok
+        # No outliers --> full pie with "No QC outliers" in the color of 'ok'
         plotdf = pd.DataFrame(
             data={"N_labeled": [100]}, index=pd.Index(data=["No QC outliers"])
         )
-        colors = [defaults.label_def["goodrecord"]["color"]]
+        colors = [label_def["goodrecord"]["color"]]  # TYPO
 
     plotdf.plot(
         ax=ax_thr,
@@ -80,39 +124,37 @@ def qc_overview_pies(
         radius=radius_big,
         fontsize=textsize_big_pies,
     )
-    ax_thr.set_title("outlier specific frequencies")
+    ax_thr.set_title("Outlier specific frequencies")
     ax_thr.set_ylabel("")
 
-    # performance per check
+    # Performance per check
     plotdf = df[
         ~df.index.isin(
             [
-                defaults.label_def["goodrecord"]["label"],
-                defaults.label_def["regular_gap"]["label"],
+                label_def["goodrecord"]["label"],
+                label_def["regular_gap"]["label"],
             ]
         )
     ]
 
-    # label to qccheckname map
-    labl_to_qcname_map = {val["label"]: key for key, val in defaults.label_def.items()}
+    # Label to QC check name map
+    labl_to_qcname_map = {val["label"]: key for key, val in label_def.items()}
 
     i = 0
     for idx, row in plotdf.iterrows():
-        # target a specific axes
+        # Target a specific axes
         subax = fig.add_subplot(spec[math.floor(i / ncol) + 1, i % ncol])
 
-        # construct a plot Series
+        # Construct a plot Series
         plotseries = pd.Series(
             {
-                defaults.label_def["uncheckedrecord"]["label"]: row["N_all"]
-                - row["N_checked"],
-                defaults.label_def["goodrecord"]["label"]: row["N_checked"]
-                - row["N_labeled"],
-                defaults.label_def["outlier"]["label"]: row["N_labeled"],
+                label_def["uncheckedrecord"]["label"]: row["N_all"] - row["N_checked"],
+                label_def["goodrecord"]["label"]: row["N_checked"] - row["N_labeled"],
+                label_def["outlier"]["label"]: row["N_labeled"],
             }
         )
-        # define colors
-        colors = [defaults.label_to_color_map[label] for label in plotseries.index]
+        # Define colors
+        colors = [label_to_color_map[label] for label in plotseries.index]
 
         plotseries.plot(
             ax=subax,
@@ -128,4 +170,6 @@ def qc_overview_pies(
         subax.set_ylabel("")
 
         i += 1
+
+    logger.info("Exiting qc_overview_pies function.")
     return fig

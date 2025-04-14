@@ -238,7 +238,6 @@ else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
     nbsphinx_execute = "auto"
 
-
 # =============================================================================
 # Matplotlib include settings
 # =============================================================================

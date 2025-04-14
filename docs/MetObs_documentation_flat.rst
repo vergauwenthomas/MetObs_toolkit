@@ -7,16 +7,12 @@ the MetObs toolkit to be used by a user and developer.
 
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 4
 
   Dataset <reference/dataset>
   Station <reference/station>
-  Obstype <reference/obstype>
-  Analysis <reference/analysis>
-  Gee modeldata <reference/geemodeldata>
-  Template <reference/template>
   Gap <reference/gap>
-  Special functions <reference/special_functions>
+
 
 ********************************************
 Modules for MetObs toolkit Developers

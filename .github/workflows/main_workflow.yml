@@ -11,10 +11,10 @@ jobs:
         pkg_file: ${{ steps.base_def.outputs.filename }}
       steps:
         - uses: actions/checkout@v3
-        - name: Set up Python39
+        - name: Set up Python310
           uses: actions/setup-python@v4
           with:
-            python-version: '3.9'
+            python-version: '3.10'
             #cache: 'poetry'
         # You can test your matrix by printing the current Python version
         - name: Display Python version
@@ -28,8 +28,8 @@ jobs:
               pip install poetry
         - name: Install dependencies and build
           run: |
-              poetry update --without titan,documentation
-              poetry install --without titan,documentation
+              poetry update --without documentation
+              poetry install --without documentation
               poetry build
         - name: get distribution file name
           id: base_def
@@ -38,7 +38,7 @@ jobs:
               echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
 
         - name: save package as artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: package_build
             path: dist/*.tar.gz
@@ -48,20 +48,20 @@ jobs:
               poetry install --all-extras
         - name: export documentation requirement group
           run: |
-              poetry export -f requirements.txt --without-hashes --with=documentation,dev,titan --format=requirements.txt -o doc_build_req.txt
+              poetry export -f requirements.txt --without-hashes --with=documentation,dev --format=requirements.txt -o doc_build_req.txt
         - name: convert doc requirments to artifact
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: documentation_requirements
             path: doc_build_req.txt
-        - name: export titan requirement group
-          run: |
-              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
-        - name: convert titan requirements to artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: titan_requirements
-            path: only_titan_req.txt
+        # - name: export titan requirement group
+        #   run: |
+        #       poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
+        # - name: convert titan requirements to artifact
+        #   uses: actions/upload-artifact@v4
+        #   with:
+        #     name: titan_requirements
+        #     path: only_titan_req.txt
 
 
 #---- Run tests -----#
@@ -73,7 +73,7 @@ jobs:
        # You can use PyPy versions in python-version.
        # For example, pypy-2.7 and pypy-3.8
          matrix:
-           python-version: ["3.9", "3.10"]
+           python-version: ["3.9", "3.10", "3.11"]
          # os: [ubuntu-latest, windows-latest]
            os: [ubuntu-latest]
            node-version: [12.x]
@@ -94,22 +94,19 @@ jobs:
          - name: Install the package
            run: |
                python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-         - name: get titanlib requirements
-           uses: actions/download-artifact@v3
-           with:
-             name: titan_requirements
-         - name: install titanlib
-           run: |
-               pip install -r only_titan_req.txt
          - name: Run tests
            run: |
-             python tests/push_test/gap_and_fill_test.py
-             python tests/push_test/IO_test.py
-             python tests/push_test/qc_test.py
-             python tests/push_test/breaking_test.py
-             #python tests/push_test/gui_launch_test.py
-             python tests/push_test/analysis_test.py
-             python tests/push_test/irregular_and_add_test.py
+             pytest
+
+        #  - name: Run tests
+        #    run: |
+        #      python tests/push_test/gap_and_fill_test.py
+        #      python tests/push_test/IO_test.py
+        #      python tests/push_test/qc_test.py
+        #      python tests/push_test/breaking_test.py
+        #      #python tests/push_test/gui_launch_test.py
+        #      python tests/push_test/analysis_test.py
+        #      python tests/push_test/irregular_and_add_test.py
 
 #--- Package os installation ---
    mac_install_testing:
@@ -405,4 +402,3 @@ jobs:
          name: |
              package_build
              documentation_requirements
-             titan_requirements

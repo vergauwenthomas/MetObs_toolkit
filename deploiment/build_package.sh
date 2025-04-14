@@ -49,7 +49,7 @@ poetry add sphinx-rtd-theme@latest --group documentation
 poetry add ipykernel --group documentation #else there is a error when building doc: No such kernel named python3
 
 # Toolkit titan group
-poetry add titanlib@latest --group titan
+# poetry add titanlib@latest --group titan
 
 
 # 3. update the lock file

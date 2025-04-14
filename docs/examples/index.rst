@@ -5,7 +5,7 @@
 .. toctree::
    :maxdepth: 2
 
-   doc_example.ipynb
+   introduction_example.ipynb
    gee_example.ipynb
    qc_example.ipynb
    filling_example.ipynb

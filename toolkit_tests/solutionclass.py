@@ -21,7 +21,7 @@ class SolutionFixer:
         )
         if not solutionfile.exists():
             raise SolutionNotExisting(
-                f"The solution of {testfile} -->{classname}:{methodname} does not exist!"
+                f"The solution of {testfile} -->{classname}:{methodname} does not exist (at {solutionfile})!"
             )
 
         with open(solutionfile, "rb") as file:
@@ -339,6 +339,10 @@ def compare_df_are_equal(testdf, solutiondf):
         retstr += f"The following indexes are in the solutiondf but not in the testdf: {index_diff}\n"
         return retstr
 
+    # Convert numeric columns to float32
+    # numeric_cols = testdf.select_dtypes(include=['number']).columns
+    # testdf[numeric_cols] = testdf[numeric_cols].astype('float32')
+    # solutiondf[numeric_cols] = solutiondf[numeric_cols].astype('float32')
     are_equal = testdf.equals(solutiondf)
     if not are_equal:
 

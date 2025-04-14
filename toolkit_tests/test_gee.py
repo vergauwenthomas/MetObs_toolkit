@@ -3,11 +3,11 @@
 import pytest
 import sys
 from pathlib import Path
-import geemap
 
 # import metobs_toolkit
 import pandas as pd
-
+import folium
+import geemap.foliumap as geemap
 
 libfolder = Path(str(Path(__file__).resolve()).split("MetObs_toolkit")[0]).joinpath(
     "MetObs_toolkit"
@@ -161,7 +161,7 @@ class TestDemoDataset:
             if not isinstance(geemod, metobs_toolkit.GEEStaticDatasetManager):
                 continue
             mapret = dataset.make_gee_plot(geedatasetmanager=geemod)
-            assert type(mapret) == geemap.foliumap.Map
+            assert type(mapret) == geemap.Map
 
     def test_gee_dynamic_plot(self):
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -194,7 +194,7 @@ class TestDemoDataset:
             timeinstance=timeinstance,
         )
 
-        assert type(mapret) == geemap.foliumap.Map
+        assert type(mapret) == geemap.Map
 
     def test_landcover_frac_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -463,6 +463,9 @@ class TestDemoDataset:
 if __name__ == "__main__":
 
     test = TestDemoDataset()
-    test.test_import_demo_metadata(False)
-    test.test_ERA5_extraction(True)
-    test.test_ERA5_extraction_on_metadata_only(False)
+    # test.test_import_demo_metadata(overwrite_solution=False)
+    # test.test_lcz_extraction(overwrite_solution=False)
+    # test.test_altitude_extraction(overwrite_solution=False)
+    # test.test_landcover_frac_extraction(overwrite_solution=False)
+    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
+    # test.test_ERA5_extraction(overwrite_solution=False)

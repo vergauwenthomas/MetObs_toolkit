@@ -13,59 +13,62 @@ def window_variation_check(
     max_increase_per_second: int | float,
     max_decrease_per_second: int | float,
 ) -> pd.DatetimeIndex:
-    """Test if the variation exceeds the threshold in moving time windows.
+    """Test if the increase/decrease in a timewindow exceeds a threshold.
 
-    Looking for jumps of the values of an observation type that are larger than
-    the limit specified in the qc_settings. These values are removed from the
-    input series and combined in the outlier df.
+    This function is used to check if the variation of observations in time,
+    does not exceed a threshold. This is done by applying a moving window
+    over the time series. The moving window is defined by a duration (timewindow),
+    and tested if the window contains at least a minimum number of records.
 
-    There is an increament threshold (that is if there is a max value difference
-    and the maximum value occurred later than the minimum value occurred.)
-    And vice versa is there a decrement threshold.
-
-    The check is only applied if there are at least N observations in the time window.
-
-    Schematically:
-
-    1. Find the stations that have a maximum assumed observation frequency
-       that does not exceed the minimum number of records for moving window
-       size. The window size is defined by a duration.
-    2. Compute the maximum increase and decrease thresholds for a window.
-       This is done by multiplying the maximum increase per second by the
-       window size in seconds.
-    3. For each station, a moving window scan is applied that validates if
-       the maximum increase/decrease thresholds are exceeded. This is done
-       by comparison of the minimum and maximum values inside the window. The
-       validation is only applied when a sufficient amount of records are
-       found in the window specified by a threshold.
-    4. After the scan, *all* records found in the window that exceed one
-       of these thresholds are labeled as outliers.
+    If the observations in the window increase/decrease more than a threshold, all
+    observations in the window are flagged as outliers. The threshold is defined by the
+    maximum increase/decrease per second multiplied by the window size in seconds.
 
     Parameters
     ------------
-    station_frequencies : pandas.Series
-        The frequencies of all the stations. This is a column in the metadf
-        attribute of the Dataset.
-    obsdf : pandas.DataFrame
-        The observations dataframe (Dataset.df) to check. Must have a triple
-        index (name, obstype, datetime).
-    obstype : str
-        The observation type to check for outliers.
-    checks_settings : dict
-        The dictionary containing the settings for the quality control checks.
-
+    records : pd.Series
+        A pandas Series containing the time series data to be checked. The index
+        should be datetime-like.
+    timewindow : pd.Timedelta
+        The duration of the moving window. This should be a pandas Timedelta object.
+    min_records_per_window : int
+        The minimum number of non-NaN records required within the time window for the check to be valid.
+        This is dependent on the time resolution of the records.
+    max_increase_per_second : int | float, >0
+        The maximum allowed increase (per second). This value is extrapolated to the window duration.
+        This value must be positive!
+    max_decrease_per_second : int | float, <0
+        The maximum allowed decrease (per second). This value is extrapolated to the window duration.
+        This value must be negative!
 
     Returns
-    ----------
-    obsdf : pandas.DataFrame()
-        The observations dataframe updated for window-variation-outliers. These are
-        represented by Nan values.
-    outl_df : pandas.DataFrame
-        The updated outliersdf.
+    -------
+    pd.DatetimeIndex
+        Timestamps of outlier records.
 
+    Notes
+    -----
+    - In general, for temperatures, the decrease threshold is set less stringent than the increase
+      threshold. This is because a temperature drop is meteorologically more
+      common than a sudden increase which is often the result of a radiation error.
+    - A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
+    - This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
+      with resprect to the previous value. The window variation check uses a moving window to test the maximum allowd variation.
     """
 
-    assert max_decrease_per_second < 0, f"max_decrease_per_second must be negative!"
+    # Validate argument types
+    if not isinstance(records, pd.Series):
+        raise TypeError("Argument 'records' must be of type pd.Series")
+    if not isinstance(timewindow, pd.Timedelta):
+        raise TypeError("Argument 'timewindow' must be of type pd.Timedelta")
+    if not isinstance(min_records_per_window, int):
+        raise TypeError("Argument 'min_records_per_window' must be of type int")
+
+    # Validate argument values
+    if max_decrease_per_second > 0:
+        raise ValueError("max_decrease_per_second must be negative!")
+    if max_increase_per_second < 0:
+        raise ValueError("max_increase_per_second must be positive!")
 
     # test if the conditions for the moving window are met by the records frequency
     ismet = test_moving_window_condition(

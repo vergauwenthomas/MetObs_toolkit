@@ -18,7 +18,7 @@ import pytz
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.template import _get_empty_templ_dict, _pwrite_templdict_to_json
 
-from metobs_toolkit.Newdataset import Dataset
+from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 
