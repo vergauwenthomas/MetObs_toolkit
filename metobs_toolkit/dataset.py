@@ -1346,7 +1346,11 @@ class Dataset:
     # ------------------------------------------
     #    QC
     # ------------------------------------------
-    @copy_doc(Station.gross_value_check)
+    _use_mp_docargstr = """use_mp: bool, optional
+        If True, the function will use multiprocessing to speed up the calculations.
+        The default is False."""
+
+    @copy_doc(copy_func=Station.gross_value_check, extra_param_desc=_use_mp_docargstr)
     def gross_value_check(
         self,
         target_obstype: str = "temp",
@@ -1372,7 +1376,7 @@ class Dataset:
             # Use regular generator
             self.stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
 
-    @copy_doc(Station.persistence_check)
+    @copy_doc(copy_func=Station.persistence_check, extra_param_desc=_use_mp_docargstr)
     def persistence_check(
         self,
         target_obstype: str = "temp",
@@ -1398,7 +1402,7 @@ class Dataset:
             # Use regular generator
             self.stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
 
-    @copy_doc(Station.repetitions_check)
+    @copy_doc(copy_func=Station.repetitions_check, extra_param_desc=_use_mp_docargstr)
     def repetitions_check(
         self,
         target_obstype: str = "temp",
@@ -1422,7 +1426,7 @@ class Dataset:
             # Use regular generator
             self.stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
 
-    @copy_doc(Station.step_check)
+    @copy_doc(copy_func=Station.step_check, extra_param_desc=_use_mp_docargstr)
     def step_check(
         self,
         target_obstype: str = "temp",
@@ -1447,7 +1451,9 @@ class Dataset:
             # Use regular generator
             self.stations = list(map(_qc_step_generatorfunc, func_feed_list))
 
-    @copy_doc(Station.window_variation_check)
+    @copy_doc(
+        copy_func=Station.window_variation_check, extra_param_desc=_use_mp_docargstr
+    )
     def window_variation_check(
         self,
         target_obstype: str = "temp",
@@ -1480,7 +1486,6 @@ class Dataset:
             # Use regular generator
             self.stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
 
-    @copy_doc(toolkit_buddy_check)
     def buddy_check(
         self,
         target_obstype: str = "temp",
@@ -1490,10 +1495,71 @@ class Dataset:
         min_std: int | float = 1.0,
         std_threshold: int | float = 3.1,
         N_iter: int = 2,
-        instantanious_tolerance: pd.Timedelta = pd.Timedelta("4min"),
-        lapserate: float | None = None,  # -0.0065
+        instantanious_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
+        lapserate: float | None = None,  # -0.0065 for temperature (in °C)
         use_mp: bool = True,
     ):
+        """Spatial buddy check.
+
+        The buddy check compares an observation against its neighbors (i.e. buddies). The check loops
+        over all the groups, which are stations within a radius of each other. For each group, the absolute
+        value of the difference with the groupmean, normalized by the standared deviation (with a defined minimum),
+        is computed. If one (or more) exeeds the std_theshold, the most extreme (=baddest) observation of that group is labeled as an outlier.
+
+        Multiple iterations of this checks can be done using the N_iter.
+
+        A schematic step-by-step description of the buddy check:
+
+        1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
+        2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
+            * removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
+            * removing groups of buddies that are too small (based on the min_sample_size)
+
+        3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
+        4. If a lapsrate is specified, the observations are corrected for altitude differences.
+        5. For each buddy group:
+            * The mean, standard deviation (std), and sample size are computed.
+            * If the std is lower than the minimum std, it is replaced by the minimum std.
+            * Chi values are calculated for all records.
+            * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
+            If so, that record is flagged as an outlier. It will be ignored in the next iteration.
+            * This is repeated N_iter times.
+
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        buddy_radius : int | float, optional
+            The radius to define spatial neighbors in meters. The default is 10000
+        min_sample_size : int, optional
+            The minimum sample size to calculate statistics on. The default is 4
+        max_alt_diff : int | float | None, optional
+            The maximum altitude difference allowed for buddies. I None,
+            no altitude filter is applied. The default is None
+        min_std : int | float, optional
+            The minimum standard deviation for sample statistics. This should
+            represent the accuracy of the observations. The default is 1.0
+        std_threshold : int | float, optional
+            The threshold (std units) for flagging observations as outliers. The default is 3.1
+        N_iter : int, optional
+            The number of iterations to perform the buddy check. The default is 2
+        instantanious_tolerance : str | pd.Timedelta, optional
+            The maximum time difference allowed for synchronizing observations. The default is pd.Timedelta("4min")
+        lapserate : int | float | None, optional
+            Describe how the obstype changes with altitude (in meters). If None, no
+            altitude correction is applied. For temperature, a common value is -0.0065. The default is None
+        use_mp : bool, optional
+            Use multiprocessing to speed up the buddy check. The default is True
+
+
+        Notes
+        ------
+        - This method modifies the outliers in place and does not return anything.
+          You can use the `outliersdf` property to view all flagged outliers.
+        - The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+
+        """
 
         instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
         if (lapserate is not None) | (max_alt_diff is not None):

@@ -1,10 +1,14 @@
 import logging
-import pandas as pd
+from typing import Union
+
 import numpy as np
+import pandas as pd
 
 from .common_functions import test_moving_window_condition
 
-logger = logging.getLogger(__name__)
+# Set up logging
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
 
 
 def persistence_check(
@@ -12,74 +16,84 @@ def persistence_check(
     timewindow: pd.Timedelta,
     min_records_per_window: int,
 ) -> pd.DatetimeIndex:
-    """Test observations to change over a specific period.
+    """Check if values are not constant in a moving time window.
 
-    Looking for values that do not change during a timewindow. If no change is detected,
-    the center of the window is flagged as outlier.
-
-    Note that this is a moving-window check, and is thus numerically intensive.
-
-    In order to perform this check, at least N observations should be in that time window.
-
-    Schematically:
-    1. Find the stations that have a maximum assumed observation frequency
-       that does not exceed the minimum number of records for moving window
-       size. The window size is defined by a duration.
-    2. Subset to those stations.
-    3. For each station, a moving window scan is applied that validates if
-       there is variation in the observations (NaN's are excluded). The
-       validation is only applied when a sufficient amount of records are
-       found in the window specified by a threshold.
-    4. After the scan, all records found in the windows without variation
-       are labeled as outliers.
+    Perform a persistence check on a time series to identify periods where observations remain constant
+    within a specified time window. If the values are constant, all records in the moving window are
+    flagged as outliers.
 
     Parameters
-    ------------
-    station_frequencies : pandas.Series
-        The frequencies of all the stations. This is a column in the metadf
-        attribute of the Dataset.
-    obsdf : pandas.DataFrame
-        The observations dataframe (Dataset.df) to check. Must have a triple
-        index (name, obstype, datetime).
-    obstype : str
-        The observation type to check for outliers.
-    checks_settings : dict
-        The dictionary containing the settings for the quality control checks.
-
+    ----------
+    records : pd.Series
+        A pandas Series containing the time series data to be checked. The index should be datetime-like.
+    timewindow : pd.Timedelta
+        The size of the rolling time window to check for persistence.
+    min_records_per_window : int
+        The minimum number of non-NaN records required within the time window for the check to be valid.
 
     Returns
-    ----------
-    obsdf : pandas.DataFrame()
-        The observations dataframe updated for persistence outliers. These are
-        represented by Nan values.
-    outl_df : pandas.DataFrame
-        The updated outliersdf.
+    -------
+    pd.DatetimeIndex
+        Timestamps of outlier records.
 
+    Notes
+    -----
+    - The function uses a rolling window approach to check if all non-NaN values within the window
+      are identical.
+    - If the minimum number of records per window is locally not met, the function logs a warning and skips
+      the persistence check.
+    - This function can be computationally expensive for large datasets or small time windows.
+
+    Warnings
+    --------
+    If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
+    returns an empty DatetimeIndex.
     """
+    logger.info("Entering the function: persistence_check")
 
-    # test if the conditions for the moving window are met by the records frequency
-    ismet = test_moving_window_condition(
+    # Validate argument types
+    if not isinstance(records, pd.Series):
+        raise TypeError("Argument 'records' must be of type pd.Series")
+    if not isinstance(timewindow, pd.Timedelta):
+        raise TypeError("Argument 'timewindow' must be of type pd.Timedelta")
+    if not isinstance(min_records_per_window, int):
+        raise TypeError("Argument 'min_records_per_window' must be of type int")
+
+    # Test if the conditions for the moving window are met by the records frequency
+    is_met = test_moving_window_condition(  # TYPO corrected: was 'ismet'
         records=records,
         windowsize=timewindow,
         min_records_per_window=min_records_per_window,
     )
-    if not ismet:
+    if not is_met:
         logger.warning(
-            "The minimum number of window members for the persistance check is not met!"
+            "The minimum number of window members for the persistence check is not met!"
         )
         return pd.DatetimeIndex(name="datetime", data=[])
 
-    # apply persistance
-    def is_unique(
-        window,
-    ):  # comp order of N (while using the 'unique' function is Nlog(N))
+    # Apply persistence
+    def is_unique(window: pd.Series) -> bool:
+        """
+        Check if all non-NaN values in the window are identical.
+
+        Parameters
+        ----------
+        window : pd.Series
+            A pandas Series representing the rolling window.
+
+        Returns
+        -------
+        bool
+            True if all non-NaN values are identical, False otherwise.
+        """
+        logger.debug("Entering the helper function: is_unique")
         a = window.values
         a = a[~np.isnan(a)]
         return (a[0] == a).all()
 
-    # TODO: This is very expensive if no coarsening is applied !!!! Can we speed this up?
+    # TODO: This is very expensive if no coarsening is applied! Can we speed this up?
     window_is_constant = (
-        records.dropna()  # exclude outliers and gaps
+        records.dropna()  # Exclude outliers and gaps
         .rolling(
             window=timewindow,
             closed="both",
@@ -88,7 +102,8 @@ def persistence_check(
         )
         .apply(is_unique)
     )
-    # the returns are numeric values (0--> false, nan --> not checked(members/window condition not met), 1 --> outlier)
+    # The returns are numeric values (0 --> False, NaN --> not checked (members/window condition not met), 1 --> outlier)
     window_is_constant = window_is_constant.map({0.0: False, np.nan: False, 1.0: True})
 
+    logger.info("Exiting the function: persistence_check")
     return window_is_constant[window_is_constant].index

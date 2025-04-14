@@ -14,6 +14,8 @@ import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.backend_collection.docstring_wrapper import copy_doc
+import metobs_toolkit.qc_collection as qc_collection
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
@@ -815,7 +817,29 @@ class Station:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
-    ):
+    ) -> None:
+        """Identify outliers based on thresholds.
+
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        lower_threshold : float, optional
+           Thresholds to flag records below as outliers. The default is -15.0.
+        upper_threshold : float, optional
+            Thresholds to flag records above as outliers. The default is 39.0.
+
+        Returns
+        --------
+        None.
+
+        Note
+        ------
+        This method modifies the outliers in place and does not return anything.
+        You can use the `outliersdf` property to view all flagged outliers.
+
+        """
 
         # argument validity checks
         self._obstype_is_known_check(target_obstype)
@@ -830,6 +854,43 @@ class Station:
         timewindow: str | pd.Timedelta = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
     ):
+        """Check if values are not constant in a moving time window.
+
+        Perform a persistence check on a time series to identify periods where observations remain constant
+        within a specified time window. If the values are constant, all records in the moving window are
+        flagged as outliers.
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        timewindow : str or pd.Timedelta
+            The size of the rolling time window to check for persistence.
+            The default is pd.Timedelta("60min")
+        min_records_per_window : int
+            The minimum number of non-NaN records required within the time window for the check to be valid.
+            The default is 5
+
+        Returns
+        --------
+        None.
+
+        Notes
+        ------
+        - This method modifies the outliers in place and does not return anything.
+          You can use the `outliersdf` property to view all flagged outliers.
+        - If the minimum number of records per window is locally not met, the function logs a warning and skips
+          the persistence check.
+        - This function can be computationally expensive for large datasets or small time windows.
+        - The repetitions check is similar to the persistence check, but not identical.
+          The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
+          in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
+
+        Warnings
+        --------
+        If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
+        returns an empty DatetimeIndex.
+        """
 
         # argument checks
         self._obstype_is_known_check(target_obstype)
@@ -843,6 +904,42 @@ class Station:
     def repetitions_check(
         self, target_obstype: str = "temp", max_N_repetitions: int = 5
     ):
+        """Test if an observation changes after a number of repetitions.
+
+        Perform a check that tests if the observation changes after a number of repetitions.
+        If a value is repeated more than the specified number of times, all the repeated
+        records are flagged as outliers.
+
+        Be aware that the performance of this check depends on the `max_N_repetitions`
+        and the time resolution of the observations.
+
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        max_N_repetitions : int
+            The maximum number of repetitions allowed before the records are flagged as outliers.
+            If the number of repetitions exceeds this value, all repeated records are flagged as outliers. The default is 5.
+
+        Returns
+        --------
+        None.
+
+        Notes
+        ------
+        - This method modifies the outliers in place and does not return anything.
+          You can use the `outliersdf` property to view all flagged outliers.
+        - The repetitions check is similar to the persistence check, but not identical.
+          The persistence check uses thresholds that are meteorologically based (i.g. the moving window is defined by a duration),
+          in contrast to the repetitions check whose thresholds are instrumentally based (i.g. the "window" is defined by a number of records.)
+
+        Warnings
+        --------
+        If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
+        returns an empty DatetimeIndex.
+
+        """
 
         # argument checks
         self._obstype_is_known_check(target_obstype)
@@ -857,7 +954,40 @@ class Station:
         target_obstype: str = "temp",
         max_increase_per_second: int | float = 8.0 / 3600.0,
         max_decrease_per_second: int | float = -10.0 / 3600.0,
-    ):
+    ) -> None:
+        """Check for 'spikes' and 'dips' in a timeseries.
+
+        Test if observations do not produce spikes in timeseries. The maximum
+        allowed increase and decrease per second is set in the argument,
+        and is tested to each record (with respect to the previous record).
+
+        If the difference between two consecutive records (i.e., the spike/dip) is larger than the
+        threshold, the record is flagged as an outlier.
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        max_increase_per_second : int | float, >0, optional
+            The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
+            This value must be positive!  The default is 8.0/3600.0
+        max_decrease_per_second : int | float, <0, optional
+            The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
+            This value must be negative!, The default is -10.0/3600.0
+
+        Returns
+        --------
+        None.
+
+        Notes
+        ------
+        - This method modifies the outliers in place and does not return anything.
+          You can use the `outliersdf` property to view all flagged outliers.
+        - In general, for temperatures, the decrease threshold is set less stringent than the increase
+          threshold. This is because a temperature drop is meteorologically more
+          common than a sudden increase which is often the result of a radiation error.
+
+        """
 
         # argument checks
         self._obstype_is_known_check(target_obstype)
@@ -876,6 +1006,50 @@ class Station:
         max_increase_per_second: int | float = 8.0 / 3600,
         max_decrease_per_second: int | float = -10.0 / 3600,
     ):
+        """ "Test if the increase/decrease in a timewindow exceeds a threshold.
+
+        This function is used to check if the variation of observations in time,
+        does not exceed a threshold. This is done by applying a moving window
+        over the time series. The moving window is defined by a duration (timewindow),
+        and tested if the window contains at least a minimum number of records.
+
+        If the observations in the window increase/decrease more than a threshold, all
+        observations in the window are flagged as outliers. The threshold is defined by the
+        maximum increase/decrease per second multiplied by the window size in seconds.
+
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The target observation to check. by default "temp"
+        timewindow : pd.Timedelta
+            The duration of the moving window. This should be a pandas Timedelta object. The default is pd.Timedelta("1h")
+        min_records_per_window : int
+            The minimum number of non-NaN records required within the time window for the check to be valid.
+            This is dependent on the time resolution of the records. The default is 3
+        max_increase_per_second : int | float, >0
+            The maximum allowed increase (per second). This value is extrapolated to the window duration.
+            This value must be positive! The default is 8.0/3600
+        max_decrease_per_second : int | float, <0
+            The maximum allowed decrease (per second). This value is extrapolated to the window duration.
+            This value must be negative! The default is -10.0/3600
+
+
+        Returns
+        --------
+        None.
+
+        Notes
+        ------
+        - This method modifies the outliers in place and does not return anything.
+          You can use the `outliersdf` property to view all flagged outliers.
+        - In general, for temperatures, the decrease threshold is set less stringent than the increase
+          threshold. This is because a temperature drop is meteorologically more
+          common than a sudden increase which is often the result of a radiation error.
+        - A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
+        - This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
+          with resprect to the previous value. The window variation check uses a moving window to test the maximum allowd variation.
+
+        """
 
         # argument checks
         self._obstype_is_known_check(target_obstype)
