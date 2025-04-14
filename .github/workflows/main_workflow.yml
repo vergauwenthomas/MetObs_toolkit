@@ -1,6 +1,9 @@
 name: Test pushed version
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
 #--- Build the package and save as artifacts----

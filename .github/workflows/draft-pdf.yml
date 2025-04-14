@@ -1,6 +1,6 @@
 on:
   push:
-    branches-ignore: ['main', 'dev', 'gh-pages']#cannot be ran on protected branches
+    branches-ignore: ['main', 'dev', 'gh-pages']
     paths: ['docs/paper/**']
 
 jobs:
