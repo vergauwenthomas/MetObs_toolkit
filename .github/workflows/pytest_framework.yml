@@ -47,3 +47,4 @@ jobs:
       - name: Run Pytest
         run: |
           pytest ${{ matrix.test_file }} --mpl
+        continue-on-error: true

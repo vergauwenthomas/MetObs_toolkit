@@ -57,6 +57,9 @@ jobs:
                 with:
                     python-version: ${{ matrix.python-version }}
 
+              - name: Debug dist contents
+                run: ls -l dist/
+
               - name: Install package with pip
                 run: |
                     pip install dist/*.whl
