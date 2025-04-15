@@ -304,7 +304,7 @@ class TestDataWithGaps:
 
     def test_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
+        _method_name = "test_debias_modeldata_gapfill"
 
         #   get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -326,14 +326,14 @@ class TestDataWithGaps:
             TestDataWithGaps.solutionfixer.create_solution(
                 solutiondata=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_A",
+                methodname=f"{_method_name}",
             )
 
         #  Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
         )
-        assert dataset == solutionobj_A  # dataset comparison
+        assert dataset == solutionobj  # dataset comparison
 
         # test on station and dataset
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -349,7 +349,7 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
 
-        assert sta == solutionobj_A.get_station("vlinder01")  # station comparison
+        assert sta == solutionobj.get_station("vlinder01")  # station comparison
 
     def test_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check

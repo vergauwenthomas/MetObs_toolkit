@@ -206,4 +206,10 @@ jobs:
             env: # Make secrets available as environment variables in test
               GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
-              pytest ${{ matrix.test_file }} --mpl
+              pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html
+
+          - name: Upload documentation artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: mpl_diff
+              path: /tmp/
