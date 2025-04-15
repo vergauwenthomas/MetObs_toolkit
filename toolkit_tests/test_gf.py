@@ -243,8 +243,7 @@ class TestDataWithGaps:
 
     def test_raw_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
+        _method_name = "test_raw_modeldata_gapfill"
         #   get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
