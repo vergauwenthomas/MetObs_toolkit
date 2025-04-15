@@ -42,5 +42,5 @@ else:
             f"No .keys folder found {libfolder.joinpath('.keys').absolute()}"
         )
 
-credentials = ee.ServiceAccountCredentials(service_account, str(key_file))
-ee.Initialize(credentials)
+    credentials = ee.ServiceAccountCredentials(service_account, str(key_file))
+    ee.Initialize(credentials)
