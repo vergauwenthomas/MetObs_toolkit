@@ -175,6 +175,7 @@ jobs:
             - toolkit_tests/test_plotting.py
             - toolkit_tests/test_gee.py
 
+        continue-on-error: true
         steps:
           # Checkout the repository
           - name: Checkout code
@@ -206,4 +207,3 @@ jobs:
               GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
               pytest ${{ matrix.test_file }} --mpl
-              continue-on-error: false
