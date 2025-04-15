@@ -3,7 +3,7 @@ name: Build and Test Package
 on: [push]
 
 jobs:
-    build:
+    build-package:
         runs-on: ubuntu-latest
         steps:
               - name: Checkout code
@@ -21,6 +21,7 @@ jobs:
 
               - name: Remove previous builds
                 run: |
+                    cd $GITHUB_WORKSPACE
                     rm -f dist/metobs_toolkit-*
                     rm -rf *.egg-info
 
@@ -31,16 +32,18 @@ jobs:
                 run: poetry build
 
               - name: Debug dist contents
-                run: ls -l dist/
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    ls -l dist/
 
               - name: Upload package artifact
                 uses: actions/upload-artifact@v4
                 with:
                     name: regular_package
-                    path: dist/metobs_toolkit-*.whl
+                    path: ./dist/metobs_toolkit-*.whl
 
     test-install:
-        needs: build
+        needs: build-package
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
@@ -58,8 +61,40 @@ jobs:
                     python-version: ${{ matrix.python-version }}
 
               - name: Debug dist contents
-                run: ls -l dist/
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    ls -l
+                    ls -l dist/
 
               - name: Install package with pip
                 run: |
+                    cd $GITHUB_WORKSPACE
                     pip install dist/*.whl
+    build-docs:
+        needs: build-package
+        runs-on: ubuntu-latest
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.9'
+
+              - name: Install Poetry
+                run: |
+                    curl -sSL https://install.python-poetry.org | python3 -
+                    echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+              - name: Install package with dev and documentation groups
+                run: poetry install --with dev,documentation
+
+              - name: Build documentation
+                run: ./docs/build_doc.sh
+
+              - name: Upload documentation artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: documentation
+                    path: ./docs/_build/

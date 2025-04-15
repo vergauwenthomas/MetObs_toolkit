@@ -1110,7 +1110,7 @@ class Dataset:
                 raise ValueError(
                     f"Timeinstance is None, but is required for a dynamic dataset like {geedatasetmanager}"
                 )
-            timeinstance = fmt_datetime_arg(timeinstance, input_tz="UTC")
+            timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
             if modelobstype not in geedatasetmanager.modelobstypes:
                 raise MetObsObstypeNotFound(
                     f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are knonw: {geedatasetmanager.modelobstypes} "
@@ -1398,7 +1398,7 @@ class Dataset:
                 )
             startdt_utc = self.start_datetime.tz_convert("UTC")
         else:
-            startdt_utc = fmt_datetime_arg(startdt_utc, input_tz="UTC")
+            startdt_utc = fmt_datetime_arg(startdt_utc, tz_if_dt_is_naive="UTC")
 
         if enddt_utc is None:
             if self.df.empty:
@@ -1407,7 +1407,7 @@ class Dataset:
                 )
             enddt_utc = self.end_datetime.tz_convert("UTC")
         else:
-            enddt_utc = fmt_datetime_arg(enddt_utc, input_tz="UTC")
+            enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
         # check if target_obstypes are mapped to bands
         for obst in target_obstypes:

@@ -32,7 +32,9 @@ def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
     return dt
 
 
-def fmt_datetime_arg(datetimearg, input_tz, none_is_none=True) -> pd.Timestamp:
+def fmt_datetime_arg(
+    datetimearg, tz_if_dt_is_naive="UTC", none_is_none=True
+) -> pd.Timestamp:
     """Formats a datetime given by a user in an argument.
 
     Conversion to a pandas.Timestamp in the tz of the records.
@@ -54,7 +56,7 @@ def fmt_datetime_arg(datetimearg, input_tz, none_is_none=True) -> pd.Timestamp:
     # check timezone and make tz-awer
     if dt.tz is None:
         # tz naive timestamp
-        dt = dt.tz_localize(tz=input_tz)
+        dt = dt.tz_localize(tz=tz_if_dt_is_naive)
     # else:
     #     # tz aware timestamp --> convert to tz of records
     #     dt = dt.tz_convert(tz=self._get_tz())

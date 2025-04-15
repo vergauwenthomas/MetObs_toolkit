@@ -13,6 +13,9 @@ jobs:
           - toolkit_tests/test_qc.py
           - toolkit_tests/test_obstypes.py
           - toolkit_tests/test_gf.py
+          - toolkit_tests/test_analysis.py
+          - toolkit_tests/test_importing.py
+          - toolkit_tests/test_plotting.py
 
         # Exclude the test_gee.py file
         exclude:
@@ -47,4 +50,4 @@ jobs:
       - name: Run Pytest
         run: |
           pytest ${{ matrix.test_file }} --mpl
-        continue-on-error: true
+        continue-on-error: false
