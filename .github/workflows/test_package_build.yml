@@ -48,7 +48,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
-                python-version: [3.11]
+                python-version: [3.9, 3.10, 3.11]
         runs-on: ${{ matrix.os }}
         steps:
               - name: Download package artifact
@@ -93,13 +93,10 @@ jobs:
                     curl -sSL https://install.python-poetry.org | python3 -
                     echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-              - name: Install Sphinx system-wide
-                run: |
-                  sudo apt-get -y install python3-sphinx
-
               - name: Install package with dev and documentation groups
                 run: |
                   poetry install --with dev,documentation
+                  poetry show
 
               - name: Debug dist contents
                 run: |
@@ -108,8 +105,9 @@ jobs:
 
               - name: Build documentation
                 run: |
+                  cd $GITHUB_WORKSPACE
                   cd docs
-                  source build_doc
+                  poetry run source build_doc
 
               - name: Upload documentation artifact
                 uses: actions/upload-artifact@v4
