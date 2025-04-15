@@ -107,7 +107,18 @@ jobs:
                 run: |
                   cd $GITHUB_WORKSPACE
                   cd docs
-                  poetry run source build_doc
+
+                  #clear previous builds
+                  rm -rf _build
+                  # Create _build directory if it does not exist
+                  mkdir -p _build
+
+                  #clear previous autodoc generated files
+                  rm -rf reference/api
+                  mkdir -p reference/api
+
+                  cd $GITHUB_WORKSPACE
+                  poetry run sphinx-build -a -E -v docs/ docs/_build/
 
               - name: Upload documentation artifact
                 uses: actions/upload-artifact@v4
