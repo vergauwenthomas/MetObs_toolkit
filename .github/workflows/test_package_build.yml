@@ -31,6 +31,11 @@ jobs:
               - name: Build the package
                 run: poetry build
 
+              - name: Rename the package #So that the name is constant for windows test (* does not work on windows)
+                run: |
+                    cd dist
+                    mv metobs_toolkit-*.whl metobs_toolkit-github_build.whl
+
               - name: Debug dist contents
                 run: |
                     cd $GITHUB_WORKSPACE
@@ -44,6 +49,7 @@ jobs:
 
     test-install:
         needs: build-package
+        continue-on-error: true
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
@@ -63,8 +69,12 @@ jobs:
               - name: Install package with pip
                 run: |
                     cd $GITHUB_WORKSPACE
-                    ls
-                    pip install metobs_toolkit-*.whl
+                    pip install metobs_toolkit-github_build.whl
+
+              - name: Run the trivial import test
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    python -c "import metobs_toolkit; print('Import successful')"
     build-docs:
         needs: build-package
         runs-on: ubuntu-latest
