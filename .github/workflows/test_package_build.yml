@@ -124,6 +124,10 @@ jobs:
                   cd $GITHUB_WORKSPACE
                   poetry run sphinx-build -a -E -v docs/ docs/_build/
 
+                  ls -l
+                  ls -l docs
+                  ls -l docs/_build
+
               - name: Debug documentation build
                 run: |
                   cd $GITHUB_WORKSPACE
