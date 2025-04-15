@@ -1,4 +1,4 @@
-from typing import Literal, Tuple
+from typing import Literal, Union
 import os
 from pathlib import Path
 import logging
@@ -349,9 +349,9 @@ class Dataset:
     def sync_records(
         self,
         target_obstype: str = "temp",
-        timestamp_shift_tolerance: str | pd.Timedelta = "2min",
-        freq_shift_tolerance: str | pd.Timedelta = "1min",
-        fixed_origin: None | pd.Timedelta = None,
+        timestamp_shift_tolerance: Union[str, pd.Timedelta] = "2min",
+        freq_shift_tolerance: Union[str, pd.Timedelta] = "1min",
+        fixed_origin: Union[pd.Timedelta, None] = None,
     ) -> None:
         """Synchronize records of sensor data across stations.
 
@@ -432,7 +432,7 @@ class Dataset:
     def resample(
         self,
         target_freq,
-        target_obstype: str | None = None,
+        target_obstype: Union[str, None] = None,
         shift_tolerance=pd.Timedelta("4min"),
         origin=None,
         origin_simplify_tolerance=pd.Timedelta("4min"),
@@ -581,7 +581,7 @@ class Dataset:
 
     def save_dataset_to_pkl(
         self,
-        target_folder: str | Path,
+        target_folder: Union[str, Path],
         filename: str = "saved_dataset.pkl",
         overwrite: bool = False,
     ) -> None:
@@ -630,13 +630,13 @@ class Dataset:
 
     def import_data_from_file(
         self,
-        template_file: str | Path,
-        input_data_file: str | Path = None,
-        input_metadata_file: str | Path = None,
+        template_file: Union[str, Path],
+        input_data_file: Union[str, Path] = None,
+        input_metadata_file: Union[str, Path] = None,
         freq_estimation_method: Literal["highest", "median"] = "median",
-        freq_estimation_simplify_tolerance: str | pd.Timedelta = "2min",
-        origin_simplify_tolerance: str | pd.Timedelta = "5min",
-        timestamp_tolerance: str | pd.Timedelta = "4min",
+        freq_estimation_simplify_tolerance: Union[str, pd.Timedelta] = "2min",
+        origin_simplify_tolerance: Union[str, pd.Timedelta] = "5min",
+        timestamp_tolerance: Union[str, pd.Timedelta] = "4min",
         kwargs_data_read: dict = {},
         kwargs_metadata_read: dict = {},
         templatefile_is_url: bool = False,
@@ -804,10 +804,10 @@ class Dataset:
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
-        colormap: dict | None = None,
-        title: str | None = None,
+        colormap: Union[dict, None] = None,
+        title: Union[str, None] = None,
         linestyle: str = "--",
-        ax: Axes | None = None,
+        ax: Union[Axes, None] = None,
         figkwargs: dict = {},
     ) -> Axes:
         """Generate a timeseries plot of model data for a specific observation type.
@@ -910,7 +910,7 @@ class Dataset:
         show_modeldata=False,
         show_outliers=True,
         show_gaps=True,
-        title: str | None = None,
+        title: Union[str, None] = None,
         ax=None,
         figkwargs: dict = {},
     ) -> Axes:
@@ -1036,16 +1036,16 @@ class Dataset:
 
     def make_gee_plot(
         self,
-        geedatasetmanager: (
-            GEEStaticDatasetManager | GEEDynamicDatasetManager
-        ) = default_datasets["lcz"],
-        timeinstance: pd.Timestamp | None = None,
+        geedatasetmanager: Union[
+            GEEStaticDatasetManager, GEEDynamicDatasetManager
+        ] = default_datasets["lcz"],
+        timeinstance: Union[pd.Timestamp, None] = None,
         modelobstype: str = None,
         save: bool = False,
         outputfolder: str = os.getcwd(),
         filename: str = "gee_plot.html",
-        vmin: int | float | None = None,
-        vmax: int | float | None = None,
+        vmin: Union[int, float, None] = None,
+        vmax: Union[int, float, None] = None,
         overwrite: bool = False,
     ):
         """Create an interactive spatial plot of the GEE dataset and stations.
@@ -1486,7 +1486,7 @@ class Dataset:
     def persistence_check(
         self,
         target_obstype: str = "temp",
-        timewindow: str | pd.Timedelta = pd.Timedelta("60min"),
+        timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
         use_mp: bool = True,
     ):
@@ -1536,8 +1536,8 @@ class Dataset:
     def step_check(
         self,
         target_obstype: str = "temp",
-        max_increase_per_second: int | float = 8.0 / 3600.0,
-        max_decrease_per_second: int | float = -10.0 / 3600.0,
+        max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
+        max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         use_mp: bool = True,
     ):
 
@@ -1565,8 +1565,8 @@ class Dataset:
         target_obstype: str = "temp",
         timewindow: pd.Timedelta = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
-        max_increase_per_second: int | float = 0.0022,  # 8./3600
-        max_decrease_per_second: int | float = -0.0027,  # -10/3600
+        max_increase_per_second: Union[int, float] = 0.0022,  # 8./3600
+        max_decrease_per_second: Union[int, float] = -0.0027,  # -10/3600
         use_mp=True,
     ):
 
@@ -1595,14 +1595,14 @@ class Dataset:
     def buddy_check(
         self,
         target_obstype: str = "temp",
-        buddy_radius: int | float = 10000,
+        buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
-        max_alt_diff: int | float = None,
-        min_std: int | float = 1.0,
-        std_threshold: int | float = 3.1,
+        max_alt_diff: Union[int, float] = None,
+        min_std: Union[int, float] = 1.0,
+        std_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
-        instantanious_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
-        lapserate: float | None = None,  # -0.0065 for temperature (in °C)
+        instantanious_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+        lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         use_mp: bool = True,
     ):
         """Spatial buddy check.
@@ -1805,8 +1805,8 @@ class Dataset:
         max_consec_fill: int = 10,
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
-        max_lead_to_gap_distance: pd.Timedelta | None = None,
-        max_trail_to_gap_distance: pd.Timedelta | None = None,
+        max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
+        max_trail_to_gap_distance: Union[pd.Timedelta, None] = None,
         overwrite_fill=False,
         method_kwargs={},
     ):
@@ -1974,9 +1974,9 @@ def createstations(
     known_obstypes: dict,
     timezone: str,
     freq_estimation_method: str,  #'highest' | 'median',
-    freq_estimation_simplify_tolerance: pd.Timedelta | str,
-    origin_simplify_tolerance: pd.Timedelta | str,
-    timestamp_tolerance: pd.Timedelta | str,
+    freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
+    origin_simplify_tolerance: Union[pd.Timedelta, str],
+    timestamp_tolerance: Union[pd.Timedelta, str],
 ) -> list:
     """
     Create a list of Station objects from parsed data and metadata.

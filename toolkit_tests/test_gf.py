@@ -1,5 +1,6 @@
 import pytest
 import sys
+import logging
 from pathlib import Path
 import copy
 import pandas as pd
@@ -92,6 +93,7 @@ class TestDataWithGaps:
             debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
                 to_check=dataset, solution=solutionobj
             )
+            logging.warning(f"Debug difference: {debug_diff}")
         # 6. assert the equality
         # IF THIS FAILS, it can be an issue with the dataset.resample method
         assert test_expr
@@ -146,6 +148,7 @@ class TestDataWithGaps:
             debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
                 to_check=sta, solution=solutionobj
             )
+            logging.warning(f"Debug difference: {debug_diff}")
         # 6. assert the equality
         assert test_expr
 
@@ -198,6 +201,7 @@ class TestDataWithGaps:
             debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
                 to_check=dataset, solution=solutionobj_A
             )
+            logging.warning(f"Debug difference: {debug_diff}")
         # assert the equality
         assert test_expr
 
@@ -299,6 +303,7 @@ class TestDataWithGaps:
             debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
                 to_check=dataset, solution=solutionobj_A
             )
+            logging.warning(f"Debug difference: {debug_diff}")
         # test the plot
         dataset.make_plot()
 
@@ -333,7 +338,14 @@ class TestDataWithGaps:
         solutionobj = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
         )
-        assert dataset == solutionobj  # dataset comparison
+        testexpr = dataset == solutionobj  # dataset comparison
+        if not testexpr:
+            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
+                to_check=dataset, solution=solutionobj
+            )
+            logging.warning(f"Debug difference: {debug_diff}")
+        # test the plot
+        assert testexpr
 
         # test on station and dataset
         dataset = TestDataWithGaps.solutionfixer.get_solution(
