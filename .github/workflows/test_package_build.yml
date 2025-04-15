@@ -31,11 +31,6 @@ jobs:
               - name: Build the package
                 run: poetry build
 
-              - name: Rename the package #So that the name is constant for windows test (* does not work on windows)
-                run: |
-                    cd dist
-                    mv metobs_toolkit-*.whl metobs_toolkit_github_build.whl
-
               - name: Debug dist contents
                 run: |
                     cd $GITHUB_WORKSPACE
@@ -45,7 +40,7 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     name: regular_package
-                    path: ./dist/metobs_toolkit_github_build.whl
+                    path: ./dist/metobs_toolkit-*.whl
 
     test-install:
         needs: build-package
@@ -66,15 +61,19 @@ jobs:
                 with:
                     python-version: ${{ matrix.python-version }}
 
+              - name: Find the package file
+                id: find_package
+                run: |
+                    PACKAGE_FILE=$(find . -name "metobs_toolkit-*.whl" | head -n 1)
+                    echo "Found package file: $PACKAGE_FILE"
+                    echo "::set-output name=package_file::$PACKAGE_FILE"
+
               - name: Install package with pip
                 run: |
-                    cd $GITHUB_WORKSPACE
-                    ls
-                    pip install metobs_toolkit_github_build.whl
+                    pip install ${{ steps.find_package.outputs.package_file }}
 
               - name: Run the trivial import test
                 run: |
-                    cd $GITHUB_WORKSPACE
                     python -c "import metobs_toolkit; print('Import successful')"
     build-docs:
         needs: build-package
@@ -95,7 +94,7 @@ jobs:
 
               - name: Install Sphinx system-wide
                 run: |
-                  apt-get install python3-sphinx
+                  sudo apt-get -y install python3-sphinx
 
               - name: Install package with dev and documentation groups
                 run: |
