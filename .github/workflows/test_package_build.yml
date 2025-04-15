@@ -137,7 +137,7 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     name: documentation
-                    path: ${GITHUB_WORKSPACE}/docs/_build
+                    path: docs/_build
 
     versiontest:
         name: check if version is valid
