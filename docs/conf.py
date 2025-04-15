@@ -28,7 +28,7 @@ else:
 
 
 sys.path.insert(0, str(basefolder))
-sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
+# sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
 
 # Test importing on github workflow
