@@ -21,6 +21,11 @@ from solutionclass import SolutionFixer
 import shutil
 import pytest
 
+from gee_service_authenticator import GEE_Authenticator
+
+# authenticate the service account
+GEE_Authenticator()
+
 # data folder
 datadir = libfolder.joinpath("tests").joinpath("test_data")
 

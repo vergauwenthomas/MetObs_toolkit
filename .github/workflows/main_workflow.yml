@@ -173,10 +173,7 @@ jobs:
             - toolkit_tests/test_analysis.py
             - toolkit_tests/test_importing.py
             - toolkit_tests/test_plotting.py
-
-            # Exclude the test_gee.py file
-            exclude:
-            - test_file: toolkit_tests/test_gee.py #requires GEE credentials
+            - toolkit_tests/test_gee.py
 
         steps:
           # Checkout the repository
