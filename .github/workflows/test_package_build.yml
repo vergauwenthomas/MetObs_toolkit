@@ -90,6 +90,12 @@ jobs:
               - name: Install package with dev and documentation groups
                 run: poetry install --with dev,documentation
 
+              - name: Debug dist contents
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l
+
+
               - name: Build documentation
                 run: ./docs/build_doc.sh
 
