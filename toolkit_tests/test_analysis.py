@@ -166,7 +166,7 @@ if __name__ == "__main__":
     )
 
     test = TestDemoDataset()
-    # test.test_import_data(overwrite_solution=False)
+    test.test_import_data(overwrite_solution=False)
     # test.test_if_analysis_can_be_created_from_dataset(overwrite_solution=False)
     # test.test_aggregate_df_method(overwrite_solution=False)
     # test.test_import_data(overwrite_solution=False)

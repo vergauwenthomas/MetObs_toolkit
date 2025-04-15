@@ -1,0 +1,24 @@
+name: Test gee auth
+
+on: [push]
+
+jobs:
+    build-package:
+        runs-on: ubuntu-latest
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.11'
+
+              - name: Install ee
+                run: |
+                    pip install earthengine-api
+
+              - name: run script
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    python3 toolkit_tests/gee_service_authenticator.py

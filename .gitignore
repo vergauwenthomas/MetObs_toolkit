@@ -8,6 +8,7 @@ temp_output/*
 *poetry.lock
 poetry.lock
 .virtual_documents
+.keys
 
 #Exclude deploy scripts
 deploiment/logs/*
