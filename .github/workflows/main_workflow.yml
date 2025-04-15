@@ -202,6 +202,8 @@ jobs:
 
           # Run tests for the specific test file
           - name: Run Pytest
+            env: # Make secrets available as environment variables in test
+              GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
               pytest ${{ matrix.test_file }} --mpl
               continue-on-error: false
