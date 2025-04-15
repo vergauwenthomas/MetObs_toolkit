@@ -20,6 +20,10 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
 
 logger = logging.getLogger(__file__)
 
+_unfilled_label = "unfilled"
+_failed_label = "failed gapfill"
+_succesful_label = "successful gapfill"
+
 
 class Gap:
     """
@@ -112,20 +116,16 @@ class Gap:
             The fill status, which can be one of the following:
             - 'unfilled'
             - 'failed gapfill'
-            - 'partially successful gapfill'
             - 'successful gapfill'
         """
         if self.records.isna().all() and not bool(self._fillkwargs):
-            return "unfilled"
+            return _unfilled_label
 
         elif self.records.isna().all() and bool(self._fillkwargs):
-            return "failed gapfill"
-
-        elif self.records.isna().any() and bool(self._fillkwargs):
-            return "partially successful gapfill"
+            return _failed_label
 
         elif not self.records.isna().any() and bool(self._fillkwargs):
-            return "successful gapfill"
+            return _succesful_label
         else:
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
@@ -175,7 +175,11 @@ class Gap:
 
     def flag_can_be_filled(self, overwrite: bool = False) -> bool:
         """
-        Determine if the gap can be filled.
+        Determine if the gap can be filled. By default a gap can be filled if:
+         * it is not already filled
+         * if the previous gapfill method failed for the gap.
+
+        A gap that is already filled, can only be updated if the overwrite flag is set to True.
 
         Parameters
         ----------
@@ -196,10 +200,12 @@ class Gap:
 
         if overwrite:
             return True
-        if self.fillstatus == "unfilled":
-            return True
-        else:
+        if (
+            self.fillstatus == _succesful_label
+        ):  # If a gap is already filled, it shouldn't be filled again, so
             return False
+        else:
+            return True
 
     def get_info(self, printout: bool = True) -> str | None:
         """
@@ -853,7 +859,18 @@ class Gap:
             )
             return
 
-        # 3. Combine the anchors with the observations
+        # 3. Check if the gap records do not exceed the max_consec_fill
+        if self.records.shape[0] > max_consec_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill}). Increase the max_consec_fill or use another gapfill method."
+            )
+            return
+
+        # 4. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
         )
@@ -884,7 +901,7 @@ class Gap:
         # update details
         self._extra_info.loc[self.records.notna()] = "Succesfull interpolation"
         self._extra_info.loc[self.records.isna()] = (
-            f"Unsuccesfull interpolation, likely due to exceeding maximumn number of consec fill (={max_consec_fill})."
+            f"Unsuccesfull interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
         )
 
         return
