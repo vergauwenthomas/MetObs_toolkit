@@ -354,8 +354,9 @@ class Station:
         shift_tolerance : str or pandas.Timedelta, optional
             The maximum allowed time shift tolerance for aligning data during
             resampling. Default is 4 minutes.
-        origin : pandas.Timestamp, or None, optional
+        origin_utc : pandas.Timestamp, or None, optional
             The origin timestamp (=first timestamp) of the target records. Can be a pandas.Timestamp or None.
+            If a timezone-naive timestamp is given, it is assumed to be in UTC.
             If None, then a suitable origin is used by simplifying the current origing and making
             sure that origin_simplify_tolerance is met. Default is None.
         origin_simplify_tolerance : pandas.Timedelta, optional
@@ -749,12 +750,12 @@ class Station:
         if startdt_utc is None:
             startdt_utc = self.start_datetime.tz_convert("UTC")
         else:
-            startdt_utc = fmt_datetime_arg(startdt_utc, input_tz="UTC")
+            startdt_utc = fmt_datetime_arg(startdt_utc, tz_if_dt_is_naive="UTC")
 
         if enddt_utc is None:
             enddt_utc = self.end_datetime.tz_convert("UTC")
         else:
-            enddt_utc = fmt_datetime_arg(enddt_utc, input_tz="UTC")
+            enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
         # check if target_obstypes are mapped to bands
         for obst in target_obstypes:

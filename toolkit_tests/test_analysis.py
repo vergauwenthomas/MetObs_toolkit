@@ -3,9 +3,8 @@ import sys
 from pathlib import Path
 
 # import metobs_toolkit
-libfolder = Path(str(Path(__file__).resolve()).split("MetObs_toolkit")[0]).joinpath(
-    "MetObs_toolkit"
-)
+libfolder = Path(str(Path(__file__).resolve())).parent.parent
+
 # point to current version of the toolkit
 sys.path.insert(1, str(libfolder))
 import metobs_toolkit

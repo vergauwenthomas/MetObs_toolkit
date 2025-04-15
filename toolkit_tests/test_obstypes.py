@@ -7,10 +7,10 @@ from pathlib import Path
 # import metobs_toolkit
 import pandas as pd
 
+# Get the path to the MetObs_toolkit directory
 
-libfolder = Path(str(Path(__file__).resolve()).split("MetObs_toolkit")[0]).joinpath(
-    "MetObs_toolkit"
-)
+libfolder = Path(str(Path(__file__).resolve())).parent.parent
+
 # point to current version of the toolkit
 sys.path.insert(1, str(libfolder))
 import metobs_toolkit

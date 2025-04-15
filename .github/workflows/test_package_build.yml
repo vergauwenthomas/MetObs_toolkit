@@ -1,0 +1,210 @@
+name: Build and Test Package
+
+on: [push]
+
+jobs:
+    build-package:
+        runs-on: ubuntu-latest
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.9'
+
+              - name: Install Poetry
+                run: |
+                    curl -sSL https://install.python-poetry.org | python3 -
+                    echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+              - name: Remove previous builds
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    rm -f dist/metobs_toolkit-*
+                    rm -rf *.egg-info
+
+              - name: Install dependencies
+                run: poetry install
+
+              - name: Build the package
+                run: poetry build
+
+              - name: Debug dist contents
+                run: |
+                    cd $GITHUB_WORKSPACE
+                    ls -l dist/
+
+              - name: Upload package artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: regular_package
+                    path: ./dist/metobs_toolkit-*.whl
+
+    test-install:
+        needs: build-package
+        continue-on-error: true
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+                python-version: [3.9, 3.12]
+        runs-on: ${{ matrix.os }}
+        steps:
+              - name: Download package artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: regular_package
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: ${{ matrix.python-version }}
+
+              - name: Find the package file
+                id: find_package
+                shell: bash
+                run: |
+                  PACKAGE_FILE=$(find ./ -name "metobs_toolkit-*.whl" | head -n 1)
+                  echo "Found package file: $PACKAGE_FILE"
+                  echo "package_file=$PACKAGE_FILE" >> $GITHUB_ENV
+
+              - name: Install package with pip
+                run: |
+                    pip install "${{ env.package_file }}"
+
+              - name: Run the trivial import test
+                run: |
+                    python -c "import metobs_toolkit; print('Import successful')"
+    build-docs:
+        needs: build-package
+        runs-on: ubuntu-latest
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.11'
+
+              - name: Install Poetry
+                run: |
+                    curl -sSL https://install.python-poetry.org | python3 -
+                    echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+              - name: install pandoc (system wide)
+                run: |
+                  sudo apt-get -y install pandoc
+
+              - name: Install package with dev and documentation groups
+                run: |
+                  poetry install --with dev,documentation
+                  poetry show
+
+              - name: Debug dist contents
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l
+
+              - name: Build documentation
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  cd docs
+
+                  #clear previous builds
+                  rm -rf _build
+                  # Create _build directory if it does not exist
+                  mkdir -p _build
+
+                  #clear previous autodoc generated files
+                  rm -rf reference/api
+                  mkdir -p reference/api
+
+                  cd $GITHUB_WORKSPACE
+                  poetry run sphinx-build -a -E -v docs/ docs/_build/
+
+                  ls -l
+                  ls -l docs
+                  ls -l docs/_build
+
+              - name: Debug documentation build
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l docs/_build
+
+              - name: Upload documentation artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: documentation
+                    path: docs/_build
+
+    versiontest:
+        name: check if version is valid
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+          - name: get_version
+            id: 'version_info'
+            run: |
+              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+              echo "current version (init) = ${CURRENT_VERSION}"
+              echo "::set-output name=current_version::$CURRENT_VERSION"
+              PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
+              echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+              echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
+          - name: version-is-correct
+            if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
+            run: |
+              echo "version tags are not aligned!"
+              exit 1
+
+
+    pytest:
+        name: Run Pytest framework
+        runs-on: ubuntu-latest
+        # Dynamically create a matrix of test files
+        strategy:
+          matrix:
+            test_file:
+            - toolkit_tests/test_qc.py
+            - toolkit_tests/test_obstypes.py
+            - toolkit_tests/test_gf.py
+            - toolkit_tests/test_analysis.py
+            - toolkit_tests/test_importing.py
+            - toolkit_tests/test_plotting.py
+
+            # Exclude the test_gee.py file
+            exclude:
+            - test_file: toolkit_tests/test_gee.py #requires GEE credentials
+
+        steps:
+          # Checkout the repository
+          - name: Checkout code
+            uses: actions/checkout@v3
+
+          # Set up Python
+          - name: Set up Python
+            uses: actions/setup-python@v4
+            with:
+              python-version: '3.12'
+
+          # Install dependencies (only once, cached)
+          - name: Install dependencies
+            run: |
+              python -m pip install --upgrade pip
+              pip install ipython
+              pip install -e .
+              pip install pytest
+              pip install pytest-mpl
+
+          # List installed packages
+          - name: List installed packages
+            run: |
+              pip list
+
+          # Run tests for the specific test file
+          - name: Run Pytest
+            run: |
+              pytest ${{ matrix.test_file }} --mpl
+              continue-on-error: false

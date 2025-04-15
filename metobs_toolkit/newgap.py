@@ -968,7 +968,6 @@ class Gap:
         logger.debug(f"Entering _setup_lead_and_trail_for_debias_gapfill for {self}")
 
         # Validate argument types
-
         if not sensordata.__class__.__name__ == "SensorData":
             raise TypeError("Argument 'sensordata' must be of type SensorData.")
         if not isinstance(fail_label, str):

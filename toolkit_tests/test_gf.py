@@ -5,9 +5,8 @@ import copy
 import pandas as pd
 
 
-libfolder = Path(str(Path(__file__).resolve()).split("MetObs_toolkit")[0]).joinpath(
-    "MetObs_toolkit"
-)
+libfolder = Path(str(Path(__file__).resolve())).parent.parent
+
 # point to current version of the toolkit
 sys.path.insert(1, str(libfolder))
 import metobs_toolkit
@@ -244,8 +243,7 @@ class TestDataWithGaps:
 
     def test_raw_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
+        _method_name = "test_raw_modeldata_gapfill"
         #   get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
