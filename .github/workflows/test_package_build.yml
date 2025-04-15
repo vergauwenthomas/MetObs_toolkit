@@ -34,7 +34,7 @@ jobs:
               - name: Rename the package #So that the name is constant for windows test (* does not work on windows)
                 run: |
                     cd dist
-                    mv metobs_toolkit-*.whl metobs_toolkit-github_build.whl
+                    mv metobs_toolkit-*.whl metobs_toolkit_github_build.whl
 
               - name: Debug dist contents
                 run: |
@@ -69,7 +69,8 @@ jobs:
               - name: Install package with pip
                 run: |
                     cd $GITHUB_WORKSPACE
-                    pip install metobs_toolkit-github_build.whl
+                    ls
+                    pip install metobs_toolkit_github_build.whl
 
               - name: Run the trivial import test
                 run: |

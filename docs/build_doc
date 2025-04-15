@@ -2,19 +2,20 @@
 
 #This file must be sourced from within docs/ !!!
 
-#clear builds
+#clear previous builds
 rm -rf _build
-rm -rf _autosummary
-
 # Create _build directory if it does not exist
 mkdir -p _build
 
-cd reference/api
-rm -rf *.rst
-cd ../..
+#clear previous autodoc generated files
+rm -rf reference/api
+mkdir -p reference/api
 
+#navigate to the root
 cd ..
-
+#build documentation
 sphinx-build -a -E -v docs/ docs/_build/
 #sphinx-build -v docs/ docs/_build/
+
+#navigate back to docs
 cd docs
