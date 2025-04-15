@@ -19,6 +19,8 @@ jobs:
                     pip install earthengine-api
 
               - name: run script
+                env: # Or as an environment variable
+                  GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
                 run: |
                     cd $GITHUB_WORKSPACE
                     python3 toolkit_tests/gee_service_authenticator.py
