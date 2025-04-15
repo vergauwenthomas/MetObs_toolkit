@@ -45,7 +45,7 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     name: regular_package
-                    path: ./dist/metobs_toolkit-*.whl
+                    path: ./dist/metobs_toolkit_github_build.whl
 
     test-install:
         needs: build-package
@@ -93,8 +93,13 @@ jobs:
                     curl -sSL https://install.python-poetry.org | python3 -
                     echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+              - name: Install Sphinx system-wide
+                run: |
+                  apt-get install python3-sphinx
+
               - name: Install package with dev and documentation groups
-                run: poetry install --with dev,documentation
+                run: |
+                  poetry install --with dev,documentation
 
               - name: Debug dist contents
                 run: |
