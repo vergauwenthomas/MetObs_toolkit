@@ -124,11 +124,16 @@ jobs:
                   cd $GITHUB_WORKSPACE
                   poetry run sphinx-build -a -E -v docs/ docs/_build/
 
+              - name: Debug documentation build
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l docs/_build
+
               - name: Upload documentation artifact
                 uses: actions/upload-artifact@v4
                 with:
                     name: documentation
-                    path: ${GITHUB_WORKSPACE}/docs/_build/
+                    path: ${GITHUB_WORKSPACE}/docs/_build
 
     versiontest:
         name: check if version is valid
