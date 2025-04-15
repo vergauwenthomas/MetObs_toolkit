@@ -16,8 +16,8 @@ if "/runner/" in os.getcwd():
     print("DEBUG: GEE_SERVICE_ACCOUNT:", key_json)
     if not key_json:
         raise EnvironmentError("GEE_SERVICE_ACCOUNT secret is not set.")
-    key_data = json.loads(key_json)
-    credentials = ee.ServiceAccountCredentials(service_account, key_data)
+    # key_data = json.loads(key_json)
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=key_json)
     ee.Initialize(credentials)
 
 else:
