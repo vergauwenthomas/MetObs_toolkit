@@ -63,7 +63,7 @@ jobs:
               - name: Install package with pip
                 run: |
                     cd $GITHUB_WORKSPACE
-                    ls -l
+                    ls
                     pip install metobs_toolkit-*.whl
     build-docs:
         needs: build-package

@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-#clear builds
+#This file must be sourced from within docs/ !!!
 
-rm -r _build/*
-rm -r _autosummary/*
+#clear builds
+rm -rf _build
+rm -rf _autosummary
+
+# Create _build directory if it does not exist
+mkdir -p _build
 
 cd reference/api
-rm *.rst
+rm -rf *.rst
 cd ../..
 
 cd ..
