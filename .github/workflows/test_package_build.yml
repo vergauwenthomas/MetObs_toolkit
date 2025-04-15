@@ -63,14 +63,15 @@ jobs:
 
               - name: Find the package file
                 id: find_package
+                shell: bash
                 run: |
-                    PACKAGE_FILE=$(find . -name "metobs_toolkit-*.whl" | head -n 1)
-                    echo "Found package file: $PACKAGE_FILE"
-                    echo "::set-output name=package_file::$PACKAGE_FILE"
+                  PACKAGE_FILE=$(find ./ -name "metobs_toolkit-*.whl" | head -n 1)
+                  echo "Found package file: $PACKAGE_FILE"
+                  echo "package_file=$PACKAGE_FILE" >> $GITHUB_ENV
 
               - name: Install package with pip
                 run: |
-                    pip install ${{ steps.find_package.outputs.package_file }}
+                    pip install "${{ env.package_file }}"
 
               - name: Run the trivial import test
                 run: |
