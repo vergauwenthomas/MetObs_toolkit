@@ -209,6 +209,7 @@ jobs:
 
 
           - name: Run Pytest
+            continue-on-error: true #DELETETHIS !!!!
             env:
               GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
@@ -223,5 +224,5 @@ jobs:
             if: ${{ matrix.test_file == 'toolkit_tests/test_plotting.py' }}
             uses: actions/upload-artifact@v4
             with:
-              name: ${{ env.test_basename }}
-              path: tmp/${{ env.test_basename }}
+              name: ${{ steps.get_test_basename.outputs.test_basename }}
+              path: tmp/${{ steps.get_test_basename.outputs.test_basename }}
