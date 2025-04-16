@@ -207,8 +207,14 @@ jobs:
               mkdir -p tmp/
               pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/
 
+          - name: Set artifact name
+            id: set_artifact_name
+            run: |
+              TEST_FILE_NAME=$(basename "${{ matrix.test_file }}" .py)
+              echo "artifact_name=mpl_diff_${TEST_FILE_NAME}" >> $GITHUB_ENV
+
           - name: Upload mpl-diff artifact
             uses: actions/upload-artifact@v4
             with:
-              name: mpl_diff
+              name: ${{ env.artifact_name }}
               path: tmp/
