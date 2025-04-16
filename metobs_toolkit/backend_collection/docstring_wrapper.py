@@ -2,19 +2,18 @@
 of one funtion to another. Useful for wrapping functions as
 class methods."""
 
-from typing import Callable, TypeVar, Any, TypeAlias
+from typing import Callable, TypeVar, Any
 from typing_extensions import ParamSpec
 import re
 
 T = TypeVar("T")
 P = ParamSpec("P")
-WrappedFuncDeco: TypeAlias = Callable[[Callable[P, T]], Callable[P, T]]
 
 
 def copy_doc(
     copy_func: Callable[..., Any],
     extra_param_desc: str = "",
-) -> WrappedFuncDeco[P, T]:
+):
     """Copies the docstring of the given function to another and optionally
     appends an extra parameter description in numpy style.
 
