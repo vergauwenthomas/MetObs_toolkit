@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 import pint
 import math
 import numpy as np

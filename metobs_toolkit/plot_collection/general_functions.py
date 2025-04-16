@@ -1,4 +1,5 @@
 import logging
+import locale
 from typing import Literal, Tuple
 
 import matplotlib.pyplot as plt
@@ -37,6 +38,9 @@ def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
 
 def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.Axes:
     """Set the x-axes to autodateformat. Optionally set diurnal format."""
+    # Set the locale to English (United States) for date formatting
+    locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
+
     xtick_locator = matplotlib.dates.AutoDateLocator()
     if set_diurnal_format:
         xtick_formatter = matplotlib.dates.DateFormatter("%H:%M")
