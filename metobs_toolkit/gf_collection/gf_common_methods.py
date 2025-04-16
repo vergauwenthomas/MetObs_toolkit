@@ -1,5 +1,5 @@
 import logging
-from types import Union
+from typing import Union
 import pandas as pd
 import numpy as np
 
