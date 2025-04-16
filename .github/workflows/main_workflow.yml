@@ -201,20 +201,20 @@ jobs:
             run: |
               pip list
 
-          # Run tests for the specific test file
-          - name: Run Pytest
-            run: |
-              mkdir -p tmp/
-              pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/
-
-          - name: Set artifact name
-            id: set_artifact_name
+          - name: Get test basename
+            id: get_test_basename
             run: |
               TEST_FILE_NAME=$(basename "${{ matrix.test_file }}" .py)
-              echo "artifact_name=mpl_diff_${TEST_FILE_NAME}" >> $GITHUB_ENV
+              echo "test_basename=${TEST_FILE_NAME}" >> $GITHUB_ENV
+
+              # Run tests for the specific test file
+          - name: Run Pytest
+            run: |
+              mkdir -p tmp/${{ env.test_basename}}
+              pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ env.test_basename}}
 
           - name: Upload mpl-diff artifact
             uses: actions/upload-artifact@v4
             with:
-              name: ${{ env.artifact_name }}
-              path: tmp/
+              name: ${{ env.test_basename}}
+              path: tmp/${{ env.test_basename}}
