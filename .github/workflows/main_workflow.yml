@@ -207,22 +207,33 @@ jobs:
               TEST_FILE_NAME=$(basename "${{ matrix.test_file }}" .py)
               echo "test_basename=${TEST_FILE_NAME}" >> $GITHUB_ENV
 
-
-          - name: Run Pytest
-            continue-on-error: true #DELETETHIS !!!!
+          - name: Run Pytest --mpl to generate comparison figure
+            continue-on-error: true #NO FAILURE --> so artifact step is executed
             env:
-              GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+                GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
               if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
-                mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
-                pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ steps.get_test_basename.outputs.test_basename }}
-              else
-                pytest ${{ matrix.test_file }}
-              fi
+                  mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                  pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                else
+                  echo "skip  ${{ matrix.test_file }}"
+                fi
 
           - name: Upload mpl-diff artifact (only for test_plotting.py)
             if: ${{ matrix.test_file == 'toolkit_tests/test_plotting.py' }}
             uses: actions/upload-artifact@v4
             with:
               name: ${{ steps.get_test_basename.outputs.test_basename }}
-              path: tmp/${{ steps.get_test_basename.outputs.test_basename }}
+              path: tmp
+
+
+          - name: Run Pytest
+            env:
+              GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+            run: |
+              if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
+                mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                pytest ${{ matrix.test_file }} --mpl
+              else
+                pytest ${{ matrix.test_file }}
+              fi
