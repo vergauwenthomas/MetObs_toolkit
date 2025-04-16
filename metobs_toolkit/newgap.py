@@ -40,7 +40,13 @@ class Gap:
 
     """
 
-    def __init__(self, gaprecords: pd.DatetimeIndex, obstype, stationname: str):
+    def __init__(
+        self,
+        gaprecords: pd.DatetimeIndex,
+        obstype,
+        stationname: str,
+        datadtype=np.float32,
+    ):
         if not isinstance(gaprecords, pd.DatetimeIndex):
             raise TypeError("gaprecords must be a pd.DatetimeIndex.")
         if not isinstance(stationname, str):
@@ -68,6 +74,7 @@ class Gap:
 
         self._obstype = obstype
         self._stationname = stationname
+        self._datadtype = datadtype
 
     @property
     def records(self) -> pd.Series:
@@ -79,7 +86,7 @@ class Gap:
         pd.Series
             Series containing the gap records.
         """
-        return self._records
+        return self._records.astype(self._datadtype)
 
     @property
     def obstype(self) -> Obstype:
