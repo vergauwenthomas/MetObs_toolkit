@@ -207,12 +207,14 @@ jobs:
               TEST_FILE_NAME=$(basename "${{ matrix.test_file }}" .py)
               echo "test_basename=${TEST_FILE_NAME}" >> $GITHUB_ENV
 
-              # Run tests for the specific test file
+
           - name: Run Pytest
+            env:
+              GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
               if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
-                mkdir -p tmp/${{ env.test_basename}}
-                pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ env.test_basename}}
+                mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ steps.get_test_basename.outputs.test_basename }}
               else
                 pytest ${{ matrix.test_file }}
               fi
