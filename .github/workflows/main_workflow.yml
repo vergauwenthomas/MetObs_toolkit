@@ -223,7 +223,7 @@ jobs:
             if: ${{ matrix.test_file == 'toolkit_tests/test_plotting.py' }}
             uses: actions/upload-artifact@v4
             with:
-              name: ${{ steps.get_test_basename.outputs.test_basename }}
+              name: mpl-diff
               path: tmp
 
 
