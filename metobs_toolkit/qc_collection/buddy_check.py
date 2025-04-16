@@ -1,4 +1,5 @@
 import os
+from typing import Union
 import logging
 import concurrent.futures
 from math import radians, cos, sin, asin, sqrt
@@ -187,14 +188,14 @@ def create_groups_of_buddies(buddydict):
 def toolkit_buddy_check(
     dataset: "Dataset",
     obstype: str,
-    buddy_radius: int | float,
+    buddy_radius: Union[int, float],
     min_sample_size: int,
-    max_alt_diff: int | float | None,
-    min_std: int | float,
-    std_threshold: int | float,
+    max_alt_diff: Union[int, float, None],
+    min_std: Union[int, float],
+    std_threshold: Union[int, float],
     N_iter: int,
     instantanious_tolerance: pd.Timedelta,
-    lapserate: float | None = None,  # -0.0065 for temperarture
+    lapserate: Union[float, None] = None,  # -0.0065 for temperarture
     use_mp: bool = True,
 ):
     """Spatial buddy check.
@@ -230,23 +231,23 @@ def toolkit_buddy_check(
         The dataset to apply the buddy check on.
     obstype: str, optional
         The observation type that has to be checked. The default is 'temp'
-    buddy_radius : int | float
+    buddy_radius : int or float
         The radius to define spatial neighbors in meters.
     min_sample_size : int
         The minimum sample size to calculate statistics on.
-    max_alt_diff : int | float | None
+    max_alt_diff : int or float or None
         The maximum altitude difference allowed for buddies. I None,
         no altitude filter is applied.
-    min_std : int | float
+    min_std : int or float
         The minimum standard deviation for sample statistics. This should
         represent the accuracy of the observations.
-    std_threshold : int | float
+    std_threshold : int or float
         The threshold (std units) for flagging observations as outliers.
     N_iter : int
         The number of iterations to perform the buddy check. The default is 2.
     instantanious_tolerance : pd.Timedelta
         The maximum time difference allowed for synchronizing observations.
-    lapserate : int | float | None
+    lapserate : int or float or None
         Describe how the obstype changes with altitude (in meters). If None, no
         altitude correction is applied. For temperature, a common value is -0.0065.
     use_mp : bool

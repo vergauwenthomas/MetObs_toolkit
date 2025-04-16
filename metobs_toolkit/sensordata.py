@@ -1,5 +1,5 @@
 import logging
-from typing import Literal
+from typing import Literal, Union
 
 import numpy as np
 import pandas as pd
@@ -27,11 +27,13 @@ class SensorData:
         timestamps: np.ndarray,
         obstype: Obstype,
         datadtype=np.float32,
-        timezone: str | pd.Timedelta = "UTC",
+        timezone: Union[str, pd.Timedelta] = "UTC",
         freq_estimation_method: Literal["highest", "median"] = "median",
-        freq_estimation_simplify_tolerance: pd.Timedelta | str = pd.Timedelta("1min"),
-        origin_simplify_tolerance: pd.Timedelta | str = pd.Timedelta("1min"),
-        timestamp_tolerance: pd.Timedelta | str = pd.Timedelta("4min"),
+        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta(
+            "1min"
+        ),
+        origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
+        timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
     ):
         """
         Initialize SensorData.
@@ -348,7 +350,7 @@ class SensorData:
             target_freq=pd.to_timedelta(timestampmatcher.target_freq),
         )
 
-    def get_info(self, printout: bool = True) -> str | None:
+    def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print basic information about the sensor data.
 
@@ -548,7 +550,7 @@ class SensorData:
         return to_timedelta(freq)
 
     def _format_timestamp_index(
-        self, timestamps: np.ndarray, tz: str | pd.Timedelta
+        self, timestamps: np.ndarray, tz: Union[str, pd.Timedelta]
     ) -> pd.DatetimeIndex:
         """
         Format the timestamp index.
@@ -965,8 +967,3 @@ class SensorData:
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
             )
-
-
-# ------------------------------------------
-#    Helpers
-# ------------------------------------------

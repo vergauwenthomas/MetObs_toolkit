@@ -1,4 +1,5 @@
 import logging
+from types import Union
 import pandas as pd
 import numpy as np
 
@@ -90,7 +91,7 @@ def get_trailing_period(
     gap,
     sensordata,
     n_records: int,
-    duration: pd.Timedelta | None = None,
+    duration: Union[pd.Timedelta, None] = None,
     fixed_by_records=True,
     fixed_by_duration=False,
 ):
@@ -138,7 +139,7 @@ def get_leading_period(
     gap,
     sensordata,
     n_records: int,
-    duration: pd.Timedelta | None = None,
+    duration: Union[pd.Timedelta, None] = None,
     fixed_by_records=True,
     fixed_by_duration=False,
 ):

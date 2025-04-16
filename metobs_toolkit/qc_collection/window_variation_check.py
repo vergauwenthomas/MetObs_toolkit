@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 import pandas as pd
 
 from .common_functions import test_moving_window_condition
@@ -10,8 +11,8 @@ def window_variation_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
     min_records_per_window: int,
-    max_increase_per_second: int | float,
-    max_decrease_per_second: int | float,
+    max_increase_per_second: Union[int, float],
+    max_decrease_per_second: Union[int, float],
 ) -> pd.DatetimeIndex:
     """Test if the increase/decrease in a timewindow exceeds a threshold.
 
@@ -34,10 +35,10 @@ def window_variation_check(
     min_records_per_window : int
         The minimum number of non-NaN records required within the time window for the check to be valid.
         This is dependent on the time resolution of the records.
-    max_increase_per_second : int | float, >0
+    max_increase_per_second : int or float, >0
         The maximum allowed increase (per second). This value is extrapolated to the window duration.
         This value must be positive!
-    max_decrease_per_second : int | float, <0
+    max_decrease_per_second : int or float, <0
         The maximum allowed decrease (per second). This value is extrapolated to the window duration.
         This value must be negative!
 

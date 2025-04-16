@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import pandas as pd
 import numpy as np
@@ -29,7 +30,7 @@ possible_time_derivates = [
 
 
 class Analysis:
-    def __init__(self, Dataholder: Dataset | Station):
+    def __init__(self, Dataholder: Union[Dataset, Station]):
         if isinstance(Dataholder, Dataset):
             df = Dataholder.df
             metadf = Dataholder.metadf

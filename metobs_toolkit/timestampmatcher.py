@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Tuple
+from typing import Literal, Union
 import pandas as pd
 import numpy as np
 
@@ -208,9 +208,9 @@ class TimestampMatcher:
     def make_equispaced_timestamps_mapper(
         self,
         freq_estimation_method: Literal["highest", "median"],
-        freq_estimation_simplify_tolerance: pd.Timedelta | str,
-        origin_simplify_tolerance: pd.Timedelta | str,
-        timestamp_tolerance: pd.Timedelta | str,
+        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
+        origin_simplify_tolerance: Union[pd.Timedelta, str],
+        timestamp_tolerance: Union[pd.Timedelta, str],
         force_freq=None,
         force_origin=None,
         force_closing=None,
@@ -285,7 +285,7 @@ class TimestampMatcher:
 
 
 def simplify_time(
-    time: pd.Timestamp | pd.Timedelta,
+    time: Union[pd.Timestamp, pd.Timedelta],
     max_simplify_error: pd.Timedelta,
     zero_protection: bool = False,
 ):
@@ -325,7 +325,7 @@ def simplify_time(
 def get_likely_frequency(
     timestamps: pd.DatetimeIndex,
     method: Literal["highest", "median"] = "highest",
-    max_simplify_error: str | pd.Timedelta = "2min",
+    max_simplify_error: Union[str, pd.Timedelta] = "2min",
 ) -> pd.Timedelta:
     """Find the most likely observation frequency of a datetimeindex.
 

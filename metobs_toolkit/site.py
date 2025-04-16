@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -127,7 +128,7 @@ class Site:
     #   Setters
     # ------------------------------------------
 
-    def set_geedata(self, dataname: str, value: str | float):
+    def set_geedata(self, dataname: str, value: Union[str, float]):
         self._geedata[dataname] = value
 
     def set_gee_buffered_frac_data(self, buffer, data: dict):
@@ -170,7 +171,7 @@ class Site:
 
     def get_gee_point_metadata(
         self, geestaticdataset, initialize_gee: bool = True
-    ) -> str | float:
+    ) -> Union[str, float]:
         # test if modeldata is static
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
@@ -224,7 +225,7 @@ class Site:
             bufferdict.update(fracdict)
         return bufferdict
 
-    def get_info(self, printout: bool = True) -> str | None:
+    def get_info(self, printout: bool = True) -> Union[str, None]:
 
         infostr = f"Site of {self.stationname}:\n"
 

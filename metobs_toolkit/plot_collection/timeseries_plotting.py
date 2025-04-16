@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Tuple
+from typing import Literal, Union
 
 import pandas as pd
 import numpy as np
@@ -42,7 +42,7 @@ def add_lines_to_axes(
     linestyle: Literal["-", "--", "-.", ":", ""] = "-",
     color: str = "navy",
     linewidth: int = 2,
-    zorder: int | float = 1,
+    zorder: Union[int, float] = 1,
 ) -> plt.Axes:
     """
     Add a line plot to the given axes.
@@ -92,7 +92,7 @@ def add_vertical_lines_to_axes(
     linestyle: Literal["-", "--", "-.", ":", ""] = "-",
     color: str = "navy",
     linewidth: int = 2,
-    zorder: int | float = 1,
+    zorder: [int, float] = 1,
 ) -> plt.Axes:
     """
     Add vertical lines to the given axes.
@@ -146,7 +146,7 @@ def add_scatters_to_axes(
     legend_label: str,
     color: str = "navy",
     scattersize: int = 2,
-    zorder: int | float = 1,
+    zorder: Union[int, float] = 1,
 ) -> plt.Axes:
     """
     Add scatter points to the given axes.

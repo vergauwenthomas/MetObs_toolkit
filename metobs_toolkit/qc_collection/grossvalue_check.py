@@ -1,6 +1,7 @@
 import logging
-import pandas as pd
 from typing import Union
+import pandas as pd
+
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,9 @@ logger.setLevel(logging.INFO)
 
 
 def gross_value_check(
-    records: pd.Series, lower_threshold: int | float, upper_threshold: int | float
+    records: pd.Series,
+    lower_threshold: Union[int, float],
+    upper_threshold: Union[int, float],
 ) -> pd.DatetimeIndex:
     """Identify outliers in a timeseries based on thresholds.
 

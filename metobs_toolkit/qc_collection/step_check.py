@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 import pandas as pd
 
 logger = logging.getLogger(__file__)
@@ -7,8 +8,8 @@ logging.basicConfig(level=logging.INFO)
 
 def step_check(
     records: pd.Series,
-    max_increase_per_second: int | float,
-    max_decrease_per_second: int | float,
+    max_increase_per_second: Union[int, float],
+    max_decrease_per_second: Union[int, float],
 ) -> pd.DatetimeIndex:
     """Check for 'spikes' and 'dips' in a timeseries.
 

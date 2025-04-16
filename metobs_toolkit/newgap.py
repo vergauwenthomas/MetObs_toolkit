@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 import numpy as np
 import pandas as pd
 
@@ -212,7 +213,7 @@ class Gap:
         else:
             return True
 
-    def get_info(self, printout: bool = True) -> str | None:
+    def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Print or return detailed information about the Gap.
 
@@ -248,9 +249,9 @@ class Gap:
         self,
         sensordata: "SensorData",  # PEP 484 - Type Hints (use string to avoid cycle import)
         modeltimeseries: ModelTimeSeries,
-        leading_period_duration: str | pd.Timedelta,
+        leading_period_duration: Union[str, pd.Timedelta],
         min_leading_records_total: int,
-        trailing_period_duration: str | pd.Timedelta,
+        trailing_period_duration: Union[str, pd.Timedelta],
         min_trailing_records_total: int,
     ) -> None:
         """Fill the gaps using modeldata corrected for the bias.
@@ -749,8 +750,8 @@ class Gap:
         max_consec_fill=10,
         n_leading_anchors=1,
         n_trailing_anchors=1,
-        max_lead_to_gap_distance: pd.Timedelta | None = None,
-        max_trail_to_gap_distance: pd.Timedelta | None = None,
+        max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
+        max_trail_to_gap_distance: Union[pd.Timedelta, None] = None,
         method_kwargs={},
     ):
         """Fill the gap using interpolation of SensorData.
@@ -939,7 +940,7 @@ class Gap:
         min_leading_records_total: int,
         trailing_period_duration: pd.Timedelta,
         min_trailing_records_total: int,
-    ) -> tuple[pd.Series | None, pd.Series | None, bool]:
+    ) -> tuple[Union[pd.Series, None], Union[pd.Series, None], bool]:
         """
         Construct leading and trailing periods.
 

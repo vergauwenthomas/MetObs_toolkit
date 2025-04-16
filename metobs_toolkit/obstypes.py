@@ -29,7 +29,7 @@ def fmt_unit_to_str(unit):
 
 
 class Obstype:
-    def __init__(self, obsname: str, std_unit: str | pint.Unit, description: str):
+    def __init__(self, obsname: str, std_unit: Union[str, pint.Unit], description: str):
         # set name
         self._name = str(obsname)
 

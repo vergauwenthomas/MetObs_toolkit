@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import pandas as pd
-from typing import Literal
+from typing import Literal, Union
 from matplotlib.pyplot import Axes
 
 from metobs_toolkit.site import Site
@@ -276,7 +276,7 @@ class Station:
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
-    def get_info(self, printout: bool = True) -> str | None:
+    def get_info(self, printout: bool = True) -> Union[str, None]:
         """Get printout overview info.
 
         Retrieve and optionally print detailed information about the station,
@@ -322,11 +322,11 @@ class Station:
 
     def resample(
         self,
-        target_freq: str | pd.Timedelta,
-        target_obstype: str | None = None,
-        shift_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
-        origin: None | pd.Timestamp = None,
-        origin_simplify_tolerance: str | pd.Timedelta = pd.Timedelta("4min"),
+        target_freq: Union[str, pd.Timedelta],
+        target_obstype: Union[str, None] = None,
+        shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+        origin: Union[None, pd.Timestamp] = None,
+        origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
     ) -> None:
         """
         Resample observation data to a specified frequency.
@@ -485,7 +485,7 @@ class Station:
 
         Returns
         -------
-        value : str | float
+        value : str or float
             the retrieved metadata from the specified GEE dataset.
 
         Notes
@@ -675,7 +675,7 @@ class Station:
         drive_folder="gee_timeseries_data",
         force_direct_transfer=False,
         force_to_drive=False,
-    ) -> pd.DataFrame | None:
+    ) -> Union[pd.DataFrame, None]:
         """Extract time series data from GEE.
 
         Extracts time series (extraction at station locations) data from a Google Earth Engine (GEE) dynamic dataset
@@ -853,7 +853,7 @@ class Station:
     def persistence_check(
         self,
         target_obstype: str = "temp",
-        timewindow: str | pd.Timedelta = pd.Timedelta("60min"),
+        timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
     ):
         """Check if values are not constant in a moving time window.
@@ -954,8 +954,8 @@ class Station:
     def step_check(
         self,
         target_obstype: str = "temp",
-        max_increase_per_second: int | float = 8.0 / 3600.0,
-        max_decrease_per_second: int | float = -10.0 / 3600.0,
+        max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
+        max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
     ) -> None:
         """Check for 'spikes' and 'dips' in a timeseries.
 
@@ -970,10 +970,10 @@ class Station:
         ----------
         target_obstype : str, optional
             The target observation to check. by default "temp"
-        max_increase_per_second : int | float, >0, optional
+        max_increase_per_second : int or float, >0, optional
             The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
             This value must be positive!  The default is 8.0/3600.0
-        max_decrease_per_second : int | float, <0, optional
+        max_decrease_per_second : int or float, <0, optional
             The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
             This value must be negative!, The default is -10.0/3600.0
 
@@ -1005,8 +1005,8 @@ class Station:
         target_obstype: str = "temp",
         timewindow: pd.Timedelta = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
-        max_increase_per_second: int | float = 8.0 / 3600,
-        max_decrease_per_second: int | float = -10.0 / 3600,
+        max_increase_per_second: Union[int, float] = 8.0 / 3600,
+        max_decrease_per_second: Union[int, float] = -10.0 / 3600,
     ):
         """ "Test if the increase/decrease in a timewindow exceeds a threshold.
 
@@ -1028,10 +1028,10 @@ class Station:
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             This is dependent on the time resolution of the records. The default is 3
-        max_increase_per_second : int | float, >0
+        max_increase_per_second : int or float, >0
             The maximum allowed increase (per second). This value is extrapolated to the window duration.
             This value must be positive! The default is 8.0/3600
-        max_decrease_per_second : int | float, <0
+        max_decrease_per_second : int or float, <0
             The maximum allowed decrease (per second). This value is extrapolated to the window duration.
             This value must be negative! The default is -10.0/3600
 
@@ -1140,10 +1140,10 @@ class Station:
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
-        linecolor: str | None = None,
-        title: str | None = None,
+        linecolor: Union[str, None] = None,
+        title: Union[str, None] = None,
         linestyle: str = "--",
-        ax: None | Axes = None,
+        ax: Union[None, Axes] = None,
         figkwargs: dict = {},
     ) -> Axes:
         """Generate a timeseries plot of model data for a specific observation type.
@@ -1240,10 +1240,10 @@ class Station:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
-        linecolor: str | None = None,
+        linecolor: Union[str, None] = None,
         show_outliers=True,
         show_gaps=True,
-        title: str | None = None,
+        title: Union[str, None] = None,
         ax=None,
         figkwargs: dict = {},
     ) -> Axes:
@@ -1444,11 +1444,11 @@ class Station:
         -------------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str | pd.Timedelta, optional
+        leading_period_duration : str or pd.Timedelta, optional
             The duration of the leading period. The default is "24h".
         min_leading_records_total : int, optional
             The minimum number of records required in the leading period. The default is 60.
-        trailing_period_duration : str | pd.Timedelta, optional
+        trailing_period_duration : str or pd.Timedelta, optional
             The duration of the trailing period. The default is "24h".
         min_trailing_records_total : int, optional
             The minimum number of records required in the trailing period. The default is 60.
@@ -1523,10 +1523,10 @@ class Station:
         -------------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration :  str | pd.Timedelta, optional
+        leading_period_duration :  str or pd.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration :  str | pd.Timedelta, optional
+        trailing_period_duration :  str or pd.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_debias_sample_size : int, optional
@@ -1616,10 +1616,10 @@ class Station:
         ------------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str | pd.Timedelta, optional
+        leading_period_duration : str or pd.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration : str | pd.Timedelta, optional
+        trailing_period_duration : str or pd.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_lead_debias_sample_size : int, optional
@@ -1697,8 +1697,8 @@ class Station:
         max_consec_fill: int = 10,
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
-        max_lead_to_gap_distance: pd.Timedelta | None = None,
-        max_trail_to_gap_distance: pd.Timedelta | None = None,
+        max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
+        max_trail_to_gap_distance: Union[pd.Timedelta, None] = None,
         overwrite_fill=False,
         method_kwargs={},
     ):
@@ -1729,10 +1729,10 @@ class Station:
             The number of trailing anchors to use for the interpolation. A trailing anchor is
             a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
-        max_lead_to_gap_distance:  pd.Timedelta | None, optional
+        max_lead_to_gap_distance:  pd.Timedelta or None, optional
             The maximum time difference between the start of the gap and a
             leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
-        max_trail_to_gap_distance : pd.Timedelta | None, optional
+        max_trail_to_gap_distance : pd.Timedelta or None, optional
             The maximum time difference between the end of the gap and a
             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
         overwrite_fill : bool, optional
