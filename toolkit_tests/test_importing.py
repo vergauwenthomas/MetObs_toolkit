@@ -110,6 +110,9 @@ class TestDemoData:
         station.site.get_info()
         station.obsdata["temp"].get_info()
 
+        # make plot
+        station.make_plot()
+
     def test_subset_by_stations(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
