@@ -17,7 +17,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 import shutil
 import pytest
 
@@ -59,15 +59,7 @@ class TestObstype:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestObstype.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # dataset comparison
 
     def test_calling_methods_without_solution_on_obstypes(self):
         # 1. get_startpoint data

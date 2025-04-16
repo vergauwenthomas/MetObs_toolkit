@@ -15,7 +15,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 
 import pytest
 
@@ -61,15 +61,7 @@ class TestBreakingDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestBreakingDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_apply_qc(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -156,15 +148,7 @@ class TestBreakingDataset:
 
         # 5. Construct the equlity tests on dataset level
 
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestBreakingDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_qc_statistics(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -190,14 +174,7 @@ class TestBreakingDataset:
         )
 
         # 5. Construct the equlity tests on dataset level
-        test_expr = statsdf.equals(solutionobj)
-
-        if not test_expr:
-            debug_diff = TestBreakingDataset.solutionfixer.create_a_diff(
-                to_check=statsdf, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(statsdf, solutionobj)
 
         # Test plotting
         _statsdf = dataset.get_qc_stats(target_obstype="temp", make_plot=True)
@@ -239,16 +216,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_buddy_check(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -379,22 +347,9 @@ class TestDemoDataset:
         )
 
         # validate expression
-        test_expr = outliersdf_1_iter.equals(solutionobj_1iter)  # dataset comparison
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=outliersdf_1_iter, solution=solutionobj_1iter
-            )
-        assert test_expr
+        assert_equality(outliersdf_1_iter, solutionobj_1iter)  # dataset comparison
 
-        # validate expression
-        test_expr = outliersdf_2_iter.equals(solutionobj_2iter)  # dataset comparison
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=outliersdf_2_iter, solution=solutionobj_2iter
-            )
-        assert test_expr
-
-        # #reading manual
+        assert_equality(outliersdf_2_iter, solutionobj_2iter)  # dataset comparison
 
 
 if __name__ == "__main__":

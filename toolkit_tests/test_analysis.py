@@ -11,7 +11,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 import pytest
 
 from gee_service_authenticator import GEE_Authenticator
@@ -59,16 +59,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = ana == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=ana, solution=solutionobj
-            )
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(ana, solutionobj)  # dataset comparison
 
     def test_if_analysis_can_be_created_from_dataset(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -103,16 +94,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = ana.df.equals(solutionobj)  # dataframe comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=ana.df, solution=solutionobj
-            )
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(ana.df, solutionobj)  # dataframe comparison
 
     def test_aggregate_df_method(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -137,16 +119,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = aggdf.equals(solutionobj)  # dataframe comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=aggdf, solution=solutionobj
-            )
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(aggdf, solutionobj)  # dataframe comparison
 
     @pytest.mark.mpl_image_compare
     def test_diurnal_cycle_plot(self):

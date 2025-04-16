@@ -16,7 +16,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 import shutil
 import pytest
 
@@ -65,16 +65,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     @pytest.mark.mpl_image_compare
     def test_dataset_timeseries_plotting_by_label(self):
@@ -220,7 +211,7 @@ class TestDataWithGaps:
         dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
             testfile="test_gf",  # OTHER TEST FILE!
             classname="TestDataWithGaps",
-            methodname="test_debias_modeldata_gapfill_A",
+            methodname="test_debias_modeldata_gapfill",
         )
         ax = dataset_with_gf.make_plot(colorby="label")
         fig = ax.get_figure()

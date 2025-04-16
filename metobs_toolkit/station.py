@@ -189,8 +189,6 @@ class Station:
             )
             concatlist.append(df)
         combdf = save_concat(concatlist)
-        combdf = combdf[["value", "details"]]
-        combdf.sort_index(inplace=True)
         if combdf.empty:
             combdf = pd.DataFrame(
                 columns=["value", "details"],
@@ -198,6 +196,9 @@ class Station:
                     levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
                 ),
             )
+        # formatting
+        combdf = combdf[["value", "details"]]
+        combdf.sort_index(inplace=True)
         return combdf
 
     @property

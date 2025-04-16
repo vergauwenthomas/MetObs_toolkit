@@ -14,7 +14,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 import shutil
 import pytest
 
@@ -60,15 +60,7 @@ class TestDemoData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # dataset comparison
 
     def test_calling_methods_without_solution_on_dataset(self):
         # 1. get_startpoint data
@@ -147,15 +139,7 @@ class TestDemoData:
         )
 
         # 5. Construct the equality tests
-        test_expr = data_to_test == solutionobj  # Dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no terminal output)
-        if not test_expr:
-            debug_diff = TestDemoData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # Dataset comparison
 
     def test_subset_by_stations_invalid(self):
         # 1. get_startpoint data
@@ -198,15 +182,7 @@ class TestDemoData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # string comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # string comparison
 
     def test_get_station(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -233,15 +209,7 @@ class TestDemoData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # Station comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # Station comparison
 
     def test_pickling_dataset(self):
         # 0. Get info of the current check
@@ -265,7 +233,7 @@ class TestDemoData:
         shutil.rmtree(tmpdir)
 
         # test if the pickled dataset is equal to the original
-        assert dataset == dataset2
+        assert_equality(dataset, dataset2)
 
 
 class TestWideData:
@@ -312,16 +280,7 @@ class TestWideData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestWideData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-            print(debug_diff)
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # dataset comparison
 
     def test_sync_wide_records(self, overwrite_solution=True):
         # 0. Get info of the current check
@@ -347,15 +306,7 @@ class TestWideData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestWideData.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
         assert dataset.df.shape == (196, 2)
 
 
@@ -403,16 +354,7 @@ class TestWideSingleStationData:
         )
 
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestWideSingleStationData.solutionfixer.create_a_diff(
-                to_check=data_to_test, solution=solutionobj
-            )
-            print(debug_diff)
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)  # dataset comparison
 
 
 if __name__ == "__main__":

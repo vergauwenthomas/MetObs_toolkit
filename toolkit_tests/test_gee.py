@@ -17,7 +17,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 import shutil
 import pytest
 
@@ -65,11 +65,10 @@ class TestDemoDataset:
             methodname=_method_name, **TestDemoDataset.solkwargs
         )
 
+        # DEBUG
+        test = dataset.modeldatadf
         # 5. Construct the equlity tests
-        test_expr = data_to_test == solutionobj  # dataset comparison
-
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(data_to_test, solutionobj)
 
     def test_gee_connect(self):
         metobs_toolkit.connect_to_gee()
@@ -97,16 +96,9 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-
-        assert dataset == solutionobj
-        assert lcz_data["lcz"].equals(solutionobj.metadf["lcz"])
+        assert_equality(lcz_data["lcz"], solutionobj.metadf["lcz"])
         # calling printoutlc
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
         assert isinstance(dataset.get_station("vlinder18").site.lcz, str)
@@ -134,16 +126,9 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-
-        assert dataset == solutionobj
-        assert alt_data["altitude"].equals(solutionobj.metadf["altitude"])
+        assert_equality(alt_data["altitude"], solutionobj.metadf["altitude"])
         # calling printout
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
         assert isinstance(dataset.get_station("vlinder18").site.altitude, int)
@@ -226,15 +211,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-
-        assert dataset == solutionobj
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
         assert isinstance(landcover_data, pd.DataFrame)
         # calling printout
@@ -302,15 +279,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_ERA5_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -355,15 +324,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_pickling(self):
 
@@ -382,13 +343,7 @@ class TestDemoDataset:
             target_path=datadir.joinpath("deleteme.pkl")
         )
 
-        test_expr = dataset_pkled == dataset
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset_pkled, solution=dataset
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset_pkled, dataset)
 
     def test_era5_modeldata_interactions(self):
         # 1. get_startpoint data
@@ -443,13 +398,7 @@ class TestDemoDataset:
         )
 
         # test equality
-        test_expr = dataset == dataset_direct
-        if not test_expr:
-            debug_diff = TestDemoDataset.solutionfixer.create_a_diff(
-                to_check=dataset, solution=dataset_direct
-            )
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(dataset, dataset_direct)
 
     def test_modeldata_timeseries_plot(self):
         # 1. get_startpoint data WITH records
@@ -467,7 +416,7 @@ class TestDemoDataset:
 if __name__ == "__main__":
 
     test = TestDemoDataset()
-    # test.test_import_demo_metadata(overwrite_solution=False)
+    test.test_import_demo_metadata(overwrite_solution=False)
     # test.test_lcz_extraction(overwrite_solution=False)
     # test.test_altitude_extraction(overwrite_solution=False)
     # test.test_landcover_frac_extraction(overwrite_solution=False)

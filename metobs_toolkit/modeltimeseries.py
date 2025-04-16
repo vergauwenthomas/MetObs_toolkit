@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 import pandas as pd
 import numpy as np
 
@@ -145,7 +146,11 @@ class ModelTimeSeries:
             return infostr
 
     def make_plot(
-        self, linecolor=None, ax=None, figkwargs: dict = {}, title: str | None = None
+        self,
+        linecolor=None,
+        ax=None,
+        figkwargs: dict = {},
+        title: Union[str, None] = None,
     ) -> Axes:
 
         # define figure

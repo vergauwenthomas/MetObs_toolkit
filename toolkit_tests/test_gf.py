@@ -14,7 +14,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer
+from solutionclass import SolutionFixer, assert_equality
 
 import pytest
 
@@ -86,22 +86,11 @@ class TestDataWithGaps:
         )
 
         # 5. Construct the equlity tests
-        test_expr = dataset == solutionobj  # dataset comparison
-
-        # 5. save comparison, create difference (only used when debugging, so no termina output)
-        if not test_expr:
-            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-            logging.warning(f"Debug difference: {debug_diff}")
-        # 6. assert the equality
-        # IF THIS FAILS, it can be an issue with the dataset.resample method
-        assert test_expr
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_interpolation_on_station(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
+        _method_name = "test_interpolation_on_station"
         #  1. get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
@@ -122,6 +111,12 @@ class TestDataWithGaps:
             method_kwargs={"order": 4},
         )
 
+        # regular interpolation iwht overwrite_fill == false -> should only try to fill the failed filled gaps
+        sta.interpolate_gaps(
+            target_obstype="temp",
+            overwrite_fill=False,
+        )
+
         #  3. overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
@@ -130,27 +125,13 @@ class TestDataWithGaps:
                 methodname=_method_name,
             )
 
-        # regular interpolation iwht overwrite_fill == false -> should not change sta!
-        sta.interpolate_gaps(
-            target_obstype="temp",
-            overwrite_fill=False,
-        )
-
         # 4. Get solution
         solutionobj = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=_method_name
         )
 
         # 5. Construct the equlity tests on dataset level
-        test_expr = sta == solutionobj  # Station comparison
-
-        if not test_expr:
-            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
-                to_check=sta, solution=solutionobj
-            )
-            logging.warning(f"Debug difference: {debug_diff}")
-        # 6. assert the equality
-        assert test_expr
+        assert_equality(sta, solutionobj)
 
         # Test plotting
         _statsdf = sta.make_plot()
@@ -195,15 +176,7 @@ class TestDataWithGaps:
         )
 
         # Construct the equlity tests on dataset level
-        test_expr = dataset == solutionobj_A  # dataset comparison
-
-        if not test_expr:
-            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj_A
-            )
-            logging.warning(f"Debug difference: {debug_diff}")
-        # assert the equality
-        assert test_expr
+        assert_equality(dataset, solutionobj_A)
 
         # ------------------------------------------
         #    B: test overwrite_fill argument
@@ -220,7 +193,7 @@ class TestDataWithGaps:
             overwrite_fill=False,  # This should not do anything, since gaps are already filled
             method_kwargs={"order": 2},
         )
-        assert dataset == solutionobj_A  # dataset comparison
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
 
         # regular interpolation iwht overwrite_fill == True -> should overwrite the data!
         dataset.interpolate_gaps(
@@ -243,7 +216,7 @@ class TestDataWithGaps:
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_B"
         )
 
-        assert dataset == solutionobj_B  # dataset comparison
+        assert_equality(dataset, solutionobj_B)  # dataset comparison
 
     def test_raw_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -271,7 +244,7 @@ class TestDataWithGaps:
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
         )
 
-        assert dataset == solutionobj_A  # dataset comparison
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
 
         from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 
@@ -289,7 +262,9 @@ class TestDataWithGaps:
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_raw_modeldata(target_obstype="temp", overwrite_fill=False)
 
-        assert sta == solutionobj_A.get_station("vlinder01")  # station comparison
+        assert_equality(
+            sta, solutionobj_A.get_station("vlinder01")
+        )  # station comparison
 
         # test the overwrite is true option
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -298,12 +273,8 @@ class TestDataWithGaps:
         dataset.interpolate_gaps(target_obstype="temp", overwrite_fill=False)
         dataset.fill_gaps_with_raw_modeldata(target_obstype="temp", overwrite_fill=True)
 
-        test_expr = dataset == solutionobj_A  # dataset comparison
-        if not test_expr:
-            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj_A
-            )
-            logging.warning(f"Debug difference: {debug_diff}")
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
+
         # test the plot
         dataset.make_plot()
 
@@ -338,14 +309,9 @@ class TestDataWithGaps:
         solutionobj = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
         )
-        testexpr = dataset == solutionobj  # dataset comparison
-        if not testexpr:
-            debug_diff = TestDataWithGaps.solutionfixer.create_a_diff(
-                to_check=dataset, solution=solutionobj
-            )
-            logging.warning(f"Debug difference: {debug_diff}")
-        # test the plot
-        assert testexpr
+
+        # test equality
+        assert_equality(to_check=dataset, solution=solutionobj)
 
         # test on station and dataset
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -361,7 +327,7 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
 
-        assert sta == solutionobj.get_station("vlinder01")  # station comparison
+        assert_equality(sta, solutionobj.get_station("vlinder01"))
 
     def test_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -393,7 +359,7 @@ class TestDataWithGaps:
         solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
         )
-        assert dataset == solutionobj_A  # dataset comparison
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
 
         # test on station and dataset
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -408,7 +374,9 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
 
-        assert sta == solutionobj_A.get_station("vlinder01")  # station comparison
+        assert_equality(
+            sta, solutionobj_A.get_station("vlinder01")
+        )  # station comparison
 
     def test_weighted_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -441,7 +409,7 @@ class TestDataWithGaps:
         solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
         )
-        assert dataset == solutionobj_A  # dataset comparison
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
 
         # test on station and dataset
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -457,7 +425,9 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
 
-        assert sta == solutionobj_A.get_station("vlinder01")  # station comparison
+        assert_equality(
+            sta, solutionobj_A.get_station("vlinder01")
+        )  # station comparison
 
     # ------------------------------------------
     #    Plotting tests are present in the test_plotting.py
@@ -475,7 +445,7 @@ if __name__ == "__main__":
 
     tester = TestDataWithGaps()
     # tester.test_import_data(overwrite_solution=False)
-    # tester.test_interpolation_on_station(overwrite_solution=False)
+    tester.test_interpolation_on_station(overwrite_solution=False)
     # tester.test_interpolation_on_dataset(overwrite_solution=False)
     # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
     # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
