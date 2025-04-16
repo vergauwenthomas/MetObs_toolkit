@@ -45,7 +45,6 @@ class Gap:
         gaprecords: pd.DatetimeIndex,
         obstype,
         stationname: str,
-        datadtype=np.float32,
     ):
         if not isinstance(gaprecords, pd.DatetimeIndex):
             raise TypeError("gaprecords must be a pd.DatetimeIndex.")
@@ -74,7 +73,6 @@ class Gap:
 
         self._obstype = obstype
         self._stationname = stationname
-        self._datadtype = datadtype
 
     @property
     def records(self) -> pd.Series:
@@ -86,7 +84,7 @@ class Gap:
         pd.Series
             Series containing the gap records.
         """
-        return self._records.astype(self._datadtype)
+        return self._records.astype(np.float32)
 
     @property
     def obstype(self) -> Obstype:

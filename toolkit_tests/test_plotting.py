@@ -76,7 +76,7 @@ class TestDemoDataset:
         )
 
         # 2. apply a metobs manipulation
-        ax = dataset.make_plot(colorby="label")
+        ax = dataset.make_plot(colorby="label", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
         return fig
 
@@ -89,7 +89,7 @@ class TestDemoDataset:
         )
 
         # 2. apply a metobs manipulation
-        ax = dataset.make_plot(colorby="station")
+        ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
         return fig
 
@@ -250,4 +250,20 @@ if __name__ == "__main__":
     )
 
     test = TestDemoDataset()
-    test.test_import_data(overwrite_solution=False)
+    # test.test_import_data(overwrite_solution=True)
+    # test.test_import_data(overwrite_solution=True)
+    test.test_dataset_timeseries_plotting_by_label()
+    test.test_dataset_timeseries_plotting_by_station()
+    test.test_station_timeseries_plotting_existing_ax()
+    test.test_station_timeseries_with_modeldata()
+    test.test_station_modeldata_timeseries()
+    test.test_dataset_modeldata_timeseries_plot()
+    test.test_dataset_color_by_station_and_modeldata_timeseries_plot()
+    test.test_dataset_color_by_label_and_modeldata_timeseries_plot()
+
+    test_gaps = TestDataWithGaps()
+    test_gaps.test_interpolated_timeseries_plot()
+    test_gaps.test_raw_modeldata_gf_timeseries_plot()
+    test_gaps.test_debias_modeldata_gf_timeseries_plot()
+    test_gaps.test_diurnal_debias_modeldata_gf_timeseries_plot()
+    test_gaps.test_weighted_diurnal_debias_modeldata_gf_timeseries_plot()
