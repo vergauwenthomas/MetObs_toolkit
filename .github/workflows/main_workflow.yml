@@ -8,6 +8,7 @@ jobs:
       if: |
         github.ref == 'refs/heads/main' ||
         github.ref == 'refs/heads/develop' ||
+        github.event_name == 'push' ||
         github.event_name == 'pull_request' ||
         github.event_name == 'workflow_dispatch'
       runs-on: ubuntu-latest
