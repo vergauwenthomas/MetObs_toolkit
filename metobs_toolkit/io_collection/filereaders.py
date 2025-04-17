@@ -79,6 +79,8 @@ class JsonFileReader(FileReader):
         self.is_already_read = True
 
     def read_as_local_file(self, **readkwargs):
+        if not str(self.file_path).endswith(".json"):
+            raise ImportError(f"The file {self.file_path} is not a JSON file.")
         if not self.file_exist():
             raise FileNotFoundError(f"{self.file_path} is not a file.")
 
