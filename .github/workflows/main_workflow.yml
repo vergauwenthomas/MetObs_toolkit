@@ -17,8 +17,6 @@ on:
       - labeled
   workflow_dispatch:
 
-
-
 jobs:
     workflow-trigger:
       if: |
