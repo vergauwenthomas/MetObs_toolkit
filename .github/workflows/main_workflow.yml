@@ -226,7 +226,6 @@ jobs:
               echo "version tags are not aligned!"
               exit 1
 
-
     pytest:
         name: Run Pytest framework
         needs: workflow-trigger
