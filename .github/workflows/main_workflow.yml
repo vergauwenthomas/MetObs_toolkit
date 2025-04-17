@@ -207,6 +207,7 @@ jobs:
 
     versiontest:
         name: check if version is valid
+        needs: workflow-trigger
         runs-on: ubuntu-latest
         steps:
           - uses: actions/checkout@v3
@@ -228,6 +229,7 @@ jobs:
 
     pytest:
         name: Run Pytest framework
+        needs: workflow-trigger
         runs-on: ubuntu-latest
         # Dynamically create a matrix of test files
         strategy:
