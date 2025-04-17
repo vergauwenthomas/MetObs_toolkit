@@ -9,12 +9,15 @@ jobs:
         github.ref == 'refs/heads/main' ||
         github.ref == 'refs/heads/develop' ||
         github.event_name == 'pull_request' ||
-        github.event_name == 'workflow_dispatch' ||
-        github.event.pull_request.labels.*.name == 'RUN TESTS'
+        github.event_name == 'workflow_dispatch'
+        #github.event.pull_request.labels.*.name == 'RUN TESTS'
       runs-on: ubuntu-latest
       steps:
           - name: Trigger detected
             run: echo "Trigger detected"
+          - name: Print pull request labels
+            run: |
+              echo "Pull request labels: ${{ toJson(github.event.pull_request.labels) }}"
 
     build-package:
       needs: workflow-trigger
