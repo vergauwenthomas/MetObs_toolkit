@@ -93,6 +93,7 @@ jobs:
               - name: Run the trivial import test
                 run: |
                     python -c "import metobs_toolkit; print('Import successful')"
+
     build-examples:
       needs: build-package
       name: Run the examples
@@ -119,7 +120,7 @@ jobs:
         - name: Install dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install ipython
+            pip install ipython jupyter  # Ensure jupyter is installed
             pip install -e .
 
         # Clear output from notebook test files
