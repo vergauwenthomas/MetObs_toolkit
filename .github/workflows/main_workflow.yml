@@ -9,7 +9,7 @@ jobs:
         github.ref == 'refs/heads/main' ||
         github.ref == 'refs/heads/develop' ||
         github.event_name == 'pull_request' ||
-        contains(github.event.label.name, 'RUN TESTS')
+        contains(join(github.event.pull_request.labels.*.name, ','), 'RUN TESTS')
       runs-on: ubuntu-latest
       steps:
           - name: Trigger detected
