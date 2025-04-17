@@ -1,21 +1,7 @@
 name: Main workflow
 
-on:
-  push:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - '**/*'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths-ignore:
-      - '**/*'
-    types:
-      - labeled
-  workflow_dispatch:
+on: [push, pull_request, workflow_dispatch]
+
 
 jobs:
     workflow-trigger:
