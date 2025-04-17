@@ -1,9 +1,18 @@
 name: Main workflow
+
 on:
   push:
     branches:
       - main
       - develop
+    paths-ignore:
+      - '**/*'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - '**/*'
   workflow_dispatch:
 
 
