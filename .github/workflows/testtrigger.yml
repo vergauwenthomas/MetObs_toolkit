@@ -34,6 +34,7 @@ jobs:
               prMergedAt: ${{ steps.PR.outputs.pr_merged_at }}
               prClosedAt: ${{ steps.PR.outputs.pr_closed_at }}
               prLabel: ${{ steps.PR.outputs.pr_labels }}
+
         - name: set_trigger_label
           id: trigger
           run: |
@@ -51,15 +52,20 @@ jobs:
 
 
     next-job:
-      if:
-        github.ref == 'refs/heads/main' ||
-        github.ref == 'refs/heads/develop' ||
-        needs.get-pr.outputs.output1 == 'true'
+    #   if:
+    #     github.ref == 'refs/heads/main' ||
+    #     github.ref == 'refs/heads/develop' ||
+    #     needs.get-pr.outputs.output1 == 'true'
       env:
         triggered_by_label: ${{ needs.get-pr.outputs.output1 }}
       runs-on: ubuntu-latest
       needs: get-pr
       steps:
+        - name: debug
+          run: |
+            echo "This is running !!! "
+            echo "triggered_by_label=${{ needs.get-pr.outputs.output1 }}"
+
         - name: yess
           run: |
                 echo "This is running !!! "
