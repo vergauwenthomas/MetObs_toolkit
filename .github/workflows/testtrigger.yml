@@ -57,7 +57,7 @@ jobs:
     #     github.ref == 'refs/heads/develop' ||
     #     needs.get-pr.outputs.output1 == 'true'
       env:
-        triggered_by_label: ${{ needs.get-pr.outputs.output1 }}
+        FLAG: ${{ needs.get-pr.outputs.output1 }}
       runs-on: ubuntu-latest
       needs: get-pr
       steps:
@@ -65,7 +65,8 @@ jobs:
           run: |
             echo "This is running !!! "
             echo "triggered_by_label=${{ needs.get-pr.outputs.output1 }}"
-
+            echo "FLAG=${{ env.FLAG }}"
+            echo "FLAG=$FLAG"
         - name: yess
           run: |
                 echo "This is running !!! "
