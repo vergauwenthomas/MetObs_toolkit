@@ -246,7 +246,9 @@ html_theme_options = {
 
 if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
     print("ASSUME SERVER BUILD OF DOCUMENTATION")
-    nbsphinx_execute = "auto"  # never, always or auto
+
+    # The notebooks are executed BEFORE the documentation is build!
+    nbsphinx_execute = "never"  # never, always or auto
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
     nbsphinx_execute = "auto"

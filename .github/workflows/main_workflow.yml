@@ -279,7 +279,7 @@ jobs:
 
     pytest:
         name: Run Pytest framework
-        needs: build-package
+        needs: launch-pipeline
         runs-on: ubuntu-latest
         # Dynamically create a matrix of test files
         strategy:
@@ -294,8 +294,6 @@ jobs:
             - toolkit_tests/test_gee.py
 
         continue-on-error: true
-        #only run if the commit message contains 'metobs_toolkit/'
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, 'metobs_toolkit/')
         steps:
           # Checkout the repository
           - name: Checkout code
