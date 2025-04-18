@@ -47,7 +47,7 @@ jobs:
         steps:
           - env:
               OUTPUT1: ${{needs.job1.outputs.output1}}
-            run: echo "Conditions are met, proceeding with the workflow!""
+            run: echo "Conditions are met, proceeding with the workflow!"
 
 
 
