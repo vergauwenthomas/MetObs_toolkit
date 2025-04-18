@@ -32,6 +32,7 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
 
    Home <self>
    Documentation <MetObs_documentation_flat>
+   Examples <examples/index>
 
 
 

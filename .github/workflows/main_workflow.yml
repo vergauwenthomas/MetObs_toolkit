@@ -180,7 +180,8 @@ jobs:
 
 
     build-docs:
-        needs: build-package
+        needs: build-examples
+        # needs: build-package
         runs-on: ubuntu-latest
         steps:
               - name: Checkout code
@@ -196,6 +197,12 @@ jobs:
                   cd $GITHUB_WORKSPACE
                   rm -rf docs/examples
                   mkdir -p docs/examples
+
+              - name: Download examples artifact
+                uses: actions/download-artifact@v4
+                with:
+                  name: examples
+                  path: docs/examples
 
 
               - name: Install Poetry
