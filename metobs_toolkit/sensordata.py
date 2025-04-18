@@ -905,34 +905,31 @@ class SensorData:
                 gap.flush_fill()
 
             logger.debug(f"filling {gap} with {method} modeldata.")
-            match method:
-                case "raw":
-                    gap.raw_model_gapfill(
-                        modeltimeseries=modeltimeseries, **method_kwargs
-                    )
-                case "debiased":
-                    gap.debiased_model_gapfill(
-                        sensordata=self,
-                        modeltimeseries=modeltimeseries,
-                        **method_kwargs,
-                    )
-                case "diurnal_debiased":
-                    gap.diurnal_debiased_model_gapfill(
-                        sensordata=self,
-                        modeltimeseries=modeltimeseries,
-                        **method_kwargs,
-                    )
 
-                case "weighted_diurnal_debiased":
-                    gap.weighted_diurnal_debiased_model_gapfill(
-                        sensordata=self,
-                        modeltimeseries=modeltimeseries,
-                        **method_kwargs,
-                    )
-                case _:
-                    raise NotImplementedError(
-                        f"modeldata gapfill method: {method} is not implemented!"
-                    )
+            if method == "raw":
+                gap.raw_model_gapfill(modeltimeseries=modeltimeseries, **method_kwargs)
+            elif method == "debiased":
+                gap.debiased_model_gapfill(
+                    sensordata=self,
+                    modeltimeseries=modeltimeseries,
+                    **method_kwargs,
+                )
+            elif method == "diurnal_debiased":
+                gap.diurnal_debiased_model_gapfill(
+                    sensordata=self,
+                    modeltimeseries=modeltimeseries,
+                    **method_kwargs,
+                )
+            elif method == "weighted_diurnal_debiased":
+                gap.weighted_diurnal_debiased_model_gapfill(
+                    sensordata=self,
+                    modeltimeseries=modeltimeseries,
+                    **method_kwargs,
+                )
+            else:
+                raise NotImplementedError(
+                    f"modeldata gapfill method: {method} is not implemented!"
+                )
 
     def interpolate_gaps(
         self,
