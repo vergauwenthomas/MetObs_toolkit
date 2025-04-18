@@ -128,28 +128,41 @@ def fill_with_weighted_diurnal_debias(df, min_lead_sample_size, min_trail_sample
 
     # Write message
     def msg_writer(row):
-        match (
-            row["samplesize_lead"] >= min_lead_sample_size,
-            row["samplesize_trail"] >= min_trail_sample_size,
+        if (
+            row["samplesize_lead"]
+            >= min_lead_sample_size & row["samplesize_trail"]
+            >= min_trail_sample_size
         ):
-            case (True, True):
-                # Fill conditions are both met
-                msg = f"Weighted diurnal bias corrected:\
+            # Fill conditions are both met
+            msg = f"Weighted diurnal bias corrected:\
 {row['modelvalue']:.2f} + (-1. * ({row['lead_weight']:.2f} * {row['diurnalbias_lead']:.2f}) \
 + ({row['trail_weight']:.2f} * {row['diurnalbias_trail']:.2f})) \
 based on sample of {row['samplesize_lead']} (lead) and {row['samplesize_trail']} (trail)."
 
-            case (False, True):
-                # lead condition not met, trail met
-                msg = f"Lead diurnal sample size is to small {row['samplesize_lead']} < {min_lead_sample_size}."
+        elif (
+            row["samplesize_lead"]
+            < min_lead_sample_size & row["samplesize_trail"]
+            >= min_trail_sample_size
+        ):
+            # lead condition not met, trail met
+            msg = f"Lead diurnal sample size is to small {row['samplesize_lead']} < {min_lead_sample_size}."
 
-            case (True, False):
-                # lead condition met, trail not met
-                msg = f"Trail diurnal sample size is to small {row['samplesize_trail']} < {min_trail_sample_size}."
+        elif (
+            row["samplesize_lead"]
+            >= min_lead_sample_size & row["samplesize_trail"]
+            < min_trail_sample_size
+        ):
+            # lead condition met, trail not met
+            msg = f"Trail diurnal sample size is to small {row['samplesize_trail']} < {min_trail_sample_size}."
 
-            case (False, False):
-                # both lead and trail conditions not met
-                msg = f"Both lead and trail diurnal sample sizes are too small {row['samplesize_lead']} < {min_lead_sample_size} and {row['samplesize_trail']} < {min_trail_sample_size}."
+        elif (
+            row["samplesize_lead"]
+            < min_lead_sample_size & row["samplesize_trail"]
+            < min_trail_sample_size
+        ):
+            # both lead and trail conditions not met
+            msg = f"Both lead and trail diurnal sample sizes are too small {row['samplesize_lead']} < {min_lead_sample_size} and {row['samplesize_trail']} < {min_trail_sample_size}."
+
         return msg
 
     df["msg"] = df.apply(lambda x: msg_writer(x), axis=1)  # Write messages with details

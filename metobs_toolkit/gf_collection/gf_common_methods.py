@@ -103,26 +103,25 @@ def get_trailing_period(
         sta_obs_series[sta_obs_series.index > gap.end_datetime].dropna().sort_index()
     )
 
-    match (fixed_by_duration, fixed_by_records):
+    if (fixed_by_duration, fixed_by_records) == (True, False):
 
-        case (True, False):
-            # fixed_by_duration case
-            tp = potential_trail_period[
-                potential_trail_period.index <= (gap.end_datetime + duration)
-            ]
-        case (False, True):
-            # fixed by N records case
-            tp = potential_trail_period[:n_records]
+        # fixed_by_duration case
+        tp = potential_trail_period[
+            potential_trail_period.index <= (gap.end_datetime + duration)
+        ]
+    elif (fixed_by_duration, fixed_by_records) == (False, True):
+        # fixed by N records case
+        tp = potential_trail_period[:n_records]
 
-            # Extra filter based on duration
-            if duration is not None:
-                tp = tp[tp.index <= (gap.end_datetime + duration)]
+        # Extra filter based on duration
+        if duration is not None:
+            tp = tp[tp.index <= (gap.end_datetime + duration)]
 
-        case _:
-            # invalid combination
-            raise NotImplementedError(
-                f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
-            )
+    else:
+        # invalid combination
+        raise NotImplementedError(
+            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
+        )
 
     # Check validity
     if tp.shape[0] < n_records:
@@ -151,27 +150,24 @@ def get_leading_period(
         sta_obs_series[sta_obs_series.index < gap.start_datetime].dropna().sort_index()
     )
 
-    match (fixed_by_duration, fixed_by_records):
+    if (fixed_by_duration, fixed_by_records) == (True, False):
+        # fixed_by_duration case
+        lp = potential_lead_period[
+            potential_lead_period.index >= (gap.start_datetime - duration)
+        ]
+    elif (fixed_by_duration, fixed_by_records) == (False, True):
+        # fixed by N records case
+        lp = potential_lead_period[-n_records:]
 
-        case (True, False):
-            # fixed_by_duration case
-            lp = potential_lead_period[
-                potential_lead_period.index >= (gap.start_datetime - duration)
-            ]
+        # Extra filter based on duration
+        if duration is not None:
+            lp = lp[lp.index >= (gap.start_datetime - duration)]
 
-        case (False, True):
-            # fixed by N records case
-            lp = potential_lead_period[-n_records:]
-
-            # Extra filter based on duration
-            if duration is not None:
-                lp = lp[lp.index >= (gap.start_datetime - duration)]
-
-        case _:
-            # invalid combination
-            raise NotImplementedError(
-                f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
-            )
+    else:
+        # invalid combination
+        raise NotImplementedError(
+            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
+        )
 
     # lp should have a minimum samplesize
     if lp.shape[0] < n_records:

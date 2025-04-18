@@ -279,7 +279,7 @@ jobs:
 
     pytest:
         name: Run Pytest framework
-        needs: launch-pipeline
+        needs: build-package
         runs-on: ubuntu-latest
         # Dynamically create a matrix of test files
         strategy:
