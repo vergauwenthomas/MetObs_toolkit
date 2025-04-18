@@ -1,6 +1,11 @@
 name: Main workflow
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request: #this will trigger also on syncronize (when pull request is updated)
 
 
 jobs:
@@ -22,6 +27,20 @@ jobs:
                 echo "Pull request number: ${{ toJson(github.event.pull_request) }}"
               else
                 echo "no PR is linked"
+              fi
+          - name: Print commit message
+            run: |
+              if [[ -n "${{ github.event.head_commit.message }}" ]]; then
+                echo "Commit message: ${{ github.event.head_commit.message }}"
+              else
+                echo "no commit message"
+              fi
+          - name: Print event name
+            run: |
+              if [[ -n "${{ github.event_name }}" ]]; then
+                echo "Event name: ${{ github.event_name }}"
+              else
+                echo "no event name"
               fi
 
     build-package:
