@@ -6,6 +6,9 @@ on:
 jobs:
     get-pr:
       runs-on: ubuntu-latest
+      # Map a step output to a job output
+      outputs:
+        output1: ${{ steps.trigger.outputs.triggered_by_label }}
       steps:
         - uses: 8BitJonny/gh-get-current-pr@3.0.0
           id: PR
@@ -13,7 +16,7 @@ jobs:
             # Authetication token to access GitHub APIs. (Can be omitted by default.)
             github-token: ${{ github.token }}
             # Verbose setting SHA when using Pull_Request event trigger to fix #16. (For push even trigger this is not necessary.)
-            sha: ${{ github.event.pull_request.head.sha }}
+            sha: ${{ github.sha }}
         - run: echo "triggered_by_label=false" >> $GITHUB_ENV #init,can be overwritten
 
         - run: echo "PR ${prNumber} ${prTitle} at ${prUrl} is ${prLabel}"
@@ -31,34 +34,29 @@ jobs:
               prMergedAt: ${{ steps.PR.outputs.pr_merged_at }}
               prClosedAt: ${{ steps.PR.outputs.pr_closed_at }}
               prLabel: ${{ steps.PR.outputs.pr_labels }}
-
-        - run: |
+        - name: set_trigger_label
+          id: trigger
+          run: |
             if [[ "$prLabel" == *"RUN TESTS"* ]]; then
                 echo "The label 'RUN TESTS' is present."
+                echo "triggered_by_label=true" >> $GITHUB_ENV
             else
                 echo "The label 'RUN TESTS' is not present."
+                echo "triggered_by_label=false" >> $GITHUB_ENV
             fi
           env:
               prLabel: ${{ steps.PR.outputs.pr_labels }}
 
-        - name: attempt-two
-          if: contains(steps.PR.outputs.pr_labels, 'RUN TESTS')
-          env:
-            prLabel: ${{ steps.PR.outputs.pr_labels }}
-          run: |
-            echo "Running tests as the label 'RUN TESTS' is present."
-            # Add your test commands here
-            echo "Tests completed."
 
-        - name: set-output
-          run: echo "triggered_by_label=true" >> $GITHUB_ENV
+
 
     next-job:
       if:
         github.ref == 'refs/heads/main' ||
         github.ref == 'refs/heads/develop' ||
-        ${{triggered_by_label}} == 'true'
-
+        needs.get-pr.outputs.output1 == 'true'
+      env:
+        triggered_by_label: ${{ needs.get-pr.outputs.output1 }}
       runs-on: ubuntu-latest
       needs: get-pr
       steps:
