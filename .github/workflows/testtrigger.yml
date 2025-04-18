@@ -15,7 +15,7 @@ jobs:
             # Verbose setting SHA when using Pull_Request event trigger to fix #16. (For push even trigger this is not necessary.)
             sha: ${{ github.event.pull_request.head.sha }}
 
-        - run: echo "PR ${prNumber} ${prTitle} at ${prUrl} is ${prJSON}"
+        - run: echo "PR ${prNumber} ${prTitle} at ${prUrl} is ${prLabel}"
           if: steps.PR.outputs.pr_found == 'true'
           env:
               # JSON object with the full PR object
@@ -29,4 +29,13 @@ jobs:
               prCreatedAt: ${{ steps.PR.outputs.pr_created_at }}
               prMergedAt: ${{ steps.PR.outputs.pr_merged_at }}
               prClosedAt: ${{ steps.PR.outputs.pr_closed_at }}
+              prLabel: ${{ steps.PR.outputs.pr_labels }}
+
+        - run: |
+            if echo "${prLabel}" | jq -e '.[] | select(.name == "RUN TESTS")' > /dev/null; then
+                echo "Label 'RUN TESTS' is present."
+            else
+                echo "Label 'RUN TESTS' is not present."
+            fi
+          env:
               prLabel: ${{ steps.PR.outputs.pr_labels }}
