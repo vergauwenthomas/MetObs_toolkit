@@ -62,6 +62,8 @@ jobs:
       needs: get-pr
       steps:
         - name: debug
+          env:
+            FLAG: ${{ needs.get-pr.outputs.output1 }}
           run: |
             echo "This is running !!! "
             echo "triggered_by_label=${{ needs.get-pr.outputs.output1 }}"
