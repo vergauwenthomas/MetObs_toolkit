@@ -17,7 +17,12 @@ jobs:
             run: echo "Trigger detected"
           - name: Print pull request labels
             run: |
-              echo "Pull request labels: ${{ toJson(github.event.pull_request.labels) }}"
+              if [[ -n "${{ github.event.pull_request }}" ]]; then
+                echo "Pull request labels: ${{ toJson(github.event.pull_request.labels) }}"
+                echo "Pull request number: ${{ toJson(github.event.pull_request) }}"
+              else
+                echo "no PR is linked"
+              fi
 
     build-package:
       needs: workflow-trigger
@@ -159,6 +164,13 @@ jobs:
                 with:
                     python-version: '3.11'
 
+              - name: Clear the examples
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  rm -rf docs/examples
+                  mkdir -p docs/examples
+
+
               - name: Install Poetry
                 run: |
                     curl -sSL https://install.python-poetry.org | python3 -
@@ -248,6 +260,8 @@ jobs:
             - toolkit_tests/test_gee.py
 
         continue-on-error: true
+        #only run if the commit message contains 'metobs_toolkit/'
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, 'metobs_toolkit/')
         steps:
           # Checkout the repository
           - name: Checkout code
