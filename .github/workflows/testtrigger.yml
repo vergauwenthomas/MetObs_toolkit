@@ -32,10 +32,10 @@ jobs:
               prLabel: ${{ steps.PR.outputs.pr_labels }}
 
         - run: |
-            if echo "${prLabel}" | jq -e '.[] | select(.name == "RUN TESTS")' > /dev/null; then
-                echo "Label 'RUN TESTS' is present."
+            if [[ "$prLabel" == *"RUN TESTS"* ]]; then
+                echo "The label 'RUN TESTS' is present."
             else
-                echo "Label 'RUN TESTS' is not present."
+                echo "The label 'RUN TESTS' is not present."
             fi
           env:
               prLabel: ${{ steps.PR.outputs.pr_labels }}
