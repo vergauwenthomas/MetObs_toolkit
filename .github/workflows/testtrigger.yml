@@ -1,0 +1,32 @@
+name: TRIGGERING
+
+on:
+  push:
+
+jobs:
+    get-pr:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: 8BitJonny/gh-get-current-pr@3.0.0
+          id: PR
+          with:
+            # Authetication token to access GitHub APIs. (Can be omitted by default.)
+            github-token: ${{ github.token }}
+            # Verbose setting SHA when using Pull_Request event trigger to fix #16. (For push even trigger this is not necessary.)
+            sha: ${{ github.event.pull_request.head.sha }}
+
+        - run: echo "PR ${prNumber} ${prTitle} at ${prUrl} is ${prJSON}"
+          if: steps.PR.outputs.pr_found == 'true'
+          env:
+              # JSON object with the full PR object
+              # toJSON(fromJSON(...pr)) parses it into memory and then format is with pretty-print.
+              prJSON: ${{ toJSON(fromJSON(steps.PR.outputs.pr)) }}
+              # Direct access to common PR properties
+              prNumber: ${{ steps.PR.outputs.number }}
+              prUrl: ${{ steps.PR.outputs.pr_url }}
+              prTitle: ${{ steps.PR.outputs.pr_title }}
+              prBody: ${{ steps.PR.outputs.pr_body }}
+              prCreatedAt: ${{ steps.PR.outputs.pr_created_at }}
+              prMergedAt: ${{ steps.PR.outputs.pr_merged_at }}
+              prClosedAt: ${{ steps.PR.outputs.pr_closed_at }}
+              prLabel: ${{ steps.PR.outputs.pr_labels }}
