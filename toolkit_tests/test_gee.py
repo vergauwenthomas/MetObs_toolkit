@@ -17,7 +17,7 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality
+from solutionclass import SolutionFixer, assert_equality, datadir
 import shutil
 import pytest
 
@@ -25,9 +25,6 @@ from gee_service_authenticator import GEE_Authenticator
 
 # authenticate the service account
 GEE_Authenticator()
-
-# data folder
-datadir = libfolder.joinpath("tests").joinpath("test_data")
 
 
 class TestDemoDataset:

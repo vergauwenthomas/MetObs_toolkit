@@ -4,6 +4,10 @@ import pickle
 import pandas as pd
 import pandas.testing
 
+libfolder = Path(str(Path(__file__).resolve())).parent.parent
+# testdatadir
+datadir = libfolder.joinpath("toolkit_tests").joinpath("testdata")
+
 
 class SolutionFixer:
 

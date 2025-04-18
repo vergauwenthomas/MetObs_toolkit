@@ -15,12 +15,9 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality
+from solutionclass import SolutionFixer, assert_equality, datadir
 
 import pytest
-
-# data folder
-datadir = libfolder.joinpath("tests").joinpath("test_data")
 
 
 class TestBreakingDataset:

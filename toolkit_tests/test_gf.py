@@ -14,12 +14,9 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality
+from solutionclass import SolutionFixer, assert_equality, datadir
 
 import pytest
-
-# data folder
-datadir = libfolder.joinpath("tests").joinpath("test_data")
 
 
 class TestDataWithGaps:
@@ -445,7 +442,7 @@ if __name__ == "__main__":
 
     tester = TestDataWithGaps()
     # tester.test_import_data(overwrite_solution=False)
-    tester.test_interpolation_on_station(overwrite_solution=False)
+    # tester.test_interpolation_on_station(overwrite_solution=False)
     # tester.test_interpolation_on_dataset(overwrite_solution=False)
     # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
     # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
