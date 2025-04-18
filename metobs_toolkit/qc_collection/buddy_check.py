@@ -10,7 +10,7 @@ import pandas as pd
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def _calculate_distance_matrix_with_haverine(metadf):

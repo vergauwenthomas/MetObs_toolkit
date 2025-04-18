@@ -2328,10 +2328,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             use_drive = True
 
         elif _est_data_size > 4900:
-            print(
-                "THE DATA AMOUNT IS TOO LARGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
-            )
-            logger.info(
+            logger.warning(
                 "THE DATA AMOUNT IS TOO LARGE FOR INTERACTIVE SESSION, THE DATA WILL BE EXPORTED TO YOUR GOOGLE DRIVE!"
             )
 
@@ -2399,10 +2396,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 _filename = f"{self.name}_timeseries_data"
             else:
                 _filename = str(drive_filename)
-            print(
-                f"The timeseries will be written to your Drive in {drive_folder}/{_filename} "
-            )
-            logger.info(
+            logger.warning(
                 f"The timeseries will be written to your Drive in {drive_folder}/{_filename} "
             )
 
@@ -2434,11 +2428,11 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                     finished = True
 
             doc_folder_id = task.status()["destination_uris"][0]
-            print(
+            logger.warning(
                 "The data is transfered! Open the following link in your browser: \n\n"
             )
-            print(f"{doc_folder_id} \n\n")
-            print(
+            logger.warning(f"{doc_folder_id} \n\n")
+            logger.warning(
                 "To upload the data to the model, use the Modeldata.set_model_from_csv() method"
             )
 

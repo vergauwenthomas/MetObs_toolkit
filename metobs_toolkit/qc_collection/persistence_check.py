@@ -7,8 +7,7 @@ import pandas as pd
 from .common_functions import test_moving_window_condition
 
 # Set up logging
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def persistence_check(

@@ -135,6 +135,7 @@ jobs:
         matrix:
           test_file:
           - docs/examples/introduction.ipynb
+          - docs/notebook_references/log_example.ipynb
 
       continue-on-error: true
       steps:

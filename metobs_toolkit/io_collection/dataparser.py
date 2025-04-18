@@ -5,8 +5,7 @@ import pandas as pd
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template, MetobsTemplateError
 
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class DataParser:

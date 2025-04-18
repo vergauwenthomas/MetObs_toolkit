@@ -12,7 +12,7 @@ from metobs_toolkit.plot_collection import (  # Local modules
 )
 
 # Set up logging
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 default_cycle_settings = default_plot_settings["cycle_plot"]
 

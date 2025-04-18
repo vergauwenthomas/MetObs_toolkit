@@ -7,7 +7,7 @@ import datetime as datetimemodule
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 # timedelta_arg_check
 

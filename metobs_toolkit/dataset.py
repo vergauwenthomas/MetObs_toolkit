@@ -17,7 +17,6 @@ from metobs_toolkit.io_collection.dataparser import DataParser
 from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
-from metobs_toolkit.backend_collection.printing import dataset_string_repr
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
@@ -42,7 +41,7 @@ from metobs_toolkit.geedatasetmanagers import (
 from metobs_toolkit.gee_api import connect_to_gee
 import warnings
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class Dataset:
@@ -90,6 +89,9 @@ class Dataset:
 
         # Template
         self._template = Template()
+
+        logger.debug("Dataset instance created.")
+        logger.info("DELETEME")
 
     # ------------------------------------------
     #    specials
@@ -1432,7 +1434,6 @@ class Dataset:
             force_to_drive=force_to_drive,
         )
         if df is None:
-            print("No data is returned by the GEE api request.")
             logger.warning("No data is returned by the GEE api request.")
             return
 

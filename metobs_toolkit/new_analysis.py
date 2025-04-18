@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 from metobs_toolkit.backend_collection.errorclasses import *

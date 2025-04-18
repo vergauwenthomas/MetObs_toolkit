@@ -10,7 +10,7 @@ import folium
 from folium import plugins as folium_plugins
 
 # Configure logging
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def _get_init_mapcenter(gdf: pd.DataFrame) -> List[float]:

@@ -6,8 +6,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Set up logging
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def gross_value_check(

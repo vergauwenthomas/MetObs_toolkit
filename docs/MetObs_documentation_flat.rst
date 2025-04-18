@@ -12,6 +12,7 @@ the MetObs toolkit to be used by a user and developer.
   Dataset <reference/dataset>
   Station <reference/station>
   Gap <reference/gap>
+  Utility functions <reference/functions>
 
 
 ********************************************

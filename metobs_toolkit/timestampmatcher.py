@@ -8,7 +8,7 @@ from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class TimestampMatcher:

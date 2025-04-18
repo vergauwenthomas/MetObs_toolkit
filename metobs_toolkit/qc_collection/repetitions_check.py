@@ -1,8 +1,7 @@
 import logging  # Python default package
 import pandas as pd  # Dependency package
 
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def repetitions_check(records: pd.Series, max_N_repetitions: int) -> pd.DatetimeIndex:

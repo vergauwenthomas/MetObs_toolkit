@@ -14,7 +14,7 @@ import metobs_toolkit.qc_collection as qc
 import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class SensorData:

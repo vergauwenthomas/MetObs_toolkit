@@ -2,8 +2,7 @@ import logging
 from typing import Union
 import pandas as pd
 
-logger = logging.getLogger(__file__)
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def step_check(

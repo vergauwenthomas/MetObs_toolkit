@@ -25,7 +25,7 @@ from metobs_toolkit.modeltimeseries import ModelTimeSeries
 import logging
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class Station:
@@ -255,7 +255,7 @@ class Station:
         None.
 
         """
-        logger = logging.getLogger(__file__)
+        logger = logging.getLogger("<metobs_toolkit>")
         logger.info(f"Entering add_to_modeldata method of {self}")
         # Validate argument types
         if not isinstance(new_modeltimeseries, ModelTimeSeries):
@@ -783,7 +783,6 @@ class Station:
             force_to_drive=force_to_drive,
         )
         if df is None:
-            print("No data is returned by the GEE api request.")
             logger.warning("No data is returned by the GEE api request.")
             return
 

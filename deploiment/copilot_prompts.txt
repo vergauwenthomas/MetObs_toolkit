@@ -1,4 +1,4 @@
-Insert code adaptations to fulfill the following needs:
+Edit the code to fulfill the following needs:
 
 
 /doc Insert docstrings in Numpy style for all classes, methods and functions in this module.

@@ -19,7 +19,7 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
     fill_with_weighted_diurnal_debias,
 )
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 _unfilled_label = "unfilled"
 _failed_label = "failed gapfill"

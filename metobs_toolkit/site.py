@@ -10,7 +10,7 @@ from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class Site:

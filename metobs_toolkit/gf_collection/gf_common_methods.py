@@ -3,7 +3,7 @@ from typing import Union
 import pandas as pd
 import numpy as np
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 def create_a_combined_df(leadseries, trailseries, gap):

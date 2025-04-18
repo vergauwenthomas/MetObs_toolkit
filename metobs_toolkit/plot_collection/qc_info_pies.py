@@ -9,7 +9,7 @@ from metobs_toolkit.settings_collection import label_def, label_to_color_map
 from metobs_toolkit.plot_collection import default_plot_settings
 
 # Configure logging
-logger = logging.getLogger(__file__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 pieplotsettings = default_plot_settings["pie_charts"]
 
