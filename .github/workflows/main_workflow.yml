@@ -5,6 +5,9 @@ name: Main workflow
 on:
   push:
 
+env:
+  TEST_FILES: '["docs/examples/introduction.ipynb", "docs/notebook_references/log_example.ipynb"]'
+
 jobs:
     scan-pr-labels:
         runs-on: ubuntu-latest
@@ -128,14 +131,13 @@ jobs:
 
     build-examples:
       needs: build-package
-      name: Run the examples
+      name: Run the examples and generate the notebook output
       runs-on: ubuntu-latest
       # Dynamically create a matrix of test files
+
       strategy:
         matrix:
-          test_file:
-          - docs/examples/introduction.ipynb
-          - docs/notebook_references/log_example.ipynb
+          test_file: ${{ fromJson(env.TEST_FILES) }}
 
       continue-on-error: true
       steps:
@@ -170,14 +172,12 @@ jobs:
               jupyter nbconvert --to notebook --execute --inplace "$notebook"
             done
 
-        # Upload examples folder as an artifact
-        - name: Upload examples artifact
+        # Upload each test_file as an artifact
+        - name: Upload test file artifact
           uses: actions/upload-artifact@v4
           with:
-            name: examples
-            path: docs/examples
-
-
+            name: ${{ matrix.test_file }}
+            path: ${{ matrix.test_file }}
 
 
     build-docs:
@@ -199,11 +199,13 @@ jobs:
                   rm -rf docs/examples
                   mkdir -p docs/examples
 
-              - name: Download examples artifact
-                uses: actions/download-artifact@v4
-                with:
-                  name: examples
-                  path: docs/examples
+              - name: Download examples artifacts
+                run: |
+                  for file in $(echo $TEST_FILES | jq -r '.[]'); do
+                    artifact_name=$(basename "$file")
+                    echo "Downloading artifact: $artifact_name"
+                    gh run download --name "$artifact_name" --dir docs/examples
+                  done
 
 
               - name: Install Poetry
