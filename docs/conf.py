@@ -247,6 +247,7 @@ html_theme_options = {
 if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
     print("ASSUME SERVER BUILD OF DOCUMENTATION")
     nbsphinx_execute = "always"  # never, always or auto
+    nbsphinx_allow_errors = True
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
     nbsphinx_allow_errors = True  # for developping

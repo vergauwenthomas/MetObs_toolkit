@@ -136,6 +136,8 @@ jobs:
         matrix:
           test_file:
             - docs/examples/introduction.ipynb
+            - docs/examples/qc_example.ipynb
+            - docs/examples/obstype_example.ipynb
             - docs/notebook_references/log_example.ipynb
 
 
