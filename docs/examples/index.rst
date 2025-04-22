@@ -7,3 +7,4 @@
 
    introduction.ipynb
    qc_example.ipynb
+   obstype_example.ipynb

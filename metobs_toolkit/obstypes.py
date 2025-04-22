@@ -173,6 +173,16 @@ class ModelObstype(Obstype):
     def model_band(self):
         return str(self._model_band)
 
+    def get_info(self, printout=True):
+        standardinfo = super().get_info(False)
+        standardinfo += (
+            f"\n     * corresponding bandname {self.model_band} in {self.model_unit}"
+        )
+        if printout:
+            print(standardinfo)
+        else:
+            return standardinfo
+
 
 class ModelObstype_Vectorfield(Obstype):
     def __init__(
@@ -225,6 +235,15 @@ class ModelObstype_Vectorfield(Obstype):
     @property
     def direction_obstype_name(self):
         return str(self._dir_obs_name)
+
+    def get_info(self, printout=True):
+        standardinfo = super().get_info(False)
+        standardinfo += f"\n     * U-component bandname {self.model_band_u} in {self.model_unit} \n \
+    * V-component bandname {self.model_band_v} in {self.model_unit}"
+        if printout:
+            print(standardinfo)
+        else:
+            return standardinfo
 
     def _get_plot_y_label(self):
         """Return a string to represent the vertical axes of a plot."""

@@ -417,7 +417,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         self.col_scheme = col_scheme
         self.band_of_use = band_of_use
 
-        self.__name__ = "GeeStaticDataset"
+        self.__name__ = "GeeStaticDatasetManager"
 
     # =========================================================================
     # Setters
@@ -1252,7 +1252,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         self.time_res = str(time_res)
 
-        self.__name__ = "GeeDynamicDataset"
+        self.__name__ = "GeeDynamicDatasetManager"
 
     # =============================================================================
     # Setters
