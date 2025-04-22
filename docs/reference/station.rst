@@ -32,6 +32,7 @@ A summary of all the attributes that hold or return data.
    Station.outliersdf
    Station.gapsdf
    Station.modeldatadf
+   Station.present_observations
 
 
 General methods and attributes

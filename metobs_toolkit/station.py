@@ -237,6 +237,17 @@ class Station:
         """
         return self._modeldata
 
+    @property
+    def present_observations(self) -> list:
+        """Get a list of all the present observationtypes.
+
+        Returns
+        -------
+        list
+            A list of all the present observations in the station.
+        """
+        return sorted(list(self.obsdata.keys()))
+
     def add_to_modeldata(
         self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
     ) -> None:

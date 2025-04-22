@@ -76,6 +76,7 @@ class TestDemoData:
         _ = dataset.stations
         _ = dataset.start_datetime
         _ = dataset.end_datetime
+        _ = dataset.present_observations
 
         # get info's
         dataset.get_info(printout=False)
@@ -101,6 +102,7 @@ class TestDemoData:
         _ = station.metadf
         _ = station.start_datetime
         _ = station.end_datetime
+        _ = station.present_observations
 
         # get info's
         station.get_info()
@@ -361,8 +363,8 @@ if __name__ == "__main__":
     # pytest.main([__file__])
     demo_tester = TestDemoData()
     # demo_tester.test_version()
-    # demo_tester.test_import_demo_data(overwrite_solution=False)
-    # demo_tester.test_calling_methods_without_solution_on_dataset()
+    demo_tester.test_import_demo_data(overwrite_solution=False)
+    demo_tester.test_calling_methods_without_solution_on_dataset()
     # demo_tester.test_calling_methods_without_solution_on_station()
     # demo_tester.test_subset_by_stations(overwrite_solution=False)
     # demo_tester.test_subset_by_stations_invalid()
@@ -370,9 +372,9 @@ if __name__ == "__main__":
     # demo_tester.test_get_station(overwrite_solution=False)
     # demo_tester.test_pickling_dataset()
 
-    # wide_data_tester = TestWideData()
-    # wide_data_tester.test_import_wide_data(overwrite_solution=False)
+    wide_data_tester = TestWideData()
+    wide_data_tester.test_import_wide_data(overwrite_solution=False)
     # wide_data_tester.test_sync_wide_records(overwrite_solution=False)
 
-    # single_station_tester = TestWideSingleStationData()
-    # single_station_tester.test_import_wide_data(overwrite_solution=False)
+    single_station_tester = TestWideSingleStationData()
+    single_station_tester.test_import_wide_data(overwrite_solution=False)

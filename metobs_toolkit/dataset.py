@@ -248,6 +248,21 @@ class Dataset:
     def end_datetime(self):
         return max([sta.end_datetime for sta in self.stations])
 
+    @property
+    def present_observations(self) -> list:
+        """Get a list of all the present observationtypes.
+
+        Returns
+        -------
+        list
+            A list of all the present observations in the dataset.
+        """
+
+        allobs = set()
+        for sta in self.stations:
+            allobs.update(sta.present_observations)
+        return sorted(list(allobs))
+
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------

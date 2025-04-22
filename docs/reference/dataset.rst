@@ -31,6 +31,7 @@ A summary of all the attributes that hold or return data.
    Dataset.outliersdf
    Dataset.gapsdf
    Dataset.modeldatadf
+   Dataset.present_observations
 
 
 General methods and attributes
