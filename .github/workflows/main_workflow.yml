@@ -171,12 +171,17 @@ jobs:
             for notebook in ${{ matrix.test_file }}; do
               jupyter nbconvert --to notebook --execute --inplace "$notebook"
             done
+        - name: Output test file base name
+          run: |
+            TEST_FILE_BASENAME=$(basename "${{ matrix.test_file }}" .ipynb)
+            echo "Base name of the test file: $TEST_FILE_BASENAME"
+            echo "artifact_name=$TEST_FILE_BASENAME" >> $GITHUB_ENV
 
         # Upload each test_file as an artifact
         - name: Upload test file artifact
           uses: actions/upload-artifact@v4
           with:
-            name: ${{ matrix.test_file }}
+            name: "${{ env.artifact_name }}"
             path: ${{ matrix.test_file }}
 
 
