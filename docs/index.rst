@@ -31,7 +31,7 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
    :maxdepth: 5
 
    Home <self>
-   Documentation <MetObs_documentation_flat>
+   Documentation <reference/index>
    Examples <examples/index>
 
 

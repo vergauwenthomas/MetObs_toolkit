@@ -9,10 +9,11 @@ the MetObs toolkit to be used by a user and developer.
 .. toctree::
   :maxdepth: 4
 
-  Dataset <reference/dataset>
-  Station <reference/station>
-  Gap <reference/gap>
-  Utility functions <reference/functions>
+  Dataset <dataset>
+  Station <station>
+  Gap <gap>
+  GEEDatasetManagers <geedatasetmanagers>
+  Utility functions <functions>
 
 
 ********************************************
