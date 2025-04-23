@@ -6,10 +6,9 @@ Functions that are used for GEE interactions.
 @author: thoverga
 """
 
-import sys
+import os
 import logging
 from time import sleep
-import pytz
 import pandas as pd
 import ee
 
@@ -68,6 +67,9 @@ def connect_to_gee(**kwargs):
                                       )
 
     """
+    if "/runner/" in os.getcwd():  # Triggered on github action runner
+        _auth_on_runner()
+        return
 
     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
         ee.Authenticate(**kwargs)
@@ -78,6 +80,36 @@ def connect_to_gee(**kwargs):
         ee.Authenticate()
         ee.Initialize()
     return
+
+
+def _auth_on_runner(secret="GEE_SERVICE_ACCOUNT"):
+    """
+    Authenticate and initialize the Google Earth Engine (GEE) API using a service account.
+
+
+
+    Parameters
+    ----------
+    secret : str, optional
+        The environment variable name containing the service account key JSON,
+        by default "GEE_SERVICE_ACCOUNT".
+
+    Raises
+    ------
+    EnvironmentError
+        If the specified environment variable is not set or the key JSON is missing.
+
+    Warning
+    --------
+    This function is only relevent when there is no stdinput available (typical github runners)
+    """
+    logger.debug("Entering authentication on runnen funtion")
+    service_account = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
+    key_json = os.getenv(secret)
+    if not key_json:
+        raise EnvironmentError(f"{secret} secret is not set, are present in scope.")
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=key_json)
+    ee.Initialize(credentials)
 
 
 # =============================================================================
