@@ -170,6 +170,8 @@ jobs:
 
         # Run notebook test files
         - name: Run notebook tests
+          env:
+            GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
           run: |
             for notebook in ${{ matrix.test_file }}; do
               jupyter nbconvert --to notebook --execute --inplace "$notebook"
