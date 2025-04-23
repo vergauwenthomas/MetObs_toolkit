@@ -229,6 +229,8 @@ jobs:
                   ls -l
 
               - name: Build documentation
+                env:
+                  GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
                 run: |
                   cd $GITHUB_WORKSPACE
                   cd docs
