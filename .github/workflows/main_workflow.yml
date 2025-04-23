@@ -203,11 +203,6 @@ jobs:
                 with:
                     python-version: '3.11'
 
-              - name: Clear the examples
-                run: |
-                  cd $GITHUB_WORKSPACE
-                  rm -rf docs/examples
-                  mkdir -p docs/examples
 
               - name: Install Poetry
                 run: |
