@@ -82,7 +82,7 @@ class Analysis:
         return datetime_tz
 
     def aggregate_df(
-        self, trgobstype="temp", agg=["lcz", "hour"], method=np.nanmean
+        self, trgobstype="temp", agg=["LCZ", "hour"], method=np.nanmean
     ) -> pd.DataFrame:
         """Aggregate all 'values' to specific groups, and return the dataframe."""
         # test if trgobstype is known

@@ -32,7 +32,7 @@ class Site:
         self._extradata = dict(extradata)
 
         # Data extracted from other sources
-        self._geedata = {}  # example: "lcz": 'LCZ-4
+        self._geedata = {}  # example: "LCZ": 'LCZ-4
         self._gee_buffered_fractions = {}  # example: {100: {pervious: 0.8,
         #                                                impervious: 0.2}}
 
@@ -80,13 +80,13 @@ class Site:
             return np.nan
 
     @property
-    def lcz(self):
-        if "lcz" in self.extradata.keys():
+    def LCZ(self):
+        if "LCZ" in self.extradata.keys():
             # if altitude info was extracted from the metadatafile
-            return self.extradata["lcz"]
-        elif "lcz" in self._geedata.keys():
+            return self.extradata["LCZ"]
+        elif "LCZ" in self._geedata.keys():
             # if altitude info was extracted from the GEE API
-            return self._geedata["lcz"]
+            return self._geedata["LCZ"]
         else:
             return np.nan
 
@@ -153,11 +153,11 @@ class Site:
     def flag_altitude_from_gee(self):
         return "altitude" in self._geedata.keys()
 
-    def flag_has_lcz(self):
-        return not pd.isnull(self.lcz)
+    def flag_has_LCZ(self):
+        return not pd.isnull(self.LCZ)
 
-    def flag_lcz_from_gee(self):
-        return "lcz" in self._geedata.keys()
+    def flag_LCZ_from_gee(self):
+        return "LCZ" in self._geedata.keys()
 
     def flag_has_landcoverfractions(self):
         return bool(self.landcover_fractions)
@@ -248,8 +248,8 @@ class Site:
         if self.flag_has_altitude() & (self.flag_altitude_from_gee()):
             infostr += f"  * Altitude: {self.altitude} (m)\n"
 
-        if self.flag_has_lcz() & (self.flag_lcz_from_gee()):
-            infostr += f"  * LCZ: {self.lcz}\n"
+        if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
+            infostr += f"  * LCZ: {self.LCZ}\n"
 
         for key, value in self._geedata.items():
             infostr += f"  * {key}: {value}\n"

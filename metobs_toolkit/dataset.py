@@ -1055,7 +1055,7 @@ class Dataset:
         self,
         geedatasetmanager: Union[
             GEEStaticDatasetManager, GEEDynamicDatasetManager
-        ] = default_datasets["lcz"],
+        ] = default_datasets["LCZ"],
         timeinstance: Union[pd.Timestamp, None] = None,
         modelobstype: str = None,
         save: bool = False,
@@ -1079,7 +1079,7 @@ class Dataset:
         Parameters
         ----------
         geedatasetmanager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
-            The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["lcz"]
+            The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["LCZ"]
         timeinstance :pandas.Timestamp or None, optional
             The timinstance to plot the GEE dataset for. This is only used and
             required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
@@ -1182,7 +1182,7 @@ class Dataset:
         Ensure that the GEE API is properly authenticated and initialized before using this method.
         """
 
-        # simple but slow option is to loop over all stations and get the lcz,
+        # simple but slow option is to loop over all stations and get the LCZ,
         # but this requires N-API calls (N number of stations).
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
@@ -1248,7 +1248,7 @@ class Dataset:
         It can happen that for stations located on small islands, or close to the coast, the sea-mask is not used as a landcover fraction.
 
         """
-        # simple but slow option is to loop over all stations and get the lcz,
+        # simple but slow option is to loop over all stations and get the LCZ,
         # but this requires N-API calls (N number of stations).
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
@@ -1282,7 +1282,7 @@ class Dataset:
 
         return geedf
 
-    def get_lcz(
+    def get_LCZ(
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
         """Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
@@ -1309,7 +1309,7 @@ class Dataset:
         `default_gee_datasets` dictionary to fetch the LCZ data.
         """
         return self.get_static_gee_point_data(
-            default_datasets["lcz"],
+            default_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )

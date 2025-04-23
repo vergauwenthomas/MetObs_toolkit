@@ -518,7 +518,7 @@ class Station:
 
         return value
 
-    def get_lcz(self, overwrite: bool = True, initialize_gee: bool = True):
+    def get_LCZ(self, overwrite: bool = True, initialize_gee: bool = True):
         """Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
 
         This method is a wrapper for the `get_static_gee_point_data()` method, specifically for
@@ -543,7 +543,7 @@ class Station:
         `default_gee_datasets` dictionary to fetch the LCZ data.
         """
         return self.get_static_gee_point_data(
-            geestaticdatasetmanager=default_gee_datasets["lcz"],
+            geestaticdatasetmanager=default_gee_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )

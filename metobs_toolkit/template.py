@@ -30,7 +30,7 @@ column_meta_blacklist = [
     "lat",
     "assumed_import_frequency",
     "dataset_resolution",
-    "lcz",
+    "LCZ",
     "altitude",
     "dataset_resolution",
     "dt_start",

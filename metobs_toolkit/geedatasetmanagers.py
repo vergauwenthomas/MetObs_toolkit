@@ -398,7 +398,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         >>> dataset = metobs_toolkit.Dataset()
         >>> dataset.add_new_geemodeldata(Modeldata=corine)
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land , 'corine': GeeStaticDataset instance of corine  (no metadata has been set) }
+        {'LCZ': GeeStaticDataset instance of LCZ  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land , 'corine': GeeStaticDataset instance of corine  (no metadata has been set) }
         """
         super().__init__(
             name=name,
@@ -444,22 +444,22 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         >>> #Create your Dataset
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
         >>> dataset.gee_datasets
-        {'lcz': GeeStaticDataset instance of lcz  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
+        {'LCZ': GeeStaticDataset instance of LCZ  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
 
-        These are the defaults. We select the lcz one:
+        These are the defaults. We select the LCZ one:
 
-        >>> lcz_model = dataset.gee_datasets['lcz']
-        >>> lcz_model
-        GeeStaticDataset instance of lcz  (no metadata has been set)
+        >>> LCZ_model = dataset.gee_datasets['LCZ']
+        >>> LCZ_model
+        GeeStaticDataset instance of LCZ  (no metadata has been set)
 
         To print out detailed information use the `GeeStaticDataset.get_info()`
         method.
 
-        >>> lcz_model.get_info()
-        GeeStaticDataset instance of lcz  (no metadata has been set)
+        >>> LCZ_model.get_info()
+        GeeStaticDataset instance of LCZ  (no metadata has been set)
         ------ Details ---------
         <BLANKLINE>
-         * name: lcz
+         * name: LCZ
          * location: RUB/RUBCLIM/LCZ/global_lcz_map/latest
          * value_type: categorical
          * scale: 100
@@ -568,21 +568,21 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         Now we add the metadata to the Modeldataset.
 
-        >>> lcz_model = dataset.gee_datasets['lcz']
-        >>> lcz_model
-        GeeStaticDataset instance of lcz  (no metadata has been set)
-        >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
-        >>> lcz_model
-        GeeStaticDataset instance of lcz  (known metadata)
+        >>> LCZ_model = dataset.gee_datasets['LCZ']
+        >>> LCZ_model
+        GeeStaticDataset instance of LCZ  (no metadata has been set)
+        >>> LCZ_model.set_metadf(dataset.metadf) #overload the metadf
+        >>> LCZ_model
+        GeeStaticDataset instance of LCZ  (known metadata)
 
         To extract point-values, use the
         `GeeStaticDataset.extract_static_point_data()` method. First, make
         sure you are authenticated with the GEE services.
 
         >>> metobs_toolkit.connect_to_gee() #only required once per session
-        >>> lcz_df = lcz_model.extract_static_point_data()
-        >>> lcz_df
-                                   lcz
+        >>> LCZ_df = LCZ_model.extract_static_point_data()
+        >>> LCZ_df
+                                   LCZ
         name
         vlinder01   Low plants (LCZ D)
         vlinder02        Large lowrise
@@ -969,7 +969,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         >>>
         >>> #Create your Dataset
         >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> lcz_model = dataset.gee_datasets['lcz']
+        >>> LCZ_model = dataset.gee_datasets['LCZ']
 
         If you want your stations present in the map, then you must add the
         metadf to the Modeldata. This step is not required.
@@ -980,16 +980,16 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
         ...                template_file=metobs_toolkit.demo_template)
 
-        >>> lcz_model.set_metadf(dataset.metadf) #overload the metadf
-        >>> lcz_model
-        GeeStaticDataset instance of lcz  (known metadata)
+        >>> LCZ_model.set_metadf(dataset.metadf) #overload the metadf
+        >>> LCZ_model
+        GeeStaticDataset instance of LCZ  (known metadata)
 
         We will save the map as a (HTML) file. You can specify where so save it,
         for this example we will store it in the current working directory
         (`os.getcwd()`)
 
         >>> import os
-        >>> map = lcz_model.make_gee_plot(
+        >>> map = LCZ_model.make_gee_plot(
         ...                  outputfolder = os.getcwd(),
         ...                  filename = 'LCZ_map.html',
         ...                  overwrite=True)
@@ -1034,9 +1034,17 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             pass
 
         else:
-            # Extract point values (for hover info and vmin/vmax in cont case)
-            df = self.extract_static_point_data(metadf=metadf)
-            metadf = metadf.merge(df, how="left", left_index=True, right_index=True)
+            if self.name in metadf.columns:
+                logger.debug(
+                    f"{self.name} is already found in the metadf, no point extraction is needed."
+                )
+            else:
+                logger.debug(
+                    f"{self.name} is extracted as point values (to present in markers)."
+                )
+                # Extract point values (for hover info and vmin/vmax in cont case)
+                df = self.extract_static_point_data(metadf=metadf)
+                metadf = metadf.merge(df, how="left", left_index=True, right_index=True)
 
             add_stations_to_folium_map(
                 Map=MAP, metadf=metadf, display_cols=["name", self.name]
@@ -2906,8 +2914,8 @@ class MetobsModelDataError(Exception):
 # Define default datasets
 # =============================================================================
 
-global_lcz_map = GEEStaticDatasetManager(
-    name="lcz",
+global_LCZ_map = GEEStaticDatasetManager(
+    name="LCZ",
     location="RUB/RUBCLIM/LCZ/global_lcz_map/latest",
     band_of_use="LCZ_Filter",
     value_type="categorical",
@@ -3023,7 +3031,7 @@ era5_land = GEEDynamicDatasetManager(
 
 
 default_datasets = {  # Static datasets
-    global_lcz_map.name: global_lcz_map,
+    global_LCZ_map.name: global_LCZ_map,
     global_dem.name: global_dem,
     global_worldcover.name: global_worldcover,
     # Dynamic datasets

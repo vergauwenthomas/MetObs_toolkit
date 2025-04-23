@@ -15,15 +15,15 @@ default_plot_settings = {}
 #     "lon",  # TODO make these dynamic, now used as static
 #     "call_name",
 #     "location",
-#     "lcz",
+#     "LCZ",
 # ]
 
 # Categorical fields are fields with values that are assumed to be categorical.
 # Note: (there are static and dynamic fields that are categorical)
-# categorical_fields = ["wind_direction", "lcz"]
+# categorical_fields = ["wind_direction", "LCZ"]
 
 
-# location_info = ["network", "lat", "lon", "lcz", "call_name", "location"]
+# location_info = ["network", "lat", "lon", "LCZ", "call_name", "location"]
 
 
 # default_name = "unknown_name"  # used when no station names are available
