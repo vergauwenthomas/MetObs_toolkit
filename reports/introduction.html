@@ -7528,8 +7528,8 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="The-Dataset-class">The Dataset class<a class="anchor-link" href="#The-Dataset-class">¶</a></h2><p>The ´´Dataset´´ class is for most applications the most important class. It holds all your stations and it's data. Thus a ´´Dataset´´ is in principal a collection of stations.</p>
-<p>Since raw data files often include observations from multiple stations, we import our raw data always directly into a ´´Dataset´´. We use the ´´Dataset.import_data_from_file()´´ method, to import the raw data into a Dataset.</p>
+<h2 id="The-Dataset-class">The Dataset class<a class="anchor-link" href="#The-Dataset-class">¶</a></h2><p>The <code>Dataset</code> class is for most applications the most important class. It holds all your stations and it's data. Thus a <code>Dataset</code> is in principal a collection of stations.</p>
+<p>Since raw data files often include observations from multiple stations, we import our raw data always directly into a <code>Dataset</code>. We use the <code>Dataset.import_data_from_file()</code> method, to import the raw data into a Dataset.</p>
 <p>A key component for importing raw data, is a description of what your data represents and how it is formatted. This is done by providing a <strong>template file</strong>, that describes how your raw data is structured.</p>
 </div>
 </div>
@@ -7542,9 +7542,9 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Importing-your-raw-data">Importing your raw data<a class="anchor-link" href="#Importing-your-raw-data">¶</a></h3><p>As an example we will import a demo file of raw observations. In order to do that we need to :</p>
 <ul>
-<li>Create a template file for our raw data file. The ´build_template_prompt´ function will guide you in this process. It will ask questions, once you answerd them a template file is created. It will also propose some code that you use to import your data</li>
-<li>Create a ´Dataset` instance</li>
-<li>Add the raw data into the ´Dataset´.</li>
+<li>Create a template file for our raw data file. The <code>build_template_prompt()</code> function will guide you in this process. It will ask questions, once you answerd them a template file is created. It will also propose some code that you use to import your data</li>
+<li>Create a <code>Dataset</code> instance</li>
+<li>Add the raw data into the <code>Dataset</code>.</li>
 </ul>
 </div>
 </div>
@@ -7558,7 +7558,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Now that we have the datafiles and the templatefile, we create an empty ´Dataset´, and import the data into it.</p>
+<p>Now that we have the datafiles and the templatefile, we create an empty <code>Dataset</code>, and import the data into it.</p>
 </div>
 </div>
 </div>
@@ -7591,7 +7591,7 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <div class="alert alert-block alert-info">
-All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an overview of its content.
+All classes in the MetObs-toolkit have a ``get_info()`` methods that prints out an overview of its content.
 </div>
 </div>
 </div>
@@ -7603,7 +7603,7 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <ul>
-<li>´Dataset.obstypes` : A collection of ´Obstypes´ that are known. These observationtypes describe a measurable quantity, and its corresponding units.</li>
+<li><code>Dataset.obstypes</code> : A collection of <code>Obstypes</code> that are known. These observationtypes describe a measurable quantity, and its corresponding units.</li>
 </ul>
 </div>
 </div>
@@ -7617,7 +7617,7 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <ul>
-<li>´Dataset.template´: A template class, that is automatically set up by using the template file. This is only used when data is imported from a file. It has no further use.</li>
+<li><code>Dataset.template</code>: A template class, that is automatically set up by using the template file. This is only used when data is imported from a file. It has no further use.</li>
 </ul>
 </div>
 </div>
@@ -7630,7 +7630,7 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <ul>
-<li>´dataset.df´: A pandas DataFrame holding all the observation records.</li>
+<li><code>dataset.df</code>: A pandas DataFrame holding all the observation records.</li>
 </ul>
 </div>
 </div>
@@ -7643,7 +7643,7 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <ul>
-<li>´dataset.metadf´: A pandas DataFrame holding all the metadata of the stations.</li>
+<li><code>dataset.metadf</code>: A pandas DataFrame holding all the metadata of the stations.</li>
 </ul>
 </div>
 </div>
@@ -7657,9 +7657,9 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="Station-class">Station class<a class="anchor-link" href="#Station-class">¶</a></h2><p>The stationclass is a representatio of a station. A station holds the following:</p>
 <ul>
-<li><em>sensordata</em>: Timeseries of an observation type. A station can hold multiple sensordata, one for each sensor.</li>
-<li><em>site</em>: Each station has a ´Site´ attribute, that holds the information on the location of the station. Metadata related to the station is also stored here.</li>
-<li><em>modeldata</em>: In addition to the observations, modeldata timeseries representing the station can be stored. In pracktice, if one would download ERA5 data (using the MetObs-toolkit), the timeseries are stored as modeldata in the Station.</li>
+<li><code>Station.sensordata</code>: Timeseries of an observation type. A station can hold multiple sensordata, one for each sensor.</li>
+<li><code>Station.site</code>: Each station has a ´Site´ attribute, that holds the information on the location of the station. Metadata related to the station is also stored here.</li>
+<li><code>Station.modeldata</code>: In addition to the observations, modeldata timeseries representing the station can be stored. In pracktice, if one would download ERA5 data (using the MetObs-toolkit), the timeseries are stored as modeldata in the Station.</li>
 </ul>
 <p>To select a station, one can use the <em>name</em> of the station, which is assumed to be unique for each station.</p>
 </div>
@@ -7672,9 +7672,9 @@ All classes in the MetObs-toolkit have a ´get_info´ methods that prints out an
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <div class="alert alert-block alert-info">
-All the methods and attributes that are present in the ´Dataset´ are also applicable on the ´Station´! Thus if your script works on Dataset-level, it also works on station-level.
+All the methods and attributes that are present in the ``Dataset`` are also applicable on the ``Station``! Thus if your script works on Dataset-level, it also works on station-level.
 
-<p>Only the ´Dataset.sync_records()´, ´Dataset.buddy_check()´, and trivial Dataset-only methods (i.g. ´Dataset.get_station()´) are not defined for Stations.</p>
+<p>Only the <code>Dataset.sync_records()</code>, <code>Dataset.buddy_check()</code>, and trivial Dataset-only methods (i.g. <code>Dataset.get_station()</code>) are not defined for Stations.</p>
 </div>
 </div>
 </div>
@@ -7689,7 +7689,7 @@ All the methods and attributes that are present in the ´Dataset´ are also appl
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Plotting-timeseries">Plotting timeseries<a class="anchor-link" href="#Plotting-timeseries">¶</a></h2><p>Plotting the timeseries can be simply done by using the ´make_plot()´ method, on a ´Dataset´ or a ´Station´.</p>
+<h2 id="Plotting-timeseries">Plotting timeseries<a class="anchor-link" href="#Plotting-timeseries">¶</a></h2><p>Plotting the timeseries can be simply done by using the <code>make_plot()</code> method, on a <code>Dataset</code> or a <code>Station</code>.</p>
 </div>
 </div>
 </div>
@@ -7718,7 +7718,7 @@ All the methods and attributes that are present in the ´Dataset´ are also appl
 <li>Observations are not sychronized over multiple stations. This is a special case of resampling, since there is also a synchronization required.</li>
 </ul>
 <p>It is recommendad to set the target time resolution, in the beginning of your pipeline!</p>
-<p>In the MetObs-toolkit you can resample by using the ´resample()´ method on a ´Dataset´ or ´Station´. By doing so, the toolkit will construct a set of target timestamps (in the new resolution), and will map the raw timestamps to the new target timestamps. There is no interpolation applied!</p>
+<p>In the MetObs-toolkit you can resample by using the <code>resample()</code> method on a <code>Dataset</code> or <code>Station</code>. By doing so, the toolkit will construct a set of target timestamps (in the new resolution), and will map the raw timestamps to the new target timestamps. There is no interpolation applied!</p>
 <p>In order to construct the mapping of the old timestamps to the target timestamps, a tollerance is used. The neirest timestamp is tested if it is within the tolerance of the target timestamp. If this test is not succecsfull, no record could be assigned to the target timestamp and thus a gap is created. Thus by increasing the <em>shift_tolerance</em>, the resampling method will have more mapped timestamps thus less gaps but at the cost of less accurate timestamps.</p>
 </div>
 </div>
@@ -7730,7 +7730,7 @@ All the methods and attributes that are present in the ´Dataset´ are also appl
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Dataframe-of-one-observationtype">Dataframe of one observationtype<a class="anchor-link" href="#Dataframe-of-one-observationtype">¶</a></h3><p>The ´Dataset.df` and ´Station.df´ returns a pandas dataframe with a so calld Multi-Index. That is because the combination of [´timestamp´, ´observationtype´, 'stationname´] defines an observation, thus the use of the Multi-Index.</p>
+<h3 id="Dataframe-of-one-observationtype">Dataframe of one observationtype<a class="anchor-link" href="#Dataframe-of-one-observationtype">¶</a></h3><p>The <code>Dataset.df</code> and <code>Station.df</code> returns a pandas dataframe with a so calld Multi-Index. That is because the combination of [´timestamp´, ´observationtype´, 'stationname´] defines an observation, thus the use of the Multi-Index.</p>
 <p>We are aware that working with Multi-Indexed dataframes can be challenging, thus an example on how to convert a multiindex dataframe to a regular-indexed dataframe.</p>
 <p>Be aware that removing (or reducing) the Multi-Index, is always a subsetting or approximation.</p>
 </div>
@@ -7745,7 +7745,7 @@ All the methods and attributes that are present in the ´Dataset´ are also appl
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Quality-control">Quality control<a class="anchor-link" href="#Quality-control">¶</a></h3><p>For an introduction to Quality Control, we refer to the <strong>LINK</strong> .</p>
+<h3 id="Quality-control">Quality control<a class="anchor-link" href="#Quality-control">¶</a></h3><p>For more details, refer to the <a href="qc_example.ipynb">Quality Control Example Notebook</a>.</p>
 </div>
 </div>
 </div>

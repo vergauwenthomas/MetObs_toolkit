@@ -64,7 +64,7 @@ GEE related methods
    Dataset.import_gee_data_from_file
    Dataset.get_static_gee_point_data
    Dataset.get_static_gee_buffer_fraction_data
-   Dataset.get_lcz
+   Dataset.get_LCZ
    Dataset.get_altitude
    Dataset.get_landcover_fractions
    Dataset.get_gee_timeseries_data

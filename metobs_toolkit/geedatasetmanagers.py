@@ -17,13 +17,6 @@ from time import sleep
 import ee
 
 
-from metobs_toolkit.backend_collection.df_helpers import (
-    # init_multiindexdf,
-    # conv_tz_multiidxdf,
-    xs_save,
-    # multiindexdf_datetime_subsetting,
-)
-
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.obstypes import default_era5_obstypes
 
@@ -1733,11 +1726,20 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         # Get image
         im = gee_api.get_ee_obj(self, target_bands=[modelobstype.model_band])
+        if gee_api._is_eeobj_empty(im):
+            raise gee_api.MetObsGEEDatasetError(
+                f"An empty GEE dataset is returned. Please check the validity of {self} and the target bands {[modelobstype.model_band]}"
+            )
+
         # filter to timestamp
         im = im.filterDate(
             start=timeinstance.isoformat(),
             end=(timeinstance + pd.Timedelta(self.time_res)).isoformat(),
         )
+        if gee_api._is_eeobj_empty(im):
+            raise gee_api.MetObsGEEDatasetError(
+                f"An empty GEE dataset detected after filtering to date. Please check if {timeinstance} is in the geedataset {self}."
+            )
         im = im.first()
 
         # make empty map (FOLIUM BACKEND !! )

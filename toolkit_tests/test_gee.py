@@ -70,14 +70,14 @@ class TestDemoDataset:
     def test_gee_connect(self):
         metobs_toolkit.connect_to_gee()
 
-    def test_lcz_extraction(self, overwrite_solution=False):
+    def test_LCZ_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
         )
-        lcz_data = dataset.get_lcz()
+        LCZ_data = dataset.get_LCZ()
 
         # 3. overwrite solution?
         if overwrite_solution:
@@ -95,10 +95,10 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-        assert_equality(lcz_data["lcz"], solutionobj.metadf["lcz"])
+        assert_equality(LCZ_data["LCZ"], solutionobj.metadf["LCZ"])
         # calling printoutlc
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
-        assert isinstance(dataset.get_station("vlinder18").site.lcz, str)
+        assert isinstance(dataset.get_station("vlinder18").site.LCZ, str)
 
     def test_altitude_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -413,8 +413,8 @@ class TestDemoDataset:
 if __name__ == "__main__":
 
     test = TestDemoDataset()
-    test.test_import_demo_metadata(overwrite_solution=False)
-    # test.test_lcz_extraction(overwrite_solution=False)
+    # test.test_import_demo_metadata(overwrite_solution=False)
+    # test.test_LCZ_extraction(overwrite_solution=False)
     # test.test_altitude_extraction(overwrite_solution=False)
     # test.test_landcover_frac_extraction(overwrite_solution=False)
     # test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)

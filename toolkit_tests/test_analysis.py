@@ -39,7 +39,7 @@ class TestDemoDataset:
             input_metadata_file=metobs_toolkit.demo_metadatafile,
             input_data_file=metobs_toolkit.demo_datafile,
         )
-        dataset.get_lcz()  # for aggregation
+        dataset.get_LCZ()  # for aggregation
         # create analysis
         dataset.resample(target_freq="30min")
         ana = metobs_toolkit.Analysis(Dataholder=dataset)
@@ -102,7 +102,7 @@ class TestDemoDataset:
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
         ana.get_info()
-        aggdf = ana.aggregate_df(trgobstype="humidity", agg=["lcz", "season", "hour"])
+        aggdf = ana.aggregate_df(trgobstype="humidity", agg=["LCZ", "season", "hour"])
 
         # 3. overwrite solution?
         if overwrite_solution:
@@ -126,7 +126,7 @@ class TestDemoDataset:
         )
 
         # 2. apply a metobs manipulation
-        ax = ana.plot_diurnal_cycle(trgobstype="temp", colorby="lcz")
+        ax = ana.plot_diurnal_cycle(trgobstype="temp", colorby="LCZ")
         fig = ax.get_figure()
         return fig
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     )
 
     test = TestDemoDataset()
-    test.test_import_data(overwrite_solution=False)
+    # test.test_import_data(overwrite_solution=False)
     # test.test_if_analysis_can_be_created_from_dataset(overwrite_solution=False)
     # test.test_aggregate_df_method(overwrite_solution=False)
     # test.test_import_data(overwrite_solution=False)

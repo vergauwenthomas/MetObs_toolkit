@@ -677,7 +677,7 @@ class Station:
 
     def get_gee_timeseries_data(
         self,
-        geedynamicdataset,
+        geedynamicdatasetmanager,
         startdt_utc=None,
         enddt_utc=None,
         target_obstypes=["temp"],
@@ -699,7 +699,7 @@ class Station:
 
         Parameters
         ----------
-        geedynamicdataset : GEEDynamicDatasetManager
+        geedynamicdatasetmanager : GEEDynamicDatasetManager
             The dynamic dataset manager instance describing the target GEE dataset.
         startdt_utc : datetime or str, optional
             The start datetime in UTC for the time series data. If None, the
@@ -753,9 +753,9 @@ class Station:
         """
 
         # Check geedynamic dataset
-        if not isinstance(geedynamicdataset, GEEDynamicDatasetManager):
+        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
             raise ValueError(
-                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdataset)}"
+                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
             )
 
         # Format datetime arguments
@@ -771,18 +771,18 @@ class Station:
 
         # check if target_obstypes are mapped to bands
         for obst in target_obstypes:
-            if obst not in geedynamicdataset.modelobstypes.keys():
+            if obst not in geedynamicdatasetmanager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {geedynamicdataset}."
+                    f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
                 )
 
         # create specific name for the file that might be written to Drive
         if drive_filename is None:
             drive_filename = (
-                f"{geedynamicdataset.name}_timeseries_data_of_{self.name}.csv"
+                f"{geedynamicdatasetmanager.name}_timeseries_data_of_{self.name}.csv"
             )
 
-        df = geedynamicdataset.extract_timeseries_data(
+        df = geedynamicdatasetmanager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
@@ -799,21 +799,21 @@ class Station:
 
         # Create ModelTimeSeries instances
         for modelobscol in df.columns:
-            if modelobscol in geedynamicdataset.modelobstypes.keys():
+            if modelobscol in geedynamicdatasetmanager.modelobstypes.keys():
                 modeltimeseries = ModelTimeSeries(
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    obstype=geedynamicdataset.modelobstypes[modelobscol],
+                    obstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
-                    modelname=geedynamicdataset.name,
-                    modelvariable=geedynamicdataset.modelobstypes[
+                    modelname=geedynamicdatasetmanager.name,
+                    modelvariable=geedynamicdatasetmanager.modelobstypes[
                         modelobscol
                     ].model_band,
                 )
                 # todo: duplicacy check
-                self._modeldata.append(modeltimeseries)
+                self._modeldata[modeltimeseries.obstype.name] = modeltimeseries
             else:
                 logger.info(
                     f"Skip {modelobscol} for creating a ModelTimeeries because of unknown obstype."
@@ -1804,7 +1804,7 @@ class Station:
             )
 
     def _obstype_has_modeldata_check(self, obstype: str) -> None:
-        if obstype not in self.sensordata.keys():
+        if obstype not in self.modeldata.keys():
             raise MetObsObstypeNotFound(
                 f"There is no {obstype} - modeldata present for {self}"
             )

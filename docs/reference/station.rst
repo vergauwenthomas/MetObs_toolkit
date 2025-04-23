@@ -56,7 +56,7 @@ GEE related methods
    Station.modeldatadf
    Station.get_static_gee_point_data
    Station.get_static_gee_buffer_fraction_data
-   Station.get_lcz
+   Station.get_LCZ
    Station.get_altitude
    Station.get_landcover_fractions
    Station.get_gee_timeseries_data

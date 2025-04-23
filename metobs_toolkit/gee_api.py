@@ -98,6 +98,10 @@ def get_ee_obj(model, target_bands=[], force_mosaic=None):
     # get the dataset
     if model.is_image:
         obj = ee.Image(model.location).select(model.band_of_use)
+        if obj is None:
+            raise MetObsGEEDatasetError(
+                f"No image returend by: ee.Image({model.location}).select({model.band_of_use}) "
+            )
     else:
         obj = ee.ImageCollection(model.location)
 
@@ -117,12 +121,26 @@ def get_ee_obj(model, target_bands=[], force_mosaic=None):
         else:
             obj = obj
 
+        if obj is None:
+            raise MetObsGEEDatasetError(
+                f"No ee.Image could be constructed. Check the location, bandnames and type of the GeeDataset."
+            )
     return obj
 
 
 # =============================================================================
 # Helpers
 # =============================================================================
+
+
+def _is_eeobj_empty(geeobj):
+    """Check if a GEE object (Image or ImageCollection) is empty."""
+    if isinstance(geeobj, ee.ImageCollection):
+        return geeobj.size().getInfo() == 0
+    elif isinstance(geeobj, ee.Image):
+        return geeobj.bandNames().size().getInfo() == 0
+    else:
+        raise TypeError("geeobj must be an ee.Image or ee.ImageCollection")
 
 
 def _is_image(geeobj):
@@ -215,10 +233,7 @@ def _estimate_data_size(metadf, startdt, enddt, time_res, n_bands=1):
     return metadf.shape[0] * len(datatimerange) * n_bands
 
 
-# =============================================================================
-# Docstring test
-# =============================================================================
-if __name__ == "__main__":
-    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
+class MetObsGEEDatasetError(Exception):
+    """Raise when there is an issue with a GEE api call"""
 
-    setup_and_run_doctest()
+    pass

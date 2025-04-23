@@ -107,7 +107,7 @@ Test your GEE access
     dataset.import_data_from_file()
 
     # Extract LCZ using GEE:
-    dataset.get_lcz()
+    dataset.get_LCZ()
 
     # Selecting your cloud project:
         # 1. A link will appear, click on it
