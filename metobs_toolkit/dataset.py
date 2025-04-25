@@ -158,6 +158,15 @@ class Dataset:
 
         combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["value", "label"],
+                index=pd.MultiIndex(
+                    levels=[[], [], []],
+                    codes=[[], [], []],
+                    names=["datetime", "obstype", "name"],
+                ),
+            )
         return combdf
 
     @copy_doc(Station.outliersdf)
