@@ -1,6 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
+import pandas as pd
 
 # import metobs_toolkit
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
@@ -58,7 +59,7 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(ana, solutionobj)  # dataset comparison
 
-    def test_if_analysis_can_be_created_from_dataset(self, overwrite_solution=False):
+    def test_if_analysis_can_be_created_from_station(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
@@ -93,6 +94,76 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(ana.df, solutionobj)  # dataframe comparison
 
+    def test_basic_analysis_method_calls(self):
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # calls without value test
+        ana.get_info()
+        ana.df
+
+    def test_filtering(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # filter data test
+        ana.apply_filter_on_records("(wind_speed <= 2.5) & (hour > 12) & (hour < 20)")
+        ana.apply_filter_on_records('season=="autumn" | season=="winter"')
+        ana.apply_filter_on_metadata("LCZ == 'Large lowrise'")
+
+        # 3. overwrite solution?
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solutiondata=ana.fulldf,
+                methodname=_method_name,
+                **TestDemoDataset.solkwargs
+            )
+
+        # 4. Get solution
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            methodname=_method_name, **TestDemoDataset.solkwargs
+        )
+
+        # 5. Construct the equlity tests
+        assert_equality(ana.fulldf, solutionobj)  # dataframe comparison
+
+    def test_subsetting_time(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # filter data test
+        startstr = pd.Timestamp("2022-09-04 16:29:36")
+        endstr = pd.Timestamp("2022-09-13 07:00:18")
+        ana.subset_period(startdt=startstr, enddt=endstr)
+
+        # 3. overwrite solution?
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solutiondata=ana.fulldf,
+                methodname=_method_name,
+                **TestDemoDataset.solkwargs
+            )
+
+        # 4. Get solution
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            methodname=_method_name, **TestDemoDataset.solkwargs
+        )
+
+        # 5. Construct the equlity tests
+        assert_equality(ana.fulldf, solutionobj)  # dataframe comparison
+
     def test_aggregate_df_method(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -101,7 +172,7 @@ class TestDemoDataset:
         ana = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
-        ana.get_info()
+
         aggdf = ana.aggregate_df(trgobstype="humidity", agg=["LCZ", "season", "hour"])
 
         # 3. overwrite solution?
@@ -130,6 +201,20 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
+    @pytest.mark.mpl_image_compare
+    def test_diurnal_cycle_plot_with_reference(self):
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # 2. apply a metobs manipulation
+        ax = ana.plot_diurnal_cycle_with_reference_station(
+            ref_station="vlinder02", trgobstype="temp", colorby="LCZ"
+        )
+        fig = ax.get_figure()
+        return fig
+
 
 if __name__ == "__main__":
     print(
@@ -142,6 +227,8 @@ if __name__ == "__main__":
 
     test = TestDemoDataset()
     # test.test_import_data(overwrite_solution=False)
-    # test.test_if_analysis_can_be_created_from_dataset(overwrite_solution=False)
+    # test.test_if_analysis_can_be_created_from_station(overwrite_solution=False)
     # test.test_aggregate_df_method(overwrite_solution=False)
-    # test.test_import_data(overwrite_solution=False)
+    # test.test_basic_analysis_method_calls()
+    test.test_filtering(overwrite_solution=False)
+    # test.test_subsetting_time(overwrite_solution=False)

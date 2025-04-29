@@ -1487,7 +1487,7 @@ class Dataset:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
-        use_mp: bool = False,
+        use_mp: bool = True,
     ):
 
         func_feed_list = _create_qc_arg_set(
@@ -1538,7 +1538,7 @@ class Dataset:
         self,
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
-        use_mp: bool = False,
+        use_mp: bool = True,
     ):
         func_feed_list = _create_qc_arg_set(
             dataset=self,

@@ -13,6 +13,7 @@ the MetObs toolkit to be used by a user and developer.
   Station <station>
   Gap <gap>
   GEEDatasetManagers <geedatasetmanagers>
+  Analysis <analysis>
   Utility functions <functions>
 
 

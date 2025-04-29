@@ -59,15 +59,14 @@ def make_diurnal_plot(
     if refstation is not None:
         logger.info(f"Plotting reference station: {refstation}.")
         # Plot reference as dashed line
-        ax.plot(
-            plotdf.index,
-            plotdf[refstation],
-            label=f"Reference:{refstation}",
+        ax.axhline(
+            y=0,
             color="black",
             linestyle="--",
+            zorder=0.9,
+            linewidth=0.8,
+            label=f"Reference:{refstation}",
         )
-        # Drop the reference station column from the DataFrame
-        plotdf = plotdf.drop(columns=[refstation])
 
     # Check if colormap is valid for the data
     if not all([col in colmap.keys() for col in plotdf.columns]):

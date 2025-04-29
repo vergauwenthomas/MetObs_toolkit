@@ -63,7 +63,7 @@ rootlog.addHandler(console_handler)
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
 
-from metobs_toolkit.new_analysis import Analysis
+from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,

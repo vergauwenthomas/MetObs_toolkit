@@ -1254,7 +1254,7 @@ class Station:
         show_outliers=True,
         show_gaps=True,
         title: Union[str, None] = None,
-        ax=None,
+        ax: Union[Axes, None] = None,
         figkwargs: dict = {},
     ) -> Axes:
         """Generate a time series plot for observational data.
