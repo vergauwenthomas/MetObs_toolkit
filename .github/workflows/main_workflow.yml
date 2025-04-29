@@ -140,6 +140,7 @@ jobs:
             - docs/examples/obstype_example.ipynb
             - docs/examples/gee_example.ipynb
             - docs/examples/filling_example.ipynb
+            - docs/examples/analysis_example.ipynb
             - docs/notebook_references/log_example.ipynb
 
 

@@ -230,5 +230,5 @@ if __name__ == "__main__":
     # test.test_if_analysis_can_be_created_from_station(overwrite_solution=False)
     # test.test_aggregate_df_method(overwrite_solution=False)
     # test.test_basic_analysis_method_calls()
-    test.test_filtering(overwrite_solution=False)
+    # test.test_filtering(overwrite_solution=False)
     # test.test_subsetting_time(overwrite_solution=False)
