@@ -31,23 +31,23 @@ sys.path.insert(0, str(basefolder))
 # sys.path.insert(0, os.path.join(str(basefolder), "metobs_toolkit"))
 
 
-# Test importing on github workflow
-if "/runner/" in os.getcwd():
-    print("ASSUME SERVER BUILD OF DOCUMENTATION")
-    print(f"sys.path: {sys.path}")
-    import metobs_toolkit
+# # Test importing on github workflow
+# if "/runner/" in os.getcwd():
+#     print("ASSUME SERVER BUILD OF DOCUMENTATION")
+#     print(f"sys.path: {sys.path}")
+#     import metobs_toolkit
 
-    print(
-        f" the version of the toolkit to create docs for: {metobs_toolkit.__version__}"
-    )
-    # sys.path.insert(0, '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit')
+#     print(
+#         f" the version of the toolkit to create docs for: {metobs_toolkit.__version__}"
+#     )
+# sys.path.insert(0, '/home/thoverga/Documents/VLINDER_github/MetObs_toolkit')
 
 
 # The toolkit must be imported when testing and building the documentation
 # locally. However this is overkill for RTD service, so only import it for
 # local builds
-if "/home/thoverga" in str(basefolder):
-    import metobs_toolkit
+# if "/home/thoverga" in str(basefolder):
+#     import metobs_toolkit
 
 logofile = os.path.join(basefolder, "docs", "logo_wide_1280x640.jpeg")
 
@@ -246,6 +246,8 @@ html_theme_options = {
 
 if "/runner/" in os.getcwd():
     print("ASSUME GITHUB SERVER BUILD OF DOCUMENTATION")
+    import metobs_toolkit
+
     nbsphinx_execute = "always"  # never, always or auto
     nbsphinx_allow_errors = False  # run examples as tests!
 
@@ -257,6 +259,8 @@ elif "readthedocs.org" in os.getcwd():
 
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
+    import metobs_toolkit
+
     nbsphinx_allow_errors = True  # for developping
     nbsphinx_execute = "never"  # never, always or auto
 
