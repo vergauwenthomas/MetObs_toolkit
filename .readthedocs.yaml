@@ -12,7 +12,10 @@ build:
       - asdf global poetry latest
       - poetry config virtualenvs.create false
     post_install:
-      - poetry install
+      - poetry install --all-groups
+
+    pre_build:
+      - poetry show
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
