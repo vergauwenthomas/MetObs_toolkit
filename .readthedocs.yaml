@@ -29,7 +29,7 @@ build:
       #Specify all the groups (do not use --all-extras because that does not work???)
       - poetry show
       - poetry build
-      - poetry export --without-hashes --all-extras --format=requirements.txt > ./dist/rtd_requirements.txt
+      - poetry export --without-hashes --with=dev,documentation --format=requirements.txt --output=dist/rtd_requirements.txt
     pre_build:
     # Just print out the environment the documentation is build in
       - python -m pip list
