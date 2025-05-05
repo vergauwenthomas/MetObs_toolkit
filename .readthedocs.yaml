@@ -23,16 +23,15 @@ build:
     #the package itself! Thus no mocks in the
       - pwd
       - ls
-      - poetry build
       - poetry install --all-extras
       # create a requirements file of the poetry env
-      - rm -f ./docs/rtd_requirements.txt
+      #- rm -f ./docs/rtd_requirements.txt
       #Specify all the groups (do not use --all-extras because that does not work???)
-      - poetry export --without-hashes --with=documentation,dev,titan --format=requirements.txt > ./docs/rtd_requirements.txt
+      - poetry export --without-hashes --all-extras --format=requirements.txt > ./docs/rtd_requirements.txt
     pre_build:
     # Just print out the environment the documentation is build in
       - python -m pip list
-      - pip install .
+      - pip install dist/metobs_toolkit-*.whl
 
 
 # Build documentation in the "docs/" directory with Sphinx
