@@ -28,7 +28,7 @@ build:
       #- rm -f ./docs/rtd_requirements.txt
       #Specify all the groups (do not use --all-extras because that does not work???)
       - poetry show
-      - poetry build
+      #- poetry build
       - poetry export --without-hashes --with=dev,documentation --format=requirements.txt --output=dist/rtd_requirements.txt
     pre_build:
     # Just print out the environment the documentation is build in
@@ -53,5 +53,3 @@ sphinx:
 python:
    install:
    - requirements: ./dist/rtd_requirements.txt
-   - method: pip
-     path: dist/metobs_toolkit-*.whl
