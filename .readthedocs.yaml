@@ -29,12 +29,11 @@ build:
       #Specify all the groups (do not use --all-extras because that does not work???)
       - poetry show
       - poetry build
-      - poetry export --without-hashes --all-extras --format=requirements.txt > ./docs/rtd_requirements.txt
+      - poetry export --without-hashes --all-extras --format=requirements.txt > ./dist/rtd_requirements.txt
     pre_build:
     # Just print out the environment the documentation is build in
       - python -m pip list
-      - pip install dist/metobs_toolkit-*.whl
-
+      - pip install dist/rtd_requirements.txt
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
@@ -51,4 +50,4 @@ sphinx:
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
 python:
    install:
-   - requirements: ./docs/rtd_requirements.txt
+   - requirements: ./dist/rtd_requirements.txt
