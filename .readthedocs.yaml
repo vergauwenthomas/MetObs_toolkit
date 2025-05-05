@@ -34,6 +34,7 @@ build:
     # Just print out the environment the documentation is build in
       - python -m pip list
       - pip install -r dist/rtd_requirements.txt
+      - pip list
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
