@@ -263,7 +263,7 @@ elif "readthedocs.org" in os.getcwd():
     test1 = os.getenv("READTHEDOCS_VIRTUALENV_PATH")
     print(f"VARIABLE1: {test1}")
     test2 = os.getenv("test_secret_var")
-    print(f"sys.path: {sys.test2}")
+    print(f"sys.path: {test2}")
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
     import metobs_toolkit
