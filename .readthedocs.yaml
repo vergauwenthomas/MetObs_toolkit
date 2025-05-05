@@ -34,7 +34,7 @@ build:
     # Just print out the environment the documentation is build in
       - python -m pip list
       - pip install -r dist/rtd_requirements.txt #install all extra requirements
-      - pip install dist/metobs_toolkit-*.whl #install the package (needed for examples)
+      # - pip install dist/metobs_toolkit-*.whl #install the package (needed for examples)
       - pip list
 
 # Build documentation in the "docs/" directory with Sphinx
