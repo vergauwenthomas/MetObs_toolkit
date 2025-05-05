@@ -253,7 +253,10 @@ if "/runner/" in os.getcwd():
 
 elif "readthedocs.org" in os.getcwd():
     print("ASSUME RTD SERVER BUILD OF DOCUMENTATION")
-    nbsphinx_execute = "never"  # never, always or auto
+    print(f"sys.path: {sys.path}")
+    import metobs_toolkit
+
+    nbsphinx_execute = "always"  # never, always or auto
     nbsphinx_allow_errors = True
 
 
