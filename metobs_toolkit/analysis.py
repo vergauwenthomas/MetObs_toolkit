@@ -104,7 +104,7 @@ class Analysis:
             return False
         return self.df.equals(other.df) and self.metadf.equals(other.metadf)
 
-    def get_info(self, printout: bool = True) -> None | str:
+    def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Provides information about the Analysis instance, including the number of records,
         observation types, metadata columns, station names, and known time derivatives.
@@ -326,9 +326,9 @@ class Analysis:
         self,
         trgobstype: str = "temp",
         colorby: str = "name",
-        title: str | None = None,
+        title: Union[str, None] = None,
         ax: Union[plt.Axes, None] = None,
-        colordict: dict | None = None,
+        colordict: Union[dict, None] = None,
         legend: bool = True,
         return_data: bool = False,
         figkwargs: dict = {},
