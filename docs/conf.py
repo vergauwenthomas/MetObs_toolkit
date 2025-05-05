@@ -244,10 +244,17 @@ html_theme_options = {
 # but, since this package is under active development, it is handy that the
 # notbooks are executed only when building locally !!
 
-if ("/runner/" in os.getcwd()) | ("readthedocs.org" in os.getcwd()):
-    print("ASSUME SERVER BUILD OF DOCUMENTATION")
+if "/runner/" in os.getcwd():
+    print("ASSUME GITHUB SERVER BUILD OF DOCUMENTATION")
     nbsphinx_execute = "always"  # never, always or auto
+    nbsphinx_allow_errors = False  # run examples as tests!
+
+elif "readthedocs.org" in os.getcwd():
+    print("ASSUME RTD SERVER BUILD OF DOCUMENTATION")
+    nbsphinx_execute = "never"  # never, always or auto
     nbsphinx_allow_errors = True
+
+
 else:
     print("ASSUME LOCAL BUILD OF DOCUMENTATION")
     nbsphinx_allow_errors = True  # for developping
