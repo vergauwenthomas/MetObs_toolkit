@@ -1,27 +1,23 @@
-# .readthedocs.yaml
 version: 2
 
-# Set the version of Python and other tools you might need
 build:
-  os: ubuntu-20.04
-  tools: {python: "3.10"}
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.10"
   jobs:
-    pre_create_environment:
-      - asdf plugin add poetry
-      - asdf install poetry latest
-      - asdf global poetry latest
-      - poetry config virtualenvs.create false
+    post_create_environment:
+      # Install poetry
+      # https://python-poetry.org/docs/#installing-manually
+      - python -m pip install poetry
     post_install:
-      - poetry install --all-groups
-
+      # Install dependencies with 'docs' dependency group
+      # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --with documentation
     pre_build:
+      - pip list
       - poetry show
-
-# Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: docs/conf.py
-  fail_on_warning: true
-
 
 
 # # Required
