@@ -49,7 +49,7 @@ shapely = "^2.0.6"
 [tool.poetry.group.dev.dependencies]
 jedi = "^0.19"
 nbconvert = "^7.16.6"
-nbstripout = "^0.8.1"
+# nbstripout = "^0.8.1"
 # To run poetry tests
 poetry = "^2"
 pre-commit = "^4.0.1"
