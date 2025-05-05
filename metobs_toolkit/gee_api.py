@@ -71,6 +71,10 @@ def connect_to_gee(**kwargs):
         _auth_on_runner()
         return
 
+    if os.getenv("READTHEDOCS_VIRTUALENV_PATH") is not None:  # Triggered on RTD builds
+        _auth_on_runner()
+        return
+
     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
         ee.Authenticate(**kwargs)
         ee.Initialize()
