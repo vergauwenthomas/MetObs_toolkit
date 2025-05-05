@@ -163,12 +163,12 @@ jobs:
             pip install ipython jupyter  # Ensure jupyter is installed
             pip install -e .
 
-        # Clear output from notebook test files
-        - name: Clear notebook outputs
-          run: |
-            for notebook in ${{ matrix.test_file }}; do
-              jupyter nbconvert --clear-output --inplace "$notebook"
-            done
+        # # Clear output from notebook test files
+        # - name: Clear notebook outputs
+        #   run: |
+        #     for notebook in ${{ matrix.test_file }}; do
+        #       jupyter nbconvert --clear-output --inplace "$notebook"
+        #     done
 
         # Run notebook test files
         - name: Run notebook tests
