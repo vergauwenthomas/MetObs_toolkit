@@ -95,18 +95,80 @@ def _auth_on_rtd(secret="GEE_SERVICE_ACCOUNT"):
         raise EnvironmentError(
             f"{secret} variable is not set on RTD, or present in scope."
         )
-    print("secret begin found: ", key_str[:15])
+    print("secret begin found: ", key_str)
 
-    # convert to json
-    trg_json_file = ".private_key_gee.json"
-    with open(trg_json_file, "w") as key_file:
-        key_file.write(key_str)
+    # # convert to json
+    # trg_json_file = ".private_key_gee.json"
+    # with open(trg_json_file, "w") as key_file:
+    #     key_file.write(key_str)
 
     # authenticae with service account
-    credentials = ee.ServiceAccountCredentials(service_account, key_data=trg_json_file)
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=key_str)
     ee.Initialize(credentials)
 
 
+# import json
+# #testing
+
+# keystr = """{
+#   "type": "service_account",
+#   "project_id": "metobs-public",
+#   "private_key_id": "3f911bc6ea5a7676b1ddda63ca8f6f4ef7649ec0",
+#   "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1FsRYveM1sARD\nrQ6UrLPF6HK3bOor7xXPpBXTCGcKmSLCI61wPIDJ6jJhyqGf8RsflZyoHTgsuUqo\nRRv7ipV2FORGrTO58hQ/HJOUPtCxS5e6ChDM2OKNUa1WgVONvQHuPQlTjUQy/rbW\n7Uy+E7NdByveCCBGx37gZCCMsuONRnVTackVoW5PrlksiuTH8zitmokBwxI5cj0X\nan+AjVUiMkwNtZeBLYRn16Zr+cUdilKshP5JcCh/My7G4KMTww8BR2DA+ohyi070\nbGdqbB6FDZ2336tCSUY1D3IqFODdWFwxq7QcDrZmJnfWb/Z9P9eSgPb1VB0MNJOg\nWScgpY3JAgMBAAECggEATT8s+n3l0h0HdKb5tUoGVcHWTZBUQ/F06GIiPSc0bTzt\nqsr1TQ9CEN+qJjT9xPBglZSIgt4T/F/+DNGOIjr3jqtSxSNVEVjGcjWKbo5tD3Qj\ngOSSTg+mdIoG2wPH1IpvrGS0+cMk+GvXKs+HEP3uYRySBeCJhCfNY4LSr7IPh09y\nYTeGVgl3yv7CPdg2txCDSG9J4CE663g/wppssTFnviFw0BxCVhrtaXuM0UMYsxpc\nN3RE1pO+kMey66nVNwYYV3hkUTLb5Daqa9GkQCwqsa4mAFPnthj16VYr5PYRANd6\n6bznJH/n8TggeGsIXlqsl+RIWEsn0lBo5hYVwm1m0QKBgQDtgMWkDuluFiW3EYZU\n1VktlEL44sEZYN4iYI+uMo6ege2KLYM2dWI3So123iLLW4juJAVsdTJvv841T1Z8\no3vj0EVbFB3Bnv7DzSHnrscNpX7DxC5V4S5nj37Y6RZlzUBYYn48nLAaFAaviHCq\n6MvVcGd/WAFkSgFvmpkkXKgLAwKBgQDDMTyGe0+Eq8GUeVoDOcdnuZtg8sSgkFEw\ns8IGtpaRj8+zZKMsiPr/IKadw2Rh1lfX5dx1RN6yE4wPcz9Fv59p7CzhScB9Nek6\nN6CA0LPf2MYgn4nY2+pyNDKGLZlwojPRiwyjn2Rbeii0Vj5KNkCN4svr6AOjgBUT\nVVqo6PTkQwKBgQCg0BuC7VHjZ32cCnKxiFA8y3HZgfgLzgo6rrU61yK4cvM7J3v7\n6Nla5NEKlnhqx4zc6mj9uhEvl2jxscm21R9y7re3ZtSLILQSMhht/mrrc4500aYq\nIjHAj2ntR04SGjsiXXZqZhHbZonsWu8m2kACQnzhvd4bYPy966kb9N0XrwKBgGrx\nmArKlvfGrwotLs8joghHnkUQ3gBm8cTwSDcrZPWdyJuuYOSurG6KMh+wBVjBemGU\n1CQANs90fEGe0CTj53C+cJyCrw8rMXyvK6ZIMrVLbMpE/t6tJxepV6FCbJZUmHWP\nbL5dPzwLgy/DLN+2N8pFX5sCBLRZIbL1CfYPpNVHAoGBAJLuFxnRmM+iS8//VOST\nAy10rVr/U8Ks1LoHqUVoVBrwnnXgmPQsrqqTC1Ju3X0LtalGv3EUp7S8zZ0SVoRd\nJlLVfJWZqRooTjpCM1SNM+Jo1ivsywi/rp7xVc+5868huybnyfJW1ciqnZdhIg+C\nZmjoUmwt1eq6pPIa9sZLbA9L\n-----END PRIVATE KEY-----\n",
+#   "client_email": "metobs-service-account@metobs-public.iam.gserviceaccount.com",
+#   "client_id": "108556761234228647120",
+#   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#   "token_uri": "https://oauth2.googleapis.com/token",
+#   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/metobs-service-account%40metobs-public.iam.gserviceaccount.com",
+#   "universe_domain": "googleapis.com"
+# }"""
+
+# formatting
+# keystr = keystr.replace('\n', '')
+# # Convert the keystr to a JSON object
+# key_json = json.loads(keystr, strict=False)
+# keystr = keystr.replace("'", '"')
+# keydict = eval(keystr)
+# keydict2 = {
+#   "type": "service_account",
+#   "project_id": "metobs-public",
+#   "private_key_id": "3f911bc6ea5a7676b1ddda63ca8f6f4ef7649ec0",
+#   "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1FsRYveM1sARD\nrQ6UrLPF6HK3bOor7xXPpBXTCGcKmSLCI61wPIDJ6jJhyqGf8RsflZyoHTgsuUqo\nRRv7ipV2FORGrTO58hQ/HJOUPtCxS5e6ChDM2OKNUa1WgVONvQHuPQlTjUQy/rbW\n7Uy+E7NdByveCCBGx37gZCCMsuONRnVTackVoW5PrlksiuTH8zitmokBwxI5cj0X\nan+AjVUiMkwNtZeBLYRn16Zr+cUdilKshP5JcCh/My7G4KMTww8BR2DA+ohyi070\nbGdqbB6FDZ2336tCSUY1D3IqFODdWFwxq7QcDrZmJnfWb/Z9P9eSgPb1VB0MNJOg\nWScgpY3JAgMBAAECggEATT8s+n3l0h0HdKb5tUoGVcHWTZBUQ/F06GIiPSc0bTzt\nqsr1TQ9CEN+qJjT9xPBglZSIgt4T/F/+DNGOIjr3jqtSxSNVEVjGcjWKbo5tD3Qj\ngOSSTg+mdIoG2wPH1IpvrGS0+cMk+GvXKs+HEP3uYRySBeCJhCfNY4LSr7IPh09y\nYTeGVgl3yv7CPdg2txCDSG9J4CE663g/wppssTFnviFw0BxCVhrtaXuM0UMYsxpc\nN3RE1pO+kMey66nVNwYYV3hkUTLb5Daqa9GkQCwqsa4mAFPnthj16VYr5PYRANd6\n6bznJH/n8TggeGsIXlqsl+RIWEsn0lBo5hYVwm1m0QKBgQDtgMWkDuluFiW3EYZU\n1VktlEL44sEZYN4iYI+uMo6ege2KLYM2dWI3So123iLLW4juJAVsdTJvv841T1Z8\no3vj0EVbFB3Bnv7DzSHnrscNpX7DxC5V4S5nj37Y6RZlzUBYYn48nLAaFAaviHCq\n6MvVcGd/WAFkSgFvmpkkXKgLAwKBgQDDMTyGe0+Eq8GUeVoDOcdnuZtg8sSgkFEw\ns8IGtpaRj8+zZKMsiPr/IKadw2Rh1lfX5dx1RN6yE4wPcz9Fv59p7CzhScB9Nek6\nN6CA0LPf2MYgn4nY2+pyNDKGLZlwojPRiwyjn2Rbeii0Vj5KNkCN4svr6AOjgBUT\nVVqo6PTkQwKBgQCg0BuC7VHjZ32cCnKxiFA8y3HZgfgLzgo6rrU61yK4cvM7J3v7\n6Nla5NEKlnhqx4zc6mj9uhEvl2jxscm21R9y7re3ZtSLILQSMhht/mrrc4500aYq\nIjHAj2ntR04SGjsiXXZqZhHbZonsWu8m2kACQnzhvd4bYPy966kb9N0XrwKBgGrx\nmArKlvfGrwotLs8joghHnkUQ3gBm8cTwSDcrZPWdyJuuYOSurG6KMh+wBVjBemGU\n1CQANs90fEGe0CTj53C+cJyCrw8rMXyvK6ZIMrVLbMpE/t6tJxepV6FCbJZUmHWP\nbL5dPzwLgy/DLN+2N8pFX5sCBLRZIbL1CfYPpNVHAoGBAJLuFxnRmM+iS8//VOST\nAy10rVr/U8Ks1LoHqUVoVBrwnnXgmPQsrqqTC1Ju3X0LtalGv3EUp7S8zZ0SVoRd\nJlLVfJWZqRooTjpCM1SNM+Jo1ivsywi/rp7xVc+5868huybnyfJW1ciqnZdhIg+C\nZmjoUmwt1eq6pPIa9sZLbA9L\n-----END PRIVATE KEY-----\n",
+#   "client_email": "metobs-service-account@metobs-public.iam.gserviceaccount.com",
+#   "client_id": "108556761234228647120",
+#   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#   "token_uri": "https://oauth2.googleapis.com/token",
+#   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/metobs-service-account%40metobs-public.iam.gserviceaccount.com",
+#   "universe_domain": "googleapis.com"
+# }
+
+# serialize the info into a string
+# test_json = json.dumps(keydict, indent=4).replace("'", '"')
+# test_json2 = json.dumps(keydict2, indent=4).replace("'", '"')
+# Save the JSON string to a file
+# trg_json_file = ".private_key_gee.json"
+# with open(trg_json_file, "w") as key_file:
+#     key_file.write(test_json)
+
+# print(f"JSON saved to {trg_json_file}")
+# format:
+
+# test = test.replace('\n','')
+# test = test.replace('-----BEGIN PRIVATE KEY-----', '')
+
+# email = keydict['client_email']
+# ee.ServiceAccountCredentials(email=email,
+#                             key_data=test_json)
+
+
+# _auth_on_rtd()
+
+print("done")
+
+
+# ----
 def _auth_on_runner(secret="GEE_SERVICE_ACCOUNT"):
     """
     Authenticate and initialize the Google Earth Engine (GEE) API using a service account.
