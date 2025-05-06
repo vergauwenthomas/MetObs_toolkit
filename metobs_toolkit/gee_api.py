@@ -98,7 +98,7 @@ def _auth_on_rtd(secret="GEE_SERVICE_ACCOUNT"):
     key_json = json.dumps(key_dict, indent=4).replace("'", '"')
 
     # Get the credentials
-    email = key_dict["client_email"]
+    email = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
     credentials = ee.ServiceAccountCredentials(email=email, key_data=key_json)
 
     # Initiate google API
