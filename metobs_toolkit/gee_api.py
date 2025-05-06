@@ -72,7 +72,7 @@ def connect_to_gee(**kwargs):
         return
 
     if os.getenv("READTHEDOCS_VIRTUALENV_PATH") is not None:  # Triggered on RTD builds
-        _auth_on_runner()
+        _auth_on_rtd()
         return
 
     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
@@ -84,6 +84,27 @@ def connect_to_gee(**kwargs):
         ee.Authenticate()
         ee.Initialize()
     return
+
+
+def _auth_on_rtd(secret="GEE_SERVICE_ACCOUNT"):
+    logger.debug("Entering authentication on RTD funtion")
+    service_account = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
+    # get variable (string reperesntation)
+    key_str = os.getenv(secret)
+    if key_str is None:
+        raise EnvironmentError(
+            f"{secret} variable is not set on RTD, or present in scope."
+        )
+    print("secret begin found: ", key_str[:15])
+
+    # convert to json
+    trg_json_file = ".private_key_gee.json"
+    with open(trg_json_file, "w") as key_file:
+        key_file.write(key_str)
+
+    # authenticae with service account
+    credentials = ee.ServiceAccountCredentials(service_account, key_data=trg_json_file)
+    ee.Initialize(credentials)
 
 
 def _auth_on_runner(secret="GEE_SERVICE_ACCOUNT"):
