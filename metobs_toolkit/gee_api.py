@@ -9,10 +9,11 @@ Functions that are used for GEE interactions.
 import os
 import logging
 from time import sleep
-import pandas as pd
-import ee
+from pathlib import Path
 import json
 
+import pandas as pd
+import ee
 
 logger = logging.getLogger(__name__)
 
@@ -91,25 +92,22 @@ def _auth_on_rtd(secret="GEE_SERVICE_ACCOUNT"):
     logger.debug("Entering authentication on RTD funtion")
     if os.getenv(secret) is None:
         raise EnvironmentError(f"{secret} variable is not set, are present in scope.")
-    # Read the auth data as raw string
     key_str = r"{}".format(os.getenv(secret))
-    print(f"key_str : {key_str}")
-    # Convert to a json string
-    key_dict = eval(key_str)  # first to dict
-    print(f"evalled key_dict: {key_dict}")
-    key_json = json.dumps(key_dict, indent=4).replace("'", '"')
 
-    print(f"Passed key_json: {key_json}")
-    print(f"type: key_json: {type(key_json)}")
+    # write the data to a json file
+    json_data = json.loads(key_str.replace("\n", "\\n"))
+    output_path = Path.cwd() / "gee_service_account.json"
+    with open(output_path, "w") as json_file:
+        json.dump(json_data, json_file, indent=4)
+
     # Get the credentials
     email = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
-    credentials = ee.ServiceAccountCredentials(email=email, key_data=key_json)
+    credentials = ee.ServiceAccountCredentials(email=email, key_file=str(output_path))
 
     # Initiate google API
     ee.Initialize(credentials)
 
 
-_auth_on_rtd()
 
 
 # ----
