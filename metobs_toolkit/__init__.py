@@ -48,11 +48,7 @@ console_handler.setLevel("WARNING")
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler.setFormatter(formatter)
 rootlog.addHandler(console_handler)
-# enable_console_logging(level='WARNING')  # set rootlogger on debug
-# add_FileHandler(
-#     trglogfile=os.path.join(str(Path(__file__).parent.parent.parent), "logfile.log")
-# )
-# rootlog.info("Logger initiated")
+
 
 
 # =============================================================================

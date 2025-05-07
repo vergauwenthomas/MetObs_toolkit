@@ -90,11 +90,3 @@ def find_plot_extent(geodf, user_bounds, default_extentlist):
 
     return box_to_extent_list(geodf_extent_box)
 
-
-# =============================================================================
-# Docstring test
-# =============================================================================
-if __name__ == "__main__":
-    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
-
-    setup_and_run_doctest()
