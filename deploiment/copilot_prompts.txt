@@ -3,6 +3,7 @@ Edit the code to fulfill the following needs:
 
 /doc Insert docstrings in Numpy style for all classes, methods and functions in this module.
 If a docstring is already present, make sure it is in the Numpy style and that the references to the arguments are correct.
+Do not include a example in the docstring.
 If a docstring is already present, check if it is still valid and change accordingly.
 If a docstring is already present, check for grammer and spelling errors.
 
@@ -14,9 +15,9 @@ Check for typos, grammer and spelling issues in the docstrings and fix them.
 /edit
 Check if type hinting is defined for all methods and functions. Add it if it is missing or wrong.
 
-Import the logging module and set the logger to __file __. Insert appropriate logging statements in all methods and functions. Log entering a method or function at the info-level, and refer to self in the message.  If the name of the method starts with an underscore, all logging statements in it are at debug level.
+Import the logging module and get the logger with name: "<metobs_toolkit>". Insert appropriate logging statements in all methods and functions at debug level. Log entering a method or function at debug-level (for public methods and functions), and refer to self in the message.
 
-Insert in the beginning of all method and functions checks that validate if the arguments are in the desired type. Raise a TypeError if an argument is not in the correct type.
+Insert in the beginning of all method and functions checks that validate if the arguments are in the desired type. Raise a TypeError if an argument is not in the correct type. If the variable is passed to fmt_datetime_arg, no typechecking is needed.
 
 Fix the identation of the code if needed.
 

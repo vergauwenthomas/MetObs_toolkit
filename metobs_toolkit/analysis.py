@@ -1,13 +1,10 @@
 import logging
-from typing import Union, Tuple
+from typing import Union, Tuple, Callable
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as datetypeclass
-
-logger = logging.getLogger("<metobs_toolkit>")
-
 
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -19,7 +16,9 @@ import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
-possible_time_derivates = [
+logger = logging.getLogger("<metobs_toolkit>")
+
+possible_time_aggregates = [  # TYPO
     "year",
     "month",
     "hour",
@@ -31,23 +30,30 @@ possible_time_derivates = [
 
 
 class Analysis:
+    """
+    Analysis class for handling and analyzing meteorological data from a Dataset or Station.
+
+    Parameters
+    ----------
+    Dataholder : Union[Dataset, Station]
+        The data source to initialize the analysis object. It can either be a `Dataset`
+        or a `Station` object.
+
+    Attributes
+    ----------
+    fulldf : pandas.DataFrame
+        A wide-format DataFrame containing the main data and time derivatives.
+    metadf : pandas.DataFrame
+        Metadata associated with the data.
+    """
+
     def __init__(self, Dataholder: Union[Dataset, Station]):
-        """
-        Initialize the analysis object with data from a Dataset or Station.
-        Parameters
-        ----------
-        Dataholder : Union[Dataset, Station]
-            The data source to initialize the analysis object. It can either be a `Dataset`
-            or a `Station` object.
+        logger.debug(f"Entering {self.__class__.__name__}.__init__")
+        if not isinstance(Dataholder, (Dataset, Station)):
+            raise TypeError(
+                f"Dataholder is not a Dataset or Station, but a {type(Dataholder)}"
+            )
 
-        Attributes
-        ----------
-        fulldf : pandas.DataFrame
-            A wide-format DataFrame containing the main data and time derivatives.
-        metadf : pandas.DataFrame
-            Metadata associated with the data.
-
-        """
         if isinstance(Dataholder, Dataset):
             df = Dataholder.df
             metadf = Dataholder.metadf
@@ -65,10 +71,6 @@ class Analysis:
                 sens.obstype.name: sens.obstype
                 for sens in Dataholder.sensordata.values()
             }
-        else:
-            raise TypeError(
-                f"Dataholder is not a Dataset or Station, but a {type(Dataholder)}"
-            )
 
         # Transform data to wide structure
         widedf = df.unstack("obstype")["value"]
@@ -92,14 +94,36 @@ class Analysis:
         self.metadf = metadf
 
         # extra data
-        self._obstypes = obstypes  # for displayin units in plots
+        self._obstypes = obstypes  # for displaying units in plots
 
     @property
-    def df(self):
-        # The full df without the time derivatives
+    def df(self) -> pd.DataFrame:
+        """
+        Returns the full DataFrame without the time derivatives.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame indexed by ['datetime', 'name'] and containing observation columns.
+        """
+        logger.debug(f"Entering {self.__class__.__name__}.df property")
         return self.fulldf.set_index(["datetime", "name"])[self._df_cols]
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        """
+        Check equality with another Analysis object.
+
+        Parameters
+        ----------
+        other : object
+            The object to compare with.
+
+        Returns
+        -------
+        bool
+            True if both the data and metadata are equal, False otherwise.
+        """
+        logger.debug(f"Entering {self.__class__.__name__}.__eq__")
         if not isinstance(other, Analysis):
             return False
         return self.df.equals(other.df) and self.metadf.equals(other.metadf)
@@ -114,68 +138,66 @@ class Analysis:
         printout : bool, optional
             If True, prints the information to the console. If False, returns the information
             as a string. Default is True.
+
         Returns
         -------
         None or str
             Returns None if `printout` is True. Returns the information string if `printout`
             is False.
         """
+        logger.debug(f"Entering {self.__class__.__name__}.get_info")
+        if not isinstance(printout, bool):
+            raise TypeError("printout must be a boolean.")
 
         infostr = ""
-
         infostr += "Analysis Instance Information: \n"
         infostr += f"Number of records: {len(self.df)}\n"
         infostr += f"Observation types: {list(self._df_cols)}\n"
         infostr += f"Available metadata columns: {self.metadf.columns.tolist()}\n"
         infostr += f"Stations: {self.fulldf['name'].unique().tolist()}\n"
-        infostr += f"All knonw time-derivatives: {possible_time_derivates}"
+        infostr += f"All known time-derivatives: {possible_time_aggregates}"
 
         if printout:
             print(infostr)
         else:
             return infostr
 
-    def get_tz(self):
-        def get_tz(self) -> str:
-            """
-            Retrieve the timezone information of the 'datetime' index.
+    def get_tz(self) -> str:
+        """
+        Retrieve the timezone information of the 'datetime' index.
 
-            Returns
-            -------
-            str
-                The timezone of the 'datetime' index.
-            """
-
-        # Set timezone of 'fake_datetime' to match 'datetime' column (tz is displayed as xlabel)
+        Returns
+        -------
+        str
+            The timezone of the 'datetime' index.
+        """
+        logger.debug(f"Entering {self.__class__.__name__}.get_tz")
         return self.df.index.get_level_values("datetime").tz
 
     def apply_filter_on_metadata(self, filter_string: str) -> "Analysis":
         """
         Apply a filter expression to the metadata and update the records accordingly.
 
-        Parameters:
+        Parameters
         ----------
         filter_string : str
             A string representation of a filter expression to be applied on the metadata. For more
-            details, see the documentation of pandas.DataFrame.query.The query is applied on
+            details, see the documentation of pandas.DataFrame.query. The query is applied on
             the `.metadf` attribute.
 
-        Warning:
-        --------
+        Warning
+        -------
         This function modifies the data in place, so filtered-out data will be lost.
 
-        Note:
-        --------
+        Note
+        -----
         A common error (UndefinedVariableError) is raised when a string value is not put
         in quotation marks.
 
-        Examples:
-        --------
-        >>> analysis = Analysis(dataset)
-        >>> analysis.apply_filter_on_metadata("station_type == 'urban'")
-        >>> print(analysis.metadf)
-        >>> print(analysis.df)
         """
+        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
+        if not isinstance(filter_string, str):
+            raise TypeError("filter_string must be a string.")
 
         # Apply the filter string
         try:
@@ -196,32 +218,26 @@ class Analysis:
         """
         Apply a filter expression to the records.
 
-
-        Parameters:
+        Parameters
         ----------
         filter_string : str
-            A string representation of a filter expression to be applied on the metadata. For more
+            A string representation of a filter expression to be applied on the records. For more
             details, see the documentation of pandas.DataFrame.query. The query is applied on
             the `.fulldf` attribute.
 
-        Warning:
-        --------
+        Warning
+        -------
         This function modifies the data in place, so filtered-out data will be lost.
 
-        Note:
-        --------
+        Note
+        -----
         A common error (UndefinedVariableError) is raised when a string value is not put
         in quotation marks.
 
-        Examples:
-        --------
-        >>> analysis = Analysis(dataset)
-        >>> analysis.apply_filter_on_records('hour > 12 & hour < 20')
-        >>> analysis.apply_filter_on_records('obstype == "temp" & season == "autumn"')
-        >>> print(analysis.metadf)
-        >>> print(analysis.df)
-
         """
+        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_records")
+        if not isinstance(filter_string, str):
+            raise TypeError("filter_string must be a string.")
 
         # Apply the filter string
         try:
@@ -237,32 +253,29 @@ class Analysis:
 
     def subset_period(
         self,
-        startdt: Union[pd.Timestamp, datetypeclass],
-        enddt: Union[pd.Timestamp, datetypeclass],
-    ) -> "pd.DataFrame":
+        startdt: Union[pd.Timestamp, datetypeclass, str],
+        enddt: Union[pd.Timestamp, datetypeclass, str],
+    ) -> pd.DataFrame:
         """
         Subset the DataFrame to a specific time period.
 
         Parameters
         ----------
-        startdt : Union[str, pd.Timestamp, datetypeclass]
-            The start date and time of the desired period. Can be a string,
-            pandas Timestamp, or a custom date type.
-        enddt : Union[str, pd.Timestamp, datetypeclass]
-            The end date and time of the desired period. Can be a string,
-            pandas Timestamp, or a custom date type.
+        startdt : Union[pd.Timestamp, datetypeclass, str]
+            The start date and time of the desired period.
+        enddt : Union[pd.Timestamp, datetypeclass, str]
+            The end date and time of the desired period.
 
         Returns
         -------
         pd.DataFrame
             A DataFrame containing only the rows within the specified time period.
 
-        Warning:
-        --------
+        Warning
+        -------
         This function modifies the data in place, so filtered-out data will be lost.
-
         """
-
+        logger.debug(f"Entering {self.__class__.__name__}.subset_period")
         startdt = fmt_datetime_arg(startdt)
         enddt = fmt_datetime_arg(enddt)
 
@@ -279,7 +292,7 @@ class Analysis:
         self,
         trgobstype: str = "temp",
         agg: list[str] = ["LCZ", "hour"],
-        method: callable = np.nanmean,
+        method: Callable = np.nanmean,
     ) -> pd.DataFrame:
         """
         Aggregate all 'values' to specific groups and return the resulting DataFrame.
@@ -297,8 +310,14 @@ class Analysis:
         -------
         pd.DataFrame
             A DataFrame with aggregated values, indexed by the specified grouping columns.
-
         """
+        logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
+        if not isinstance(trgobstype, str):
+            raise TypeError("trgobstype must be a string.")
+        if not isinstance(agg, list):
+            raise TypeError("agg must be a list of strings.")
+        if not callable(method):
+            raise TypeError("method must be callable.")
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -316,7 +335,7 @@ class Analysis:
         fulldf = fulldf[agg + [trgobstype]]
 
         # Aggregate the df
-        agg_df = fulldf.groupby(agg, observed=True).agg(method)  # descrepation warning
+        agg_df = fulldf.groupby(agg, observed=True).agg(method)
         # sort index
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
@@ -359,8 +378,24 @@ class Analysis:
         -------
         matplotlib.axes.Axes or tuple
             The plot axes. If `return_data` is True, returns a tuple of the plot axes and the aggregated DataFrame.
-
         """
+        logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
+        if not isinstance(trgobstype, str):
+            raise TypeError("trgobstype must be a string.")
+        if not isinstance(colorby, str):
+            raise TypeError("colorby must be a string.")
+        if title is not None and not isinstance(title, str):
+            raise TypeError("title must be a string or None.")
+        if ax is not None and not isinstance(ax, plt.Axes):
+            raise TypeError("ax must be a matplotlib.axes.Axes or None.")
+        if colordict is not None and not isinstance(colordict, dict):
+            raise TypeError("colordict must be a dict or None.")
+        if not isinstance(legend, bool):
+            raise TypeError("legend must be a boolean.")
+        if not isinstance(return_data, bool):
+            raise TypeError("return_data must be a boolean.")
+        if not isinstance(figkwargs, dict):
+            raise TypeError("figkwargs must be a dict.")
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -445,9 +480,9 @@ class Analysis:
         ref_station: str,
         trgobstype: str = "temp",
         colorby: str = "name",
-        title: str = None,
+        title: Union[str, None] = None,
         ax: Union[plt.Axes, None] = None,
-        colordict: dict = None,
+        colordict: Union[dict, None] = None,
         legend: bool = True,
         return_data: bool = False,
         figkwargs: dict = {},
@@ -463,11 +498,11 @@ class Analysis:
             The observation type to analyze (e.g., "temp"). Default is "temp".
         colorby : str, optional
             The column name to group data by for coloring the plot. Default is "name".
-        title : str, optional
+        title : str or None, optional
             The title of the plot. If None, a default title is generated. Default is None.
-        ax : matplotlib.axes.Axes, optional
+        ax : matplotlib.axes.Axes or None, optional
             The axes object to plot on. If None, a new figure and axes are created. Default is None.
-        colordict : dict, optional
+        colordict : dict or None, optional
             A dictionary mapping group names (from `colorby`) to colors. Default is None.
         legend : bool, optional
             Whether to include a legend in the plot. Default is True.
@@ -488,6 +523,25 @@ class Analysis:
         (`colorby`) and time components (hour, minute, second). The resulting diurnal cycle
         is plotted, with options for customization.
         """
+        logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle_with_reference_station")
+        if not isinstance(ref_station, str):
+            raise TypeError("ref_station must be a string.")
+        if not isinstance(trgobstype, str):
+            raise TypeError("trgobstype must be a string.")
+        if not isinstance(colorby, str):
+            raise TypeError("colorby must be a string.")
+        if title is not None and not isinstance(title, str):
+            raise TypeError("title must be a string or None.")
+        if ax is not None and not isinstance(ax, plt.Axes):
+            raise TypeError("ax must be a matplotlib.axes.Axes or None.")
+        if colordict is not None and not isinstance(colordict, dict):
+            raise TypeError("colordict must be a dict or None.")
+        if not isinstance(legend, bool):
+            raise TypeError("legend must be a boolean.")
+        if not isinstance(return_data, bool):
+            raise TypeError("return_data must be a boolean.")
+        if not isinstance(figkwargs, dict):
+            raise TypeError("figkwargs must be a dict.")
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -574,7 +628,7 @@ class Analysis:
 
         # set title
         if title is None:
-            title = f"Diurnal cycle of {obstype.name} differnces with {ref_station} as reference, grouped per {colorby}."
+            title = f"Diurnal cycle of {obstype.name} differences with {ref_station} as reference, grouped per {colorby}."
         plotting.set_title(ax, titlestr=title)
 
         if return_data:
@@ -585,28 +639,64 @@ class Analysis:
     #    Helpers
     # ------------------------------------------
 
-    def _obstype_is_known(self, trgobstype) -> None:
-        """Test if the trgobstype has records, else Exception is raised"""
+    def _obstype_is_known(self, trgobstype: str) -> None:
+        """
+        Test if the trgobstype has records, else Exception is raised.
+
+        Parameters
+        ----------
+        trgobstype : str
+            The observation type to check.
+
+        Raises
+        ------
+        MetObsObstypeNotFound
+            If the observation type is not present.
+        """
+        logger.debug(f"Entering {self.__class__.__name__}._obstype_is_known")
+        if not isinstance(trgobstype, str):
+            raise TypeError("trgobstype must be a string.")
         if trgobstype in self.df.columns:
             return
         raise MetObsObstypeNotFound(f"{trgobstype} is not present in {self}.")
 
     def _all_possible_agg_categories(self) -> list:
-        """return all possible categories for aggregating"""
+        """
+        Return all possible categories for aggregating.
+
+        Returns
+        -------
+        list
+            List of possible aggregation categories.
+        """
+        logger.debug(f"Entering {self.__class__.__name__}._all_possible_agg_categories")
         metacategories = list(self.metadf.reset_index().columns)
-        return list(set(metacategories + possible_time_derivates))
+        return list(set(metacategories + possible_time_aggregates))
 
 
 # ------------------------------------------
 #    Helping methods
 # ------------------------------------------
 def _get_time_derivates(datetimes) -> pd.DataFrame:
-    """Construct a dataframe where all columns are time derivatives,
-    and the index is the datetimeindex of self.df.
     """
+    Construct a dataframe where all columns are time derivatives,
+    and the index is the datetimeindex of self.df.
 
+    Parameters
+    ----------
+    datetimes : pandas.DatetimeIndex
+        The datetime index to derive time features from.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with time derivative columns.
+    """
+    logger.debug("Entering _get_time_derivates function.")
+    if not isinstance(datetimes, pd.DatetimeIndex):
+        raise TypeError("datetimes must be a pandas.DatetimeIndex.")
     timesdf = pd.DataFrame(index=datetimes)
-    for deriv in possible_time_derivates:
+    for deriv in possible_time_aggregates:
         if deriv == "season":
             # custom method
             timesdf[deriv] = get_season(timesdf.index)
@@ -615,8 +705,26 @@ def _get_time_derivates(datetimes) -> pd.DataFrame:
     return timesdf
 
 
-def get_season(datetimeindex):
+def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
+    """
+    Assign a season label to each date in a DatetimeIndex.
 
+    Parameters
+    ----------
+    datetimeindex : pandas.DatetimeIndex
+        The datetime index to assign seasons to.
+
+    Returns
+    -------
+    pandas.Series
+        Series of season labels indexed by datetimeindex.
+
+    Raises
+    ------
+    TypeError
+        If datetimeindex is not a pandas.DatetimeIndex.
+    """
+    logger.debug("Entering get_season function.")
     if not isinstance(datetimeindex, pd.DatetimeIndex):
         raise TypeError("The datetimeindex is not a pandas.DatetimeIndex.")
     summer_start = pd.Timestamp("2020-06-01")
