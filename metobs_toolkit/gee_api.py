@@ -89,20 +89,27 @@ def connect_to_gee(**kwargs):
 
 def _auth_on_rtd(secret="GEE_SERVICE_ACCOUNT"):
     logger.debug("Entering authentication on RTD funtion")
-
+    if os.getenv(secret) is None:
+        raise EnvironmentError(f"{secret} variable is not set, are present in scope.")
     # Read the auth data as raw string
     key_str = r"{}".format(os.getenv(secret))
-
+    print(f"key_str : {key_str}")
     # Convert to a json string
     key_dict = eval(key_str)  # first to dict
+    print(f"evalled key_dict: {key_dict}")
     key_json = json.dumps(key_dict, indent=4).replace("'", '"')
 
+    print(f"Passed key_json: {key_json}")
+    print(f"type: key_json: {type(key_json)}")
     # Get the credentials
     email = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
     credentials = ee.ServiceAccountCredentials(email=email, key_data=key_json)
 
     # Initiate google API
     ee.Initialize(credentials)
+
+
+_auth_on_rtd()
 
 
 # ----
