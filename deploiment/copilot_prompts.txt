@@ -4,6 +4,7 @@ Edit the code to fulfill the following needs:
 /doc Insert docstrings in Numpy style for all classes, methods and functions in this module.
 If a docstring is already present, make sure it is in the Numpy style and that the references to the arguments are correct.
 Do not include a example in the docstring.
+Do not write a Numpy style docstring for dunder-methods or methods decorated as property, but write a single line consice docstring instead.
 If a docstring is already present, check if it is still valid and change accordingly.
 If a docstring is already present, check for grammer and spelling errors.
 

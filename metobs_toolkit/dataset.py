@@ -1,9 +1,11 @@
-from typing import Literal, Union
 import os
-from pathlib import Path
-import logging
 import copy
 import pickle
+import logging
+import warnings
+from typing import Literal, Union
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 from matplotlib.pyplot import Axes
@@ -39,115 +41,137 @@ from metobs_toolkit.geedatasetmanagers import (
     default_datasets,
 )
 from metobs_toolkit.gee_api import connect_to_gee
-import warnings
 
 logger = logging.getLogger("<metobs_toolkit>")
 
 
 class Dataset:
-    """Dataset class for managing and processing meteorological observation data.
+    """
+    Dataset class for managing and processing meteorological observation data.
 
     This class provides functionality to handle datasets containing observations from multiple stations.
     It includes methods for data synchronization, quality control, gap filling, and integration with
     Google Earth Engine (GEE) datasets. The Dataset class also supports importing and exporting data,
     as well as generating plots for visualization.
-    Attributes:
-        stations (list): A list of Station objects representing the stations in the dataset.
-        obstypes (dict): A dictionary of observation types known to the dataset.
-        template (Template): The template instance used for data import and processing.
-    Methods:
-        subset_by_stations: Create a subset of the dataset based on station names.
-        get_station: Retrieve a specific station by its name.
-        sync_records: Synchronize sensor data records across stations.
-        resample: Resample data to a target frequency.
-        import_data_from_file: Import observation and metadata from files using a template.
-        save_dataset_to_pkl: Save the dataset to a pickle file.
-        gross_value_check: Perform a gross value quality control check.
-        persistence_check: Perform a persistence quality control check.
-        repetitions_check: Perform a repetitions quality control check.
-        step_check: Perform a step quality control check.
-        window_variation_check: Perform a window variation quality control check.
-        buddy_check: Perform a buddy quality control check.
-        interpolate_gaps: Interpolate gaps in the dataset.
-        fill_gaps_with_raw_modeldata: Fill gaps using raw model data.
-        fill_gaps_with_debiased_modeldata: Fill gaps using debiased model data.
-        fill_gaps_with_diurnal_debiased_modeldata: Fill gaps using diurnal debiased model data.
-        fill_gaps_with_weighted_diurnal_debiased_modeldata: Fill gaps using weighted diurnal debiased model data.
-        make_plot: Generate a plot of observation data.
-        make_plot_of_modeldata: Generate a plot of model data.
-        get_qc_stats: Retrieve quality control statistics for the dataset.
-        rename_stations: Rename stations in the dataset.
-        convert_outliers_to_gaps: Convert outliers to gaps in the dataset.
 
+    Attributes
+    ----------
+    stations : list
+        A list of Station objects representing the stations in the dataset.
+    obstypes : dict
+        A dictionary of observation types known to the dataset.
+    template : Template
+        The template instance used for data import and processing.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Initialize a Dataset instance.
 
+        Returns
+        -------
+        None
+        """
+        logger.debug("Entering Dataset.__init__")
         self._stations = []  # stationname: Station
-        # dictionary storing present observationtypes
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
-
-        # Template
         self._template = Template()
-
         logger.debug("Dataset instance created.")
-        logger.info("DELETEME")
 
     # ------------------------------------------
     #    specials
     # ------------------------------------------
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        """ Check equality with another Dataset instance. """
+        logger.debug("Entering Dataset.__eq__")
         if not isinstance(other, Dataset):
             return False
-        return (
-            self.stations
-            == other.stations
-            # and self.obstypes == other.obstypes #tested on sensor level
-            # self.template == other.template #template is only for creation needed
-        )
+        return self.stations == other.stations
 
-    def __str__(self):
-        """Represent as text."""
+    def __str__(self) -> str:
+        """ Return a string representation of the Dataset. """
+        logger.debug("Entering Dataset.__str__")
         return "Dataset instance"
-        # return dataset_string_repr(self)
 
-    def __repr__(self):
-        """Info representation."""
+    def __repr__(self) -> str:
+        """ Return an info representation of the Dataset."""
+        logger.debug("Entering Dataset.__repr__")
         class_name = type(self).__name__
         return f"Instance of {class_name} at {hex(id(self))}"
 
-    def copy(self, deep=True):
+    def copy(self, deep: bool = True) -> "Dataset":
+        """
+        Return a copy of the Dataset.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        Dataset
+            The copied Dataset.
+        """
+        logger.debug("Entering Dataset.copy")
+        if not isinstance(deep, bool):
+            raise TypeError("deep must be a boolean.")
         if deep:
             return copy.deepcopy(self)
         return copy.copy(self)
 
     @property
-    def stations(self):
-        """The list of Stations present in the Dataset."""
+    def stations(self) -> list:
+        """
+        Get the list of Stations present in the Dataset.
+        """
+        logger.debug("Accessing Dataset.stations property")
         return self._stations
 
     @property
-    def obstypes(self):
-        """Dictionary of known Obstypes by the Dataset."""
+    def obstypes(self) -> dict:
+        """
+        Get the dictionary of known Obstypes by the Dataset.
+
+        """
+        logger.debug("Accessing Dataset.obstypes property")
         return self._obstypes
 
     @property
-    def template(self):
-        """The Template instance used when the data was imported."""
+    def template(self) -> Template:
+        """
+        Get the Template instance used when the data was imported.
+
+        """
+        logger.debug("Accessing Dataset.template property")
         return self._template
 
     @stations.setter
     def stations(self, stationlist: list) -> None:
+        """
+        Set the list of stations.
+        """
+        logger.debug("Setting Dataset.stations property")
+        if not isinstance(stationlist, list):
+            raise TypeError("stationlist must be a list.")
         self._stations = stationlist
 
     @obstypes.setter
     def obstypes(self, obstypesdict: dict) -> None:
+        """
+        Set the obstypes.
+
+        """
+        logger.debug("Setting Dataset.obstypes property")
+        if not isinstance(obstypesdict, dict):
+            raise TypeError("obstypesdict must be a dict.")
         self._obstypes = obstypesdict
 
     @copy_doc(Station.df)
     @property
     def df(self) -> pd.DataFrame:
+        logger.debug("Accessing Dataset.df property")
         concatlist = []
         for sta in self.stations:
             stadf = sta.df.reset_index()
@@ -172,6 +196,7 @@ class Dataset:
     @copy_doc(Station.outliersdf)
     @property
     def outliersdf(self) -> pd.DataFrame:
+        logger.debug("Accessing Dataset.outliersdf property")
         concatlist = []
         for sta in self.stations:
             stadf = sta.outliersdf.reset_index()
@@ -194,6 +219,7 @@ class Dataset:
     @copy_doc(Station.gapsdf)
     @property
     def gapsdf(self) -> pd.DataFrame:
+        logger.debug("Accessing Dataset.gapsdf property")
         concatlist = []
         for sta in self.stations:
             stadf = sta.gapsdf.reset_index()
@@ -218,6 +244,7 @@ class Dataset:
     @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
+        logger.debug("Accessing Dataset.modeldatadf property")
         concatlist = []
         for sta in self.stations:
             stadf = sta.modeldatadf.reset_index()
@@ -242,6 +269,7 @@ class Dataset:
     @copy_doc(Station.metadf)
     @property
     def metadf(self) -> pd.DataFrame:
+        logger.debug("Accessing Dataset.metadf property")
         concatlist = []
         for sta in self.stations:
             concatlist.append(sta.metadf)
@@ -249,24 +277,27 @@ class Dataset:
 
     @copy_doc(Station.start_datetime)
     @property
-    def start_datetime(self):
+    def start_datetime(self) -> pd.Timestamp:
+        logger.debug("Accessing Dataset.start_datetime property")
         return min([sta.start_datetime for sta in self.stations])
 
     @copy_doc(Station.end_datetime)
     @property
-    def end_datetime(self):
+    def end_datetime(self) -> pd.Timestamp:
+        logger.debug("Accessing Dataset.end_datetime property")
         return max([sta.end_datetime for sta in self.stations])
 
     @property
     def present_observations(self) -> list:
-        """Get a list of all the present observationtypes.
+        """
+        Get a list of all the present observation types.
 
         Returns
         -------
         list
             A list of all the present observations in the dataset.
         """
-
+        logger.debug("Accessing Dataset.present_observations property")
         allobs = set()
         for sta in self.stations:
             allobs.update(sta.present_observations)
@@ -275,8 +306,9 @@ class Dataset:
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
-    def subset_by_stations(self, stationnames: list, deepcopy=False) -> "Dataset":
-        """Subset the dataset by selecting specific stations
+    def subset_by_stations(self, stationnames: list, deepcopy: bool = False) -> "Dataset":
+        """
+        Create a subset of the dataset by selecting specific stations.
 
         Parameters
         ----------
@@ -289,15 +321,15 @@ class Dataset:
         -------
         Dataset
             A new Dataset instance containing only the selected stations.
-
         """
+        logger.debug("Entering Dataset.subset_by_stations")
         if not isinstance(stationnames, list):
-            raise TypeError(f"stationnames is not a list (it is a {type(stationnames)}")
+            raise TypeError("stationnames must be a list.")
+        if not isinstance(deepcopy, bool):
+            raise TypeError("deepcopy must be a boolean.")
 
-        # Create a new Dataset instance
         new_dataset = Dataset()
 
-        # Filter stations by name
         filtered_stations = [
             copy.deepcopy(sta) if deepcopy else sta
             for sta in self.stations
@@ -313,7 +345,6 @@ class Dataset:
                 "Only one station matches the provided names. Use the get_station() method instead."
             )
 
-        # Assign filtered stations, _obstypes, and _template to the new Dataset
         new_dataset._stations = filtered_stations
         new_dataset._obstypes = self._obstypes
         new_dataset._template = self._template
@@ -321,7 +352,8 @@ class Dataset:
         return new_dataset
 
     def get_station(self, stationname: str) -> Station:
-        """Retrieve a Station by name.
+        """
+        Retrieve a Station by name.
 
         Parameters
         ----------
@@ -332,10 +364,11 @@ class Dataset:
         -------
         Station
             The station object corresponding to the given name.
-
         """
+        logger.debug("Entering Dataset.get_station")
+        if not isinstance(stationname, str):
+            raise TypeError("stationname must be a string.")
 
-        # create lookup by name
         stationlookup = {sta.name: sta for sta in self.stations}
         try:
             station = stationlookup[stationname]
@@ -345,7 +378,11 @@ class Dataset:
         return station
 
     @copy_doc(Station.get_info)
-    def get_info(self, printout=True):
+    def get_info(self, printout: bool = True) -> Union[str, None]:
+        logger.debug("Entering Dataset.get_info")
+        if not isinstance(printout, bool):
+            raise TypeError("printout must be a boolean.")
+
         infostr = ""
         df = self.df
         if df.empty:
@@ -400,7 +437,7 @@ class Dataset:
             determined automatically. Default is None.
 
         Returns
-        --------
+-        -------
         None.
 
         Note
@@ -421,15 +458,12 @@ class Dataset:
 
         """
 
-        # NOTE: cumulative tolerance errors with the settings used to import the dataset !!!
-
         # format arguments
         fixed_origin = fmt_timedelta_arg(fixed_origin)
         freq_shift_tolerance = fmt_timedelta_arg(freq_shift_tolerance)
         timestamp_shift_tolerance = fmt_timedelta_arg(timestamp_shift_tolerance)
 
         for sta in self.stations:
-            # check if has sensordata
             if target_obstype in sta.obsdata.keys():
                 sensor = sta.obsdata[target_obstype]
 
@@ -451,26 +485,22 @@ class Dataset:
                 )
             else:
                 logger.warning(
-                    f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronisation."
+                    f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronization."
                 )
 
     @copy_doc(Station.resample)
     def resample(
         self,
-        target_freq,
+        target_freq: Union[str, pd.Timedelta],
         target_obstype: Union[str, None] = None,
-        shift_tolerance=pd.Timedelta("4min"),
-        origin=None,
-        origin_simplify_tolerance=pd.Timedelta("4min"),
-    ):
-        # NOTE: cumulative tolerance errors with the settings used to import the dataset !!!
-        # NOTE: if target_obstype is none, all sensors are resampled to the same freq!
-
-        # format arguments
+        shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+        origin: Union[str, pd.Timestamp, None] = None,
+        origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+    ) -> None:
+        logger.debug("Entering Dataset.resample")
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
 
-        # apply over all station
         for sta in self.stations:
             sta.resample(
                 target_freq=target_freq,
@@ -488,10 +518,10 @@ class Dataset:
         self,
         filepath: str,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
-        force_update=True,
-        _force_from_dataframe=None,
+        force_update: bool = True,
+        _force_from_dataframe: Union[pd.DataFrame, None] = None,
     ) -> pd.DataFrame:
-        """Import Google Earth Engine (GEE) data from a CSV file
+        """        Import Google Earth Engine (GEE) data from a CSV file
 
         Import Google Earth Engine (GEE) data from a file, that was writen in your Google Drive,
         and integrate it into the dataset. Start by downloading the target CSV file from your
@@ -514,52 +544,42 @@ class Dataset:
         -------
         pd.DataFrame
             The processed DataFrame containing the GEE data.
-
-        Notes
-        -----
-        - The method ensures that only known observation types (as defined in the
-          `geedynamicdatasetmanager`) are retained in the data.
-        - For each station, the method creates `ModelTimeSeries` objects for each variable
-          and adds them to the station's model data.
-        - If columns in the GEE data file are not present in the known observation types,
-          a warning is logged.
-
         """
+        logger.debug("Entering Dataset.import_gee_data_from_file")
+        if not isinstance(filepath, str):
+            raise TypeError("filepath must be a string.")
+        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
+            raise TypeError("geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance.")
+        if not isinstance(force_update, bool):
+            raise TypeError("force_update must be a boolean.")
+        if _force_from_dataframe is not None and not isinstance(_force_from_dataframe, pd.DataFrame):
+            raise TypeError("_force_from_dataframe must be a pandas DataFrame or None.")
 
         if _force_from_dataframe is None:
-            # Reading the data
             reader = CsvFileReader(file_path=filepath)
             data = reader.read_as_local_file()
             force_update = True
 
-            # 1. format the data
             totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
-
-            # 2. convert units
             totaldf = geedynamicdatasetmanager._convert_units(totaldf)
-            # this totaldf will be returned
         else:
             totaldf = _force_from_dataframe
 
-        # 3. Subset to known obstypes
         known_obstypes = list(geedynamicdatasetmanager.modelobstypes.keys())
         cols_to_skip = list(set(totaldf.columns) - set(known_obstypes))
         if bool(cols_to_skip):
             logger.warning(
-                f"The folowing columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdatasetmanager}: {cols_to_skip}"
+                f"The following columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdatasetmanager}: {cols_to_skip}"
             )
 
         known_and_present = set(totaldf.columns) & set(known_obstypes)
         df = totaldf[list(known_and_present)]
 
-        # 4. add it to the stations
         for sta in self.stations:
-            # subset to station data
             if sta.name not in df.index.get_level_values("name"):
-                continue  # no data present for the station
+                continue
             stadf = df.xs(key=sta.name, level="name", drop_level=True)
 
-            # create an object for each variable
             for col in stadf.columns:
                 modeltimeseries = ModelTimeSeries(
                     site=sta.site,
@@ -572,13 +592,13 @@ class Dataset:
                         col
                     ].model_band,
                 )
-                # add it to the station
                 sta.add_to_modeldata(modeltimeseries, force_update=force_update)
 
         return totaldf
 
-    def add_new_observationtype(self, obstype: Obstype):
-        """Add a new observation type to the dataset known-obstypes.
+    def add_new_observationtype(self, obstype: Obstype) -> None:
+        """
+        Add a new observation type to the dataset known-obstypes.
 
         Parameters
         ----------
@@ -587,22 +607,18 @@ class Dataset:
             to be added.
 
         Returns
-        --------
-        None.
-
+        -------
+        None
         """
-        # Check type
+        logger.debug("Entering Dataset.add_new_observationtype")
         if not isinstance(obstype, Obstype):
-            raise MetObsWrongType(
-                f"{obstype} is not an instance of metobs_toolkit.Obstype."
-            )
-        # Check if the name is unique
+            raise TypeError("obstype must be an instance of Obstype.")
+
         if obstype.name in self.obstypes.keys():
             raise MetObsDataAlreadyPresent(
                 f"An Obstype with {obstype.name} as name is already present in the obstypes: {self.obstypes}"
             )
 
-        # add it to the knonw obstypes
         self.obstypes.update({obstype.name: obstype})
 
     def save_dataset_to_pkl(
@@ -611,11 +627,8 @@ class Dataset:
         filename: str = "saved_dataset.pkl",
         overwrite: bool = False,
     ) -> None:
-        """Save the dataset to a pickle (.pkl) file.
-
-        This method serializes the dataset object and saves it to a specified folder
-        with the given filename. If the file already exists, it can either be overwritten
-        or an exception will be raised based on the `overwrite` parameter.
+        """
+        Save the dataset to a pickle (.pkl) file.
 
         Parameters
         ----------
@@ -628,29 +641,32 @@ class Dataset:
             Whether to overwrite the file if it already exists. Defaults to False.
 
         Returns
-        --------
-        None.
+        -------
+        None
         """
+        logger.debug("Entering Dataset.save_dataset_to_pkl")
+        if not isinstance(target_folder, (str, Path)):
+            raise TypeError("target_folder must be a string or Path.")
+        if not isinstance(filename, str):
+            raise TypeError("filename must be a string.")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
 
-        # Check if the targetfolder exist
         if not Path(target_folder).is_dir():
-            raise FileNotFoundError("{target_folder} does not exist")
+            raise FileNotFoundError(f"{target_folder} does not exist")
 
-        # Check filetype extension
         if not filename.endswith(".pkl"):
             filename += ".pkl"
 
-        # Check if target file exist
         target_path = Path(target_folder).joinpath(filename)
         if target_path.exists():
             if overwrite:
                 target_path.unlink()
             else:
                 raise FileExistsError(
-                    f"The file {target_path} already exist. Remove it or set overwrite=True"
+                    f"The file {target_path} already exists. Remove it or set overwrite=True"
                 )
 
-        # dump to pickle
         with open(target_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
@@ -690,67 +706,56 @@ class Dataset:
 
         Parameters
         ------------
-
         template_file : str or Path
             Path to the template (JSON) file used to interpret the raw data/metadata files.
-            (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file)
         input_data_file : str or Path, optional
             Path to the input data file containing observations. If None, no data is read.
-            The default is None.
         input_metadata_file : str or Path, optional
-            Path to the input metadata file. If None, no metadata is read. The default is None.
+            Path to the input metadata file. If None, no metadata is read.
         freq_estimation_method : {'highest', 'median'}, optional
-            Method to estimate the frequency of observations (per station per observationtype).
-            If 'highest', the highest appearing frequency is used. If 'median', the median of the
-            appearing frequencies is used. The default is 'median'.
+            Method to estimate the frequency of observations (per station per observation type).
         freq_estimation_simplify_tolerance : str or pd.Timedelta, optional
             The maximum allowed error in simplifying the target frequency.
-            A zero-tolerance (no simplification) can be set by '0min'. Default is "2min".
         origin_simplify_tolerance : str or pd.Timedelta, optional
-            For each timeseries, the origin (first occuring timestamp) is set and simplification
-            is applied. A zero-tolerance (no simplification) can be set
-            by '0min'. The default is '5min'.
+            For each time series, the origin (first occurring timestamp) is set and simplification
+            is applied.
         timestamp_tolerance : str or pd.Timedelta, optional
             The maximum allowed time shift tolerance for aligning timestamps
-            to target (perfect-frequency) timestamps. Default is 4 minutes.
-
+            to target (perfect-frequency) timestamps.
         kwargs_data_read : dict, optional
             Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the data file. The default is an empty dictionary.
+            reading the data file.
         kwargs_metadata_read : dict, optional
             Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the metadata file. The default is an empty dictionary.
+            reading the metadata file.
         templatefile_is_url : bool, optional
             If True, the `template_file` is interpreted as a URL to an online
             template file. If False, it is interpreted as a local file path.
-            The default is False.
 
         Returns
         -------
-        None.
-
-        Notes
-        -----
-        The default arguments are sufficient for most applications.
-
-        Warning
-        ---------
-        All CSV data files must be in *UTF-8 encoding*. For most CSV files,
-        this condition has already been met. To make sure, in Microsoft Excel (or
-        similar), you can specify to export as **`CSV UTF-8`**. If you
-        encounter an error, mentioning a `"/ueff..."` tag in a CSV file, it is
-        often solved by converting the CSV to UTF-8.
-
-
+        None
         """
-        # Special argschecks
-        freq_estimation_simplify_tolerance = fmt_timedelta_arg(
-            freq_estimation_simplify_tolerance
-        )
+        logger.debug("Entering Dataset.import_data_from_file")
+        if not isinstance(template_file, (str, Path)):
+            raise TypeError("template_file must be a string or Path.")
+        if input_data_file is not None and not isinstance(input_data_file, (str, Path)):
+            raise TypeError("input_data_file must be a string or Path.")
+        if input_metadata_file is not None and not isinstance(input_metadata_file, (str, Path)):
+            raise TypeError("input_metadata_file must be a string or Path.")
+        if not isinstance(freq_estimation_method, str):
+            raise TypeError("freq_estimation_method must be a string.")
+        if not isinstance(kwargs_data_read, dict):
+            raise TypeError("kwargs_data_read must be a dictionary.")
+        if not isinstance(kwargs_metadata_read, dict):
+            raise TypeError("kwargs_metadata_read must be a dictionary.")
+        if not isinstance(templatefile_is_url, bool):
+            raise TypeError("templatefile_is_url must be a boolean.")
+
+        freq_estimation_simplify_tolerance = fmt_timedelta_arg(freq_estimation_simplify_tolerance)
         origin_simplify_tolerance = fmt_timedelta_arg(origin_simplify_tolerance)
         timestamp_tolerance = fmt_timedelta_arg(timestamp_tolerance)
 
-        # check input file args
         if (input_data_file is None) & (template_file is None):
             raise MetObsMissingFile(
                 f"No input_data_file or input_metadata_file is provided"
@@ -758,26 +763,23 @@ class Dataset:
 
         assert template_file is not None, "No templatefile is specified."
 
-        # Read template
         logger.info(f"Reading the templatefile")
         self.template.read_template_from_file(
             jsonpath=template_file, templatefile_is_url=templatefile_is_url
         )
 
-        # Read Datafile
         if input_data_file is not None:
             use_data = True
             dataparser = DataParser(
                 datafilereader=CsvFileReader(file_path=input_data_file),
                 template=self.template,
             )
-            dataparser.parse(**kwargs_data_read)  # read and parse to a dataframe
+            dataparser.parse(**kwargs_data_read)
         else:
             logger.info("No datafile is provided --> metadata-only mode")
-            dataparser = None  # will not be used
+            dataparser = None
             use_data = False
 
-        # Read Metadata
         if input_metadata_file is not None:
             use_metadata = True
             metadataparser = MetaDataParser(
@@ -788,22 +790,17 @@ class Dataset:
         else:
             logger.info("No metadatafile is provided.")
             use_metadata = False
-            metadataparser = None  # will not be used
+            metadataparser = None
 
         if use_data:
-            # Add original columnname and units to the known obstypes
             self.obstypes = update_known_obstype_with_original_data(
                 known_obstypes=self.obstypes, template=self.template
             )
 
-        # Special case: in single-station case the name can be define in the template,
-        # but a (different) name can be present in the metadata file for the same station.
-        # This results in incompatible data-metadata.
         if (use_metadata) & (use_data) & (self.template.data_is_single_station):
             templatename = self.template.single_station_name
             metadataparser._overwrite_name(target_single_name=templatename)
 
-        # Construct Stations
         if use_data:
             stations = createstations(
                 data_parser=dataparser,
@@ -817,10 +814,8 @@ class Dataset:
                 timestamp_tolerance=timestamp_tolerance,
             )
         else:
-            # metadata-only mode
             stations = create_metadata_only_stations(metadata_parser=metadataparser)
 
-        # Set stations attribute
         self.stations = stations
 
     # ------------------------------------------
@@ -836,7 +831,8 @@ class Dataset:
         ax: Union[Axes, None] = None,
         figkwargs: dict = {},
     ) -> Axes:
-        """Generate a timeseries plot of model data for a specific observation type.
+        """
+        Generate a timeseries plot of model data for a specific observation type.
 
         Parameters
         ----------
@@ -858,14 +854,25 @@ class Dataset:
         -------
         matplotlib.axes.Axes
             The axes object containing the plot.
-
         """
+        logger.debug("Entering Dataset.make_plot_of_modeldata")
+        if not isinstance(obstype, str):
+            raise TypeError("obstype must be a string.")
+        if colormap is not None and not isinstance(colormap, dict):
+            raise TypeError("colormap must be a dictionary or None.")
+        if title is not None and not isinstance(title, str):
+            raise TypeError("title must be a string or None.")
+        if not isinstance(linestyle, str):
+            raise TypeError("linestyle must be a string.")
+        if ax is not None and not isinstance(ax, Axes):
+            raise TypeError("ax must be an Axes object or None.")
+        if not isinstance(figkwargs, dict):
+            raise TypeError("figkwargs must be a dictionary.")
 
         modeldatadf = self.modeldatadf
         if obstype not in modeldatadf.index.get_level_values("obstype"):
             raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
 
-        # Get the modelobstype --> find a Station that holds it
         for sta in self.stations:
             if obstype in sta.modeldata.keys():
                 modelobstype = sta.modeldata[obstype].obstype
@@ -873,7 +880,6 @@ class Dataset:
                 modelvar = sta.modeldata[obstype].modelname
                 break
 
-        # Create new axes if needed
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
@@ -885,13 +891,9 @@ class Dataset:
         )
 
         plotdf = plotdf[["value"]]
-        plotdf["label"] = label_def["goodrecord"][
-            "label"
-        ]  # Just so that they are plotted as lines
+        plotdf["label"] = label_def["goodrecord"]["label"]
 
-        # Define linecolor
         if colormap is None:
-            # create color defenitions
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
             )
@@ -899,14 +901,13 @@ class Dataset:
         ax = plotting.plot_timeseries_color_by_station(
             plotdf=plotdf,
             colormap=colormap,
-            show_outliers=False,  # will not be used,
-            show_gaps=False,  # will not be used
+            show_outliers=False,
+            show_gaps=False,
             ax=ax,
             linestyle=linestyle,
             legend_prefix=f"{modelname}:{modelvar}@",
         )
-        # Styling
-        # Set title:
+
         if title is None:
             plotting.set_title(
                 ax, f"{modelobstype.name} data of {modelname} at stations locations."
@@ -914,17 +915,13 @@ class Dataset:
         else:
             plotting.set_title(ax, title)
 
-        # Set ylabel
         plotting.set_ylabel(ax, modelobstype._get_plot_y_label())
 
-        # Set xlabel
         cur_tz = plotdf.index.get_level_values("datetime").tz
         plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
 
-        # Format timestamp ticks
         plotting.format_datetime_axes(ax)
 
-        # Add legend
         plotting.set_legend(ax)
 
         return ax
@@ -933,14 +930,15 @@ class Dataset:
         self,
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
-        show_modeldata=False,
-        show_outliers=True,
-        show_gaps=True,
+        show_modeldata: bool = False,
+        show_outliers: bool = True,
+        show_gaps: bool = True,
         title: Union[str, None] = None,
-        ax=None,
+        ax: Union[Axes, None] = None,
         figkwargs: dict = {},
     ) -> Axes:
-        """Generate a time series plot for observational data.
+        """
+        Generate a time series plot for observational data.
 
         Parameters
         ----------
@@ -956,7 +954,7 @@ class Dataset:
         show_outliers : bool, optional
             If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
         show_gaps : bool, optional
-            If True, gaps are representd by vertical lines in the plot if the gap is unfilled.
+            If True, gaps are represented by vertical lines in the plot if the gap is unfilled.
             If the gap is filled, it is plotted as a line. Default is True.
         title : str or None, optional
             The title of the plot. If None, a default title is generated. Default is None.
@@ -969,19 +967,28 @@ class Dataset:
         -------
         matplotlib.axes.Axes
             The axes containing the plot.
-
-        Notes
-        -----
-        - The method checks if the specified `obstype` is known before proceeding.
-        - The plot can include observational data, model data, or both.
-        - The x-axis timestamps are formatted according to the timezone of the data.
         """
+        logger.debug("Entering Dataset.make_plot")
+        if not isinstance(obstype, str):
+            raise TypeError("obstype must be a string.")
+        if not isinstance(colorby, str):
+            raise TypeError("colorby must be a string.")
+        if not isinstance(show_modeldata, bool):
+            raise TypeError("show_modeldata must be a boolean.")
+        if not isinstance(show_outliers, bool):
+            raise TypeError("show_outliers must be a boolean.")
+        if not isinstance(show_gaps, bool):
+            raise TypeError("show_gaps must be a boolean.")
+        if title is not None and not isinstance(title, str):
+            raise TypeError("title must be a string or None.")
+        if ax is not None and not isinstance(ax, Axes):
+            raise TypeError("ax must be an Axes object or None.")
+        if not isinstance(figkwargs, dict):
+            raise TypeError("figkwargs must be a dictionary.")
 
-        # Create an axis
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
-        # construct plotdf
         plotdf = (
             self.df.xs(obstype, level="obstype", drop_level=False)
             .reset_index()
@@ -996,7 +1003,6 @@ class Dataset:
 
         colormap = None
         if show_modeldata:
-            # create color defenitions
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
             )
@@ -1005,12 +1011,10 @@ class Dataset:
                 colormap=colormap,
                 ax=ax,
                 figkwargs=figkwargs,
-                title=title,  # will always be overwritten
+                title=title,
             )
-        # Set colors scheme
         if colorby == "station":
-            if colormap is None:  # when no modeldata is added
-                # create color defenitions
+            if colormap is None:
                 colormap = plotting.create_categorical_color_map(
                     catlist=plotdf.index.get_level_values("name").unique()
                 )
@@ -1026,7 +1030,6 @@ class Dataset:
         elif colorby == "label":
             ax = plotting.plot_timeseries_color_by_label(
                 plotdf=plotdf,
-                # linecolor=linecolor,
                 show_outliers=show_outliers,
                 show_gaps=show_gaps,
                 ax=ax,
@@ -1036,26 +1039,20 @@ class Dataset:
                 f'colorby is either "station" or "label" but not {colorby}'
             )
 
-        # Styling
         obstypeinstance = self.obstypes[obstype]
 
-        # Set title:
         if title is None:
             plotting.set_title(ax, f"{obstypeinstance.name} data.")
         else:
             plotting.set_title(ax, title)
 
-        # Set ylabel
         plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
 
-        # Set xlabel
         cur_tz = plotdf.index.get_level_values("datetime").tz
         plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
 
-        # Format timestamp ticks
         plotting.format_datetime_axes(ax)
 
-        # Add legend
         plotting.set_legend(ax)
 
         return ax
@@ -1065,7 +1062,7 @@ class Dataset:
         geedatasetmanager: Union[
             GEEStaticDatasetManager, GEEDynamicDatasetManager
         ] = default_datasets["LCZ"],
-        timeinstance: Union[pd.Timestamp, None] = None,
+        timeinstance: Union[pd.Timestamp, str, None] = None,
         modelobstype: str = None,
         save: bool = False,
         outputfolder: str = os.getcwd(),
@@ -1089,7 +1086,7 @@ class Dataset:
         ----------
         geedatasetmanager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
             The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["LCZ"]
-        timeinstance :pandas.Timestamp or None, optional
+        timeinstance :pandas.Timestamp or string or None, optional
             The timinstance to plot the GEE dataset for. This is only used and
             required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
         modelobstype : str, optional
@@ -1108,19 +1105,29 @@ class Dataset:
         overwrite : bool, optional
             If True, the plot will be overwritten if it already exists. This is only relevant when save is True. The default is False.
 
-
         Returns
         -------
         geemap.foliummap.Map
             The interactive map.
-
-        Warning
-        --------
-        To display the interactive map a graphical interactive backend is required, which could be missing. You can recognise this when no map is displayed, but the Python console prints out a message similar to <geemap.foliumap.Map at 0x7ff7586b8d90>.
-
-        In that case, you can specify a outputfolder and outputfile, save the map as a HTML file, and open it with a browser.
         """
-        # check model type
+        logger.debug("Entering Dataset.make_gee_plot")
+        if not isinstance(geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)):
+            raise TypeError("geedatasetmanager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance.")
+        if modelobstype is not None and not isinstance(modelobstype, str):
+            raise TypeError("modelobstype must be a string or None.")
+        if not isinstance(save, bool):
+            raise TypeError("save must be a boolean.")
+        if not isinstance(outputfolder, str):
+            raise TypeError("outputfolder must be a string.")
+        if not isinstance(filename, str):
+            raise TypeError("filename must be a string.")
+        if vmin is not None and not isinstance(vmin, (int, float)):
+            raise TypeError("vmin must be an int, float, or None.")
+        if vmax is not None and not isinstance(vmax, (int, float)):
+            raise TypeError("vmax must be an int, float, or None.")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
+
         if isinstance(geedatasetmanager, GEEStaticDatasetManager):
             kwargs = dict(
                 outputfolder=outputfolder,
@@ -1139,7 +1146,7 @@ class Dataset:
             timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
             if modelobstype not in geedatasetmanager.modelobstypes:
                 raise MetObsObstypeNotFound(
-                    f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are knonw: {geedatasetmanager.modelobstypes} "
+                    f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are known: {geedatasetmanager.modelobstypes} "
                 )
 
             kwargs = dict(
@@ -1197,17 +1204,17 @@ class Dataset:
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
-            raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
-            )
+            raise TypeError("geestaticdatasetmanager must be a GEEStaticDatasetManager instance.")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
+        if not isinstance(initialize_gee, bool):
+            raise TypeError("initialize_gee must be a boolean.")
 
-        # initialize gee api
         if initialize_gee:
             connect_to_gee()
 
         geedf = geestaticdatasetmanager.extract_static_point_data(self.metadf)
 
-        # update the station attributes
         varname = geestaticdatasetmanager.name
         if overwrite:
             for staname, geedict in geedf.to_dict(orient="index").items():
@@ -1217,8 +1224,8 @@ class Dataset:
     def get_static_gee_buffer_fraction_data(
         self,
         geestaticdatasetmanager: GEEStaticDatasetManager,
-        buffers=[100],
-        aggregate=False,
+        buffers: list = [100],
+        aggregate: bool = False,
         overwrite: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
@@ -1263,11 +1270,16 @@ class Dataset:
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
-            raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
-            )
+            raise TypeError("geestaticdatasetmanager must be a GEEStaticDatasetManager instance.")
+        if not isinstance(buffers, list):
+            raise TypeError("buffers must be a list.")
+        if not isinstance(aggregate, bool):
+            raise TypeError("aggregate must be a boolean.")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
+        if not isinstance(initialize_gee, bool):
+            raise TypeError("initialize_gee must be a boolean.")
 
-        # initialize gee api
         if initialize_gee:
             connect_to_gee()
 
@@ -1280,7 +1292,6 @@ class Dataset:
 
         geedf = save_concat((dflist))
 
-        # update the station attributes
         if overwrite:
             for staname in geedf.index.get_level_values("name").unique():
                 asdict = geedf.loc[staname].to_dict(orient="index")
@@ -1294,11 +1305,8 @@ class Dataset:
     def get_LCZ(
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
-        """Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
-
-        This method is a wrapper for the `get_static_gee_point_data()` method, specifically for
-        retrieving Local Climate Zone (LCZ) data.
-
+        """
+        Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
 
         Parameters
         ----------
@@ -1310,13 +1318,14 @@ class Dataset:
         Returns
         -------
         pandas.DataFrame
-            A DataFrame containing the LCZ data for the stations, with the station names as index
-
-        Notes
-        -----
-        This method relies on the `get_static_gee_point_data` function and the
-        `default_gee_datasets` dictionary to fetch the LCZ data.
+            A DataFrame containing the LCZ data for the stations, with the station names as index.
         """
+        logger.debug("Entering Dataset.get_LCZ")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
+        if not isinstance(initialize_gee, bool):
+            raise TypeError("initialize_gee must be a boolean.")
+
         return self.get_static_gee_point_data(
             default_datasets["LCZ"],
             overwrite=overwrite,
@@ -1326,11 +1335,8 @@ class Dataset:
     def get_altitude(
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
-        """Retrieve altitude for the stations using Google Earth Engine (GEE).
-
-        This method is a wrapper for the `get_static_gee_point_data()` method, specifically for
-        retrieving altitude data.
-
+        """
+        Retrieve altitude for the stations using Google Earth Engine (GEE).
 
         Parameters
         ----------
@@ -1342,13 +1348,14 @@ class Dataset:
         Returns
         -------
         pandas.DataFrame
-            A DataFrame containing the altitude data for the stations, with the station names as index
-
-        Notes
-        -----
-        This method relies on the `get_static_gee_point_data` function and the
-        `default_gee_datasets` dictionary to fetch the LCZ data.
+            A DataFrame containing the altitude data for the stations, with the station names as index.
         """
+        logger.debug("Entering Dataset.get_altitude")
+        if not isinstance(overwrite, bool):
+            raise TypeError("overwrite must be a boolean.")
+        if not isinstance(initialize_gee, bool):
+            raise TypeError("initialize_gee must be a boolean.")
+
         return self.get_static_gee_point_data(
             default_datasets["altitude"],
             overwrite=overwrite,
@@ -1357,15 +1364,13 @@ class Dataset:
 
     def get_landcover_fractions(
         self,
-        buffers=[100],
-        aggregate=False,
+        buffers: list = [100],
+        aggregate: bool = False,
         update_stations: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
-        """Get landcover fractions for a circular buffer at the stations using GEE.
-
-        Wrapper method for `get_static_gee_buffer_fraction_data` to retrieve land cover fractions
-        based on the ESA worldcoverV200 dataset.
+        """
+        Get landcover fractions for a circular buffer at the stations using GEE.
 
         Parameters
         ----------
@@ -1382,12 +1387,22 @@ class Dataset:
         dict
             A nested dictionary where the keys are buffer radii and the values are the
             corresponding (aggregated) landcoverclasses.
-
+        
         Warning
         --------
         This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
 
         """
+        logger.debug("Entering Dataset.get_landcover_fractions")
+        if not isinstance(buffers, list):
+            raise TypeError("buffers must be a list.")
+        if not isinstance(aggregate, bool):
+            raise TypeError("aggregate must be a boolean.")
+        if not isinstance(update_stations, bool):
+            raise TypeError("update_stations must be a boolean.")
+        if not isinstance(initialize_gee, bool):
+            raise TypeError("initialize_gee must be a boolean.")
+
         return self.get_static_gee_buffer_fraction_data(
             geestaticdatasetmanager=default_datasets["worldcover"],
             buffers=buffers,
@@ -1400,23 +1415,31 @@ class Dataset:
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
-        startdt_utc=None,
-        enddt_utc=None,
-        target_obstypes=["temp"],
-        get_all_bands=False,
-        drive_filename=None,
-        drive_folder="gee_timeseries_data",
-        force_direct_transfer=False,
-        force_to_drive=False,
-    ):
-
-        # Check geedynamic dataset
+        startdt_utc: Union[str, pd.Timestamp, None] = None,
+        enddt_utc: Union[str, pd.Timestamp, None] = None,
+        target_obstypes: list = ["temp"],
+        get_all_bands: bool = False,
+        drive_filename: Union[str, None] = None,
+        drive_folder: str = "gee_timeseries_data",
+        force_direct_transfer: bool = False,
+        force_to_drive: bool = False,
+    ) -> Union[pd.DataFrame, None]:
+        logger.debug("Entering Dataset.get_gee_timeseries_data")
         if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
-            raise ValueError(
-                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
-            )
+            raise TypeError("geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance.")
+        if not isinstance(target_obstypes, list):
+            raise TypeError("target_obstypes must be a list.")
+        if not isinstance(get_all_bands, bool):
+            raise TypeError("get_all_bands must be a boolean.")
+        if drive_filename is not None and not isinstance(drive_filename, str):
+            raise TypeError("drive_filename must be a string or None.")
+        if not isinstance(drive_folder, str):
+            raise TypeError("drive_folder must be a string.")
+        if not isinstance(force_direct_transfer, bool):
+            raise TypeError("force_direct_transfer must be a boolean.")
+        if not isinstance(force_to_drive, bool):
+            raise TypeError("force_to_drive must be a boolean.")
 
-        # Format datetime arguments
         if startdt_utc is None:
             if self.df.empty:
                 raise MetObsMissingArgument(
@@ -1435,16 +1458,14 @@ class Dataset:
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        # check if target_obstypes are mapped to bands
         for obst in target_obstypes:
             if obst not in geedynamicdatasetmanager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
                     f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
                 )
 
-        # create specific name for the file that might be written to Drive
         if drive_filename is None:
-            drive_filename = f"{geedynamicdatasetmanager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"  # do not include csv extension here
+            drive_filename = f"{geedynamicdatasetmanager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"
 
         df = geedynamicdatasetmanager.extract_timeseries_data(
             metadf=self.metadf,
@@ -1488,7 +1509,16 @@ class Dataset:
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
         use_mp: bool = True,
-    ):
+    ) -> None:
+        logger.debug("Entering Dataset.gross_value_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(lower_threshold, (int, float)):
+            raise TypeError("lower_threshold must be an int or float.")
+        if not isinstance(upper_threshold, (int, float)):
+            raise TypeError("upper_threshold must be an int or float.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
 
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1497,14 +1527,12 @@ class Dataset:
             upper_threshold=upper_threshold,
         )
         if use_mp:
-            # Use multiprocessing generatore (parralelization)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
             self.stations = list(stationgenerator)
         else:
-            # Use regular generator
             self.stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.persistence_check, extra_param_desc=_use_mp_docargstr)
@@ -1514,7 +1542,15 @@ class Dataset:
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
         use_mp: bool = True,
-    ):
+    ) -> None:
+        logger.debug("Entering Dataset.persistence_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(min_records_per_window, int):
+            raise TypeError("min_records_per_window must be an integer.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
+
         timewindow = fmt_timedelta_arg(timewindow)
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1523,14 +1559,12 @@ class Dataset:
             min_records_per_window=min_records_per_window,
         )
         if use_mp:
-            # Use multiprocessing generatore (parralelization)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
             self.stations = list(stationgenerator)
         else:
-            # Use regular generator
             self.stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.repetitions_check, extra_param_desc=_use_mp_docargstr)
@@ -1539,7 +1573,15 @@ class Dataset:
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
         use_mp: bool = True,
-    ):
+    ) -> None:
+        logger.debug("Entering Dataset.repetitions_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(max_N_repetitions, int):
+            raise TypeError("max_N_repetitions must be an integer.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
+
         func_feed_list = _create_qc_arg_set(
             dataset=self,
             target_obstype=target_obstype,
@@ -1547,14 +1589,12 @@ class Dataset:
         )
 
         if use_mp:
-            # Use multiprocessing generatore (parralelization)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
             self.stations = list(stationgenerator)
         else:
-            # Use regular generator
             self.stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.step_check, extra_param_desc=_use_mp_docargstr)
@@ -1564,7 +1604,16 @@ class Dataset:
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         use_mp: bool = True,
-    ):
+    ) -> None:
+        logger.debug("Entering Dataset.step_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(max_increase_per_second, (int, float)):
+            raise TypeError("max_increase_per_second must be an int or float.")
+        if not isinstance(max_decrease_per_second, (int, float)):
+            raise TypeError("max_decrease_per_second must be an int or float.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
 
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1574,12 +1623,10 @@ class Dataset:
         )
 
         if use_mp:
-            # Use multiprocessing generatore (parralelization)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
             self.stations = list(stationgenerator)
         else:
-            # Use regular generator
             self.stations = list(map(_qc_step_generatorfunc, func_feed_list))
 
     @copy_doc(
@@ -1588,12 +1635,23 @@ class Dataset:
     def window_variation_check(
         self,
         target_obstype: str = "temp",
-        timewindow: pd.Timedelta = pd.Timedelta("1h"),
+        timewindow: Union[str, pd.Timedelta] = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
-        max_increase_per_second: Union[int, float] = 0.0022,  # 8./3600
-        max_decrease_per_second: Union[int, float] = -0.0027,  # -10/3600
-        use_mp=True,
-    ):
+        max_increase_per_second: Union[int, float] = 0.0022,
+        max_decrease_per_second: Union[int, float] = -0.0027,
+        use_mp: bool = True,
+    ) -> None:
+        logger.debug("Entering Dataset.window_variation_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(min_records_per_window, int):
+            raise TypeError("min_records_per_window must be an integer.")
+        if not isinstance(max_increase_per_second, (int, float)):
+            raise TypeError("max_increase_per_second must be an int or float.")
+        if not isinstance(max_decrease_per_second, (int, float)):
+            raise TypeError("max_decrease_per_second must be an int or float.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
 
         timewindow = fmt_timedelta_arg(timewindow)
 
@@ -1607,14 +1665,12 @@ class Dataset:
         )
 
         if use_mp:
-            # Use multiprocessing generatore (parralelization)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
             self.stations = list(stationgenerator)
         else:
-            # Use regular generator
             self.stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
 
     def buddy_check(
@@ -1622,7 +1678,7 @@ class Dataset:
         target_obstype: str = "temp",
         buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
-        max_alt_diff: Union[int, float] = None,
+        max_alt_diff: Union[int, float, None] = None,
         min_std: Union[int, float] = 1.0,
         std_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
@@ -1660,44 +1716,62 @@ class Dataset:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. Default is "temp".
         buddy_radius : int | float, optional
-            The radius to define spatial neighbors in meters. The default is 10000
+            The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
-            The minimum sample size to calculate statistics on. The default is 4
+            The minimum sample size to calculate statistics on. Default is 4.
         max_alt_diff : int | float | None, optional
-            The maximum altitude difference allowed for buddies. I None,
-            no altitude filter is applied. The default is None
+            The maximum altitude difference allowed for buddies. Default is None.
         min_std : int | float, optional
-            The minimum standard deviation for sample statistics. This should
-            represent the accuracy of the observations. The default is 1.0
+            The minimum standard deviation for sample statistics. Default is 1.0.
         std_threshold : int | float, optional
-            The threshold (std units) for flagging observations as outliers. The default is 3.1
+            The threshold (std units) for flagging observations as outliers. Default is 3.1.
         N_iter : int, optional
-            The number of iterations to perform the buddy check. The default is 2
+            The number of iterations to perform the buddy check. Default is 2.
         instantanious_tolerance : str | pd.Timedelta, optional
-            The maximum time difference allowed for synchronizing observations. The default is pd.Timedelta("4min")
+            The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
-            Describe how the obstype changes with altitude (in meters). If None, no
-            altitude correction is applied. For temperature, a common value is -0.0065. The default is None
+            Describe how the obstype changes with altitude (in meters). Default is None.
         use_mp : bool, optional
-            Use multiprocessing to speed up the buddy check. The default is True
+            Use multiprocessing to speed up the buddy check. Default is True.
 
+        Returns
+        -------
+        None
 
         Notes
         ------
         - This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         - The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-
+        
         """
+        logger.debug("Entering Dataset.buddy_check")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(buddy_radius, (int, float)):
+            raise TypeError("buddy_radius must be an int or float.")
+        if not isinstance(min_sample_size, int):
+            raise TypeError("min_sample_size must be an integer.")
+        if max_alt_diff is not None and not isinstance(max_alt_diff, (int, float)):
+            raise TypeError("max_alt_diff must be an int, float, or None.")
+        if not isinstance(min_std, (int, float)):
+            raise TypeError("min_std must be an int or float.")
+        if not isinstance(std_threshold, (int, float)):
+            raise TypeError("std_threshold must be an int or float.")
+        if not isinstance(N_iter, int):
+            raise TypeError("N_iter must be an integer.")
+        if lapserate is not None and not isinstance(lapserate, (int, float)):
+            raise TypeError("lapserate must be an int, float, or None.")
+        if not isinstance(use_mp, bool):
+            raise TypeError("use_mp must be a boolean.")
 
         instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
         if (lapserate is not None) | (max_alt_diff is not None):
-            # test if altitude data is available
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
-                    "Not all stations have altitude data, lapserate correction and max_alt_diff filetering could not be applied."
+                    "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
                 )
 
         qc_kwargs = dict(
@@ -1748,7 +1822,12 @@ class Dataset:
                 )
 
     @copy_doc(Station.get_qc_stats)
-    def get_qc_stats(self, target_obstype="temp", make_plot=True):
+    def get_qc_stats(self, target_obstype: str = "temp", make_plot: bool = True) -> Union[pd.DataFrame, None]:
+        logger.debug("Entering Dataset.get_qc_stats")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(make_plot, bool):
+            raise TypeError("make_plot must be a boolean.")
 
         freqdf_list = [
             sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
@@ -1777,14 +1856,17 @@ class Dataset:
     # ------------------------------------------
 
     def rename_stations(self, renamedict: dict) -> None:
-        """Rename stations in the dataset.
-
-        This method allows you to rename stations in the dataset using a dictionary.
+        """
+        Rename stations in the dataset.
 
         Parameters
         ----------
         renamedict : dict
             A dictionary where keys are the original station names and values are the new station names.
+
+        Returns
+        -------
+        None
 
         Warnings
         --------
@@ -1793,27 +1875,30 @@ class Dataset:
           operation for that station will be skipped.
 
         """
-
+        logger.debug("Entering Dataset.rename_stations")
         if not isinstance(renamedict, dict):
-            raise TypeError(f"{renamedict} is not a Dict")
+            raise TypeError("renamedict must be a dictionary.")
 
         for origname, trgname in renamedict.items():
-            # test if the station exist
             if origname not in [sta.name for sta in self.stations]:
                 logger.warning(f"{origname} is not present, skipped.")
                 continue
 
-            # test if targetname is unknown
             if trgname in [sta.name for sta in self.stations]:
                 logger.warning(
                     f"{trgname} is already present, renaming {origname} --> {trgname} is skipped."
                 )
                 continue
-            # rename
             self.get_station(origname)._rename(targetname=trgname)
 
     @copy_doc(Station.convert_outliers_to_gaps)
-    def convert_outliers_to_gaps(self, all_observations=True, obstype="temp"):
+    def convert_outliers_to_gaps(self, all_observations: bool = True, obstype: str = "temp") -> None:
+        logger.debug("Entering Dataset.convert_outliers_to_gaps")
+        if not isinstance(all_observations, bool):
+            raise TypeError("all_observations must be a boolean.")
+        if not isinstance(obstype, str):
+            raise TypeError("obstype must be a string.")
+
         for sta in self.stations:
             sta.convert_outliers_to_gaps(
                 all_observations=all_observations, obstype=obstype
@@ -1832,10 +1917,25 @@ class Dataset:
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
         max_trail_to_gap_distance: Union[pd.Timedelta, None] = None,
-        overwrite_fill=False,
-        method_kwargs={},
-    ):
-        # special formatters
+        overwrite_fill: bool = False,
+        method_kwargs: dict = {},
+    ) -> None:
+        logger.debug("Entering Dataset.interpolate_gaps")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(method, str):
+            raise TypeError("method must be a string.")
+        if not isinstance(max_consec_fill, int):
+            raise TypeError("max_consec_fill must be an integer.")
+        if not isinstance(n_leading_anchors, int):
+            raise TypeError("n_leading_anchors must be an integer.")
+        if not isinstance(n_trailing_anchors, int):
+            raise TypeError("n_trailing_anchors must be an integer.")
+        if not isinstance(overwrite_fill, bool):
+            raise TypeError("overwrite_fill must be a boolean.")
+        if not isinstance(method_kwargs, dict):
+            raise TypeError("method_kwargs must be a dictionary.")
+
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
 
@@ -1853,7 +1953,13 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
-    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill=False):
+    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill: bool = False) -> None:
+        logger.debug("Entering Dataset.fill_gaps_with_raw_modeldata")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        if not isinstance(overwrite_fill, bool):
+            raise TypeError("overwrite_fill must be a boolean.")
+
         for sta in self.stations:
             sta.fill_gaps_with_raw_modeldata(
                 target_obstype=target_obstype, overwrite_fill=overwrite_fill
@@ -1863,13 +1969,26 @@ class Dataset:
     def fill_gaps_with_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration=pd.Timedelta("24h"),
+        leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
-        trailing_period_duration=pd.Timedelta("24h"),
+        trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
-        overwrite_fill=False,
-    ):
-        # special formatters
+        overwrite_fill: bool = False,
+    ) -> None:
+        logger.debug("Entering Dataset.fill_gaps_with_debiased_modeldata")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        # if not isinstance(leading_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("leading_period_duration must be a string or pandas Timedelta.")
+        if not isinstance(min_leading_records_total, int):
+            raise TypeError("min_leading_records_total must be an integer.")
+        # if not isinstance(trailing_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("trailing_period_duration must be a string or pandas Timedelta.")
+        if not isinstance(min_trailing_records_total, int):
+            raise TypeError("min_trailing_records_total must be an integer.")
+        if not isinstance(overwrite_fill, bool):
+            raise TypeError("overwrite_fill must be a boolean.")
+
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
@@ -1887,12 +2006,23 @@ class Dataset:
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration=pd.Timedelta("24h"),
-        trailing_period_duration=pd.Timedelta("24h"),
+        leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
+        trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
-        overwrite_fill=False,
-    ):
-        # special formatters
+        overwrite_fill: bool = False,
+    ) -> None:
+        logger.debug("Entering Dataset.fill_gaps_with_diurnal_debiased_modeldata")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        # if not isinstance(leading_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("leading_period_duration must be a string or pandas Timedelta.")
+        # if not isinstance(trailing_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("trailing_period_duration must be a string or pandas Timedelta.")
+        if not isinstance(min_debias_sample_size, int):
+            raise TypeError("min_debias_sample_size must be an integer.")
+        if not isinstance(overwrite_fill, bool):
+            raise TypeError("overwrite_fill must be a boolean.")
+
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
@@ -1909,13 +2039,26 @@ class Dataset:
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration=pd.Timedelta("24h"),
-        trailing_period_duration=pd.Timedelta("24h"),
+        leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
+        trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
-        overwrite_fill=False,
-    ):
-        # special formatters
+        overwrite_fill: bool = False,
+    ) -> None:
+        logger.debug("Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata")
+        if not isinstance(target_obstype, str):
+            raise TypeError("target_obstype must be a string.")
+        # if not isinstance(leading_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("leading_period_duration must be a string or pandas Timedelta.")
+        # if not isinstance(trailing_period_duration, (str, pd.Timedelta)):
+        #     raise TypeError("trailing_period_duration must be a string or pandas Timedelta.")
+        if not isinstance(min_lead_debias_sample_size, int):
+            raise TypeError("min_lead_debias_sample_size must be an integer.")
+        if not isinstance(min_trail_debias_sample_size, int):
+            raise TypeError("min_trail_debias_sample_size must be an integer.")
+        if not isinstance(overwrite_fill, bool):
+            raise TypeError("overwrite_fill must be a boolean.")
+
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
@@ -1930,32 +2073,32 @@ class Dataset:
             )
 
 
-def _qc_grossvalue_generatorfunc(input):
-    station, kwargs = input  # first element is station, the reset ar kwargs
+def _qc_grossvalue_generatorfunc(input: list) -> Station:
+    station, kwargs = input
     station.gross_value_check(**kwargs)
     return station
 
 
-def _qc_persistence_generatorfunc(input):
-    station, kwargs = input  # first element is station, the reset ar kwargs
+def _qc_persistence_generatorfunc(input: list) -> Station:
+    station, kwargs = input
     station.persistence_check(**kwargs)
     return station
 
 
-def _qc_repetitions_generatorfunc(input):
-    station, kwargs = input  # first element is station, the reset ar kwargs
+def _qc_repetitions_generatorfunc(input: list) -> Station:
+    station, kwargs = input
     station.repetitions_check(**kwargs)
     return station
 
 
-def _qc_step_generatorfunc(input):
-    station, kwargs = input  # first element is station, the reset ar kwargs
+def _qc_step_generatorfunc(input: list) -> Station:
+    station, kwargs = input
     station.step_check(**kwargs)
     return station
 
 
-def _qc_window_var_generatorfunc(input):
-    station, kwargs = input  # first element is station, the reset ar kwargs
+def _qc_window_var_generatorfunc(input: list) -> Station:
+    station, kwargs = input
     station.window_variation_check(**kwargs)
     return station
 
@@ -1965,11 +2108,27 @@ def _qc_window_var_generatorfunc(input):
 # ------------------------------------------
 
 
-def _create_qc_arg_set(dataset, **qckwargs):
+def _create_qc_arg_set(dataset: Dataset, **qckwargs: dict) -> list:
     return [([sta, dict(**qckwargs)]) for sta in dataset.stations]
 
 
-def create_metadata_only_stations(metadata_parser: MetaDataParser):
+def create_metadata_only_stations(metadata_parser: MetaDataParser) -> list:
+    """
+    Create a list of Station objects from metadata.
+
+    Parameters
+    ----------
+    metadata_parser : MetaDataParser
+        An object that provides access to the metadata for the stations.
+
+    Returns
+    -------
+    list
+        A list of Station objects, each representing a station with its associated metadata.
+    """
+    logger.debug("Entering create_metadata_only_stations")
+    if not isinstance(metadata_parser, MetaDataParser):
+        raise TypeError("metadata_parser must be a MetaDataParser instance.")
 
     stations = []
 
@@ -1981,11 +2140,10 @@ def create_metadata_only_stations(metadata_parser: MetaDataParser):
             extradata=metadata_parser.get_station_extra_metadata(stationname),
         )
 
-        # Combine into a Station
         station = Station(
             stationname=stationname,
             site=stationsite,
-            all_sensor_data=[],  # No sensordata!
+            all_sensor_data=[],
         )
 
         stations.append(station)
@@ -1994,46 +2152,64 @@ def create_metadata_only_stations(metadata_parser: MetaDataParser):
 
 def createstations(
     data_parser: DataParser,
-    metadata_parser: MetaDataParser,
+    metadata_parser: Union[MetaDataParser, None],
     use_metadata: bool,
     known_obstypes: dict,
     timezone: str,
-    freq_estimation_method: str,  #'highest' | 'median',
+    freq_estimation_method: str,
     freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
     origin_simplify_tolerance: Union[pd.Timedelta, str],
     timestamp_tolerance: Union[pd.Timedelta, str],
 ) -> list:
     """
     Create a list of Station objects from parsed data and metadata.
-    Args:
-        data_parser (DataParser): An object that provides access to the observational data.
-        metadata_parser (MetadataParser): An object that provides access to the metadata for the stations.
-        known_obstypes (dict): A dictionary mapping observation type names to their corresponding ObsType objects.
-        timezone (str): a pytz equivalent string indicating the timezone of the timestamps.
-    Returns:
-        list: A list of Station objects, each representing a station with its associated sensor data and metadata.
-    """
 
+    Parameters
+    ----------
+    data_parser : DataParser
+        An object that provides access to the observational data.
+    metadata_parser : MetadataParser or None
+        An object that provides access to the metadata for the stations.
+    use_metadata : bool
+        Whether to use metadata for creating stations.
+    known_obstypes : dict
+        A dictionary mapping observation type names to their corresponding ObsType objects.
+    timezone : str
+        A pytz equivalent string indicating the timezone of the timestamps.
+    freq_estimation_method : str
+        Method to estimate the frequency of observations (per station per observation type).
+    freq_estimation_simplify_tolerance : pd.Timedelta or str
+        The maximum allowed error in simplifying the target frequency.
+    origin_simplify_tolerance : pd.Timedelta or str
+        For each time series, the origin (first occurring timestamp) is set and simplification
+        is applied.
+    timestamp_tolerance : pd.Timedelta or str
+        The maximum allowed time shift tolerance for aligning timestamps
+        to target (perfect-frequency) timestamps.
+
+    Returns
+    -------
+    list
+        A list of Station objects, each representing a station with its associated sensor data and metadata.
+    """
+    logger.debug("Entering createstations")
     datadf = data_parser.get_df()
 
-    # Station creator
     not_an_obstype = ["name", "datetime"]
     stations = []
     for stationname, stationdata in datadf.groupby("name"):
-        # initialize a set of sensordata
         all_station_sensor_data = []
         for obstypename in stationdata.columns:
             if obstypename in not_an_obstype:
                 continue
 
-            # Get the corresponding obstype
             obstype = known_obstypes[obstypename]
 
             # Formatting on raw data
             # 1. Skip stations with nan as name (caused by string casting errors)
             if (stationname == str(np.nan)) | (pd.isnull(stationname)):
                 logger.warning(
-                    "Skipping the records beloging to station with Nan as name. This could be the result from stringcasting the stationnames."
+                    "Skipping the records belonging to station with Nan as name. This could be the result from stringcasting the stationnames."
                 )
                 continue
             # 2. Drop NAT datetimes if present
@@ -2042,7 +2218,7 @@ def createstations(
             # 3. Skip stations if there are less than 2 records (no freq can be estimated)
             if stationdata.shape[0] < 2:
                 logger.warning(
-                    f"Station {stationname} is skipped because of has only one record."
+                    f"Station {stationname} is skipped because it has only one record."
                 )
                 continue
 
@@ -2052,7 +2228,6 @@ def createstations(
                 datarecords=stationdata[obstype.name].to_numpy(),
                 timestamps=stationdata["datetime"].to_numpy(),
                 obstype=obstype,
-                # timestamps details:
                 timezone=timezone,
                 freq_estimation_method=freq_estimation_method,
                 freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
@@ -2099,45 +2274,23 @@ def createstations(
     return stations
 
 
-def import_dataset_from_pkl(target_path):
-    """Import a Dataset instance from a (pickle) file.
+def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
+    """
+    Import a Dataset instance from a pickle file.
 
     Parameters
     ----------
-    folder_path : str
-        The path to the directory where the pickle file is stored.
-    filename : str, optional
-        The name of the output file. The default is 'saved_dataset.pkl'.
+    target_path : str or Path
+        The path to the pickle file.
 
     Returns
     -------
-    metobs_toolkit.Dataset
+    Dataset
         The Dataset instance.
-
-    See Also
-    --------
-    Dataset.save_dataset: Save a Dataset as a pickle file.
-
-    Examples
-    --------
-
-    As an example, we will import a Dataset that is stored as a pkl file in the
-    current working directory (`os.getcwd()`).
-
-    >>> import os
-    >>> import metobs_toolkit
-    >>>
-    >>> dataset=metobs_toolkit.import_dataset(folder_path=os.getcwd(),
-    ...                                      filename='your_saved_dataset.pkl')  # doctest: +SKIP
-    >>> dataset # doctest: +SKIP
-    Instance of Dataset at ...
     """
-    # # check if folder_path is known and exists
-    # assert os.path.isdir(folder_path), f"{folder_path} is not a directory!"
-
-    # full_path = os.path.join(folder_path, filename)
-
-    # check if file exists
+    logger.debug("Entering import_dataset_from_pkl")
+    if not isinstance(target_path, (str, Path)):
+        raise TypeError("target_path must be a string or Path.")
 
     picklereader = PickleFileReader(file_path=target_path)
     return picklereader.read_as_local_file()
