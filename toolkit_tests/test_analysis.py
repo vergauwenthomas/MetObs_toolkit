@@ -15,10 +15,10 @@ solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 import pytest
 
-from gee_service_authenticator import GEE_Authenticator
+# from gee_service_authenticator import GEE_Authenticator
 
 # authenticate the service account
-GEE_Authenticator()
+# GEE_Authenticator()
 
 
 class TestDemoDataset:

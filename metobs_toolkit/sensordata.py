@@ -9,7 +9,7 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedel
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
-from metobs_toolkit.newgap import Gap
+from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
 import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *

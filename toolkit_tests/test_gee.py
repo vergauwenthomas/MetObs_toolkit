@@ -18,13 +18,13 @@ import metobs_toolkit
 # solutionfolder
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
-import shutil
+
 import pytest
 
-from gee_service_authenticator import GEE_Authenticator
+# from gee_service_authenticator import GEE_Authenticator
 
 # authenticate the service account
-GEE_Authenticator()
+# GEE_Authenticator()
 
 
 class TestDemoDataset:
@@ -413,9 +413,9 @@ class TestDemoDataset:
 if __name__ == "__main__":
 
     test = TestDemoDataset()
-    # test.test_import_demo_metadata(overwrite_solution=False)
-    # test.test_LCZ_extraction(overwrite_solution=False)
-    # test.test_altitude_extraction(overwrite_solution=False)
-    # test.test_landcover_frac_extraction(overwrite_solution=False)
-    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
-    # test.test_ERA5_extraction(overwrite_solution=False)
+    test.test_import_demo_metadata(overwrite_solution=False)
+    test.test_LCZ_extraction(overwrite_solution=False)
+    test.test_altitude_extraction(overwrite_solution=False)
+    test.test_landcover_frac_extraction(overwrite_solution=False)
+    test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
+    test.test_ERA5_extraction(overwrite_solution=False)

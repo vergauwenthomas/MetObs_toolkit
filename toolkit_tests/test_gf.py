@@ -60,7 +60,7 @@ class TestDataWithGaps:
                         "testdatawithgaps"
                     )
                 ),
-                target_filename="test_import_data.pkl",
+                filename="test_import_data.pkl",
                 overwrite=True,
             )
         else:
@@ -441,10 +441,10 @@ if __name__ == "__main__":
     )
 
     tester = TestDataWithGaps()
-    # tester.test_import_data(overwrite_solution=False)
-    # tester.test_interpolation_on_station(overwrite_solution=False)
-    # tester.test_interpolation_on_dataset(overwrite_solution=False)
-    # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    tester.test_import_data(overwrite_solution=False)
+    tester.test_interpolation_on_station(overwrite_solution=False)
+    tester.test_interpolation_on_dataset(overwrite_solution=False)
+    tester.test_raw_modeldata_gapfill(overwrite_solution=False)
+    tester.test_debias_modeldata_gapfill(overwrite_solution=False)
+    tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)

@@ -11,7 +11,7 @@ A regular user *should not directly interact with a `Gap`* instance. All methods
 for filling gaps are accesable in the ``Station`` and ``Dataset`` classes.
 
 
-.. currentmodule:: metobs_toolkit.newgap
+.. currentmodule:: metobs_toolkit.gap
 
 Constructor
 -----------
