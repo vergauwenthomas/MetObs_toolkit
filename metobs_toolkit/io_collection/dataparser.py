@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict
 import numpy as np
 import pandas as pd
+
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template, MetobsTemplateError
 
@@ -10,7 +11,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 class DataParser:
     """
-    Parser class for data.
+    Parser class for meteorological observation data.
 
     Parameters
     ----------
@@ -21,14 +22,11 @@ class DataParser:
     """
 
     def __init__(self, datafilereader: CsvFileReader, template: Template):
-        if not isinstance(datafilereader, CsvFileReader):
-            raise TypeError("datafilereader must be an instance of CsvFileReader.")
-        if not isinstance(template, Template):
-            raise TypeError("template must be an instance of Template.")
+
 
         self.filereader = datafilereader
         self.template = template
-        self.datadf = pd.DataFrame()  # metadata in formatted dataframe style
+        self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style
 
     def parse(self, **readkwargs) -> "DataParser":
         """
@@ -44,12 +42,12 @@ class DataParser:
         DataParser
             The instance of DataParser with the parsed data.
         """
-        logger.info(f"Entering parse method of {self}.")
+        logger.debug(f"Entering parse method of {self}.")
 
         if not isinstance(readkwargs, dict):
             raise TypeError("readkwargs must be a dictionary.")
 
-        # Read the raw datafile
+        # Read the raw data file
         rawdf = self.filereader.read(**readkwargs)
         logger.debug("Raw data read successfully.")
 
@@ -63,7 +61,7 @@ class DataParser:
         # 2. Set datetime column
         rawdf = _create_datetime_column(rawdf, self.template)
 
-        # 3. Add a dummy-name column for single-station cases
+        # 3. Add a dummy name column for single-station cases
         if self.template._is_data_single_station():
             rawdf = self._add_single_station_name(rawdf)
 
@@ -76,7 +74,7 @@ class DataParser:
         # 5. Rename name column
         rawdf = self._set_name(rawdf)
 
-        # 6. Rename columns to toolkit obstypes
+        # 6. Rename columns to toolkit observation types
         rawdf = self._columns_to_tlk_obstypes(rawdf)
 
         # 7. Subset to mapped columns
@@ -89,17 +87,17 @@ class DataParser:
 
     def _rename_blacklabels(self, rawdf: pd.DataFrame) -> pd.DataFrame:
         """
-        Rename blacklisted labels in the dataframe.
+        Rename blacklisted labels in the DataFrame.
 
         Parameters
         ----------
         rawdf : pd.DataFrame
-            The raw dataframe to process.
+            The raw DataFrame to process.
 
         Returns
         -------
         pd.DataFrame
-            The dataframe with renamed columns.
+            The DataFrame with renamed columns.
         """
         logger.debug(f"Entering _rename_blacklabels method of {self}.")
 
@@ -119,12 +117,12 @@ class DataParser:
         Parameters
         ----------
         rawdf : pd.DataFrame
-            The raw dataframe to process.
+            The raw DataFrame to process.
 
         Returns
         -------
         pd.DataFrame
-            The dataframe with the added dummy name column.
+            The DataFrame with the added dummy name column.
         """
         logger.debug(f"Entering _add_single_station_name method of {self}.")
 
@@ -148,12 +146,12 @@ class DataParser:
         Parameters
         ----------
         rawdf : pd.DataFrame
-            The raw dataframe to process.
+            The raw DataFrame to process.
 
         Returns
         -------
         pd.DataFrame
-            The dataframe with renamed name column.
+            The DataFrame with renamed name column.
         """
         logger.debug(f"Entering _set_name method of {self}.")
 
@@ -165,7 +163,7 @@ class DataParser:
         todrop = rawdf[rawdf["name"].isnull()]
         if not todrop.empty:
             logger.warning(
-                "Records with NaN as station name are found in the datafile, these are skipped!"
+                "Records with NaN as station name are found in the data file, these are skipped!"
             )
         rawdf = rawdf[~rawdf["name"].isnull()]
 
@@ -180,12 +178,12 @@ class DataParser:
         Parameters
         ----------
         rawdf : pd.DataFrame
-            The raw dataframe to process.
+            The raw DataFrame to process.
 
         Returns
         -------
         pd.DataFrame
-            The dataframe with renamed columns.
+            The DataFrame with renamed columns.
         """
         logger.debug(f"Entering _columns_to_tlk_obstypes method of {self}.")
 
@@ -197,17 +195,17 @@ class DataParser:
 
     def _subset_to_mapped_columns(self, rawdf: pd.DataFrame) -> pd.DataFrame:
         """
-        Subset the dataframe to mapped columns.
+        Subset the DataFrame to mapped columns.
 
         Parameters
         ----------
         rawdf : pd.DataFrame
-            The raw dataframe to process.
+            The raw DataFrame to process.
 
         Returns
         -------
         pd.DataFrame
-            The dataframe with only mapped columns.
+            The DataFrame with only mapped columns.
         """
         logger.debug(f"Entering _subset_to_mapped_columns method of {self}.")
 
@@ -220,7 +218,7 @@ class DataParser:
         mapped_but_unpresent = list(set(mapped_columns) - set(rawdf.columns))
         if bool(unmapped_but_present):
             logger.warning(
-                f"The following columns are present in the datafile, but not in the template! They are skipped!\n {unmapped_but_present}"
+                f"The following columns are present in the data file, but not in the template! They are skipped!\n {unmapped_but_present}"
             )
         if bool(mapped_but_unpresent):
             logger.warning(
@@ -231,14 +229,7 @@ class DataParser:
         return rawdf[mapped_and_present]
 
     def get_df(self) -> pd.DataFrame:
-        """
-        Get the parsed dataframe.
-
-        Returns
-        -------
-        pd.DataFrame
-            The parsed dataframe.
-        """
+        """Get the parsed DataFrame."""
         logger.info(f"Entering get_df method of {self}.")
         return self.datadf
 
@@ -250,14 +241,21 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
     Parameters
     ----------
     df : pd.DataFrame
-        The dataframe to process.
+        The DataFrame to process.
     template : Template
         The template to use for datetime construction.
 
     Returns
     -------
     pd.DataFrame
-        The dataframe with a "datetime" column.
+        The DataFrame with a "datetime" column.
+
+    Raises
+    ------
+    TypeError
+        If the input types are incorrect.
+    MetobsTemplateError
+        If required columns are missing or datetime conversion fails.
     """
     logger.debug("Entering _create_datetime_column function.")
 
@@ -317,19 +315,24 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
 
 def wide_to_long(df: pd.DataFrame, obstypename: str) -> pd.DataFrame:
     """
-    Convert a wide dataframe to a long format.
+    Convert a wide DataFrame to a long format.
 
     Parameters
     ----------
     df : pd.DataFrame
-        Wide dataframe with a "datetime" column.
+        Wide DataFrame with a "datetime" column.
     obstypename : str
-        A MetObs obstype name.
+        A MetObs observation type name.
 
     Returns
     -------
     pd.DataFrame
-        Long dataframe in the standard toolkit structure.
+        Long DataFrame in the standard toolkit structure.
+
+    Raises
+    ------
+    TypeError
+        If the input types are incorrect.
     """
     logger.debug("Entering wide_to_long function.")
 
@@ -338,8 +341,8 @@ def wide_to_long(df: pd.DataFrame, obstypename: str) -> pd.DataFrame:
     if not isinstance(obstypename, str):
         raise TypeError("obstypename must be a string.")
 
-    # The df is assumed to have one datetime column, and the others represent
-    # stations with their obstype values
+    # The DataFrame is assumed to have one datetime column, and the others represent
+    # stations with their observation type values
     stationnames = df.columns.to_list()
     stationnames.remove("datetime")
 

@@ -11,7 +11,6 @@ from metobs_toolkit.backend_collection.errorclasses import MetobsArgumentError
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-# timedelta_arg_check
 
 
 def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:

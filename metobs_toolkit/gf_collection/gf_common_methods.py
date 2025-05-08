@@ -6,12 +6,30 @@ import numpy as np
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-def create_a_combined_df(leadseries, trailseries, gap):
+def create_a_combined_df(
+    leadseries: pd.Series, trailseries: pd.Series, gap
+) -> pd.DataFrame:
+    """
+    Create a combined DataFrame from leading, trailing, and gap series.
 
+    Parameters
+    ----------
+    leadseries : pd.Series
+        The leading period time series.
+    trailseries : pd.Series
+        The trailing period time series.
+    gap : object
+        An object with a 'records' attribute containing the gap period as a pd.Series.
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined DataFrame with columns 'value' and 'label', indexed by datetime.
+    """
+    logger.debug("Entering create_a_combined_df")
     leaddf = pd.DataFrame(
         index=leadseries.index, data={"value": leadseries, "label": "lead"}
     )
-
     traildf = pd.DataFrame(
         index=trailseries.index, data={"value": trailseries, "label": "trail"}
     )
@@ -21,7 +39,25 @@ def create_a_combined_df(leadseries, trailseries, gap):
     return pd.concat([leaddf, traildf, gapdf]).sort_index()
 
 
-def add_modeldata_to_combdf(combineddf, modeltimeseries):
+def add_modeldata_to_combdf(
+    combineddf: pd.DataFrame, modeltimeseries
+) -> pd.DataFrame:
+    """
+    Add model data to a combined DataFrame, interpolating model values to match the index.
+
+    Parameters
+    ----------
+    combineddf : pd.DataFrame
+        DataFrame containing 'value' and 'label' columns for lead, trail, and gap periods.
+    modeltimeseries : object
+        An object with a 'series' attribute (pd.Series) representing model data.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with an additional 'modelvalue' column, aligned and interpolated to the combineddf index.
+    """
+    logger.debug("Entering add_modeldata_to_combdf")
     modelseries = modeltimeseries.series
 
     # 1. Ensure both series have the same timezone
@@ -39,13 +75,13 @@ def add_modeldata_to_combdf(combineddf, modeltimeseries):
         combineddf.index
     ]  # subset to gap + leading + trailing period
 
-    # A duplicated row at round-hours is introduced, but the label is nan -> remove these rows
+    # A duplicated row at round-hours is introduced, but the label is NaN -> remove these rows
     combdf_reindexed = combdf_reindexed.dropna(subset=["label"])
 
-    # The iterpolate call did also interpolate the 'value' column, revert this
+    # The interpolate call also interpolated the 'value' column, revert this
     combdf_reindexed.loc[combdf_reindexed["label"] == "gap", "value"] = np.nan
 
-    # dulicates are introduced when timestamps are both in modelseries and gapseries
+    # Duplicates are introduced when timestamps are both in modelseries and gapseries
     combdf_reindexed = combdf_reindexed[
         ~combdf_reindexed.index.duplicated(keep="first")
     ]
@@ -54,25 +90,47 @@ def add_modeldata_to_combdf(combineddf, modeltimeseries):
 
 
 def check_if_modeltimeseries_is_compatible(
-    gap, modeltimeseries, lp_duration: pd.Timedelta, tp_duration: pd.Timedelta
-):
+    gap,
+    modeltimeseries,
+    lp_duration: pd.Timedelta,
+    tp_duration: pd.Timedelta,
+) -> tuple[bool, str]:
+    """
+    Check if a model time series is compatible with a gap and its leading/trailing periods.
 
-    # check if start of modeldata is before gapstart
+    Parameters
+    ----------
+    gap : object
+        An object with 'start_datetime', 'end_datetime', and 'obstype' attributes.
+    modeltimeseries : object
+        An object with 'start_datetime', 'end_datetime', and 'obstype' attributes.
+    lp_duration : pd.Timedelta
+        Duration of the leading period.
+    tp_duration : pd.Timedelta
+        Duration of the trailing period.
+
+    Returns
+    -------
+    tuple of (bool, str)
+        (True, "_") if compatible, otherwise (False, reason).
+    """
+    logger.debug("Entering check_if_modeltimeseries_is_compatible")
+    # Check if start of model data is before gap start
     if modeltimeseries.start_datetime <= (gap.start_datetime - lp_duration):
         pass
     else:
         return (
             False,
-            f"start of modeltimeseries is not compatible with the start of the gap (minus the leading period size): {modeltimeseries.start_datetime} <= ({gap.start_datetime} - {lp_duration}) == False.",
+            f"Start of modeltimeseries is not compatible with the start of the gap (minus the leading period size): {modeltimeseries.start_datetime} <= ({gap.start_datetime} - {lp_duration}) == False.",
         )
 
-    # check if end of modeldata is after gapend
+    # Check if end of model data is after gap end
     if modeltimeseries.end_datetime >= (gap.end_datetime + tp_duration):
         pass
     else:
         return (
             False,
-            f"end of modeltimeseries is not compatible with the end of the gap (plus the trailing period size): {modeltimeseries.end_datetime} >= ({gap.end_datetime} + {tp_duration}) == False.",
+            f"End of modeltimeseries is not compatible with the end of the gap (plus the trailing period size): {modeltimeseries.end_datetime} >= ({gap.end_datetime} + {tp_duration}) == False.",
         )
 
     # Check if the model represents the same obstype as the gap
@@ -81,7 +139,7 @@ def check_if_modeltimeseries_is_compatible(
     else:
         return (
             False,
-            f"The obstypes of the modeltimeseries is not compatible to that of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
+            f"The obstypes of the modeltimeseries is not compatible with that of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
         )
 
     return True, "_"
@@ -92,11 +150,34 @@ def get_trailing_period(
     sensordata,
     n_records: int,
     duration: Union[pd.Timedelta, None] = None,
-    fixed_by_records=True,
-    fixed_by_duration=False,
-):
+    fixed_by_records: bool = True,
+    fixed_by_duration: bool = False,
+) -> tuple[pd.Series, bool, str]:
+    """
+    Get the trailing period after a gap from sensor data.
 
-    # Compute the leading period from non-nan records
+    Parameters
+    ----------
+    gap : object
+        An object with 'end_datetime' attribute.
+    sensordata : object
+        An object with a 'series' attribute (pd.Series) containing sensor data.
+    n_records : int
+        Minimum number of records required in the trailing period.
+    duration : pd.Timedelta or None, optional
+        Maximum duration for the trailing period.
+    fixed_by_records : bool, default True
+        Whether to fix the trailing period by number of records.
+    fixed_by_duration : bool, default False
+        Whether to fix the trailing period by duration.
+
+    Returns
+    -------
+    tuple
+        (trailing_period: pd.Series, continueflag: bool, msg: str)
+    """
+    logger.debug("Entering get_trailing_period")
+    # Compute the trailing period from non-NaN records
     sta_obs_series = sensordata.series
 
     potential_trail_period = (
@@ -104,7 +185,6 @@ def get_trailing_period(
     )
 
     if (fixed_by_duration, fixed_by_records) == (True, False):
-
         # fixed_by_duration case
         tp = potential_trail_period[
             potential_trail_period.index <= (gap.end_datetime + duration)
@@ -120,13 +200,13 @@ def get_trailing_period(
     else:
         # invalid combination
         raise NotImplementedError(
-            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
+            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration: {fixed_by_duration} is not implemented."
         )
 
     # Check validity
     if tp.shape[0] < n_records:
-        logger.debug(f"to few trailing records: {tp}, but needed {n_records}")
-        msg = f"to few trailing records ({tp.shape[0]} found but {n_records} needed"
+        logger.debug(f"Too few trailing records: {tp}, but needed {n_records}")
+        msg = f"Too few trailing records ({tp.shape[0]} found but {n_records} needed)"
         continueflag = False
     else:
         msg = "ok"
@@ -139,11 +219,34 @@ def get_leading_period(
     sensordata,
     n_records: int,
     duration: Union[pd.Timedelta, None] = None,
-    fixed_by_records=True,
-    fixed_by_duration=False,
-):
+    fixed_by_records: bool = True,
+    fixed_by_duration: bool = False,
+) -> tuple[pd.Series, bool, str]:
+    """
+    Get the leading period before a gap from sensor data.
 
-    # Compute the leading period from non-nan records
+    Parameters
+    ----------
+    gap : object
+        An object with 'start_datetime' attribute.
+    sensordata : object
+        An object with a 'series' attribute (pd.Series) containing sensor data.
+    n_records : int
+        Minimum number of records required in the leading period.
+    duration : pd.Timedelta or None, optional
+        Maximum duration for the leading period.
+    fixed_by_records : bool, default True
+        Whether to fix the leading period by number of records.
+    fixed_by_duration : bool, default False
+        Whether to fix the leading period by duration.
+
+    Returns
+    -------
+    tuple
+        (leading_period: pd.Series, continueflag: bool, msg: str)
+    """
+    logger.debug("Entering get_leading_period")
+    # Compute the leading period from non-NaN records
     sta_obs_series = sensordata.series
 
     potential_lead_period = (
@@ -166,15 +269,17 @@ def get_leading_period(
     else:
         # invalid combination
         raise NotImplementedError(
-            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration:{fixed_by_duration} is not implemented."
+            f"The combination fixed_by_records: {fixed_by_records} and fixed_by_duration: {fixed_by_duration} is not implemented."
         )
 
-    # lp should have a minimum samplesize
+    # lp should have a minimum sample size
     if lp.shape[0] < n_records:
         if duration is not None:
-            msg = f"to few leading records ({lp.shape[0]} (with a maximum distance of {duration} wrt {gap.start_datetime}) found but {n_records} needed"
+            msg = (
+                f"Too few leading records ({lp.shape[0]} (with a maximum distance of {duration} wrt {gap.start_datetime}) found but {n_records} needed)"
+            )
         else:
-            msg = f"to few leading records ({lp.shape[0]} found but {n_records} needed"
+            msg = f"Too few leading records ({lp.shape[0]} found but {n_records} needed)"
         logger.debug(msg)
         continueflag = False
     else:

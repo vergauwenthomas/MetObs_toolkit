@@ -21,7 +21,7 @@ import ee
 
 # Local imports
 import metobs_toolkit.gee_api as gee_api
-from metobs_toolkit.backend_collection.errorclasses import MetobsModelDataError
+from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
     folium_map,
@@ -88,7 +88,7 @@ class _GEEDatasetManager:
         self.location = str(location)
 
         if str(value_type) not in ["categorical", "numeric"]:
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f'value_type: {value_type} is not "categorical" or "numeric"'
             )
         self.value_type = str(value_type)
@@ -128,21 +128,21 @@ class _GEEDatasetManager:
         None
         """
         if metadf.empty:
-            raise MetobsModelDataError(f"There is no metadata provided for {self}.")
+            raise MetObsModelDataError(f"There is no metadata provided for {self}.")
         if metadf.index.name != "name":
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f"Wrong index name for setting {metadf} to {self}"
             )
         if "lat" not in metadf.columns:
-            raise MetobsModelDataError(f'No "lat" column in the metadf of {self}.')
+            raise MetObsModelDataError(f'No "lat" column in the metadf of {self}.')
         if metadf["lat"].isnull().all():
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f'All values of the "lat" column in the metadf are Nan.'
             )
         if "lon" not in metadf.columns:
-            raise MetobsModelDataError(f'No "lon" column in the metadf of {self}.')
+            raise MetObsModelDataError(f'No "lon" column in the metadf of {self}.')
         if metadf["lon"].isnull().all():
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f'All values of the "lon" column in the metadf are Nan.'
             )
 
@@ -348,7 +348,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         """
         logger.debug(f"Entering GEEStaticDatasetManager.extract_static_buffer_frac_data for {self}")
         if metadf.empty:
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f"No metadata is present for the GeeStaticDataset. No extraction possible."
             )
 
@@ -444,11 +444,11 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         logger.debug(f"Entering GEEStaticDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     "If save is True, then outputfolder must be specified."
                 )
             if filename is None:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     "If save is True, then filename must be specified."
                 )
             if filename[-5:] != ".html":
@@ -460,7 +460,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                     logger.info(f"Overwrite the file at {target_path}.")
                     target_path.unlink()
                 else:
-                    raise MetobsModelDataError(
+                    raise MetObsModelDataError(
                         f"{target_path} is already a file and overwrite is set to False!"
                     )
 
@@ -644,7 +644,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 (isinstance(obs, ModelObstype))
                 | (isinstance(obs, ModelObstype_Vectorfield))
             ):
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     f"{obs} is not an instance of ModelObstype or ModelObstype_Vectorfield but of type {type(obs)}."
                 )
             self.modelobstypes[obs.name] = obs
@@ -671,14 +671,14 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             (isinstance(modelobstype, ModelObstype))
             | (isinstance(modelobstype, ModelObstype_Vectorfield))
         ):
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f"{modelobstype} is not a ModelObstype of ModelObstype_Vectorfield"
             )
         if modelobstype.name in self.modelobstypes.keys():
             if modelobstype == self.modelobstypes[modelobstype.name]:
                 return
             else:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
                 )
         else:
@@ -780,7 +780,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 keep_columns.append(obs._amp_obs_name)
                 keep_columns.append(obs._dir_obs_name)
             else:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     f"{obs} is not a ModelObstype or ModelObstype_Vectorfield."
                 )
 
@@ -809,7 +809,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 trg_bands.append(obs.model_band_u)
                 trg_bands.append(obs.model_band_v)
             else:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     f"{obs} is not an instance of ModelObstype or ModelObstype_Vectorfield."
                 )
         return trg_bands
@@ -894,11 +894,11 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         logger.debug(f"Entering GEEDynamicDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     "If save is True, then outputfolder must be specified."
                 )
             if filename is None:
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     "If save is True, then filename must be specified."
                 )
             if filename[-5:] != ".html":
@@ -910,7 +910,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                     logger.info(f"Overwrite the file at {target_path}.")
                     target_path.unlink()
                 else:
-                    raise MetobsModelDataError(
+                    raise MetObsModelDataError(
                         f"{target_path} is already a file and overwrite is set to False!"
                     )
 
@@ -922,13 +922,13 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         timeinstance = timeinstance.floor(self.time_res)
 
         if modelobstype not in self.modelobstypes:
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 f"{modelobstype} is not a known modelobstype ({self.modelobstypes})"
             )
         modelobstype = self.modelobstypes[modelobstype]
 
         if not isinstance(modelobstype, ModelObstype):
-            raise MetobsModelDataError(f"{modelobstype} is not a ModelObstype.")
+            raise MetObsModelDataError(f"{modelobstype} is not a ModelObstype.")
 
         connect_to_gee()
 
@@ -1092,7 +1092,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         self._check_metadf_validity(metadf)
 
         if (force_direct_transfer) & (force_to_drive):
-            raise MetobsModelDataError(
+            raise MetObsModelDataError(
                 "Both force_direct_transfer and force_to_drive could not be True at the same time."
             )
         # Check obstypes
@@ -1101,7 +1101,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         for obstype in obstypes:
             if obstype not in self.modelobstypes.keys():
-                raise MetobsModelDataError(
+                raise MetObsModelDataError(
                     f"{obstype} is an unknown modelobservation type of the {self}."
                 )
         # convert to model obstypes

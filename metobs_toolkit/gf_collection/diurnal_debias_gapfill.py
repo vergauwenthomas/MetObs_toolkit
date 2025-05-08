@@ -1,10 +1,29 @@
+import logging
 import pandas as pd
 import numpy as np
 
+logger = logging.getLogger("<metobs_toolkit>")
 
-def compute_diurnal_biases(df):
+def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute diurnal biases for the given DataFrame.
 
-    # calculate biases for dirunal records
+    Calculates the mean and count of the difference between 'modelvalue' and 'value'
+    for each unique combination of hour, minute, and second, considering only rows
+    labeled as 'lead' or 'trail'.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame containing at least the columns 'hour', 'min', 'sec', 'diff', and 'label'.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with columns 'hour', 'min', 'sec', 'diurnalbias', and 'samplesize'.
+    """
+    logger.debug("Entering compute_diurnal_biases function.")
+    # calculate biases for diurnal records
     trainset = df.loc[df["label"].isin(["lead", "trail"])]
     diurnalbias = (
         trainset[["hour", "min", "sec", "diff"]]
@@ -20,15 +39,32 @@ def compute_diurnal_biases(df):
 
     return diurnalbias
 
+def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataFrame:
+    """
+    Fill missing values in a DataFrame using diurnal debiasing.
 
-def fill_with_diurnal_debias(df, min_sample_size):
+    Adds time columns, computes instantaneous biases, merges diurnal biases,
+    applies corrections, and fills values based on sample size.
 
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame with a DateTimeIndex and columns 'modelvalue', 'value', and 'label'.
+    min_sample_size : int
+        Minimum required sample size for applying the correction.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with columns: 'value', 'label', 'modelvalue', 'fillvalue', and 'msg'.
+    """
+    logger.debug("Entering fill_with_diurnal_debias function.")
     # add hour, minute, second columns
     df["hour"] = df.index.hour
     df["min"] = df.index.minute
     df["sec"] = df.index.second
 
-    # calculate instantanious biases
+    # calculate instantaneous biases
     df["diff"] = df["modelvalue"] - df["value"]
 
     diurnalbias = compute_diurnal_biases(df)
@@ -49,7 +85,7 @@ def fill_with_diurnal_debias(df, min_sample_size):
         axis=1,
     )
 
-    # overwrite for too small samplsizes
+    # overwrite for too small sample sizes
     df.loc[df["samplesize"] < min_sample_size, "fillvalue"] = np.nan
     df.loc[df["samplesize"] < min_sample_size, "msg"] = df.loc[
         df["samplesize"] < min_sample_size, "samplesize"
@@ -61,19 +97,40 @@ def fill_with_diurnal_debias(df, min_sample_size):
     df = df.set_index("datetime")
     return df[["value", "label", "modelvalue", "fillvalue", "msg"]]
 
+def fill_with_weighted_diurnal_debias(
+    df: pd.DataFrame, min_lead_sample_size: int, min_trail_sample_size: int
+) -> pd.DataFrame:
+    """
+    Fill missing values using weighted diurnal debiasing.
 
-def fill_with_weighted_diurnal_debias(df, min_lead_sample_size, min_trail_sample_size):
+    Computes diurnal biases separately for 'lead' and 'trail' periods, applies weighted corrections,
+    and fills values based on minimum sample sizes for each period.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame with a DateTimeIndex and columns 'modelvalue', 'value', and 'label'.
+    min_lead_sample_size : int
+        Minimum required sample size for the 'lead' period.
+    min_trail_sample_size : int
+        Minimum required sample size for the 'trail' period.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with columns: 'value', 'label', 'modelvalue', 'fillvalue', and 'msg'.
+    """
+    logger.debug("Entering fill_with_weighted_diurnal_debias function.")
     # add hour, minute, second columns
     df["hour"] = df.index.hour
     df["min"] = df.index.minute
     df["sec"] = df.index.second
 
-    # calculate instantanious biases
+    # calculate instantaneous biases
     df["diff"] = df["modelvalue"] - df["value"]
 
-    # Compute biases seperatly for the leading and trailing period
+    # Compute biases separately for the leading and trailing period
     for trainlabel in ["lead", "trail"]:
-
         trainset = df.loc[df["label"] == trainlabel]
         diurnalbias = (
             trainset[["hour", "min", "sec", "diff"]]
@@ -122,12 +179,25 @@ def fill_with_weighted_diurnal_debias(df, min_lead_sample_size, min_trail_sample
 
     # Compute fill values
     df["fillvalue"] = df["modelvalue"] + df["correction"]
-    # overwrite fill value and msg for too small samplsizes
+    # overwrite fill value and msg for too small sample sizes
     df.loc[df["samplesize_lead"] < min_lead_sample_size, "fillvalue"] = np.nan
     df.loc[df["samplesize_trail"] < min_trail_sample_size, "fillvalue"] = np.nan
 
     # Write message
     def msg_writer(row):
+        """
+        Write a message describing the fill status for each row.
+
+        Parameters
+        ----------
+        row : pandas.Series
+            Row of the DataFrame.
+
+        Returns
+        -------
+        str
+            Message describing the fill status.
+        """
         if (row["samplesize_lead"] >= min_lead_sample_size) & (
             row["samplesize_trail"] >= min_trail_sample_size
         ):
@@ -141,13 +211,13 @@ based on sample of {row['samplesize_lead']} (lead) and {row['samplesize_trail']}
             row["samplesize_trail"] >= min_trail_sample_size
         ):
             # lead condition not met, trail met
-            msg = f"Lead diurnal sample size is to small {row['samplesize_lead']} < {min_lead_sample_size}."
+            msg = f"Lead diurnal sample size is too small {row['samplesize_lead']} < {min_lead_sample_size}."
 
         elif (row["samplesize_lead"] >= min_lead_sample_size) & (
             row["samplesize_trail"] < min_trail_sample_size
         ):
             # lead condition met, trail not met
-            msg = f"Trail diurnal sample size is to small {row['samplesize_trail']} < {min_trail_sample_size}."
+            msg = f"Trail diurnal sample size is too small {row['samplesize_trail']} < {min_trail_sample_size}."
 
         elif (row["samplesize_lead"] < min_lead_sample_size) & (
             row["samplesize_trail"] < min_trail_sample_size

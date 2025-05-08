@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import pandas as pd
+
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template
 from metobs_toolkit.backend_collection.errorclasses import MetObsInconsistentStationName
@@ -9,21 +10,50 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 class MetaDataParser:
-    """Parser class for metadata"""
+    """
+    Parser class for metadata.
+
+    This class handles the parsing, renaming, and formatting of metadata files
+    according to a provided template.
+
+    Parameters
+    ----------
+    metadatafilereader : CsvFileReader
+        The file reader object to read the metadata file.
+    template : Template
+        The template object that defines the metadata structure.
+    """
 
     def __init__(self, metadatafilereader: CsvFileReader, template: Template):
+        """Initialize MetaDataParser."""
         self.filereader = metadatafilereader
         self.template = template
 
         # datadf with 'name' as index
-        self.datadf = pd.DataFrame()  # metadata in formatted dataframe style
+        self.datadf = pd.DataFrame()  # metadata in formatted DataFrame style
 
-    def parse(self, **readkwargs):
+    def parse(self, **readkwargs) -> None:
+        """
+        Parse the metadata file and format it according to the template.
+
+        Reads the raw metadata, applies blacklist renaming, sets the station name,
+        renames columns to standard names, and subsets to mapped columns.
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments passed to the file reader's read method.
+
+        Returns
+        -------
+        None
+        """
+        logger.debug(f"Entering parse() of {self.__class__.__name__}")
         # Read in the raw metadata
         raw_metadata = self.filereader.read(**readkwargs)
         self.template._metadata_template_compatibility_test(raw_metadata.columns)
 
-        # 1. black label handling
+        # 1. blacklist label handling
         metadf = self._rename_blacklabels(raw_metadata)
 
         # 2. name column handling (ID)
@@ -38,15 +68,45 @@ class MetaDataParser:
         # set the metadf as data attribute
         self.datadf = metadf
 
-    def _rename_blacklabels(self, rawdf):
+    def _rename_blacklabels(self, rawdf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Rename columns in the DataFrame using the blacklist mapping from the template.
+
+        Parameters
+        ----------
+        rawdf : pd.DataFrame
+            The raw metadata DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with columns renamed according to the blacklist.
+        """
+        logger.debug(f"Entering _rename_blacklabels() of {self.__class__.__name__}")
         blacklist_mapper = self.template._apply_blacklist(
             columns=rawdf.columns, on_data=False
         )
         rawdf.rename(columns=blacklist_mapper, inplace=True)
         return rawdf
 
-    def _set_name(self, rawdf):
-        """Add a name column and set it as index"""
+    def _set_name(self, rawdf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add a 'name' column and set it as the index.
+
+        Handles single-station and multi-station cases, ensures uniqueness,
+        and sets the index to 'name'.
+
+        Parameters
+        ----------
+        rawdf : pd.DataFrame
+            The metadata DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with 'name' as the index.
+        """
+        logger.debug(f"Entering _set_name() of {self.__class__.__name__}")
         if (self.template._is_data_single_station()) & (
             self.template.metadata_namemap["name"] is None
         ):
@@ -54,7 +114,7 @@ class MetaDataParser:
         else:
             rawdf.rename(columns=self.template._get_metadata_name_map(), inplace=True)
 
-        # make sure the name column are strings
+        # make sure the name column values are strings
         rawdf["name"] = rawdf["name"].astype(str)
 
         # test uniqueness
@@ -70,12 +130,40 @@ class MetaDataParser:
 
         return rawdf
 
-    def _rename_raw_columns(self, rawdf):
+    def _rename_raw_columns(self, rawdf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Rename columns in the DataFrame to standard names as defined in the template.
+
+        Parameters
+        ----------
+        rawdf : pd.DataFrame
+            The metadata DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with columns renamed to standard names.
+        """
+        logger.debug(f"Entering _rename_raw_columns() of {self.__class__.__name__}")
         metacolmap = self.template._get_metadata_column_map()
         rawdf.rename(columns=metacolmap, inplace=True)
         return rawdf
 
-    def _subset_to_mapped_columns(self, rawdf):
+    def _subset_to_mapped_columns(self, rawdf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Subset the DataFrame to only include columns mapped in the template.
+
+        Parameters
+        ----------
+        rawdf : pd.DataFrame
+            The metadata DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing only the relevant mapped columns.
+        """
+        logger.debug(f"Entering _subset_to_mapped_columns() of {self.__class__.__name__}")
         metacolmap = self.template._get_metadata_column_map()
         relev_columns = list(metacolmap.values())
 
@@ -84,12 +172,26 @@ class MetaDataParser:
         return rawdf[relev_columns]
 
     def get_station_lon(self, stationname: str) -> float:
+        """
+        Get the longitude of a station from the metadata.
+
+        Parameters
+        ----------
+        stationname : str
+            The name of the station.
+
+        Returns
+        -------
+        float
+            Longitude of the station, or np.nan if not found.
+        """
+        logger.debug(f"Entering get_station_lon() of {self.__class__.__name__}")
         if self._check_stationname_is_known(stationname=stationname):
             if "lon" in self.datadf.columns:
                 return float(self.datadf.loc[stationname, "lon"])
             else:
                 logger.warning(
-                    f"No logitude is found for {stationname} in the metadata!"
+                    f"No longitude is found for {stationname} in the metadata!"
                 )
                 return np.nan
         else:
@@ -97,6 +199,20 @@ class MetaDataParser:
             return np.nan
 
     def get_station_lat(self, stationname: str) -> float:
+        """
+        Get the latitude of a station from the metadata.
+
+        Parameters
+        ----------
+        stationname : str
+            The name of the station.
+
+        Returns
+        -------
+        float
+            Latitude of the station, or np.nan if not found.
+        """
+        logger.debug(f"Entering get_station_lat() of {self.__class__.__name__}")
         if self._check_stationname_is_known(stationname=stationname):
             if "lat" in self.datadf.columns:
                 return float(self.datadf.loc[stationname, "lat"])
@@ -110,6 +226,20 @@ class MetaDataParser:
             return np.nan
 
     def get_station_extra_metadata(self, stationname: str) -> dict:
+        """
+        Get extra metadata for a station, excluding latitude and longitude.
+
+        Parameters
+        ----------
+        stationname : str
+            The name of the station.
+
+        Returns
+        -------
+        dict
+            Dictionary of extra metadata for the station.
+        """
+        logger.debug(f"Entering get_station_extra_metadata() of {self.__class__.__name__}")
         not_extra_columns = ["lat", "lon"]
         if self._check_stationname_is_known(stationname=stationname):
             extra_info = (
@@ -123,26 +253,53 @@ class MetaDataParser:
             return {}
 
     def _check_stationname_is_known(self, stationname: str) -> bool:
+        """
+        Check if the station name is present in the metadata.
+
+        Parameters
+        ----------
+        stationname : str
+            The name of the station.
+
+        Returns
+        -------
+        bool
+            True if the station name is known, False otherwise.
+        """
+        logger.debug(f"Entering _check_stationname_is_known() of {self.__class__.__name__}")
         if stationname in self.datadf.index:
             return True
         else:
             logger.warning(f"{stationname} is not found in the metadata!")
             return False
 
-    def _overwrite_name(self, target_single_name: str):
-        """Special case:
-        in single-station case the name can be define in the template,
-        but a (different) name can be present in the metadata file for the same station.
+    def _overwrite_name(self, target_single_name: str) -> None:
+        """
+        Overwrite the station name in single-station cases if needed.
 
+        In single-station cases, the name can be defined in the template,
+        but a (different) name can be present in the metadata file for the same station.
         This results in incompatible data-metadata.
 
-        #1. if target_single_name is present in self.datadf --> no problem, names match
+        If the target name is present in the metadata, nothing is changed.
+        If not present and multiple stations are in the metadata, an error is raised.
+        If only one station is present, it is renamed to the target name.
 
-        #2. if not present:
-         - raise error when multiple stations are in the datadf --> no idea which is which?
-         - rename if there is only one station
+        Parameters
+        ----------
+        target_single_name : str
+            The target station name to enforce.
 
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MetObsInconsistentStationName
+            If multiple stations are present and the target name is not found.
         """
+        logger.debug(f"Entering _overwrite_name() of {self.__class__.__name__}")
         # 1. target_single_name is included in the metadata
         if target_single_name in self.datadf.index:
             return
@@ -151,16 +308,16 @@ class MetaDataParser:
             if self.datadf.shape[0] > 1:
                 raise MetObsInconsistentStationName(
                     f"""
-    The stationname used in the single-station-data is {target_single_name} (is a column in the datafile,
-    or defined in the templatefile). This stationname is NOT present in the metadata, and mulitple stations are
+    The station name used in the single-station data is {target_single_name} (is a column in the data file,
+    or defined in the template file). This station name is NOT present in the metadata, and multiple stations are
     present. Make sure that the single station name used by the data is the same
-    as in the metadatafile. (Or make sure that there is only one station present
-    in the metadatafile).
+    as in the metadata file. (Or make sure that there is only one station present
+    in the metadata file).
     """
                 )
             else:
                 logger.warning(
-                    f"By a mismatch in single-station-name, the metadata name:{self.datadf.index[0]} --> {target_single_name} is renamed to be in line with the datafile and template."
+                    f"Due to a mismatch in single-station-name, the metadata name: {self.datadf.index[0]} --> {target_single_name} is renamed to be in line with the data file and template."
                 )
                 # rename
                 self.datadf.index = pd.Index(name="name", data=[target_single_name])
@@ -171,6 +328,7 @@ class MetaDataParser:
     # ------------------------------------------
 
     def get_df(self) -> pd.DataFrame:
+        """Return the parsed metadata DataFrame."""
         return self.datadf
 
 
