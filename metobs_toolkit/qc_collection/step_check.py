@@ -10,50 +10,40 @@ def step_check(
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
 ) -> pd.DatetimeIndex:
-    """Check for 'spikes' and 'dips' in a timeseries.
+    """
+    Check for 'spikes' and 'dips' in a time series.
 
-    Test if observations do not produce spikes in timeseries. The maximum
-    allowed increase and decrease per second is set in the argument,
-    and is tested to each record (with respect to the previous record).
+    Tests if observations produce spikes in the time series. The maximum
+    allowed increase and decrease per second is set in the arguments,
+    and is tested for each record (with respect to the previous record).
 
-    If the difference between two consecutive records (i.e., the spike/dip) is larger than the
+    If the difference between two consecutive records (i.e., the spike or dip) is larger than the
     threshold, the record is flagged as an outlier.
 
     Parameters
     ----------
     records : pd.Series
         A pandas Series containing the time series data to be checked. The index should be datetime-like.
-    max_increase_per_second : int | float, >0
+    max_increase_per_second : int or float,
         The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
-        This value must be positive!
-    max_decrease_per_second : int | float, <0
+        This value must be positive.
+    max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
-        This value must be negative!
+        This value must be negative.
 
     Returns
     -------
     pd.DatetimeIndex
         Timestamps of outlier records.
 
-    Note
+    Notes
     -----
     In general, for temperatures, the decrease threshold is set less stringent than the increase
     threshold. This is because a temperature drop is meteorologically more
-    common than a sudden increase which is often the result of a radiation error.
+    common than a sudden increase, which is often the result of a radiation error.
     """
-    logger.info("Entering function step_check")
+    logger.debug("Entering function step_check")
 
-    # Validate argument types
-    if not isinstance(records, pd.Series):
-        raise TypeError("Argument 'records' must be of type pandas.Series")
-    if not isinstance(max_increase_per_second, (int, float)):
-        raise TypeError(
-            "Argument 'max_increase_per_second' must be of type int or float"
-        )
-    if not isinstance(max_decrease_per_second, (int, float)):
-        raise TypeError(
-            "Argument 'max_decrease_per_second' must be of type int or float"
-        )
 
     # Validate argument values
     if max_decrease_per_second > 0:
@@ -82,5 +72,5 @@ def step_check(
         )
     )
 
-    logger.info("Exiting function step_check")
+    logger.debug("Exiting function step_check")
     return step_filter[step_filter].index
