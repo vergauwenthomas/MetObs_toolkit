@@ -146,8 +146,6 @@ class Analysis:
             is False.
         """
         logger.debug(f"Entering {self.__class__.__name__}.get_info")
-        if not isinstance(printout, bool):
-            raise TypeError("printout must be a boolean.")
 
         infostr = ""
         infostr += "Analysis Instance Information: \n"
@@ -196,8 +194,6 @@ class Analysis:
 
         """
         logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
-        if not isinstance(filter_string, str):
-            raise TypeError("filter_string must be a string.")
 
         # Apply the filter string
         try:
@@ -236,9 +232,6 @@ class Analysis:
 
         """
         logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_records")
-        if not isinstance(filter_string, str):
-            raise TypeError("filter_string must be a string.")
-
         # Apply the filter string
         try:
             self.fulldf.query(filter_string, inplace=True)
@@ -312,10 +305,7 @@ class Analysis:
             A DataFrame with aggregated values, indexed by the specified grouping columns.
         """
         logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
-        if not isinstance(trgobstype, str):
-            raise TypeError("trgobstype must be a string.")
-        if not isinstance(agg, list):
-            raise TypeError("agg must be a list of strings.")
+    
         if not callable(method):
             raise TypeError("method must be callable.")
 
@@ -380,22 +370,7 @@ class Analysis:
             The plot axes. If `return_data` is True, returns a tuple of the plot axes and the aggregated DataFrame.
         """
         logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
-        if not isinstance(trgobstype, str):
-            raise TypeError("trgobstype must be a string.")
-        if not isinstance(colorby, str):
-            raise TypeError("colorby must be a string.")
-        if title is not None and not isinstance(title, str):
-            raise TypeError("title must be a string or None.")
-        if ax is not None and not isinstance(ax, plt.Axes):
-            raise TypeError("ax must be a matplotlib.axes.Axes or None.")
-        if colordict is not None and not isinstance(colordict, dict):
-            raise TypeError("colordict must be a dict or None.")
-        if not isinstance(legend, bool):
-            raise TypeError("legend must be a boolean.")
-        if not isinstance(return_data, bool):
-            raise TypeError("return_data must be a boolean.")
-        if not isinstance(figkwargs, dict):
-            raise TypeError("figkwargs must be a dict.")
+      
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -524,25 +499,7 @@ class Analysis:
         is plotted, with options for customization.
         """
         logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle_with_reference_station")
-        if not isinstance(ref_station, str):
-            raise TypeError("ref_station must be a string.")
-        if not isinstance(trgobstype, str):
-            raise TypeError("trgobstype must be a string.")
-        if not isinstance(colorby, str):
-            raise TypeError("colorby must be a string.")
-        if title is not None and not isinstance(title, str):
-            raise TypeError("title must be a string or None.")
-        if ax is not None and not isinstance(ax, plt.Axes):
-            raise TypeError("ax must be a matplotlib.axes.Axes or None.")
-        if colordict is not None and not isinstance(colordict, dict):
-            raise TypeError("colordict must be a dict or None.")
-        if not isinstance(legend, bool):
-            raise TypeError("legend must be a boolean.")
-        if not isinstance(return_data, bool):
-            raise TypeError("return_data must be a boolean.")
-        if not isinstance(figkwargs, dict):
-            raise TypeError("figkwargs must be a dict.")
-
+      
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
 
@@ -654,8 +611,6 @@ class Analysis:
             If the observation type is not present.
         """
         logger.debug(f"Entering {self.__class__.__name__}._obstype_is_known")
-        if not isinstance(trgobstype, str):
-            raise TypeError("trgobstype must be a string.")
         if trgobstype in self.df.columns:
             return
         raise MetObsObstypeNotFound(f"{trgobstype} is not present in {self}.")
@@ -693,8 +648,6 @@ def _get_time_derivates(datetimes) -> pd.DataFrame:
         DataFrame with time derivative columns.
     """
     logger.debug("Entering _get_time_derivates function.")
-    if not isinstance(datetimes, pd.DatetimeIndex):
-        raise TypeError("datetimes must be a pandas.DatetimeIndex.")
     timesdf = pd.DataFrame(index=datetimes)
     for deriv in possible_time_aggregates:
         if deriv == "season":
@@ -725,8 +678,7 @@ def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
         If datetimeindex is not a pandas.DatetimeIndex.
     """
     logger.debug("Entering get_season function.")
-    if not isinstance(datetimeindex, pd.DatetimeIndex):
-        raise TypeError("The datetimeindex is not a pandas.DatetimeIndex.")
+
     summer_start = pd.Timestamp("2020-06-01")
     autumn_start = pd.Timestamp("2020-09-01")
     winter_start = pd.Timestamp("2020-12-01")
