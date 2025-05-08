@@ -46,7 +46,6 @@ class Gap:
         stationname: str,
     ):
         """Initialize a Gap object."""
-        logger.debug(f"Entering __init__ for Gap object for station: {stationname}")
         gaprecords.name = "datetime"
         self._records = pd.Series(
             data=np.nan, index=gaprecords, name="value"

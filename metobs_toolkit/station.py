@@ -42,7 +42,6 @@ class Station:
     """
 
     def __init__(self, stationname: str, site: Site, all_sensor_data: list):
-        logger.debug("Entering __init__ of Station for %s", stationname)
         # dimension attributes
         self._name = str(stationname)
         self._site = site
@@ -1392,9 +1391,9 @@ class Station:
     def fill_gaps_with_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timesdelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
-        trailing_period_duration: Union[ pd.Timesdelta, str]=pd.Timedelta("24h"),
+        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
     ) -> None:
@@ -1473,8 +1472,8 @@ class Station:
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timesdelta, str]=pd.Timedelta("24h"),
-        trailing_period_duration: Union[ pd.Timesdelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
+        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
     ) -> None:
@@ -1559,8 +1558,8 @@ class Station:
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timesdelta, str] =pd.Timedelta("24h"),
-        trailing_period_duration: Union[ pd.Timesdelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[ pd.Timedelta, str] =pd.Timedelta("24h"),
+        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,

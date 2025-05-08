@@ -40,7 +40,7 @@ class TimestampMatcher:
 
         self.conv_df = pd.DataFrame()  # Holds the conversion DataFrame
 
-        logger.info("TimestampMatcher initialized with %d records", len(orig_records))
+        logger.debug("TimestampMatcher initialized with %d records", len(orig_records))
 
     @property
     def obsname(self) -> str:

@@ -22,26 +22,26 @@ logger = logging.getLogger(__name__)
 pd.options.mode.copy_on_write = True
 
 
-def xs_save(df, key, level, drop_level=True):
-    """Similar as pandas xs, but returns an empty df when key is not found."""
-    try:
-        return df.xs(key, level=level, drop_level=drop_level)
-    except KeyError:
-        # create empty df with same columns and index names
-        columns = df.columns
-        names = list(df.index.names)
-        if drop_level:
-            names.remove(level)
+# def xs_save(df, key, level, drop_level=True):
+#     """Similar as pandas xs, but returns an empty df when key is not found."""
+#     try:
+#         return df.xs(key, level=level, drop_level=drop_level)
+#     except KeyError:
+#         # create empty df with same columns and index names
+#         columns = df.columns
+#         names = list(df.index.names)
+#         if drop_level:
+#             names.remove(level)
 
-        levels = [[name] for name in names]
-        codes = [[] for name in names]
-        idx = pd.MultiIndex(
-            levels=levels,
-            codes=codes,
-            names=names,
-        )
+#         levels = [[name] for name in names]
+#         codes = [[] for name in names]
+#         idx = pd.MultiIndex(
+#             levels=levels,
+#             codes=codes,
+#             names=names,
+#         )
 
-    return pd.DataFrame(index=idx, columns=columns)
+#     return pd.DataFrame(index=idx, columns=columns)
 
 
 def save_concat(targets, **kwargs):

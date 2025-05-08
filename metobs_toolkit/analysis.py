@@ -48,7 +48,7 @@ class Analysis:
     """
 
     def __init__(self, Dataholder: Union[Dataset, Station]):
-        logger.debug(f"Entering {self.__class__.__name__}.__init__")
+        
         if not isinstance(Dataholder, (Dataset, Station)):
             raise TypeError(
                 f"Dataholder is not a Dataset or Station, but a {type(Dataholder)}"

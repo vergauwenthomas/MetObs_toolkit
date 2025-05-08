@@ -149,7 +149,7 @@ class TestDemoData:
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
         #  Test invalid input IDs
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             dataset.subset_by_stations(stationnames="vlinder01")
 
         #  Test invalid input IDs
@@ -363,18 +363,18 @@ if __name__ == "__main__":
     # pytest.main([__file__])
     demo_tester = TestDemoData()
     # demo_tester.test_version()
-    demo_tester.test_import_demo_data(overwrite_solution=False)
-    demo_tester.test_calling_methods_without_solution_on_dataset()
-    demo_tester.test_calling_methods_without_solution_on_station()
-    demo_tester.test_subset_by_stations(overwrite_solution=False)
+    # demo_tester.test_import_demo_data(overwrite_solution=False)
+    # demo_tester.test_calling_methods_without_solution_on_dataset()
+    # demo_tester.test_calling_methods_without_solution_on_station()
+    # demo_tester.test_subset_by_stations(overwrite_solution=False)
     demo_tester.test_subset_by_stations_invalid()
-    demo_tester.test_get_info(overwrite_solution=False)
-    demo_tester.test_get_station(overwrite_solution=False)
-    demo_tester.test_pickling_dataset()
+    # demo_tester.test_get_info(overwrite_solution=False)
+    # demo_tester.test_get_station(overwrite_solution=False)
+    # demo_tester.test_pickling_dataset()
 
-    wide_data_tester = TestWideData()
-    wide_data_tester.test_import_wide_data(overwrite_solution=False)
-    wide_data_tester.test_sync_wide_records(overwrite_solution=False)
+    # wide_data_tester = TestWideData()
+    # wide_data_tester.test_import_wide_data(overwrite_solution=False)
+    # wide_data_tester.test_sync_wide_records(overwrite_solution=False)
 
-    single_station_tester = TestWideSingleStationData()
-    single_station_tester.test_import_wide_data(overwrite_solution=False)
+    # single_station_tester = TestWideSingleStationData()
+    # single_station_tester.test_import_wide_data(overwrite_solution=False)

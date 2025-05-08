@@ -31,9 +31,7 @@ class Site:
     def __init__(
         self, stationname: str, latitude: float, longitude: float, extradata: dict = {}
     ):
-        logger.debug(
-            "Entering __init__ of Site for %s", stationname
-        )
+    
         # Set data
         self._stationname = stationname
         self._lat = float(latitude)

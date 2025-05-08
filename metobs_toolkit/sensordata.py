@@ -60,7 +60,6 @@ class SensorData:
         origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
         timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
     ):
-        logger.debug("Entering __init__ of SensorData for %s", stationname)
 
         if not isinstance(stationname, str):
             raise TypeError("stationname must be a string")

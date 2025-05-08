@@ -83,7 +83,6 @@ class _GEEDatasetManager:
         -------
         None
         """
-        logger.debug(f"Entering _GEEDatasetManager.__init__ for {self}")
         self.name = str(name)
         self.location = str(location)
 
@@ -229,7 +228,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         -------
         None
         """
-        logger.debug(f"Entering GEEStaticDatasetManager.__init__ for {self}")
         super().__init__(
             name=name,
             location=location,
@@ -628,7 +626,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         -------
         None
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager.__init__ for {self}")
         super().__init__(
             name=name,
             location=location,

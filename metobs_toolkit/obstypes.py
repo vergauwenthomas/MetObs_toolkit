@@ -57,7 +57,6 @@ class Obstype:
     """
 
     def __init__(self, obsname: str, std_unit: Union[str, pint.Unit], description: str):
-        logger.debug(f"{self.__class__.__name__}.__init__ called for {self}")
         # set name
         self._name = str(obsname)
         # set standard unit
@@ -236,7 +235,7 @@ class ModelObstype(Obstype):
     """
 
     def __init__(self, obstype: Obstype, model_unit: Union[str, pint.Unit], model_band: str):
-        logger.debug(f"{self.__class__.__name__}.__init__ called for {self}")
+        
         # set regular obstype
         super().__init__(
             obsname=obstype.name,
@@ -317,7 +316,6 @@ class ModelObstype_Vectorfield(Obstype):
         amplitude_obstype_name: str,
         direction_obstype_name: str,
     ):
-        logger.debug(f"{self.__class__.__name__}.__init__ called for {self}")
         # set regular obstype
         super().__init__(
             obsname=obstype.name,

@@ -26,7 +26,6 @@ class DataParser:
         if not isinstance(template, Template):
             raise TypeError("template must be an instance of Template.")
 
-        logger.info(f"Initializing DataParser with {datafilereader} and {template}.")
         self.filereader = datafilereader
         self.template = template
         self.datadf = pd.DataFrame()  # metadata in formatted dataframe style

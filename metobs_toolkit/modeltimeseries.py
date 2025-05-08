@@ -45,7 +45,6 @@ class ModelTimeSeries:
         modelname: str = None,
         modelvariable: str = None,
     ):
-        logger.debug(f"{self.__class__.__name__}.__init__ called for {self}")
         self.site = site
         self.obstype = obstype
 

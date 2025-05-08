@@ -72,7 +72,6 @@ class Dataset:
         -------
         None
         """
-        logger.debug("Entering Dataset.__init__")
         self._stations = []  # stationname: Station
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
         self._template = Template()
