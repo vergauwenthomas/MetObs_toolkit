@@ -16,7 +16,7 @@ Check for typos, grammer and spelling issues in the docstrings and fix them.
 /edit
 Check if type hinting is defined for all methods and functions. Add it if it is missing or wrong.
 
-Import the logging module and get the logger with name: "<metobs_toolkit>". Log entering a method or function at debug-level (for public methods and functions), and refer to self in the message. Do not add a entering-log in the methods decorated as porperty.
+Import the logging module and get the logger with name: "<metobs_toolkit>". Log entering a method or function at debug-level, and refer to self in the message. Do not add a entering-log in the methods decorated as property.
 
 Fix the identation of the code if needed.
 
