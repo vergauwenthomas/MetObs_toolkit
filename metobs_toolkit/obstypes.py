@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import pint
 
+
+from metobs_toolkit.backend_collection.errorclasses import MetObsUnitsIncompatible, MetObsUnitUnknown
 # Use logger with name "<metobs_toolkit>"
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -599,17 +601,6 @@ def convert_units(records, cur_unit, trg_unit):
     else:
         raise NotImplementedError(f"{records} is not a supported input type.")
 
-
-# ------------------------------------------
-#    Errors
-# ------------------------------------------
-class MetObsUnitsIncompatible(Exception):
-    """Raised when an incompatible unit is set."""
-    pass
-
-class MetObsUnitUnknown(Exception):
-    """Raised when an invalid unit is set."""
-    pass
 
 # ------------------------------------------
 #    Default obstypes

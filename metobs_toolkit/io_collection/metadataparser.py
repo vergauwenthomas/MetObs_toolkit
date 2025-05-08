@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template
+from metobs_toolkit.backend_collection.errorclasses import MetObsInconsistentStationName
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -173,7 +174,3 @@ class MetaDataParser:
         return self.datadf
 
 
-class MetObsInconsistentStationName(Exception):
-    """Special case only --> mismatch in data-metadata stationnames"""
-
-    pass

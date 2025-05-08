@@ -427,10 +427,3 @@ def to_timedelta(inputdelta):
 
 #     return pd.Series(data=freqs)
 
-
-# class MetobsDfHelpersError(Exception):
-#     """Exception raised for errors in the datasetgaphandling."""
-
-#     def __init__(self):
-#         message = f"This error is likely due to a Bug. Please report this as an issue on the GitHub repository."
-#         super().__init__(message)

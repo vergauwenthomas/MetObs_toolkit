@@ -18,6 +18,8 @@ from time import sleep
 import pandas as pd
 import ee
 
+from metobs_toolkit.backend_collection.errorclasses import MetObsGEEDatasetError
+
 logger = logging.getLogger(__file__)
 
 
@@ -489,10 +491,4 @@ def _estimate_data_size(metadf: pd.DataFrame, startdt, enddt, time_res: str, n_b
     return metadf.shape[0] * len(datatimerange) * n_bands
 
 
-class MetObsGEEDatasetError(Exception):
-    """
-    Exception raised when there is an issue with a GEE API call.
 
-    Inherits from Exception.
-    """
-    pass

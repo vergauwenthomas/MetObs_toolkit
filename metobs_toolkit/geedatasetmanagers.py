@@ -21,6 +21,7 @@ import ee
 
 # Local imports
 import metobs_toolkit.gee_api as gee_api
+from metobs_toolkit.backend_collection.errorclasses import MetobsModelDataError
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
     folium_map,
@@ -1238,13 +1239,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
             return
 
-# =============================================================================
-# Errors
-# =============================================================================
 
-class MetobsModelDataError(Exception):
-    """Exception raised for errors with ModelData."""
-    pass
 
 # =============================================================================
 # Define default datasets

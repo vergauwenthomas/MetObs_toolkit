@@ -163,10 +163,3 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs):
             logger.debug(f"Failed to read {filepath} with separator '{sep}': {e}")
 
     raise ValueError(f"Could not determine the separator for {filepath}")
-
-
-
-class MetobsTemplateError(Exception):
-    """Exception raised for errors in the template."""
-
-    pass

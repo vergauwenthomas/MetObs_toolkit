@@ -16,7 +16,7 @@ import logging
 import pandas as pd
 from pytz import all_timezones
 from metobs_toolkit.io_collection.filereaders import JsonFileReader
-
+from metobs_toolkit.backend_collection.errorclasses import MetobsTemplateError
 logger = logging.getLogger("<metobs_toolkit>")
 
 # Blacklists are created for column names, which are also used as a specific
@@ -731,17 +731,3 @@ def update_known_obstype_with_original_data(
 
     return known_obstypes
 
-
-class MetobsTemplateError(Exception):
-    """
-    Exception raised for errors in the template.
-
-    This exception is used to indicate problems with template structure or mapping.
-    """
-    pass
-
-
-if __name__ == "__main__":
-    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
-
-    setup_and_run_doctest()

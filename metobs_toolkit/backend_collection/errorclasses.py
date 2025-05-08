@@ -1,73 +1,136 @@
-class MetObsMissingFile(Exception):
-    """Raise when a file is missing which is required."""
+import logging
 
-    pass
+logger = logging.getLogger("<metobs_toolkit>")
+
+class MetObsMissingFile(Exception):
+    """
+    Exception raised when a required file is missing.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsSensorDataNotFound(Exception):
-    """Raise when a user request a specific sensordata
-    that does not exist for a station"""
-
-    pass
+    """
+    Exception raised when requested sensor data does not exist for a station.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsMetadataNotFound(Exception):
-    """Raise when a user request a specific metadata
-    that does not exist for a station"""
-
-    pass
+    """
+    Exception raised when requested metadata does not exist for a station.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsObstypeNotFound(Exception):
-    """Raise when a user request an obstype that is
-    unknown by the instance."""
-
-    pass
+    """
+    Exception raised when a requested observation type is unknown.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsStationNotFound(Exception):
-    """Exception raised for errors when a station is not found."""
-
-    pass
+    """
+    Exception raised when a station is not found.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsWrongType(Exception):
-    """Exception raised when a wrong type of variable is detected."""
-
-    pass
+    """
+    Exception raised when a variable is of the wrong type.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsDataAlreadyPresent(Exception):
-    """Raise when something wants to be set, but it is already available."""
+    """
+    Exception raised when data is already present and cannot be set again.
+    """
 
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetobsQualityControlError(Exception):
-    """Exception raised for errors in the datasetbase."""
+    """
+    Exception raised for errors in the dataset base.
+    """
 
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsModelDataError(Exception):
-    """Exception raised when something is wrong or missing with Modeldata"""
-
-    pass
+    """
+    Exception raised when there is an issue with model data.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsTimeSimplifyError(Exception):
-    """Exception raised when something is wrong with time resampling/syncing/simplifying"""
+    """
+    Exception raised when there is an error with time resampling, syncing, or simplifying.
+    """
 
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsStationClassError(Exception):
-    """Raises general errors related to the station class."""
-
-    pass
+    """
+    Exception raised for general errors related to the station class.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
 
 class MetObsMissingArgument(Exception):
-    """Raises general errors when a argument is required for a specic situation. (like metadata-only)"""
+    """
+    Exception raised when an argument is required for a specific situation.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
-    pass
+
+class MetObsGEEDatasetError(Exception):
+    """
+    Exception raised when there is an issue with a GEE API call.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class MetObsUnitsIncompatible(Exception):
+    """Raised when an incompatible unit is set."""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class MetObsUnitUnknown(Exception):
+    """Raised when an invalid unit is set."""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class MetobsTemplateError(Exception):
+    """
+    Exception raised for errors in the template.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class MetobsArgumentError(Exception):
+    """Raise when an argument could not be converted to a target type."""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class MetObsInconsistentStationName(Exception):
+    """Special case only --> mismatch in data-metadata stationnames"""
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)

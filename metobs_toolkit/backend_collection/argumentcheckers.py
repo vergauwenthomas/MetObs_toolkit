@@ -7,6 +7,8 @@ import datetime as datetimemodule
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.backend_collection.errorclasses import MetobsArgumentError
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 # timedelta_arg_check
@@ -62,7 +64,3 @@ def fmt_datetime_arg(
     #     dt = dt.tz_convert(tz=self._get_tz())
 
     return dt
-
-
-class MetobsArgumentError(Exception):
-    """Raise when an argument could not be converted to a target type."""
