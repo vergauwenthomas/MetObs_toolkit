@@ -62,8 +62,6 @@ def connect_to_gee(**kwargs) -> None:
         If kwargs is not a dict.
     """
     logger.info("Entering connect_to_gee function.")
-    if not isinstance(kwargs, dict):
-        raise TypeError("kwargs must be a dict.")
 
     if "/runner/" in os.getcwd():  # Triggered on GitHub action runner
         _auth_on_runner()
@@ -100,8 +98,6 @@ def _auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
         If the specified environment variable is not set or the key JSON is missing.
     """
     logger.debug("Entering _auth_on_rtd function.")
-    if not isinstance(secret, str):
-        raise TypeError("secret must be a string.")
 
     if os.getenv(secret) is None:
         raise EnvironmentError(f"{secret} variable is not set or not present in scope.")
@@ -169,10 +165,6 @@ def _datetime_to_gee_datetime(datetime_obj) -> ee.Date:
         If datetime_obj is not a datetime.datetime instance.
     """
     logger.debug("Entering _datetime_to_gee_datetime function.")
-    import datetime as dt
-    if not isinstance(datetime_obj, dt.datetime):
-        raise TypeError("datetime_obj must be a datetime.datetime instance.")
-    logger.debug(datetime_obj.replace(tzinfo=None))
     return ee.Date(datetime_obj.replace(tzinfo=None))
 
 
@@ -201,11 +193,7 @@ def get_ee_obj(model, target_bands: list = [], force_mosaic: bool = None):
     MetObsGEEDatasetError
         If no image could be constructed.
     """
-    logger.info("Entering get_ee_obj function.")
-    if not isinstance(target_bands, list):
-        raise TypeError("target_bands must be a list.")
-    if force_mosaic is not None and not isinstance(force_mosaic, bool):
-        raise TypeError("force_mosaic must be a bool or None.")
+    logger.debug("Entering get_ee_obj function.")
 
     # get the dataset
     if model.is_image:
@@ -260,8 +248,6 @@ def _is_eeobj_empty(geeobj) -> bool:
         If geeobj is not an ee.Image or ee.ImageCollection.
     """
     logger.debug("Entering _is_eeobj_empty function.")
-    if not (isinstance(geeobj, ee.ImageCollection) or isinstance(geeobj, ee.Image)):
-        raise TypeError("geeobj must be an ee.Image or ee.ImageCollection")
     if isinstance(geeobj, ee.ImageCollection):
         return geeobj.size().getInfo() == 0
     elif isinstance(geeobj, ee.Image):
@@ -327,8 +313,6 @@ def _validate_metadf(metadf: pd.DataFrame) -> bool:
         If metadf is not a pandas DataFrame.
     """
     logger.debug("Entering _validate_metadf function.")
-    if not isinstance(metadf, pd.DataFrame):
-        raise TypeError("metadf must be a pandas DataFrame.")
     if metadf.empty:
         return False
     if metadf["geometry"].x.isnull().values.all():
@@ -364,8 +348,6 @@ def _addDate(image) -> ee.Image:
         If image is not an ee.Image.
     """
     logger.debug("Entering _addDate function.")
-    if not isinstance(image, ee.Image):
-        raise TypeError("image must be an ee.Image.")
     img_date = ee.Date(image.date())
     img_date = ee.Number.parse(img_date.format("YYYYMMddHHmmss"))
     return image.addBands(ee.Image(img_date).rename("datetime"))
@@ -391,8 +373,6 @@ def _df_to_features_point_collection(df: pd.DataFrame) -> ee.FeatureCollection:
         If df is not a pandas DataFrame.
     """
     logger.debug("Entering _df_to_features_point_collection function.")
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be a pandas DataFrame.")
     features = []
     for index, row in df.reset_index().iterrows():
         # Construct the geometry from dataframe
@@ -428,10 +408,6 @@ def _df_to_features_buffer_collection(df: pd.DataFrame, bufferradius: float) -> 
         If df is not a pandas DataFrame or bufferradius is not a float or int.
     """
     logger.debug("Entering _df_to_features_buffer_collection function.")
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("df must be a pandas DataFrame.")
-    if not isinstance(bufferradius, (float, int)):
-        raise TypeError("bufferradius must be a float or int.")
     features = []
     for index, row in df.reset_index().iterrows():
         # Construct the geometry from dataframe
@@ -470,13 +446,7 @@ def coordinates_available(metadf: pd.DataFrame, latcol: str = "lat", loncol: str
     TypeError
         If metadf is not a pandas DataFrame or latcol/loncol are not strings.
     """
-    logger.info("Entering coordinates_available function.")
-    if not isinstance(metadf, pd.DataFrame):
-        raise TypeError("metadf must be a pandas DataFrame.")
-    if not isinstance(latcol, str):
-        raise TypeError("latcol must be a string.")
-    if not isinstance(loncol, str):
-        raise TypeError("loncol must be a string.")
+    logger.debug("Entering coordinates_available function.")
     if metadf[latcol].isnull().all():
         logger.warning("No coordinates are found!")
         return False
@@ -514,17 +484,6 @@ def _estimate_data_size(metadf: pd.DataFrame, startdt, enddt, time_res: str, n_b
         If arguments are not of the correct type.
     """
     logger.debug("Entering _estimate_data_size function.")
-    import datetime as dt
-    if not isinstance(metadf, pd.DataFrame):
-        raise TypeError("metadf must be a pandas DataFrame.")
-    if not isinstance(startdt, dt.datetime):
-        raise TypeError("startdt must be a datetime.datetime instance.")
-    if not isinstance(enddt, dt.datetime):
-        raise TypeError("enddt must be a datetime.datetime instance.")
-    if not isinstance(time_res, str):
-        raise TypeError("time_res must be a string.")
-    if not isinstance(n_bands, int):
-        raise TypeError("n_bands must be an int.")
 
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
     return metadf.shape[0] * len(datatimerange) * n_bands

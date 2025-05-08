@@ -6,18 +6,22 @@ This module contains the Modeldata class and all its methods.
 A Modeldata holds all timeseries coming from a model and methods to use them.
 """
 
+# Standard library imports
 from pathlib import Path
 import copy
 import sys
-import pandas as pd
+from typing import Union
+
 import logging
 from time import sleep
+
+# Third-party imports
+import pandas as pd
 import ee
 
-
+# Local imports
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.obstypes import default_era5_obstypes
-
 from metobs_toolkit.plot_collection import (
     folium_map,
     add_title_to_folium_map,
@@ -25,34 +29,33 @@ from metobs_toolkit.plot_collection import (
 )
 from metobs_toolkit.gee_api import connect_to_gee
 
-
 from metobs_toolkit.obstypes import (
-    # model_obstypes,
     ModelObstype,
     ModelObstype_Vectorfield,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("<metobs_toolkit>")
 
 # =============================================================================
 # Class Model data (collection of external model data)
 # =============================================================================
 
-
 class _GEEDatasetManager:
-    """Parent class for working with a GEE modeldataset. This class is abstract,
-    and hold methods and attributes that are applicable to all Gee Dataset."""
+    """Parent class for working with a GEE modeldataset.
+
+    This class is abstract and holds methods and attributes that are applicable to all GEE Datasets.
+    """
 
     def __init__(
         self,
-        name,
-        location,
-        value_type,
-        scale,
-        is_static,
-        is_image,
-        credentials,
-        is_mosaic=False,
+        name: str,
+        location: str,
+        value_type: str,
+        scale: int,
+        is_static: bool,
+        is_image: bool,
+        credentials: str,
+        is_mosaic: bool = False,
     ):
         """
         Create a GeeModelData abstract instance.
@@ -62,29 +65,25 @@ class _GEEDatasetManager:
         name : str
             The user-defined name for referring to this GEE dataset.
         location : str
-            The location of the dataset on GEE. Navigate the GEE datasets online,
-            to get the location of a GEE dataset.
-        value_type : "numeric" or "categorical"
-            Specify how to interpret the values of the GEE dataset.
+            The location of the dataset on GEE.
+        value_type : str
+            Specify how to interpret the values of the GEE dataset ("numeric" or "categorical").
         scale : int
-            The Scale (See GEE doc) of the dataset to extract values of.
+            The scale of the dataset to extract values of.
         is_static : bool
             If True, the GEE dataset is static and has no time-evolution component.
-            Else the GEE dataset has a time component.
         is_image : bool
             If True, the GEE dataset is opened as ee.Image(), else ee.ImageCollection().
         credentials : str
             Credentials of the GEE dataset.
         is_mosaic : bool, optional
-            If True, ee.mosaic() is applied on the GEE dataset. The default is False.
-
+            If True, ee.mosaic() is applied on the GEE dataset. Default is False.
 
         Returns
         -------
-        None.
-
+        None
         """
-
+        logger.debug(f"Entering _GEEDatasetManager.__init__ for {self}")
         self.name = str(name)
         self.location = str(location)
 
@@ -95,12 +94,9 @@ class _GEEDatasetManager:
         self.value_type = str(value_type)
 
         self.scale = int(scale)
-        self.is_static = bool(is_static)  # Time dependence or not
-        self.is_image = bool(is_image)  # ee.image or ee.imagecollection
-        self._is_mosaic = bool(
-            is_mosaic
-        )  # if true, .mosaic() is applied (stitching the maps into one big map)
-
+        self.is_static = bool(is_static)
+        self.is_image = bool(is_image)
+        self._is_mosaic = bool(is_mosaic)
         self.credentials = str(credentials)
 
     # ------------------------------------------
@@ -111,7 +107,7 @@ class _GEEDatasetManager:
         return f"{self.__name__} representation of {self.name} "
 
     def __repr__(self):
-        """Print overview information of the modeldata."""
+        """Return string representation of the object."""
         return self.__str__()
 
     # =============================================================================
@@ -124,13 +120,12 @@ class _GEEDatasetManager:
 
         Parameters
         ----------
-        metadf : pandas.DataFrame()
+        metadf : pandas.DataFrame
             The metadata as a (geo)pandas dataframe.
 
         Returns
         -------
-        None.
-
+        None
         """
         if metadf.empty:
             raise MetobsModelDataError(f"There is no metadata provided for {self}.")
@@ -151,27 +146,29 @@ class _GEEDatasetManager:
                 f'All values of the "lon" column in the metadf are Nan.'
             )
 
-    # =============================================================================
-    # Setters
-    # =============================================================================
+    def _get_all_gee_bandnames(self) -> list:
+        """
+        Return a list of all the bandnames of the GEE dataset.
 
-    # def set_metadf(self, metadf):
-    #     """Setter for the metadf."""
-    #     self._check_metadf_validity(metadf)
-    #     self.metadf = metadf[["lon", "lat", "geometry"]]
-
-    # =============================================================================
-    # Getters
-    # =============================================================================
-    def _get_all_gee_bandnames(self):
-        """Return a list of all the bandnames of the GEE dataset."""
+        Returns
+        -------
+        list
+            List of band names.
+        """
         if self.is_image:
             return list(ee.Image(self.location).bandNames().getInfo())
         else:
             return list(ee.ImageCollection(self.location).first().bandNames().getInfo())
 
-    def _get_base_details(self):
-        """Print out basis details of the GEE dataset."""
+    def _get_base_details(self) -> str:
+        """
+        Print out basic details of the GEE dataset.
+
+        Returns
+        -------
+        str
+            String with dataset details.
+        """
         retstr = f"------ Details --------- \n"
         retstr += f" * name: {self.name}\n"
         retstr += f" * location: {self.location}\n"
@@ -183,218 +180,59 @@ class _GEEDatasetManager:
         retstr += f" * credentials: {self.credentials}\n"
         return retstr
 
-    # def _clear_metadata(self):
-    #     self.metadf = pd.DataFrame()  # will hold static data
-
-
 class GEEStaticDatasetManager(_GEEDatasetManager):
     """Class for working with static GEE modeldatasets."""
 
     def __init__(
         self,
-        name,
-        location,
-        band_of_use,
-        value_type,
-        scale,
-        is_image,
-        is_mosaic=False,
-        credentials="",
-        class_map={},
-        agg_scheme={},
-        col_scheme={},
+        name: str,
+        location: str,
+        band_of_use: str,
+        value_type: str,
+        scale: int,
+        is_image: bool,
+        is_mosaic: bool = False,
+        credentials: str = "",
+        class_map: dict = {},
+        agg_scheme: dict = {},
+        col_scheme: dict = {},
     ):
         """
-        Create a GeeStaticDataset instance representing a GEE dataset without
-        a time dimensions.
+        Create a GeeStaticDataset instance representing a GEE dataset without a time dimension.
 
         Parameters
         ----------
         name : str
             The user-defined name for referring to this GEE dataset.
         location : str
-            The location of the dataset on GEE. Navigate the GEE datasets online,
-            to get the location of a GEE dataset.
+            The location of the dataset on GEE.
         band_of_use : str
-            The name of the band to use. Navigate the GEE datasets online, and
-            click on bands to get a table and description of them.
-        value_type : "numeric" or "categorical"
+            The name of the band to use.
+        value_type : str
             Specify how to interpret the values of the GEE dataset.
         scale : int
-            The Scale (See GEE doc) of the dataset to extract values of. This
-            can be found on the GEE dataset information page.
+            The scale of the dataset to extract values of.
         is_image : bool
-            If True, the GEE dataset is opened as ee.Image(), else
-            ee.ImageCollection(). This can be found on the GEE dataset
-            information page.
+            If True, the GEE dataset is opened as ee.Image(), else ee.ImageCollection().
         is_mosaic : bool, optional
-            If True, ee.mosaic() is applied on the GEE dataset. The default is False.
+            If True, ee.mosaic() is applied on the GEE dataset. Default is False.
         credentials : str, optional
-            Credentials of the GEE dataset. The default is "".
+            Credentials of the GEE dataset. Default is "".
         class_map : dict, optional
-            If value_type is categorical, then the class_map defines how the
-            numeric values are mapped to 'human-categories'. The keys are the
-            numeric values, the values are the human-labels. The default is {}.
+            Mapping of numeric values to human-labels for categorical datasets. Default is {}.
         agg_scheme : dict, optional
-            If value_types is categorical, then the agg scheme defines custom-
-            made classes, which are aggregates of the present classes. The
-            keys are the names of the custom-classes, the values are lists, with
-            the corresponding numeric values. The default is {}.
+            Aggregation scheme for custom classes. Default is {}.
         col_scheme : dict, optional
-            if value_types is categorical, the col_sheme defines the colors used
-            for each class. The keys are the numeric values, the values are
-            the colors (in hex form). The default is {}.
+            Color scheme for classes. Default is {}.
 
         Returns
         -------
-        None.
-
-        See Also
-        -----------
-        GeeDynamicDataset: Gee Modeldata dataset for time-evolving data.
-        GeeStaticDataset.get_info: Print out detailed info method.
-        GeeStaticDataset.extract_static_point_data: Extract point values.
-        GeeStaticDataset.extract_static_buffer_frac_data: Extract buffer fractions.
-        GeeStaticDataset.make_gee_plot: Make an interactive spatial gee plot.
-
-        Note
-        -------
-        In general, specifying a scale smaller than the true scale of the GEE
-        dataset has no impact on the results (but can affect the computation time).
-
-        Examples
-        --------
-        As an example, we will create a GeeStaticDataset instance representing
-        representing the Copernicus Corine landcover dataset. This Dataset is
-        available as a GEE dataset: https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_CORINE_V20_100m#bands.
-
-        >>> import metobs_toolkit
-        >>> corine = metobs_toolkit.GeeStaticDataset(
-        ...             name="corine",
-        ...             location="COPERNICUS/CORINE/V20/100m", #See GEE
-        ...             band_of_use="landcover", #See GEE
-        ...             value_type="categorical",
-        ...             scale=100,
-        ...             is_image=False,
-        ...             is_mosaic=True,  # test this
-        ...             credentials="Copernicus team:  https://land.copernicus.eu/pan-european/corine-land-cover/clc2018?tab=metadata.",
-        ...             # Class definitions: this is given for categorical maps, see GEE.
-        ...             class_map={
-        ...                 111: "Artificial surfaces > Urban fabric > Continuous urban fabric",
-        ...                 112: "Artificial surfaces > Urban fabric > Discontinuous urban fabric",
-        ...                 121: "Artificial surfaces > Industrial, commercial, and transport units > Industrial or commercial units",
-        ...                 122: "Artificial surfaces > Industrial, commercial, and transport units > Road and rail networks and associated land",
-        ...                 123: "Artificial surfaces > Industrial, commercial, and transport units > Port areas",
-        ...                 124: "Artificial surfaces > Industrial, commercial, and transport units > Airports",
-        ...                 131: "Artificial surfaces > Mine, dump, and construction sites > Mineral extraction sites",
-        ...                 132: "Artificial surfaces > Mine, dump, and construction sites > Dump sites",
-        ...                 133: "Artificial surfaces > Mine, dump, and construction sites > Construction sites",
-        ...                 141: "Artificial surfaces > Artificial, non-Agricultural vegetated areas > Green urban areas",
-        ...                 142: "Artificial surfaces > Artificial, non-Agricultural vegetated areas > Sport and leisure facilities",
-        ...                 211: "Agricultural areas > Arable land > Non-irrigated arable land",
-        ...                 212: "Agricultural areas > Arable land > Permanently irrigated land",
-        ...                 213: "Agricultural areas > Arable land > Rice fields",
-        ...                 221: "Agricultural areas > Permanent crops > Vineyards",
-        ...                 222: "Agricultural areas > Permanent crops > Fruit trees and berry plantations",
-        ...                 223: "Agricultural areas > Permanent crops > Olive groves",
-        ...                 231: "Agricultural areas > Pastures > Pastures",
-        ...                 241: "Agricultural areas > Heterogeneous Agricultural areas > Annual crops associated with permanent crops",
-        ...                 242: "Agricultural areas > Heterogeneous Agricultural areas > Complex cultivation patterns",
-        ...                 243: "Agricultural areas > Heterogeneous Agricultural areas > Land principally occupied by Agriculture, with significant areas of natural vegetation",
-        ...                 244: "Agricultural areas > Heterogeneous Agricultural areas > Agro-forestry areas",
-        ...                 311: "Forest and semi natural areas > Forests > Broad-leaved Forest",
-        ...                 312: "Forest and semi natural areas > Forests > Coniferous Forest",
-        ...                 313: "Forest and semi natural areas > Forests > Mixed Forest",
-        ...                 321: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Natural grasslands",
-        ...                 322: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Moors and heathland",
-        ...                 323: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Sclerophyllous vegetation",
-        ...                 324: "Forest and semi natural areas > Scrub and/or herbaceous vegetation associations > Transitional woodland-shrub",
-        ...                 331: "Forest and semi natural areas > Open spaces with little or no vegetation > Beaches, dunes, sands",
-        ...                 332: "Forest and semi natural areas > Open spaces with little or no vegetation > Bare rocks",
-        ...                 333: "Forest and semi natural areas > Open spaces with little or no vegetation > Sparsely vegetated areas",
-        ...                 334: "Forest and semi natural areas > Open spaces with little or no vegetation > Burnt areas",
-        ...                 335: "Forest and semi natural areas > Open spaces with little or no vegetation > Glaciers and perpetual snow",
-        ...                 411: "Wetlands > Inland wetlands > Inland marshes",
-        ...                 412: "Wetlands > Inland wetlands > Peat bogs",
-        ...                 421: "Wetlands > Maritime wetlands > Salt marshes",
-        ...                 422: "Wetlands > Maritime wetlands > Salines",
-        ...                 423: "Wetlands > Maritime wetlands > Intertidal flats",
-        ...                 511: "Water bodies > Inland waters > Water courses",
-        ...                 512: "Water bodies > Inland waters > Water bodies",
-        ...                 521: "Water bodies > Marine waters > Coastal lagoons",
-        ...                 522: "Water bodies > Marine waters > Estuaries",
-        ...                 523: "Water bodies > Marine waters > Sea and ocean",
-        ...             },
-        ...             # Aggregation scheme: leave blank, or create your own aggregation scheme.
-        ...             agg_scheme={
-        ...                 "Artificial_surface": [111,112,121,122,123,124,131,132,133,141,142],
-        ...                 "Agricultural_surface": [211,212,213,221,222,223,231,241,242,243,244],
-        ...                 "Forest_and_natural": [311,312,313,321,322,323,324,331,332,333,334,335],
-        ...                 "Wetlands": [411,412,421,422,423],
-        ...                 "Water": [511,512,521,522,523],
-        ...             },
-        ...             # color scheme: often an example is given, see GEE
-        ...             col_scheme={
-        ...                 111: "#e6004d",
-        ...                 112: "#ff0000",
-        ...                 121: "#cc4df2",
-        ...                 122: "#cc0000",
-        ...                 123: "#e6cccc",
-        ...                 124: "#e6cce6",
-        ...                 131: "#a600cc",
-        ...                 132: "#a64dcc",
-        ...                 133: "#ff4dff",
-        ...                 141: "#ffa6ff",
-        ...                 142: "#ffe6ff",
-        ...                 211: "#ffffa8",
-        ...                 212: "#ffff00",
-        ...                 213: "#e6e600",
-        ...                 221: "#e68000",
-        ...                 222: "#f2a64d",
-        ...                 223: "#e6a600",
-        ...                 231: "#e6e64d",
-        ...                 241: "#ffe6a6",
-        ...                 242: "#ffe64d",
-        ...                 243: "#e6cc4d",
-        ...                 244: "#f2cca6",
-        ...                 311: "#80ff00",
-        ...                 312: "#00a600",
-        ...                 313: "#4dff00",
-        ...                 321: "#ccf24d",
-        ...                 322: "#a6ff80",
-        ...                 323: "#a6e64d",
-        ...                 324: "#a6f200",
-        ...                 331: "#e6e6e6",
-        ...                 332: "#cccccc",
-        ...                 333: "#ccffcc",
-        ...                 334: "#000000",
-        ...                 335: "#a6e6cc",
-        ...                 411: "#a6a6ff",
-        ...                 412: "#4d4dff",
-        ...                 421: "#ccccff",
-        ...                 422: "#e6e6ff",
-        ...                 423: "#a6a6e6",
-        ...                 511: "#00ccf2",
-        ...                 512: "#80f2e6",
-        ...                 521: "#00ffa6",
-        ...                 522: "#a6ffe6",
-        ...                 523: "#e6f2ff"}
-        ...             )
-        >>> corine
-        GeeStaticDataset instance of corine  (no metadata has been set)
-
-        If you want to use this map with your `Dataset`, add them to the known
-        Modeldatasets.
-
-        >>> dataset = metobs_toolkit.Dataset()
-        >>> dataset.add_new_geemodeldata(Modeldata=corine)
-        >>> dataset.gee_datasets
-        {'LCZ': GeeStaticDataset instance of LCZ  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land , 'corine': GeeStaticDataset instance of corine  (no metadata has been set) }
+        None
         """
+        logger.debug(f"Entering GEEStaticDatasetManager.__init__ for {self}")
         super().__init__(
             name=name,
             location=location,
-            # band_of_use=band_of_use,
             value_type=value_type,
             scale=scale,
             is_static=True,
@@ -410,67 +248,20 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         self.__name__ = "GeeStaticDatasetManager"
 
-    # =========================================================================
-    # Setters
-    # =========================================================================
-
-    # =========================================================================
-    # Getters
-    # =========================================================================
-    def get_info(self, printout=True):
+    def get_info(self, printout: bool = True) -> None:
         """
-        Prints out detailed information of the GeeStaticDataset.
+        Print out detailed information of the GeeStaticDataset.
+
+        Parameters
+        ----------
+        printout : bool, optional
+            If True, prints the information. If False, returns the string. Default is True.
 
         Returns
         -------
-        None.
-
-        Examples
-        --------
-        As an example, we will use the LCZ map, which is a default `GeeStaticDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.gee_datasets
-        {'LCZ': GeeStaticDataset instance of LCZ  (no metadata has been set) , 'altitude': GeeStaticDataset instance of altitude  (no metadata has been set) , 'worldcover': GeeStaticDataset instance of worldcover  (no metadata has been set) , 'ERA5-land': Empty GeeDynamicDataset instance of ERA5-land }
-
-        These are the defaults. We select the LCZ one:
-
-        >>> LCZ_model = dataset.gee_datasets['LCZ']
-        >>> LCZ_model
-        GeeStaticDataset instance of LCZ  (no metadata has been set)
-
-        To print out detailed information use the `GeeStaticDataset.get_info()`
-        method.
-
-        >>> LCZ_model.get_info()
-        GeeStaticDataset instance of LCZ  (no metadata has been set)
-        ------ Details ---------
-        <BLANKLINE>
-         * name: LCZ
-         * location: RUB/RUBCLIM/LCZ/global_lcz_map/latest
-         * value_type: categorical
-         * scale: 100
-         * is_static: True
-         * is_image: False
-         * is_mosaic: True
-         * credentials: Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022
-         -- Band --
-         LCZ_Filter
-        <BLANKLINE>
-         -- classification --
-         {1: 'Compact highrise', 2: 'Compact midrise', 3: 'Compact lowrise', 4: 'Open highrise', 5: 'Open midrise', 6: 'Open lowrise', 7: 'Lightweight lowrise', 8: 'Large lowrise', 9: 'Sparsely built', 10: 'Heavy industry', 11: 'Dense Trees (LCZ A)', 12: 'Scattered Trees (LCZ B)', 13: 'Bush, scrub (LCZ C)', 14: 'Low plants (LCZ D)', 15: 'Bare rock or paved (LCZ E)', 16: 'Bare soil or sand (LCZ F)', 17: 'Water (LCZ G)'}
-        <BLANKLINE>
-         -- aggregation --
-         {}
-        <BLANKLINE>
-         -- colors --
-         {1: '#8c0000', 2: '#d10000', 3: '#ff0000', 4: '#bf4d00', 5: '#ff6600', 6: '#ff9955', 7: '#faee05', 8: '#bcbcbc', 9: '#ffccaa', 10: '#555555', 11: '#006a00', 12: '#00aa00', 13: '#648525', 14: '#b9db79', 15: '#000000', 16: '#fbf7ae', 17: '#6a6aff'}
-        <BLANKLINE>
+        None or str
         """
+        logger.debug(f"Entering GEEStaticDatasetManager.get_info for {self}")
         retstr = f"{self}\n"
         retstr += self._get_base_details()
         retstr += f" -- Band -- \n {self.band_of_use} \n"
@@ -483,138 +274,32 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         else:
             return retstr
 
-    # =========================================================================
-    # Functionality
-    # =========================================================================
-
-    def extract_static_point_data(self, metadf):
+    def extract_static_point_data(self, metadf: pd.DataFrame) -> pd.DataFrame:
         """
         Extract point values at the locations in the metadata.
 
-        First, a connection with the gee server is made. Then the coordinates
-        of the metadata and the details of the GEE dataset are sent to the
-        GEE server. There the point values are extracted and are sent back.
-
+        Parameters
+        ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations.
 
         Returns
         -------
-        df : pandas.DataFrame
-            A dataframe with the stationnames as index, and one column with
-            values (mapped to human-labels if the dataset is categorical and
-            a cat_map is defined).
-
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticDataset.set_metadf: Set metadata (station locations).
-        GeeStaticDataset.get_info: Print out detailed info method.
-        GeeStaticDataset.extract_static_buffer_frac_data: Extract buffer fractions.
-
-
-        Note
-        -------
-        Make sure that the metadata is set. Use the
-        `GeeStaticDataset.set_metadata()` for this.
-
-        Note
-        -------
-        Make sure that you are authenticated to the GEE services.
-        Run `metobs_toolkit.connect_to_gee()`, to do this. See the Documentation
-        for more details.
-
-        Examples
-        --------
-        As an example, we will use the LCZ map, which is a default `GeeStaticDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-
-        In order to extract point data, we need metadata (i.g. coordinates
-        of stations). Therefore we will import the demo dataset so that we
-        can use the metadata to extract values.
-
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-        >>> dataset.metadf
-                     lat   lon               school                  geometry dataset_resolution                  dt_start                    dt_end
-        name
-        vlinder01  50.98  3.82                UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.02  3.71                UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.32  4.95          Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.34  4.93          Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.05  3.68         Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        ...          ...   ...                  ...                       ...                ...                       ...                       ...
-        vlinder24  51.17  3.57        OLV ten Doorn  POINT (3.57206 51.16702)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder25  51.15  3.71    Einstein Atheneum  POINT (3.70861 51.15472)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder26  51.16  5.00          Sint Dimpna  POINT (4.99765 51.16176)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder27  51.06  3.73  Sec. Kunstinstituut   POINT (3.72807 51.0581)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder28  51.04  3.77             GO! Ath.  POINT (3.76974 51.03529)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        <BLANKLINE>
-        [28 rows x 7 columns]
-
-        Now we add the metadata to the Modeldataset.
-
-        >>> LCZ_model = dataset.gee_datasets['LCZ']
-        >>> LCZ_model
-        GeeStaticDataset instance of LCZ  (no metadata has been set)
-        >>> LCZ_model.set_metadf(dataset.metadf) #overload the metadf
-        >>> LCZ_model
-        GeeStaticDataset instance of LCZ  (known metadata)
-
-        To extract point-values, use the
-        `GeeStaticDataset.extract_static_point_data()` method. First, make
-        sure you are authenticated with the GEE services.
-
-        >>> metobs_toolkit.connect_to_gee() #only required once per session
-        >>> LCZ_df = LCZ_model.extract_static_point_data()
-        >>> LCZ_df
-                                   LCZ
-        name
-        vlinder01   Low plants (LCZ D)
-        vlinder02        Large lowrise
-        vlinder03         Open midrise
-        vlinder04       Sparsely built
-        vlinder05        Water (LCZ G)
-        ...                        ...
-        vlinder24  Dense Trees (LCZ A)
-        vlinder25        Water (LCZ G)
-        vlinder26         Open midrise
-        vlinder27      Compact midrise
-        vlinder28         Open lowrise
-        <BLANKLINE>
-        [28 rows x 1 columns]
-
+        pandas.DataFrame
+            Dataframe with station names as index and one column with values.
         """
-
-        # test if coordiantes are available
+        logger.debug(f"Entering GEEStaticDatasetManager.extract_static_point_data for {self}")
         self._check_metadf_validity(metadf)
 
-        # =============================================================================
-        # df to featurecollection
-        # =============================================================================
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
-        # =============================================================================
-        # extract raster values
-        # =============================================================================
+        raster = gee_api.get_ee_obj(self)
 
-        raster = gee_api.get_ee_obj(
-            self
-        )  # raster is image/imagecollection filtered to bands
-
-        # extract points
         results = raster.sampleRegions(
-            collection=ee_fc, scale=self.scale  # feature collection here
+            collection=ee_fc, scale=self.scale
         ).getInfo()
 
-        # extract properties
         if not bool(results["features"]):
-            # no data retrieved
             logger.warning(
                 f"Something went wrong, gee did not return any data: {results}"
             )
@@ -623,28 +308,22 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             )
             return pd.DataFrame()
 
-        # =============================================================================
-        # to dataframe
-        # =============================================================================
-
         properties = [x["properties"] for x in results["features"]]
         df = pd.DataFrame(properties)
 
-        # map to human space if categorical
         if bool(self.class_map):
             df[self.band_of_use] = df[self.band_of_use].map(self.class_map)
 
-        # rename to values to toolkit space
         df = df.rename(columns={self.band_of_use: self.name})
-
-        # #format index
         df = df.set_index(["name"])
 
         return df
 
-    def extract_static_buffer_frac_data(self, metadf, bufferradius, agg_bool=False):
-        """Extract cover frequencies in circular buffers at stations.
-
+    def extract_static_buffer_frac_data(
+        self, metadf: pd.DataFrame, bufferradius: int, agg_bool: bool = False
+    ) -> pd.DataFrame:
+        """ Extract cover frequencies in circular buffers at stations.
+        
         This methods will create (circular) buffers, specified by the radius,
         on each station. All the gridpoint in the radius are sampled and
         occurence frequency is computed for each landcover category in the
@@ -656,193 +335,38 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         Parameters
         ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations.
         bufferradius : int
             The radius (in meters) of the buffer.
         agg_bool : bool, optional
-            If True, and if an aggregation scheme is known, then the frequencies
-            are computed on the aggregated classes. Else it is computed for the
-            GEE dataset classes. The default is False.
+            If True, frequencies are computed on aggregated classes. Default is False.
 
         Returns
         -------
         pandas.DataFrame
-            A dataframe with the stationnames (from the metadf) as index. The
-            columns are the class names. An additional "buffer_radius" column
-            is added with the numeric value of the radius.
-
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticDataset.set_metadf: Set metadata (station locations).
-        GeeStaticDataset.get_info: Print out detailed info method.
-        GeeStaticDataset.extract_static_point_data: Extract point values.
-
-        Note
-        -------
-        Make sure that the metadata is set. Use the
-        `GeeStaticDataset.set_metadata()` for this.
-
-        Note
-        -------
-        Make sure that you are authenticated to the GEE services.
-        Run `metobs_toolkit.connect_to_gee()`, to do this. See the Documentation
-        for more details.
-
-        Examples
-        --------
-        As an example, we will use the ESA worldcovermap, which is a default `GeeStaticDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-
-        In order to extract point data, we need metadata (i.g. coordinates
-        of stations). Therefore we will import the demo dataset, so that we
-        can use the metadata to extract values.
-
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-        >>> dataset.metadf
-                     lat   lon               school                  geometry dataset_resolution                  dt_start                    dt_end
-        name
-        vlinder01  50.98  3.82                UGent  POINT (3.81576 50.98044)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder02  51.02  3.71                UGent   POINT (3.7097 51.02238)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder03  51.32  4.95          Heilig Graf  POINT (4.95211 51.32458)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder04  51.34  4.93          Heilig Graf  POINT (4.93473 51.33552)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder05  51.05  3.68         Sint-Barbara  POINT (3.67518 51.05266)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        ...          ...   ...                  ...                       ...                ...                       ...                       ...
-        vlinder24  51.17  3.57        OLV ten Doorn  POINT (3.57206 51.16702)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder25  51.15  3.71    Einstein Atheneum  POINT (3.70861 51.15472)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder26  51.16  5.00          Sint Dimpna  POINT (4.99765 51.16176)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder27  51.06  3.73  Sec. Kunstinstituut   POINT (3.72807 51.0581)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        vlinder28  51.04  3.77             GO! Ath.  POINT (3.76974 51.03529)    0 days 00:05:00 2022-09-01 00:00:00+00:00 2022-09-15 23:55:00+00:00
-        <BLANKLINE>
-        [28 rows x 7 columns]
-
-        Now we add the metadata to the Modeldataset.
-
-        >>> worldcover_model = dataset.gee_datasets['worldcover']
-        >>> worldcover_model
-        GeeStaticDataset instance of worldcover  (no metadata has been set)
-        >>> worldcover_model.set_metadf(dataset.metadf) #overload the metadf
-        >>> worldcover_model
-        GeeStaticDataset instance of worldcover  (known metadata)
-
-        For more details on the Modeldataset you can use the
-        `GeeStaticDataset.get_info()` method.
-
-        >>> worldcover_model.get_info()
-        GeeStaticDataset instance of worldcover  (known metadata)
-        ------ Details ---------
-        <BLANKLINE>
-         * name: worldcover
-         * location: ESA/WorldCover/v200
-         * value_type: categorical
-         * scale: 10
-         * is_static: True
-         * is_image: False
-         * is_mosaic: True
-         * credentials: https://spdx.org/licenses/CC-BY-4.0.html
-         -- Band --
-         Map
-        <BLANKLINE>
-         -- classification --
-         {10: 'Tree cover', 20: 'Shrubland', 30: 'Grassland', 40: 'Cropland', 50: 'Built-up', 60: 'Bare / sparse vegetation', 70: 'Snow and ice', 80: 'Permanent water bodies', 90: 'Herbaceous wetland', 95: 'Mangroves', 100: 'Moss and lichen'}
-        <BLANKLINE>
-         -- aggregation --
-         {'water': [70, 80, 90, 95], 'pervious': [10, 20, 30, 40, 60, 100], 'impervious': [50]}
-        <BLANKLINE>
-         -- colors --
-         {10: '006400', 20: 'ffbb22', 30: 'ffff4c', 40: 'f096ff', 50: 'fa0000', 60: 'b4b4b4', 70: 'f0f0f0', 80: '0064c8', 90: '0096a0', 95: '00cf75', 100: 'fae6a0'}
-        <BLANKLINE>
-
-        To extract buffer frequencies, use the
-        `GeeStaticDataset.extract_static_buffer_frac_data()` method. First, make
-        sure you are authenticated with the GEE services.
-
-        >>> metobs_toolkit.connect_to_gee() #only required once per session
-
-        You can choose a buffer radius (in meters) to compute cover fractions in.
-
-        >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
-        ...                             bufferradius=150)
-        >>> cover_frac
-                                  Grassland  Cropland  Built-up  Tree cover  Permanent water bodies  Bare / sparse vegetation  Herbaceous wetland
-        name      buffer_radius
-        vlinder01 150                 0.29      0.70  8.10e-03        0.00                    0.00                       0.0                 0.0
-        vlinder02 150                 0.12      0.00  5.29e-01        0.35                    0.00                       0.0                 0.0
-        vlinder03 150                 0.05      0.00  7.57e-01        0.19                    0.00                       0.0                 0.0
-        vlinder04 150                 0.77      0.08  1.08e-01        0.05                    0.00                       0.0                 0.0
-        vlinder05 150                 0.15      0.00  3.06e-01        0.15                    0.39                       0.0                 0.0
-        ...                            ...       ...       ...         ...                     ...                       ...                 ...
-        vlinder24 150                 0.03      0.00  8.73e-02        0.88                    0.00                       0.0                 0.0
-        vlinder25 150                 0.07      0.01  5.24e-02        0.02                    0.84                       0.0                 0.0
-        vlinder26 150                 0.03      0.00  7.84e-01        0.19                    0.00                       0.0                 0.0
-        vlinder27 150                 0.01      0.00  9.39e-01        0.05                    0.00                       0.0                 0.0
-        vlinder28 150                 0.15      0.00  3.88e-01        0.47                    0.00                       0.0                 0.0
-        <BLANKLINE>
-        [28 rows x 7 columns]
-
-
-        As could be seen in the output of `get_info()`, there is an aggregation
-        scheme present. We can apply that scheme to get aggregated fractions.
-
-        >>> cover_frac = worldcover_model.extract_static_buffer_frac_data(
-        ...                             bufferradius=150,
-        ...                             agg_bool=True)
-        >>> cover_frac
-                                 water  pervious  impervious
-        name      buffer_radius
-        vlinder01 150             0.00      0.99    8.10e-03
-        vlinder02 150             0.00      0.47    5.29e-01
-        vlinder03 150             0.00      0.24    7.57e-01
-        vlinder04 150             0.00      0.89    1.08e-01
-        vlinder05 150             0.39      0.30    3.06e-01
-        ...                        ...       ...         ...
-        vlinder24 150             0.00      0.91    8.73e-02
-        vlinder25 150             0.84      0.11    5.24e-02
-        vlinder26 150             0.00      0.22    7.84e-01
-        vlinder27 150             0.00      0.06    9.39e-01
-        vlinder28 150             0.00      0.61    3.88e-01
-        <BLANKLINE>
-        [28 rows x 3 columns]
-
+            Dataframe with station names as index and class frequencies as columns.
         """
-
+        logger.debug(f"Entering GEEStaticDatasetManager.extract_static_buffer_frac_data for {self}")
         if metadf.empty:
             raise MetobsModelDataError(
                 f"No metadata is present for the GeeStaticDataset. No extraction possible."
             )
 
-        # test if coordiantes are available
         self._check_metadf_validity(metadf)
 
-        # =============================================================================
-        # df to featurecollection
-        # =============================================================================
         ee_fc = gee_api._df_to_features_buffer_collection(metadf, int(bufferradius))
-
-        # =============================================================================
-        # extract raster frequencies
-        # =============================================================================
 
         def rasterExtraction(image):
             feature = image.reduceRegions(
                 reducer=ee.Reducer.frequencyHistogram(),
-                collection=ee_fc,  # feature collection here
-                scale=self.scale,  # Cell size of raster
+                collection=ee_fc,
+                scale=self.scale,
             )
             return feature
 
-        raster = gee_api.get_ee_obj(self, force_mosaic=False)  # dataset
+        raster = gee_api.get_ee_obj(self, force_mosaic=False)
         results = raster.map(rasterExtraction).flatten().getInfo()
-        # =============================================================================
-        # to dataframe
-        # =============================================================================
 
         freqs = {
             staprop["properties"]["name"]: staprop["properties"]["histogram"]
@@ -850,18 +374,12 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         }
         freqsdf = pd.DataFrame(freqs)
 
-        # format frequency df
         freqsdf = freqsdf.transpose().fillna(0)
         freqsdf.index.name = "name"
 
-        # normalize freqs
         freqsdf = freqsdf.div(freqsdf.sum(axis=1), axis=0)
 
-        # =============================================================================
-        # Aggregation and classification
-        # =============================================================================
         if agg_bool:
-            # create agg map
             agg_df = pd.DataFrame()
             for agg_name, agg_classes in self.agg_scheme.items():
                 present_agg_classes = [
@@ -871,7 +389,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
             freqsdf = agg_df
 
-        # # map to human space if categorical
         elif bool(self.class_map):
             freqsdf = freqsdf.rename(
                 columns={str(key): str(val) for key, val in self.class_map.items()}
@@ -879,9 +396,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         else:
             pass
 
-        # =============================================================================
-        # Format dataframe
-        # =============================================================================
         freqsdf["buffer_radius"] = bufferradius
         freqsdf = freqsdf.reset_index().set_index(["name", "buffer_radius"])
 
@@ -889,13 +403,13 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
     def make_gee_plot(
         self,
-        metadf,
-        save=False,
-        outputfolder=None,
-        filename=None,
-        vmin=None,
-        vmax=None,
-        overwrite=False,
+        metadf: pd.DataFrame,
+        save: bool = False,
+        outputfolder: str = None,
+        filename: str = None,
+        vmin: Union[float, int, None]= None,
+        vmax: Union[float, int, None]= None,
+        overwrite: bool = False,
     ):
         """Make an interactive spatial plot of the GEE dataset and the stations.
 
@@ -908,86 +422,27 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         Parameters
         ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations.
+        save : bool, optional
+            If True, saves the map as an HTML file. Default is False.
         outputfolder : str or None, optional
-            Path to the folder to save the HTML file. If None, the map will
-            not be saved as an HTML file. The default is None.
+            Path to the folder to save the HTML file. Default is None.
         filename : str or None, optional
-            The filename for the HTML file. If a filename is given, if it does
-            not end with ".html", the prefix is added. If None, the map will not
-            be saved as an HTML file. The default is None.
-        vmin : num or None, optional
-            If the dataset is not categorical, vmin is the minimum values
-            assigned to the colormap. If None, vmin is computed by extracting
-            the values at the locations of the stations. If no metadata is
-            available, and vmin is None then vmin is set to 0. The default is None.
-        vmax : num or None, optional
-            If the dataset is not categorical, vmax is the minimum values
-            assigned to the colormap. If None, vmax is computed by extracting
-            the values at the locations of the stations. If no metadata is
-            available, and vmax is None then vmax is set to 1. The default is None.
+            The filename for the HTML file. Default is None.
+        vmin : numeric or None, optional
+            Minimum value for colormap. Default is None.
+        vmax : numeric or None, optional
+            Maximum value for colormap. Default is None.
         overwrite : bool, optional
-            If True, and if the target file exists, then it will be overwritten.
-            Else, an error will be raised when the target file already exists.
-            The default is False.
+            If True, overwrites existing file. Default is False.
 
         Returns
         -------
-        MAP : geemap.foliummap.Map
+        geemap.foliumap.Map
             The interactive map of the GeeStaticDataset.
-
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeStaticDataset.set_metadf: Set metadata (station locations).
-        GeeStaticDataset.get_info: Print out detailed info method.
-
-        Warning
-        ---------
-        To display the interactive map a graphical interactive backend is
-        required, which could be missing. You can recognice this when no
-        map is displayed, but the python console prints out a message similar
-        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
-
-        In that case, you can specify a `outputfolder` and `outputfile`, save the map as a HTML file, and
-        open in with a browser.
-
-        Examples
-        --------
-        As an example we will make a plot of the LCZ map, which is a default `GeeStaticDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> LCZ_model = dataset.gee_datasets['LCZ']
-
-        If you want your stations present in the map, then you must add the
-        metadf to the Modeldata. This step is not required.
-
-        >>> #we will use the demo metadata
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-
-        >>> LCZ_model.set_metadf(dataset.metadf) #overload the metadf
-        >>> LCZ_model
-        GeeStaticDataset instance of LCZ  (known metadata)
-
-        We will save the map as a (HTML) file. You can specify where so save it,
-        for this example we will store it in the current working directory
-        (`os.getcwd()`)
-
-        >>> import os
-        >>> map = LCZ_model.make_gee_plot(
-        ...                  outputfolder = os.getcwd(),
-        ...                  filename = 'LCZ_map.html',
-        ...                  overwrite=True)
-
-
         """
-        # Test output folder and filename
+        logger.debug(f"Entering GEEStaticDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
                 raise MetobsModelDataError(
@@ -997,7 +452,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 raise MetobsModelDataError(
                     "If save is True, then filename must be specified."
                 )
-            # check file extension in the filename:
             if filename[-5:] != ".html":
                 filename += ".html"
 
@@ -1011,16 +465,12 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                         f"{target_path} is already a file and overwrite is set to False!"
                     )
 
-        # Connect to Gee
         connect_to_gee()
 
-        # Get image
         im = gee_api.get_ee_obj(self)
 
-        # make empty map (FOLIUM BACKEND !! )
         MAP = folium_map()
 
-        # show stations
         if metadf.empty:
             pass
 
@@ -1033,19 +483,16 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 logger.debug(
                     f"{self.name} is extracted as point values (to present in markers)."
                 )
-                # Extract point values (for hover info and vmin/vmax in cont case)
                 df = self.extract_static_point_data(metadf=metadf)
                 metadf = metadf.merge(df, how="left", left_index=True, right_index=True)
 
             add_stations_to_folium_map(
                 Map=MAP, metadf=metadf, display_cols=["name", self.name]
             )
-            # fix center
             centroid = metadf.dissolve().centroid
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
         if bool(self.class_map):
-            # categorical color scheme
             vmin = min(self.class_map.keys())
             vmax = max(self.class_map.keys())
             if bool(self.col_scheme):
@@ -1056,7 +503,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                     "palette": list(self.col_scheme.values()),
                 }
 
-                # legend dict is human-label : color
                 MAP.add_legend(
                     title="NLCD Land Cover Classification",
                     legend_dict={
@@ -1079,7 +525,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 if vmax == None:
                     vmax = 1.0
             else:
-                # continuous color scheme
                 obsmin = df[self.name].min()
                 obsmax = df[self.name].max()
                 if vmin == None:
@@ -1122,109 +567,68 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 background_color=None,
             )
 
-        # add layer
         MAP.add_layer(
             ee_object=im,
             vis_params=var_visualization,
             name=self.name,
         )
 
-        # add layer control
         MAP.addLayerControl()
 
-        # Save
         if save:
             logger.info(f"Saving {self.name} gee plot at: {target_path}")
             MAP.save(target_path)
 
         return MAP
 
-
 class GEEDynamicDatasetManager(_GEEDatasetManager):
     """Class for working with Dynamic GEE modeldatasets."""
 
     def __init__(
         self,
-        name,
-        location,
-        value_type,
-        scale,
-        time_res,
-        modelobstypes,
-        is_image=False,
-        is_mosaic=False,
-        credentials="",
-        class_map={},
-        agg_scheme={},
-        col_scheme={},
+        name: str,
+        location: str,
+        value_type: str,
+        scale: int,
+        time_res: str,
+        modelobstypes: list,
+        is_image: bool = False,
+        is_mosaic: bool = False,
+        credentials: str = "",
+        # class_map: dict = {},
+        # agg_scheme: dict = {},
+        # col_scheme: dict = {},
     ):
         """
-        Create a GeeDynamicDataset instance representing a GEE dataset with
-        a time dimension.
+        Create a GeeDynamicDataset instance representing a GEE dataset with a time dimension.
 
         Parameters
         ----------
         name : str
             The user-defined name for referring to this GEE dataset.
         location : str
-            The location of the dataset on GEE. Navigate the GEE datasets online,
-            to get the location of a GEE dataset.
-        value_type : "numeric" or "categorical"
+            The location of the dataset on GEE.
+        value_type : str
             Specify how to interpret the values of the GEE dataset.
         scale : int
-            The Scale (See GEE doc) of the dataset to extract values of. This
-            can be found on the GEE dataset information page.
+            The scale of the dataset to extract values of.
         time_res : str
-            The time resolution of the dataset is represented as a timedelta string.
-            Common resolutions are '1h' or '3h'. This can be found on the GEE
-            dataset information page.
-        modelobstypes : list of ModelObstype and ModelObstype_Vectorfield
-            The ModelObstype's (scalar and vector) defined for this GEE dataset. These ModelObstype
-            define how Obstypes are linked to bands of the GEE dataset.
-        is_image : bool
-            If True, the GEE dataset is opened as ee.Image(), else
-            ee.ImageCollection(). This can be found on the GEE dataset
-            information page.
+            The time resolution of the dataset as a timedelta string.
+        modelobstypes : list
+            List of ModelObstype and ModelObstype_Vectorfield for this dataset.
+        is_image : bool, optional
+            If True, the GEE dataset is opened as ee.Image(), else ee.ImageCollection(). Default is False.
         is_mosaic : bool, optional
-            If True, ee.mosaic() is applied on the GEE dataset. The default is False.
+            If True, ee.mosaic() is applied on the GEE dataset. Default is False.
         credentials : str, optional
-            Credentials of the GEE dataset. The default is "".
-        class_map : dict, optional
-            If value_type is categorical, than the class_map defines how the
-            numeric values are mapped to 'human-categories'. The keys are the
-            numeric values, the values are the human-labels. The default is {}.
-        agg_scheme : dict, optional
-            If value_types is categorical, then the agg scheme defines custom-
-            made classes, which are aggregates of the present classes. The
-            keys are the names of the custom-classes, the values are lists, with
-            the corresponding numeric values. The default is {}.
-        col_scheme : dict, optional
-            if value_types is categorical, the col_sheme defines the colors used
-            for each class. The keys are the numeric values, the values are
-            the colors (in hex form). The default is {}.
+            Credentials of the GEE dataset. Default is "".
+       
 
         Returns
         -------
-        None.
-
-        See Also
-        -----------
-        GeeStaticDataset : Gee Modeldata dataset without time dimension.
-        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to a band).
-        metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
-        GeeDynamicDataset.set_metadf: Set metadata (station locations).
-        GeeDynamicDataset.get_info: Print out detailed info method.
-        GeeDynamicDataset.extract_timeseries_data: Extract data from GEE.
-        GeeDynamicDataset.save_modeldata: Save Modeldata as pickle.
-        metobs_toolkit.import_modeldata_from_pkl: Import Modeldata from pickle.
-
-
-        Note
-        -------
-        In general, specifying a scale smaller than the true scale of the GEE
-        dataset has no impact on the results (but can affect the computation time).
-
+        None
         """
+        logger.debug(f"Entering GEEDynamicDatasetManager.__init__ for {self}")
         super().__init__(
             name=name,
             location=location,
@@ -1235,8 +639,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             is_mosaic=is_mosaic,
             credentials=credentials,
         )
-        # name - datetime index, and (tlk-renamed) bandnames as columns (=wide since perfect freq assumed)
-        # self.modeldf = pd.DataFrame()  # will hold time-related records (timeseries)
 
         self.modelobstypes = {}
         for obs in modelobstypes:
@@ -1253,13 +655,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         self.__name__ = "GeeDynamicDatasetManager"
 
-    # =============================================================================
-    # Setters
-    # =============================================================================
-
-    def add_modelobstype(self, modelobstype):
-        """Add a new ModelObstype to the GeeDynamicDataset.
-
+    def add_modelobstype(self, modelobstype) -> None:
+        """
+        Add a new ModelObstype to the GeeDynamicDataset.
 
         Parameters
         ----------
@@ -1268,65 +666,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         Returns
         -------
-        None.
-
-        See Also
-        -----------
-        metobs_toolkit.ModelObstype: A Obstype for Modeldata (linked to a band).
-        metobs_toolkit.ModelObstype_Vectorfield: A Vectorfield version of ModelObstype.
-
-        Examples
-        --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> era5 = dataset.gee_datasets['ERA5-land']
-        >>> era5
-        Empty GeeDynamicDataset instance of ERA5-land
-
-        The ERA5 GeeDyanmicModelData is equipped with a few Modelobstypes.
-        >>> era5.modelobstypes
-        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
-
-        Now we create a ModelObstype, which is a regular Obstype, but with
-        extra information on how this is linked to a band in the Gee dataset. So
-        we start by looking op the gee dataset online and inspect the present
-        bands: https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_HOURLY#bands
-
-        As example, we add the 'surface_solar_radiation_downwards' band. Therefore
-        we need to create an Obstype representing solar radiation (downward) first.
-
-        >>> solar_rad = metobs_toolkit.Obstype(obsname='solar_radiation',
-        ...                                    std_unit='J/m²',
-        ...                                    description= 'Downward solar flux (perpendicular to earth surface)',
-        ...                                    unit_aliases={},
-        ...                                    unit_conversions={})
-        >>> solar_rad
-        Obstype instance of solar_radiation
-
-        Now we make a ModelObstype from it. We know that the values of solar_rad
-        are scalar, so we create a `ModelObstype` instance (for vectorfields,
-        use the `ModelObstype_Vectorfield` class.)
-
-        >>> solar_rad_in_era5 = metobs_toolkit.ModelObstype(obstype=solar_rad,
-        ...                                                 model_unit='J/m²',
-        ...                                                 model_band='surface_solar_radiation_downwards')
-        >>> solar_rad_in_era5
-        ModelObstype instance of solar_radiation (linked to band: surface_solar_radiation_downwards)
-
-        At last, we can add the solar radiation to the Geedataset by using
-        the `GeeDynamicDataset.add_modelobstype()` method.
-
-        >>> era5.add_modelobstype(modelobstype=solar_rad_in_era5)
-
-        >>> era5.modelobstypes
-        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'solar_radiation': ModelObstype instance of solar_radiation (linked to band: surface_solar_radiation_downwards)}
-
+        None
         """
+        logger.debug(f"Entering GEEDynamicDatasetManager.add_modelobstype for {self}")
         if not (
             (isinstance(modelobstype, ModelObstype))
             | (isinstance(modelobstype, ModelObstype_Vectorfield))
@@ -1335,9 +677,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 f"{modelobstype} is not a ModelObstype of ModelObstype_Vectorfield"
             )
         if modelobstype.name in self.modelobstypes.keys():
-            # Check equlity
             if modelobstype == self.modelobstypes[modelobstype.name]:
-                return  # modelobstye is already present
+                return
             else:
                 raise MetobsModelDataError(
                     f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
@@ -1345,15 +686,21 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         else:
             self.modelobstypes[modelobstype.name] = modelobstype
 
-    # =============================================================================
-    # Convertors/formatters
-    # =============================================================================
-    def _convert_units(self, df):
-        """Convert the units of the modeldf attr to toolkit space, and set the
-        modeldf again.
-
+    def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
         """
+        Convert the units of the df to toolkit-standards.
 
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Dataframe to convert.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Converted dataframe.
+        """
+        logger.debug(f"Entering GEEDynamicDatasetManager._convert_units for {self}")
         for obs in self.modelobstypes.values():
             if obs.name in df.columns:
                 df[obs.name] = obs.convert_to_standard_units(
@@ -1362,36 +709,37 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return df
 
-    def _format_gee_df_structure(self, geedf):
-        """Format a dataframe (constructed directly from gee), to a modeldf (
-        name, datetime index and modelobstype names as columns). Then set the
-        modeldf attribute.
+    def _format_gee_df_structure(self, geedf: pd.DataFrame) -> pd.DataFrame:
         """
+        Format a dataframe (constructed directly from GEE) to a modeldf.
 
-        # format datetime
+        Parameters
+        ----------
+        geedf : pandas.DataFrame
+            Dataframe from GEE.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Formatted dataframe.
+        """
+        logger.debug(f"Entering GEEDynamicDatasetManager._format_gee_df_structure for {self}")
         geedf["datetime"] = pd.to_datetime(geedf["datetime"], format="%Y%m%d%H%M%S")
-        # (assume all gee dataset are in UTC)
         geedf["datetime"] = geedf["datetime"].dt.tz_localize("UTC")
 
-        # 2. Format dataframe
-        # format index
         geedf = geedf.set_index(["name", "datetime"])
         geedf = geedf.sort_index()
 
-        # 3. Look for vector components, add the columns in the geedf and add the
-        # scalar equivalent obstypes
         new_obs = []
         for obs in self.modelobstypes.values():
             if isinstance(obs, ModelObstype_Vectorfield):
                 if (obs.model_band_u in geedf.columns) & (
                     obs.model_band_v in geedf.columns
                 ):
-                    # 1 add aplitude column + obstype
                     amp_series, amp_obstype = obs.compute_amplitude(df=geedf)
                     geedf[amp_obstype.name] = amp_series
                     new_obs.append(amp_obstype)
 
-                    # 2. add direction column + obstype
                     dir_series, dir_obstype = obs._compute_angle(df=geedf)
                     geedf[dir_obstype.name] = dir_series
                     new_obs.append(dir_obstype)
@@ -1399,7 +747,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         for obs in new_obs:
             self.add_modelobstype(obs)
 
-        # rename to values to toolkit space (only for scalar fields)
         scalar_obs = [
             obs for obs in self.modelobstypes.values() if isinstance(obs, ModelObstype)
         ]
@@ -1407,11 +754,25 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         geedf = geedf.rename(columns=band_mapper)
 
         modeldf = geedf
-        # self._set_modeldf(modeldf)
         return modeldf
 
-    def _subset_to_obstypes(self, df, trg_obstypes):
-        """Subset the modeldf (atttr) to list of target obstypes."""
+    def _subset_to_obstypes(self, df: pd.DataFrame, trg_obstypes: list) -> pd.DataFrame:
+        """
+        Subset the modeldf to a list of target obstypes.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Dataframe to subset.
+        trg_obstypes : list
+            List of target obstypes.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Subsetted dataframe.
+        """
+        logger.debug(f"Entering GEEDynamicDatasetManager._subset_to_obstypes for {self}")
         keep_columns = []
 
         for obs in trg_obstypes:
@@ -1427,13 +788,21 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return df[keep_columns]
 
-    # =============================================================================
-    # Getters
-    # =============================================================================
+    def _get_bandnames(self, trg_obstypes: list) -> list:
+        """
+        Get a list of all known target band names.
 
-    def _get_bandnames(self, trg_obstypes):
-        """Get a list of all known target band names."""
+        Parameters
+        ----------
+        trg_obstypes : list
+            List of target obstypes.
 
+        Returns
+        -------
+        list
+            List of band names.
+        """
+        logger.debug(f"Entering GEEDynamicDatasetManager._get_bandnames for {self}")
         trg_bands = []
         for obs in trg_obstypes:
             if isinstance(obs, ModelObstype):
@@ -1447,73 +816,24 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 )
         return trg_bands
 
-    def _get_time_res(self):
+    def _get_time_res(self) -> str:
+        """Return the time resolution as a string."""
         return str(self.time_res)
 
-    def get_info(self, printout=True):
-        """Print out detailed information about the GeeDynamicDataset.
+    def get_info(self, printout: bool = True) -> Union[None, str]:
+        """
+        Print out detailed information about the GeeDynamicDataset.
+
+        Parameters
+        ----------
+        printout : bool, optional
+            If True, prints the information. If False, returns the string. Default is True.
 
         Returns
         -------
-        None.
-
-        See Also
-        -----------
-        GeeDynamicDataset.set_metadf: Set metadata (station locations).
-        GeeDynamicDataset.add_modelobstype: Add a new ModelObstype.
-        GeeDynamicDataset.extract_timeseries_data: Extract data from GEE.
-
-        Examples
-        --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
-        present in a `metobs_toolkit.Dataset()`
-
-        >>> import metobs_toolkit
-        >>>
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> era5 = dataset.gee_datasets['ERA5-land']
-        >>> era5
-        Empty GeeDynamicDataset instance of ERA5-land
-
-        To get a detailed overview, use the `GeeDynamicDataset.get_info()`
-        method, to print out the info.
-
-        >>> era5.get_info()
-        Empty GeeDynamicDataset instance of ERA5-land
-        ------ Details ---------
-        <BLANKLINE>
-         * name: ERA5-land
-         * location: ECMWF/ERA5_LAND/HOURLY
-         * value_type: numeric
-         * scale: 2500
-         * is_static: False
-         * is_image: False
-         * is_mosaic: False
-         * credentials:
-         * time res: 1h
-        <BLANKLINE>
-         -- Known Modelobstypes --
-        <BLANKLINE>
-         * temp : ModelObstype instance of temp (linked to band: temperature_2m)
-            (conversion: Kelvin --> Celsius)
-         * pressure : ModelObstype instance of pressure (linked to band: surface_pressure)
-            (conversion: pa --> pa)
-         * wind : ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
-            vectorfield that will be converted to:
-              * wind_speed
-              * wind_direction
-            (conversion: m/s --> m/s)
-        <BLANKLINE>
-         -- Metadata --
-        <BLANKLINE>
-        No metadf is set.
-        <BLANKLINE>
-         -- Modeldata --
-        <BLANKLINE>
-        No model data is set.
-
+        None or str
         """
+        logger.debug(f"Entering GEEDynamicDatasetManager.get_info for {self}")
         retstr = f"{self}\n"
 
         retstr += self._get_base_details()
@@ -1534,138 +854,46 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
     def make_gee_plot(
         self,
-        metadf,
-        timeinstance,
-        modelobstype="temp",
-        save=False,
-        outputfolder=None,
-        filename=None,
-        vmin=None,
-        vmax=None,
-        overwrite=False,
+        metadf: pd.DataFrame,
+        timeinstance: pd.Timestamp,
+        modelobstype: str = "temp",
+        save: bool = False,
+        outputfolder: str = None,
+        filename: str = None,
+        vmin: Union[float, int, None]= None,
+        vmax: Union[float, int, None]= None,
+        overwrite: bool = False,
     ):
-        """Make an interactive spatial plot of the GEE dataset and the stations.
-
-        This method will create an interactive plot of the GEE dataset at an
-        instance in time. If metadata is present, it will be displayed as
-        markers on the map.
-
-        The interactive map can be saved as an HTML file, by specifying the
-        target path.
-
+        """
+        Make an interactive spatial plot of the GEE dataset and the stations.
 
         Parameters
         ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations.
         timeinstance : datetime.datetime or pandas.Timestamp
-            The timeinstance to plot the GEE dataset. This timestamp is
-            rounded down with the time resolution (.time_res). The timeinstance,
-            is interpreted as UTC.
+            The time instance to plot the GEE dataset.
         modelobstype : str, optional
-            The name of the ModelObstype to plot. The modelobstype name must be
-            known. The default is "temp".
+            The name of the ModelObstype to plot. Default is "temp".
+        save : bool, optional
+            If True, saves the map as an HTML file. Default is False.
         outputfolder : str or None, optional
-            Path to the folder to save the HTML file. If None, the map will
-            not be saved as an HTML file. The default is None.
+            Path to the folder to save the HTML file. Default is None.
         filename : str or None, optional
-            The filename for the HTML file. If a filename is given, if it does
-            not end with ".html", the prefix is added. If None, the map will not
-            be saved as an HTML file. The default is None.
-        vmin : num or None, optional
-            vmin is the minimum value assigned to the colormap. If None, and
-            metadata is set, vmin is computed by computing the minimum
-            modelvalue in a boundbox defined by the locations of the stations.
-            If no metadata is available, and vmin is None then vmin is set to
-            0. The default is None.
-        vmax : num or None, optional
-            vmax is the minimum value assigned to the colormap. If None, and
-            metadata is set, vmax is computed by computing the minimum
-            modelvalue in a boundbox defined by the locations of the stations.
-            If no metadata is available, and vmax is None then vmax is set to
-            1. The default is None.
+            The filename for the HTML file. Default is None.
+        vmin : numeric or None, optional
+            Minimum value for colormap. Default is None.
+        vmax : numeric or None, optional
+            Maximum value for colormap. Default is None.
         overwrite : bool, optional
-            If True, and if the target file exists, then it will be overwritten.
-            Else, an error will be raised when the target file already exists.
-            The default is False.
+            If True, overwrites existing file. Default is False.
 
         Returns
         -------
-        MAP : geemap.foliummap.Map
-            The interactive map of the GeeStaticDataset.
-
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeDynamicDataset.set_metadf: Set metadata (station locations).
-        GeeDynamicDataset.get_info: Print out detailed info method.
-        GeeDynamicDataset.make_plot: Make a timeseries plot.
-
-        Warning
-        ---------
-        To display the interactive map a graphical interactive backend is
-        required, which could be missing. You can recognice this when no
-        map is displayed, but the Python console prints out a message similar
-        to `<geemap.foliumap.Map at 0x7ff7586b8d90>`.
-
-        In that case, you can specify an `outputfolder` and `outputfile`, save the map as an HTML file, and
-        open it with a browser.
-
-        Note
-        ------
-        Be aware that it is not possible to plot a ModelObstype_Vectorfield.
-
-        Examples
-        --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
-        present in a `metobs_toolkit.Dataset()` and we will plot the 2m-temperature field.
-
-        >>> import metobs_toolkit
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> era5 = dataset.gee_datasets['ERA5-land']
-        >>> era5
-        Empty GeeDynamicDataset instance of ERA5-land
-
-        For illustration we will add metadata (station locations) to the era5
-        Modeldata, so that the locations appear on the map. We use the demo
-        dataset's metadata for this.
-
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-        >>> era5.set_metadf(dataset.metadf)
-
-        We can no use the `GeeDynamicDataset.make_gee_plot()` method to make
-        an interactive spatial plot of the era5 Modeldata (and since we added
-        metadata, the locations of the stations are added as an extra layer).
-
-        We will save the output as a (HTML) file and store it in the
-        current working directory (`os.getcwd`) as illustration.
-
-        We specify a time instance that is present in the dataset (see gee
-        dataset info online). The time instance is rounded down, respecting
-        the time resolution of the GEE dataset.
-
-        >>> import os
-        >>> import datetime
-        >>> dt = datetime.datetime(2006,11,18, 20, 15)
-        >>> str(dt)
-        '2006-11-18 20:15:00'
-
-        >>> era5.make_gee_plot(
-        ...     timeinstance=dt, #will be rounded down to 18/11/2006 20:00:00
-        ...     modelobstype="temp", #which modelobstype to plot
-        ...     outputfolder=os.getcwd(),
-        ...     filename=f'era5_temp_at_{dt}.html',
-        ...     vmin=None, #because metadata is present, a vmin will be computed
-        ...     vmax=None, #because metadata is present, a vmax will be computed
-        ...     overwrite=True,)
-        <geemap.foliumap.Map object at ...
-
-
-
+        geemap.foliumap.Map
+            The interactive map of the GeeDynamicDataset.
         """
-        # Test output folder and filename
+        logger.debug(f"Entering GEEDynamicDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
                 raise MetobsModelDataError(
@@ -1675,7 +903,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 raise MetobsModelDataError(
                     "If save is True, then filename must be specified."
                 )
-            # check file extension in the filename:
             if filename[-5:] != ".html":
                 filename += ".html"
 
@@ -1689,27 +916,13 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                         f"{target_path} is already a file and overwrite is set to False!"
                     )
 
-        # # Format datetime
-        # if isinstance(timeinstance, datetimemodule.datetime):
-        #     dt = pd.Timestamp(timeinstance)
-        # elif isinstance(timeinstance, pd.Timestamp):
-        #     dt = timeinstance
-        # else:
-        #     raise MetobsModelDataError(
-        #         f"{timeinstance} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
-        #     )
-        # check timezone and make tz-awer
         if timeinstance.tz is None:
-            # tz naive timestamp
             timeinstance = timeinstance.tz_localize(tz="UTC")
         else:
-            # tz aware timestamp --> convert to tz of records
             timeinstance = timeinstance.tz_convert(tz="UTC")
 
-        # floor to resolution
         timeinstance = timeinstance.floor(self.time_res)
 
-        # Check modelobstype
         if modelobstype not in self.modelobstypes:
             raise MetobsModelDataError(
                 f"{modelobstype} is not a known modelobstype ({self.modelobstypes})"
@@ -1719,7 +932,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if not isinstance(modelobstype, ModelObstype):
             raise MetobsModelDataError(f"{modelobstype} is not a ModelObstype.")
 
-        # Connect to Gee
         connect_to_gee()
 
         # Get image
@@ -1755,8 +967,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             # fix center
             centroid = metadf.dissolve().centroid
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
-
-            # Create GEE boundbox of the ROI
 
             metadf = metadf.to_crs("epsg:4326")
             (xmin, ymin, xmax, ymax) = metadf.total_bounds
@@ -1820,7 +1030,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             name=f"{self.name}: {modelobstype.model_band}",
         )
 
-        # add title
         title = f"{self.name} GEE plot of {modelobstype.model_band} (in {modelobstype.model_unit}) at {timeinstance}."
         MAP = add_title_to_folium_map(title=title, Map=MAP)
 
@@ -1834,177 +1043,54 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return MAP
 
-
-    # =============================================================================
-    # Functionallity
-    # =============================================================================
-
     def extract_timeseries_data(
         self,
-        metadf,
+        metadf: pd.DataFrame,
         startdt_utc,
         enddt_utc,
-        obstypes=["temp"],
-        get_all_bands=False,
-        drive_filename=None,
-        drive_folder="gee_timeseries_data",
-        force_direct_transfer=False,
-        force_to_drive=False,
+        obstypes: list = ["temp"],
+        get_all_bands: bool = False,
+        drive_filename: str = None,
+        drive_folder: str = "gee_timeseries_data",
+        force_direct_transfer: bool = False,
+        force_to_drive: bool = False,
     ):
-        """Extract timeseries data and set the modeldf.
-
-        The timeseries are extracted at the location of the stations. Nan's are
-        used when there is no data at that location (out of data-mask).
-
-        There are two possibilities for extracting the timeseries:
-            * If the data request is not too big, then the timeseries are
-              direct imported. No additional steps are required. The Modeldata
-              is converted to Metobs-toolkit standards (name and units), and
-              amplitude/direction fields are computed for requested vectorfields.
-
-            * If the data request is to big, GEE services will write a datafile
-              (CSV) directly to your Google Drive. Wait until the file appears
-              on your Drive, then download it. You can import the data by using
-              the `GeeDynamicDataset.set_modeldata_from_csv()` method.
+        """
+        Extract timeseries data and set the modeldf.
 
         Parameters
         ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations.
         startdt_utc : datetime.datetime
             Start datetime of the timeseries in UTC.
         enddt_utc : datetime.datetime
             Last datetime of the timeseries in UTC.
-        obstypes : list of strings, optional
-            A list of ModelObstype names to extract modeldata for. These obstypes
-            must be known. The default is ['temp']
+        obstypes : list of str, optional
+            List of ModelObstype names to extract modeldata for. Default is ['temp'].
         get_all_bands : bool, optional
-            If True, all values (over all bands) are extracted. If the band is
-            linked to a ModelObstye, then the name of the modelObstype is used
-            instead of the band name. If True, the obstypes argument is ignored.
-            The default is False.
+            If True, all values (over all bands) are extracted. Default is False.
         drive_filename : str or None, optional
-            If given, the data will be saved as this filename on your Google Drive.
-            This argument will only take effect when the data is written to
-            Google Drive. If None, a custom filename is created. The default is
-            None.
-        drive_folder: str
-            The name of the folder on your Google Drive to save the drive_filename
-            in. If the folder, does not exists it will be created instead. This
-            argument will only take effect when the data is written to Google
-            Drive.
-        force_direct_transfer: bool, optional
-            If True, the data is demanded as a direct transfer (no file writen
-            to google drive). If the request is to large, an GEE error is raised.
-            The default is False.
-        force_to_drive: bool, optional
-            If True, The gee data is writen to a file on your drive. Direct
-            transfer of data is prohibited. The default is False.
+            Filename for saving data on Google Drive. Default is None.
+        drive_folder : str, optional
+            Folder on Google Drive to save the file. Default is "gee_timeseries_data".
+        force_direct_transfer : bool, optional
+            If True, forces direct transfer. Default is False.
+        force_to_drive : bool, optional
+            If True, forces writing to Google Drive. Default is False.
 
         Returns
         -------
-        None.
-
-        See Also
-        -----------
-        metobs_toolkit.connect_to_gee: Establish connection with GEE services.
-        GeeDynamicDataset.set_metadf: Set metadata (station locations).
-        GeeDynamicDataset.get_info: Print out detailed info method.
-        GeeDynamicDataset.make_plot: Make a timeseries plot.
-
-        Note
-        -------
-        Make sure that the metadata is set. Use the
-        `GeeDynamicDataset.set_metadata()` for this.
+        pandas.DataFrame or None
+            Extracted timeseries dataframe or None if written to Drive.
 
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        written to a file and saved on your Google Drive. In this case, you need
-        to provide the Modeldata with the data using the .set_model_from_csv()
-        method.
-
-        Examples
-        --------
-        As an example, we will use the ERA5-Land dataset, which is a default `GeeDynamicDataset`
-        present in a `metobs_toolkit.Dataset()`. We will extract era5 timeseries
-        data for the stations in the demo dataset.
-
-        >>> import metobs_toolkit
-        >>> #Create your Dataset
-        >>> dataset = metobs_toolkit.Dataset() #empty Dataset
-        >>> dataset.import_data_from_file(
-        ...                input_data_file=metobs_toolkit.demo_datafile,
-        ...                input_metadata_file=metobs_toolkit.demo_metadatafile,
-        ...                template_file=metobs_toolkit.demo_template)
-        >>> era5 = dataset.gee_datasets['ERA5-land']
-        >>> era5.set_metadf(dataset.metadf)
-        >>> era5
-        Empty GeeDynamicDataset instance of ERA5-land
-
-        Now we will extract temperature and wind timeseries from ERA5. We already have
-        a ModelObstype representing the temperature present in the GeeDynamicDataset:
-
-        >>> era5.modelobstypes
-        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)}
-
-        Note that the "wind" Modelobstype is a ModelObstype_Vectorfield!
-
-        >>> era5.modelobstypes['wind']
-        ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m)
-
-        When "wind" is requested for ERA5, the toolkit will request the u and v
-        components of the wind, download them, convert the units and compute
-        the amplitude and direction (scalar) values. At last, two new ModelObstypes
-        are (automatically) created for the amplitude and direction values.
-
-
-        We define a (short) period and extract ERA5 timeseries.
-
-        >>> import datetime
-        >>> tstart = datetime.datetime(2022,9,4)
-        >>> tend = datetime.datetime(2022,9,5)
-        >>> era5.extract_timeseries_data(
-        ...                            startdt_utc=tstart,
-        ...                            enddt_utc=tend,
-        ...                            obstypes=['temp', 'wind'])
-
-        If the data request is small, the timeseries are present. (If the
-        data request is larger, a CSV file is writen to your google drive.
-        Download that file, and use the `GeeDynamicDataset.set_modeldata_from_csv()`
-        method.)
-
-        >>> era5.modeldf
-                                              temp  wind_speed  wind_direction
-        name      datetime
-        vlinder01 2022-09-04 00:00:00+00:00  17.71        2.44          359.39
-                  2022-09-04 01:00:00+00:00  17.56        2.47           11.91
-                  2022-09-04 02:00:00+00:00  17.24        2.28           19.15
-                  2022-09-04 03:00:00+00:00  16.75        2.22           22.71
-                  2022-09-04 04:00:00+00:00  16.33        2.22           22.72
-        ...                                    ...         ...             ...
-        vlinder28 2022-09-04 20:00:00+00:00  21.40        2.37          251.99
-                  2022-09-04 21:00:00+00:00  20.91        2.47          270.47
-                  2022-09-04 22:00:00+00:00  20.51        2.50          298.30
-                  2022-09-04 23:00:00+00:00  20.28        2.76          322.41
-                  2022-09-05 00:00:00+00:00  20.13        2.97          331.08
-        <BLANKLINE>
-        [700 rows x 3 columns]
-
-
-
-        As you can see, the timeseries are automatically converted to the
-        toolkit standards of the Obstype.
-
-        We can also see that the amplitude and direction of the windfield,
-        are added as ModelObstypes.
-
-        >>> era5.modelobstypes
-        {'temp': ModelObstype instance of temp (linked to band: temperature_2m), 'pressure': ModelObstype instance of pressure (linked to band: surface_pressure), 'wind': ModelObstype_Vectorfield instance of wind (linked to bands: u_component_of_wind_10m and v_component_of_wind_10m), 'wind_speed': ModelObstype instance of wind_speed (linked to band: wind_speed), 'wind_direction': ModelObstype instance of wind_direction (linked to band: wind_direction)}
-
-
+        written to a file and saved on your Google Drive. In this case, use the 
+        ``metobs_toolkit.Dataset.import_gee_data_from_file()`` method to import the data.
         """
-        # ====================================================================
-        # Test input
-        # ====================================================================
+        logger.debug(f"Entering GEEDynamicDatasetManager.extract_timeseries_data for {self}")
         self._check_metadf_validity(metadf)
 
         if (force_direct_transfer) & (force_to_drive):
@@ -2013,10 +1099,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             )
         # Check obstypes
         if isinstance(obstypes, str):
-            obstypes = [obstypes]  # convert to list
+            obstypes = [obstypes]
 
         for obstype in obstypes:
-            # is obstype mapped?
             if obstype not in self.modelobstypes.keys():
                 raise MetobsModelDataError(
                     f"{obstype} is an unknown modelobservation type of the {self}."
@@ -2032,14 +1117,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if enddt_utc.tz is None:
             enddt_utc = enddt_utc.tz_localize(tz="UTC")
 
-        # ====================================================================
-        # GEE api extraction
-        # ====================================================================
-
-        # Connect to Gee
         connect_to_gee()
 
-        # Get bandnames
         if get_all_bands:
             bandnames = self._get_all_gee_bandnames()
         else:
@@ -2068,27 +1147,20 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             use_drive = True
         else:
             use_drive = False
-        # =============================================================================
-        # df to featurecollection
-        # =============================================================================
 
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
-        # =============================================================================
-        # extract raster values
-        # =============================================================================
-
         def rasterExtraction(image):
             feature = image.sampleRegions(
-                collection=ee_fc,  # feature collection here
-                scale=self.scale,  # Cell size of raster
+                collection=ee_fc,
+                scale=self.scale,
             )
             return feature
 
         # Because the daterange is maxdate exclusive, add the time resolution to the enddt
         enddt_utc = enddt_utc + pd.Timedelta(self.time_res)
 
-        raster = gee_api.get_ee_obj(self, target_bands=bandnames)  # dataset
+        raster = gee_api.get_ee_obj(self, target_bands=bandnames)
         results = (
             raster.filter(
                 ee.Filter.date(
@@ -2104,7 +1176,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if not use_drive:
             results = results.getInfo()
 
-            # extract properties
             properties = [x["properties"] for x in results["features"]]
             df = pd.DataFrame(properties)
 
@@ -2115,7 +1186,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 df
             )  # format to wide structure + rename columns etc
 
-            # Subset
             if not get_all_bands:
                 df = self._subset_to_obstypes(df=df, trg_obstypes=obstypes)
 
@@ -2171,17 +1241,13 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
             return
 
-
 # =============================================================================
 # Errors
 # =============================================================================
 
-
 class MetobsModelDataError(Exception):
     """Exception raised for errors with ModelData."""
-
     pass
-
 
 # =============================================================================
 # Define default datasets
@@ -2197,7 +1263,7 @@ global_LCZ_map = GEEStaticDatasetManager(
     is_mosaic=True,
     credentials="Demuzere M.; Kittner J.; Martilli A.; Mills, G.; Moede, C.; Stewart, I.D.; van Vliet, J.; Bechtel, B. A global map of local climate zones to support earth system modelling and urban-scale environmental science. Earth System Science Data 2022, 14 Volume 8: 3835-3873. doi:10.5194/essd-14-3835-2022",
     class_map={
-        1: "Compact highrise",  # mapvalue: (color, human class)
+        1: "Compact highrise",
         2: "Compact midrise",
         3: "Compact lowrise",
         4: "Open highrise",
@@ -2255,10 +1321,10 @@ global_worldcover = GEEStaticDatasetManager(
     value_type="categorical",
     scale=10,
     is_image=False,
-    is_mosaic=True,  # test this
+    is_mosaic=True,
     credentials="https://spdx.org/licenses/CC-BY-4.0.html",
     class_map={
-        10: "Tree cover",  # mapvalue: (color, human class)
+        10: "Tree cover",
         20: "Shrubland",
         30: "Grassland",
         40: "Cropland",
@@ -2296,18 +1362,17 @@ era5_land = GEEDynamicDatasetManager(
     value_type="numeric",
     scale=2500,
     is_image=False,
-    is_mosaic=False,  # test this
+    is_mosaic=False,
     credentials="",
     time_res="1h",
     modelobstypes=copy.deepcopy(default_era5_obstypes),
 )
 
 
-default_datasets = {  # Static datasets
+default_datasets = {
     global_LCZ_map.name: global_LCZ_map,
     global_dem.name: global_dem,
     global_worldcover.name: global_worldcover,
-    # Dynamic datasets
     era5_land.name: era5_land,
 }
 
