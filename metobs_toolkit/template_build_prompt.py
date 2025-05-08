@@ -9,32 +9,40 @@ Created on Wed May 24 10:25:45 2023
 import os
 import sys
 import inspect
-import pandas as pd
-import numpy as np
 import copy
 from datetime import datetime
+import logging
+
+import pandas as pd
+import numpy as np
 import pytz
 
 from metobs_toolkit.backend_collection.errorclasses import *
-from metobs_toolkit.template import _get_empty_templ_dict, _pwrite_templdict_to_json
-
+from metobs_toolkit.backend_collection.dev_collection import get_function_defaults
+from metobs_toolkit.template import _get_empty_templ_dict
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.filewriters import write_dict_to_json
+
+logger = logging.getLogger("<metobs_toolkit>")
 
 
-def get_function_defaults(func):
-    # return the keyword args with default values as a dict of a function
-    signature = inspect.signature(func)
-    return {
-        k: v.default
-        for k, v in signature.parameters.items()
-        if v.default is not inspect.Parameter.empty
-    }
+def test_unit(unitstring: str) -> bool:
+    """
+    Test if a unit can be interpreted by pint.
 
+    Parameters
+    ----------
+    unitstring : str
+        The unit string to test.
 
-def test_unit(unitstring):
-    """Test if a unit can be interpreted by pint"""
+    Returns
+    -------
+    bool
+        True if the unit is valid, False otherwise.
+    """
+    logger.debug("Entering test_unit()")
     try:
         Obstype(obsname="dummy", std_unit=unitstring, description="dummy")
         return True
@@ -46,7 +54,16 @@ def test_unit(unitstring):
         return False
 
 
-def add_new_obstype():
+def add_new_obstype() -> tuple:
+    """
+    Interactively add a new observation type.
+
+    Returns
+    -------
+    tuple
+        Tuple containing the new Obstype object and the current unit string.
+    """
+    logger.debug("Entering add_new_obstype()")
     print("\n --- Adding a new observation type --- \n")
 
     # get obsname
@@ -92,8 +109,21 @@ def add_new_obstype():
     return new_obstype, cur_unit
 
 
-def get_unit(trgobstype):
+def get_unit(trgobstype: Obstype) -> str:
+    """
+    Prompt the user to specify the unit of the data for a given observation type.
 
+    Parameters
+    ----------
+    trgobstype : Obstype
+        The target observation type.
+
+    Returns
+    -------
+    str
+        The unit string for the data.
+    """
+    logger.debug("Entering get_unit()")
     is_std_unit = yes_no_ques(
         f" Are the {trgobstype} values in your data in {trgobstype.std_unit}?"
     )
@@ -126,8 +156,21 @@ def get_unit(trgobstype):
         return cur_unit
 
 
-def col_option_input(columns):
-    """Convert options to numerics and ask for input."""
+def col_option_input(columns) -> str:
+    """
+    prompt a list of options.
+
+    Parameters
+    ----------
+    columns : iterable
+        Iterable of column names or options.
+
+    Returns
+    -------
+    str
+        The selected column name or option. Returns None if 'x' is selected.
+    """
+    logger.debug("Entering col_option_input()")
     mapper = {}
     i = 1
     for col in columns:
@@ -143,8 +186,8 @@ def col_option_input(columns):
     while valid_input is False:
         if i <= 3:
             repr_str = "("
-            for i in np.arange(1, i):
-                repr_str += str(i) + ", "
+            for j in np.arange(1, i):
+                repr_str += str(j) + ", "
             # remove last comma
             repr_str = repr_str[:-2] + ") : "
             num_ans = input(f"{repr_str}")
@@ -158,7 +201,7 @@ def col_option_input(columns):
         try:
             _ = mapper[int(num_ans)]
             valid_input = True
-        except KeyError:
+        except (KeyError, ValueError):
             valid_input = False
             print(f"{num_ans} is not a valid input.")
 
@@ -166,29 +209,51 @@ def col_option_input(columns):
     return mapper[int(num_ans)]
 
 
-def yes_no_ques(text):
-    """Get yes/no input."""
+def yes_no_ques(text: str) -> bool:
+    """
+    Get yes/no input from the user.
+
+    Parameters
+    ----------
+    text : str
+        The question to prompt.
+
+    Returns
+    -------
+    bool
+        True if 'y' is selected, False if 'n' is selected.
+    """
+    logger.debug("Entering yes_no_ques()")
     valid_input = False
 
     while valid_input is False:
         prompt = input(f" {text}. (y/n) : ")
 
-        if (prompt == "y") | (prompt == "Y"):
+        if (prompt == "y") or (prompt == "Y"):
             valid_input = True
             return True
-        elif (prompt == "n") | (prompt == "N"):
+        elif (prompt == "n") or (prompt == "N"):
             valid_input = True
             return False
         else:
             print(f" {prompt} is not y or n, give a suitable answer.")
 
 
-def usr_input_dir(text):
-    """Prompt directory path.
-
-    question and check if the answer is a directory, return the path
-    if it is a directory, repeat else.
+def usr_input_dir(text: str) -> str:
     """
+    Prompt for a directory path and check if it exists.
+
+    Parameters
+    ----------
+    text : str
+        The prompt text.
+
+    Returns
+    -------
+    str
+        The valid directory path.
+    """
+    logger.debug("Entering usr_input_dir()")
     is_dir = False
     while is_dir is False:
         inp_dir = input(f"{text} : ")
@@ -199,12 +264,21 @@ def usr_input_dir(text):
     return inp_dir
 
 
-def usr_input_file(text):
-    """Prompt file path.
-
-    Prompt question and check if the answer is a file, return the path if it
-    exists, repeat else.
+def usr_input_file(text: str) -> str:
     """
+    Prompt for a file path and check if it exists.
+
+    Parameters
+    ----------
+    text : str
+        The prompt text.
+
+    Returns
+    -------
+    str
+        The valid file path.
+    """
+    logger.debug("Entering usr_input_file()")
     is_file = False
     while is_file is False:
         inp_file = input(f"{text} : ")
@@ -215,8 +289,9 @@ def usr_input_file(text):
     return inp_file
 
 
-def build_template_prompt():
-    """Launch an interactive prompt to construct a template.json file.
+def build_template_prompt() -> None:
+    """
+    Launch an interactive prompt to construct a template.json file.
 
     When called, an interactive prompt will start. Answer the questions, and hit
     Enter to continue. At the end of the prompt, you can specify a location where
@@ -224,32 +299,21 @@ def build_template_prompt():
 
     Returns
     -------
-    None.
+    None
 
-    Note
-    ------
-    It is a good practice to rename the template.json file to specify the corresponding datafile(s).
+    Notes
+    -----
+    It is good practice to rename the template.json file to specify the corresponding data file(s).
 
-    Note
-    ------
     At the end, the prompt asks if you need further assistance. If you do, the prompt
     will print out code that you can copy and run to create a `Dataset()`.
 
     Warning
-    ---------
-    In previous versions (<=v0.2.1) the templatefile was a csv. Thus you have
+    -------
+    In previous versions (<=v0.2.1) the template file was a CSV. Thus you have
     to create the template again to be compatible with this version of the toolkit.
-
-    Examples
-    --------
-    .. code-block:: python
-
-        >>> import metobs_toolkit
-        >>>
-        >>> # Launch the prompt
-        >>> metobs_toolkit.build_template_prompt() # doctest: +SKIP
-
     """
+    logger.debug("Entering build_template_prompt()")
     tmpl_dict = _get_empty_templ_dict()
     tmpl_dict["data_related"]["obstype_mapping"] = []
 
@@ -269,8 +333,8 @@ def build_template_prompt():
     if meta_avail:
         metadatafilepath = usr_input_file("Give the full path to your metadata file")
 
-    if (not data_avail) & (not meta_avail):
-        sys.exit("No teplate can be build without a data or metadata file.")
+    if (not data_avail) and (not meta_avail):
+        sys.exit("No template can be built without a data or metadata file.")
 
     # =============================================================================
     # Map data file
@@ -278,7 +342,6 @@ def build_template_prompt():
     if data_avail:
         print("\n\n *******      Data File   ***********")
 
-        # datafilepath = usr_input_file('Give the full path to your data file')
         print(" ... opening the data file ...")
         datareader = CsvFileReader(file_path=datafilepath, is_url=False)
 
@@ -298,13 +361,10 @@ def build_template_prompt():
 
         if format_option == 1:
             tmpl_dict["data_related"]["structure"] = "long"
-            # options_dict["data_structure"] = "long"
         if format_option == 2:
             tmpl_dict["data_related"]["structure"] = "wide"
-            # options_dict["data_structure"] = "wide"
         if format_option == 3:
             tmpl_dict["data_related"]["structure"] = "single_station"
-            # options_dict["data_structure"] = "single_station"
 
         # Datatime mapping
         dt_dict = {
@@ -606,7 +666,7 @@ def build_template_prompt():
 
     # write to csv
     templatefilepath = os.path.join(save_dir, "template.json")
-    _pwrite_templdict_to_json(templdict=tmpl_dict, trgfile=templatefilepath)
+    write_dict_to_json(templdict=tmpl_dict, trgfile=templatefilepath)
 
     print(f" DONE! The template is written here: {templatefilepath}")
 

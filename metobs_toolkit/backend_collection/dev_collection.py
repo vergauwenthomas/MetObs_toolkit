@@ -92,3 +92,26 @@ def add_new_arg_in_docstr(docstr, newargstr, firstline_indent=8, description_ind
         )
 
     return docstr
+
+
+def get_function_defaults(func: callable) -> dict:
+    """
+    Return the keyword arguments with default values as a dictionary for a function.
+
+    Parameters
+    ----------
+    func : callable
+        The function to inspect.
+
+    Returns
+    -------
+    dict
+        Dictionary of keyword arguments and their default values.
+    """
+    logger.debug("Entering get_function_defaults()")
+    signature = inspect.signature(func)
+    return {
+        k: v.default
+        for k, v in signature.parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }

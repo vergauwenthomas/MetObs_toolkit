@@ -165,62 +165,6 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs):
     raise ValueError(f"Could not determine the separator for {filepath}")
 
 
-# ------------------------------------------
-#    Devblock
-# ------------------------------------------
-
-# def _create_datetime_column(df, template):
-#     """Use the template to construct a tz-naive "datetime" column."""
-
-#     template._check_if_datetime_is_mapped()
-
-#     if template.timestampinfo["datetimecolumn"] is not None:
-#         if not (template.timestampinfo["datetimecolumn"] in df.columns):
-#             raise MetobsTemplateError(
-#                 f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
-#             )
-#         df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
-#         try:
-#             df["datetime"] = pd.to_datetime(
-#                 df["datetime"], format=template.timestampinfo["fmt"]
-#             )
-#         except Exception as e:
-#             raise MetobsTemplateError(
-#                 "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
-#             )
-
-#     else:
-#         # by date and time column
-#         if not (template.timestampinfo["time_column"] in df.columns):
-#             raise MetobsTemplateError(
-#                 f'The {template.timestampinfo["time_column"]} is not found in the columns of the data file: {df.columns}'
-#             )
-#         if not (template.timestampinfo["date_column"] in df.columns):
-#             raise MetobsTemplateError(
-#                 f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
-#             )
-
-#         df = df.rename(
-#             columns={
-#                 template.timestampinfo["time_column"]: "_time",
-#                 template.timestampinfo["date_column"]: "_date",
-#             }
-#         )
-#         try:
-#             df["datetime"] = pd.to_datetime(
-#                 df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
-#             )
-
-#         except Exception as e:
-#             raise MetobsTemplateError(
-#                 "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
-#             )
-#             # raise Exception('The timestamps could not be converted to datetimes, check the timestamp format(s) in your template. \n').with_traceback(e.__traceback__)
-
-#         df = df.drop(columns=["_date", "_time"])
-
-#     return df
-
 
 class MetobsTemplateError(Exception):
     """Exception raised for errors in the template."""

@@ -15,7 +15,7 @@ import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.settings_collection import label_def
-from metobs_toolkit.backend_collection.docstring_wrapper import copy_doc
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 import metobs_toolkit.qc_collection as qc_collection
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,

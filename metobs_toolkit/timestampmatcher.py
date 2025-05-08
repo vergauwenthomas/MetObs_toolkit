@@ -3,18 +3,22 @@ from typing import Literal, Union
 import pandas as pd
 import numpy as np
 
-
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
-
 class TimestampMatcher:
-    """Class for mapping and resampling timestamp records."""
+    """
+    Class for mapping and resampling timestamp records.
 
-    def __init__(self, orig_records: pd.Series):
+    Parameters
+    ----------
+    orig_records : pd.Series
+        Original timestamp records.
+    """
+
+    def __init__(self, orig_records: pd.Series) -> None:
         """
         Initialize the TimestampMatcher with original records.
 
@@ -22,37 +26,30 @@ class TimestampMatcher:
         ----------
         orig_records : pd.Series
             Original timestamp records.
+
+        Raises
+        ------
+        TypeError
+            If orig_records is not a pandas Series.
         """
         if not isinstance(orig_records, pd.Series):
             raise TypeError("orig_records must be a pandas Series")
 
         self.orig_records = orig_records
-        self.tz = str(self.orig_records.index.tz)  # TYPO
+        self.tz = str(self.orig_records.index.tz)
 
-        self.conv_df = pd.DataFrame()  # Holds the conversion dataframe
+        self.conv_df = pd.DataFrame()  # Holds the conversion DataFrame
 
         logger.info("TimestampMatcher initialized with %d records", len(orig_records))
 
     @property
     def obsname(self) -> str:
-        """Get the name of the original records.
-
-        Returns
-        -------
-        str
-            Name of the original records.
-        """
-        return str(self.orig_records.name)  # TYPO
+        """Return the name of the original records as a string."""
+        return str(self.orig_records.name)
 
     @property
     def target_freq(self) -> pd.Timedelta:
-        """Infer the target frequency from the conversion dataframe.
-
-        Returns
-        -------
-        pd.Timedelta
-            Inferred target frequency.
-        """
+        """Return the inferred target frequency from the conversion DataFrame."""
         freq = pd.infer_freq(self.conv_df["datetimedummy_target"])
         if freq is None:
             raise ValueError("Frequency could not be computed.")
@@ -60,54 +57,33 @@ class TimestampMatcher:
 
     @property
     def target_records(self) -> pd.Series:
-        """
-        Get the target records after timestamp conversion.
-
-        Returns
-        -------
-        pd.Series
-            Target records with converted timestamps.
-        """
+        """Return the target records after timestamp conversion."""
         if self.conv_df.empty:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
-        return self.conv_df.set_index("datetime")[self.obsname]  # TYPO
+        return self.conv_df.set_index("datetime")[self.obsname]
 
     @property
     def gap_records(self) -> pd.Series:
-        """
-        Get the records that have gaps after timestamp conversion.
-
-        Returns
-        -------
-        pd.Series
-            Records with gaps.
-        """
+        """Return the records that have gaps after timestamp conversion."""
         if self.conv_df.empty:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
-        gapsubset = self.conv_df[self.conv_df["datetimedummy_raw"].isnull()]  # TYPO
-        return gapsubset.set_index("datetime")[self.obsname]  # TYPO
+        gapsubset = self.conv_df[self.conv_df["datetimedummy_raw"].isnull()]
+        return gapsubset.set_index("datetime")[self.obsname]
 
     @property
     def outlier_records(self) -> pd.Series:
-        """
-        Get the records that are outliers after timestamp conversion.
-
-        Returns
-        -------
-        pd.Series
-            Outlier records.
-        """
+        """Return the records that are outliers after timestamp conversion."""
         if self.conv_df.empty:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
 
         outliersubset = self.conv_df[
             pd.isna(self.conv_df[self.obsname])
-            & pd.notna(self.conv_df["datetimedummy_raw"])  # TYPO
-        ]  # TYPO
-        return outliersubset.set_index("datetime")[self.obsname]  # TYPO
+            & pd.notna(self.conv_df["datetimedummy_raw"])
+        ]
+        return outliersubset.set_index("datetime")[self.obsname]
 
     def get_outlier_map(self) -> dict:
         """
@@ -117,39 +93,59 @@ class TimestampMatcher:
         -------
         dict
             Mapping of outlier records.
+
+        Raises
+        ------
+        ValueError
+            If no timestamp conversion has been applied yet.
         """
+        logger.debug("Entering get_outlier_map for %s", self)
         if self.conv_df.empty:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
 
         outliersubset = self.conv_df[
             pd.isna(self.conv_df[self.obsname])
-            & pd.notna(self.conv_df["datetimedummy_raw"])  # TYPO
-        ]  # TYPO
+            & pd.notna(self.conv_df["datetimedummy_raw"])
+        ]
         return dict(
             zip(
                 outliersubset["datetimedummy_raw"],
                 outliersubset["datetimedummy_target"],
             )
-        )  # TYPO
+        )
 
     def _map_to_perfect_timestamps(
         self,
-        target_freq,
-        shift_tolerance,
-        origin=None,
-        closing=None,
-        direction="nearest",
-    ):
+        target_freq: Union[pd.Timedelta, str],
+        shift_tolerance: Union[pd.Timedelta, str],
+        origin: Union[pd.Timestamp, None] = None,
+        closing: Union[pd.Timestamp, None] = None,
+        direction: Literal['backward', 'forward', 'nearest'] = "nearest",
+    ) -> None:
+        """
+        Map original records to perfect timestamps.
 
+        Parameters
+        ----------
+        target_freq : pd.Timedelta or str
+            Target frequency for mapping.
+        shift_tolerance : pd.Timedelta or str
+            Tolerance for shifting timestamps.
+        origin : pd.Timestamp or None, optional
+            Origin timestamp for the mapping. If None, the minimum index is used.
+        closing : pd.Timestamp or None, optional
+            Closing timestamp for the mapping. If None, it is calculated.
+        direction : str, optional
+            Direction for merging, by default "nearest".
+
+        Raises
+        ------
+        AssertionError
+            If the closing timestamp is not a valid candidate.
+        """
+        logger.debug("Entering _map_to_perfect_timestamps for %s", self)
         target_freq = pd.to_timedelta(target_freq)
-        # # check if the records are perfect
-        # freq = pd.infer_freq(self.orig_records.index)
-        # if freq is None:
-        #     raise ValueError(
-        #         f"{self} does not hold perfec-freq-records, and thus reindexing is not possible without introducing errors"
-        #     )
-
         # get origin
         if origin is None:
             origin = self.orig_records.index.min()
@@ -158,7 +154,6 @@ class TimestampMatcher:
 
         # get closing timestamp
         if closing is None:
-
             closing = pd.Timestamp(
                 origin
                 + (
@@ -176,7 +171,7 @@ class TimestampMatcher:
             start=origin,
             end=closing,
             freq=target_freq,
-            tz=self.tz,  # TYPO
+            tz=self.tz,
         )
 
         rawdf = self.orig_records.to_frame()
@@ -185,12 +180,12 @@ class TimestampMatcher:
         )  # To keep track of the original raw timestamps
 
         targetdf = pd.DataFrame(
-            data={"datetimedummy": target_dtrange}, index=target_dtrange  # TYPO
+            data={"datetimedummy": target_dtrange}, index=target_dtrange
         )
         targetdf.index.name = "datetime"
 
         logger.debug(
-            "Merging target and raw dataframes with tolerance: %s", shift_tolerance
+            "Merging target and raw DataFrames with tolerance: %s", shift_tolerance
         )
 
         mergedf = pd.merge_asof(
@@ -211,16 +206,16 @@ class TimestampMatcher:
         freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
         origin_simplify_tolerance: Union[pd.Timedelta, str],
         timestamp_tolerance: Union[pd.Timedelta, str],
-        force_freq=None,
-        force_origin=None,
-        force_closing=None,
+        force_freq: Union[pd.Timedelta, str, None] = None,
+        force_origin: Union[pd.Timestamp, str, None] = None,
+        force_closing: Union[pd.Timestamp, None] = None,
     ) -> None:
         """
-        Create a mapper for irregular records to perfect-freq-timestamps.
+        Create a mapper for irregular records to perfect-frequency timestamps.
 
         Parameters
         ----------
-        freq_estimation_method : Literal['highest', 'median']
+        freq_estimation_method : {'highest', 'median'}
             Method to estimate frequency.
         freq_estimation_simplify_tolerance : pd.Timedelta or str
             Tolerance for simplifying frequency estimation.
@@ -228,12 +223,19 @@ class TimestampMatcher:
             Tolerance for simplifying origin.
         timestamp_tolerance : pd.Timedelta or str
             Tolerance for timestamp matching.
+        force_freq : pd.Timedelta, str, or None, optional
+            Force the frequency to a specific value.
+        force_origin : pd.Timestamp, str, or None, optional
+            Force the origin to a specific value.
+        force_closing : pd.Timestamp or None, optional
+            Force the closing timestamp.
 
-        Returns
-        -------
-        Tuple[pd.Series, pd.DataFrame]
-            Target series and conversion dataframe.
+        Raises
+        ------
+        TypeError
+            If input types are incorrect.
         """
+        logger.debug("Entering make_equispaced_timestamps_mapper for %s", self)
         if not isinstance(
             freq_estimation_method, str
         ) or freq_estimation_method not in ["highest", "median"]:
@@ -253,10 +255,10 @@ class TimestampMatcher:
             )
 
             target_freq = get_likely_frequency(
-                timestamps=self.orig_records.index,  # TYPO
+                timestamps=self.orig_records.index,
                 method=freq_estimation_method,
                 max_simplify_error=freq_estimation_simplify_tolerance,
-            )  # TYPO
+            )
         else:
             target_freq = pd.to_timedelta(force_freq)
             logger.debug(f"Force the frequency to {target_freq}")
@@ -283,23 +285,37 @@ class TimestampMatcher:
             closing=force_closing,
         )
 
-
 def simplify_time(
     time: Union[pd.Timestamp, pd.Timedelta],
     max_simplify_error: pd.Timedelta,
     zero_protection: bool = False,
-):
-    """Simplifies a time (or timedelta) to a rounded value, within a tolerance.
-
-    time can be a timestamp of a timedelta.
-
-    zero_protections make shure that the returned simplified time is not zero.
-    This is in practice used when applied to frequencies.
+) -> Union[pd.Timestamp, pd.Timedelta]:
     """
+    Simplify a time (or timedelta) to a rounded value, within a tolerance.
 
-    # NOTE: Make sure that the sequence goes from coarce to fine AND
+    Parameters
+    ----------
+    time : pd.Timestamp or pd.Timedelta
+        The time or timedelta to simplify.
+    max_simplify_error : pd.Timedelta
+        The maximum allowed deviation from the simplified value.
+    zero_protection : bool, optional
+        If True, ensures the returned simplified time is not zero. Used when applied to frequencies.
+
+    Returns
+    -------
+    pd.Timestamp or pd.Timedelta
+        The simplified time or timedelta.
+
+    Raises
+    ------
+    MetObsTimeSimplifyError
+        If no simplification is possible and zero_protection is True.
+    """
+    logger.debug("Entering simplify_time")
+    # NOTE: Make sure that the sequence goes from coarse to fine AND
     # That all elements are natural multiplicatives of each other !! (this
-    # is required since the syncronization relies on it)
+    # is required since the synchronization relies on it)
     simplify_sequence = ["1d", "1h", "30min", "10min", "5min", "1min", "30s"]
 
     for simpl_resolution in simplify_sequence:
@@ -309,11 +325,11 @@ def simplify_time(
                 # try the ceil as candidate (is never zero)
                 candidate = time.ceil(pd.Timedelta(simpl_resolution))
 
-        # Tests if candidate mets conditions
+        # Tests if candidate meets conditions
         if abs(time - candidate) < pd.to_timedelta(max_simplify_error):
             return candidate
 
-    # No simplyfication posible
+    # No simplification possible
     if zero_protection:
         if time == pd.Timedelta(0):
             raise MetObsTimeSimplifyError(
@@ -321,29 +337,35 @@ def simplify_time(
             )
     return time
 
-
 def get_likely_frequency(
     timestamps: pd.DatetimeIndex,
     method: Literal["highest", "median"] = "highest",
     max_simplify_error: Union[str, pd.Timedelta] = "2min",
 ) -> pd.Timedelta:
-    """Find the most likely observation frequency of a datetimeindex.
+    """
+    Find the most likely observation frequency of a DatetimeIndex.
 
     Parameters
     ----------
-    timestamps : pandas.Datetimeindex()
-        Datetimeindex of the dataset.df.
-    method : 'highest' or 'median', optional
-        Select wich method to use. If 'highest', the highest apearing frequency is used.
-        If 'median', the median of the apearing frequencies is used. The default is 'highest'.
-    max_simplify_error : datetimestring, optional
-        The maximum deviation from the found frequency when simplifying. The default is '2min'.
+    timestamps : pd.DatetimeIndex
+        DatetimeIndex of the dataset.
+    method : {'highest', 'median'}, optional
+        Select which method to use. If 'highest', the highest appearing frequency is used.
+        If 'median', the median of the appearing frequencies is used. Default is 'highest'.
+    max_simplify_error : str or pd.Timedelta, optional
+        The maximum deviation from the found frequency when simplifying. Default is '2min'.
 
     Returns
     -------
-    assume_freq : datetime.timedelta
-        The assumed (and simplified) frequency of the datetimeindex.
+    pd.Timedelta
+        The assumed (and simplified) frequency of the DatetimeIndex.
 
+    Raises
+    ------
+    MetObsTimeSimplifyError
+        If max_simplify_error is not a valid time indication.
+    AssertionError
+        If the method is not known.
     """
     logger.debug(
         f"Starting get_likely_frequency with method={method} and max_simplify_error={max_simplify_error}"
@@ -357,10 +379,10 @@ def get_likely_frequency(
         pd.to_timedelta(max_simplify_error)
     except ValueError:
         raise MetObsTimeSimplifyError(
-            f'{max_simplify_error} is not valid timeindication. Example: "5min" indicates 5 minutes.'
+            f'{max_simplify_error} is not valid time indication. Example: "5min" indicates 5 minutes.'
         )
 
-    # simplify is true if a non-zero simplify_error is provided
+    # simplify is True if a non-zero simplify_error is provided
     if pd.to_timedelta(max_simplify_error).seconds < 1:
         simplify = False
     else:
@@ -388,12 +410,6 @@ def get_likely_frequency(
         )
 
         logger.debug(f"Assumed frequency after simplification: {assume_freq}")
-
-    # if assume_freq == pd.to_timedelta(0):  # highly likely due to a duplicated record
-    #     # select the second highest frequency
-    #     assume_freq = abs(
-    #         timestamps.to_series().diff().value_counts().index
-    #     ).sort_values(ascending=True)[1]
 
     logger.debug(f"Final assumed frequency: {assume_freq}")
 

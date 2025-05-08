@@ -30,7 +30,7 @@ from metobs_toolkit.obstypes import Obstype
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.qc_collection import toolkit_buddy_check
-from metobs_toolkit.backend_collection.docstring_wrapper import copy_doc
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
