@@ -1533,7 +1533,6 @@ class Dataset:
         2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
             * removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
             * removing groups of buddies that are too small (based on the min_sample_size)
-
         3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
         4. If a lapsrate is specified, the observations are corrected for altitude differences.
         5. For each buddy group:
@@ -1543,7 +1542,6 @@ class Dataset:
             * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
             If so, that record is flagged as an outlier. It will be ignored in the next iteration.
             * This is repeated N_iter times.
-
 
         Parameters
         ----------

@@ -1,101 +1,44 @@
-*******************
-Introduction
-*******************
+**************************
+Toolkit objects overview
+**************************
 
-This package is designed for handling meteorological observations for urban or non-traditional networks. It includes tools to clean up and analyze your data.
-
-
-
-How to install
-=======================
-
-To use the package python 3.9 or higher is required.
-To install the package one can use pip:
-
-.. code-block:: console
-
-   pip install metobs-toolkit
-
-To install the PyPi version of the toolkit. To install the github versions one can use these commands:
-
-.. code-block:: console
-
-   #main versions
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
-
-   #development version
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
-
-   #specific release from github
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
+This toolkit is a Python package based on object-oriented programming (OOP). 
+Here you can find a short description of the classes that are commenly used.
+In the `introduction example` you can find a notebook example to illustrate these classes.
 
 
-For some advanced quality control methods, the `Titanlib <https://github.com/metno/titanlib>`_ package is used.
-Since the installation of titanlib requires a c++ compiler, it is categorized as a *extra-dependency*. This means that
-the user must install titanlib manually if this functionality is required or use the following command:
+``Dataset``
+------------
 
-.. code-block:: console
-
-   pip install metobs-toolkit[titanlib]
-
-
-.. note::
-   To install the package in a notebook, one has to add ! in front of the pip install command.
-
-and import it in Python
-
-.. code-block:: python
-
-   import metobs_toolkit
-
-   #Check your version
-   metobs_toolkit.__version__
-
-
-How to use this toolkit
-=========================
-
-This toolkit is a Python package based on object-oriented programming (OOP). Here you can find a short description of the classes that are directly used by the users:
-
-
-Dataset()
------------
-
-The :ref:`Dataset <Dataset api>` class is at the heart of the toolkit and it holds all observations and metadata.
+The ``Datset`` class is at the heart of the toolkit and it holds a set of ``Station`` s.
+All methods applied on a ``Dataset`` are equally applied on all its ``Station`` s. Thus all methods that can be applied
+on a ``Station`` can be applied on a ``Dataset``. See the API documentation for more details :ref:`Dataset API <Dataset api>` and :ref:`Station API <Station api>`.
 
 .. code-block:: python
 
    your_dataset = metobs_toolkit.Dataset()
 
-The dataset class has attributes that serve as 'containers' to hold data:
-
-Dataset.df
-    All(*) records will start in the *df-container*. This container contains the observations that we assume to be correct.
-
-    (*): One exception is the observations with a duplicated timestamp, these will be passed to the outliersdf-container directly.
-
-Dataset.outliersdf
-    When applying quality control, some observations may be labeled as outliers. When an observation is labeled as an outlier, it is added to the *outliersdf-container*.
-    The records labeled as outliers are still kept inside the df-container but the observation value is removed (set to Nan).
-
-Dataset.gaps
-    When the data is imported, the toolkit will look for missing gaps in your data. This is done by
-    assuming a perfect time frequency of your data. A `Gap` is created if data is missing. All the gaps are combined
-    in a list and stored at `Dataset.gaps`.
-
-Dataset.metadf
-    When metadata is provided, it will be stored in the Dataset.metadf. The metadf is stored as tabular data where each row represents a station. When variables are computed that depend only
-    on a station (No time evolution and independent of the observation type), it is stored here. All land cover information and observation frequency estimations are stored here.
+The dataset holds methods for 
+ - Importing raw data
+ - Resampling/syncronizing timeseries
+ - Extracting metadata
+ - Visualizing 
+ - Quality control
+ - Gap filling
 
 
-.. note::
 
-   A **record** refers to a unique combination of timestamp, corresponding station, and observation type.
-
-
-Station()
+``Station``
 -----------
 
+A ``Station`` holds:
+- timeseries related to sensors (as `SensorData`)
+- metadata related to the site of the station (as a `Site`)
+- timeseries originating from models at the station site (as `ModelTimeSeries`).
+
+All stations are assume to have a unique name. The data of a sensor is stored in `SensorData` objects, and all the metadata is stored by the `Site` object of the station.
+
+You cannot create a new station, but you can extract a station from a `Dataset`.
 A :ref:`Station <Station api>` is a class that has the same attributes and methods as a Dataset, but all the observations are limited to a specific station.
 
 .. code-block:: python
@@ -103,62 +46,106 @@ A :ref:`Station <Station api>` is a class that has the same attributes and metho
    your_station = your_dataset.get_station(stationname = 'station_A')
 
 
-Analysis()
------------
-The :ref:`Analysis <Analysis api>` class is created from a Dataset and holds the observations that are assumed to be correct (the df-container of the Dataset). In contrast to the Dataset, the Analysis methods do not change the observations.
-The Analysis methods are based on aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.
+
+``SensorData``
+--------------
+A ``SensorData`` object holds the timeseries data for a specific observation type (e.g., temperature, humidity, wind speed) at a station. 
+Each station can have multiple SensorData objects, one for each observation type. 
+SensorData manages the actual measurements, associated timestamps, and quality control labels for its observation type. If present, gaps are stored in the `SensorData`
+SensorData objects are not created directly by users; they are managed by the toolkit when importing or processing data. 
+
+In pracktiche you do not need to interact directly with this class. You can inspect the observations by using the `df` attribute on a `Station` or `Dataset`.
 
 .. code-block:: python
 
-   your_dataset_analysis = your_dataset.analysis()
+   records_dataframe = your_dataset.df
+
+See the API documentation :ref:`SensorData API <SensorData api>` for more details.
+
+
+
+``Gaps``
+--------
+A *gap* is a period in the timeseries where observations are missing. Gaps are automatically detected when importing raw data or after resampling/synchronizing timeseries. Each gap is represented by a `Gap` object, which is stored by the corresponding `SensorData`.
+
+Regular users do not interact directly with `Gap` objects. Instead, gaps can be inspected and filled via methods on the `Dataset` and `Station` classes. For example, you can view gaps using the `gapsdf` attribute or visualize them with plotting methods.
+
+.. code-block:: python
+
+   # Inspect gaps for a dataset
+   print(your_dataset.gapsdf)
+
+
+See the API documentation :ref:`Gap API <Gap api>` for more details.
+
+
+
+
+``Analysis``
+-----------
+The :ref:`Analysis <Analysis api>` class is created from a Dataset and holds the observations that are assumed to be correct. In contrast to the Dataset, the Analysis methods do not change the observations but the focus is on filtering and aggregation.
+The Analysis methods are focussed on  aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.
+
+
+See the `Analysis example` for more details.
+
+.. code-block:: python
+
+   your_dataset_analysis = metobs_toolkit.Analysis(Dataholder=dataset)
 
 .. note::
 
    Creating an Analysis of a Station is not recommended, since there is not much scientific value in it.
 
 
-
-GEE Modeldata classes
+``Geedatasetmanagers``
 ----------------------
+A ``Geedatasetmanager`` is a class that manages the interaction between the toolkit and a specific dataset on Google Earth Engine (GEE).
+These managers do not store modeldata themselves (that is done in the `ModelTimeSeries`), but provide the interface to extract and interpret data from GEE.
 
-Two classes are designed to interact with a GEE (Google Earth Engine) dataset:
+There are two types of Geedatasetmanagers:
 
-* `GeeStaticDataset`: This class handles GEE Datasets that do not have a time dimension (static). This class is used to extract GEE dataset values at the location of the station (or buffers around them).
-* `GeeDynamicDataset`: This class handles GEE Dataset that have a time dimension. This class is used to extract timeseries of GEE dataset values at the station's locations.
+* ``GEEStaticDatasetManager``: Handles GEE datasets without a time dimension (static). Used to extract static properties (e.g., land cover, altitude, LCZ) at station locations or within buffers.
+* ``GEEDynamicDatasetManager``: Handles GEE datasets with a time dimension (dynamic). Used to extract timeseries data (e.g., ERA5 temperature) at station locations. This manager uses ``ModelObstype`` definitions to map GEE dataset bands to observation types and handle unit conversions.
 
-Both classes can hold metadata (=Coordinates of the stations), and the `GeeDynamicDataset` class can hold timeseries data.
-These classes are used for extracting extra metadata (landcover, altitude, soil properties, ...) and for comparing
-observations with modelled data (plotting, filling gaps, ...).
+Default managers for common datasets are provided and accessible via the `metobs_toolkit.default_GEE_datasets`. You can also define your own for custom GEE datasets.
 
-There are default modeldata classes prepared, and they are stored in the `Dataset.gee_datasets`.
-
-
-.. code-block:: python
-
-   ERA5_timeseries = your_dataset.get_modeldata(
-                                       Model=your_datast.gee_datasets['ERA5-land'],
-                                        obstype='temp')
-
-See the API documentation :ref:`Geemodeldata <Geemodeldata api>` for more details.
-
-The toolkit makes use of the Google Earth Engine (GEE), to extract these time-series. To use the GEE API, follow these steps on :ref:`Using Google Earth Engine<Using_gee>`.
+See the API documentation :ref:`Geedatasetmanagers API <Geedatasetmanagers api>` and the `Gee example` for more details.
 
 
-Settings()
------------
-Each Dataset holds its own set of :py:meth:`Settings<metobs_toolkit.settings.Settings>`. When creating a Dataset instance, the default settings are attached to it. When another class is created (i.g. Station, Modeldata, ...) from a Dataset, the corresponding settings are inherited.
-There are methods to change some of the default settings (like quality control settings, timezone settings, gap fill settings, ...). To list all the settings of a class one can use the :py:meth:`show<metobs_toolkit.settings.Settings.show>` method on it:
+``ModelTimeSeries``
+-------------------
+A ``ModelTimeSeries`` object stores timeseries data extracted from a dynamic GEE dataset (e.g., ERA5) for a specific observation type at a station. It is similar to the `SensorData` class.
+These timeseries represent modelled or reanalysis data, and are typically used for comparison with observations, quality control, or gap filling.
+
+ModelTimeSeries are stored in the `Station` objects.
+Regular users do not interact directly with ``ModelTimeSeries`` objects. Instead, modeldata can be inspected via the `.modeldatadf` attribute on the `Dataset` and `Station` classes.
 
 .. code-block:: python
 
-   #Create a Dataset, the default settings are attached to it
-   your_dataset = metobs_toolkit.Dataset()
+   # Access modelled temperature timeseries for a station
+   temp_modeldata = your_station.modeldata['temp']
 
-   #create a Station instance from your dataset
-   your_station = your_dataset.get_station(stationname = 'station_A')
+   # View the timeseries DataFrame
+   print(temp_modeldata.df)
 
-   #Since the settings are inherited, your_stations has also the timezone set to Brussels local time.
+   # Plot the modelled data
+   temp_modeldata.plot()
 
-   # print out all settings
-   your_dataset.settings.show()
-   your_station.settings.show()
+See the API documentation :ref:`ModelTimeSeries API <ModelTimeSeries api>` and the `Gee example` for more details.
+
+
+``Obstype and ModelObstype``
+---------------------------
+An ``Obstype`` defines an observation type, such as temperature, humidity, or wind speed. 
+It specifies the standard name, standard unit, and a description for the observation type.
+Obstypes are used throughout the toolkit to ensure consistency in data handling, unit conversion, and quality control.
+
+A ``ModelObstype`` extends the concept of an Obstype to model or reanalysis data (e.g., from GEE datasets). In addition to the standard attributes, a ModelObstype defines the corresponding band name and unit in the model dataset. This allows the toolkit to map model data bands to observation types and handle unit conversions automatically.
+
+You typically do not need to create these objects directly; common obstypes and modelobstypes are predefined and used internally by the toolkit and GEE dataset managers.
+
+See the API documentation :ref:`Obstype API <Obstype api>` and :ref:`ModelObstype API <ModelObstype api>` for more details.
+
+
+

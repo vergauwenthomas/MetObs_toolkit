@@ -1513,7 +1513,7 @@ class Station:
         2. Iterate over the gaps of the target_obstype.
         3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         4. Construct a leading and trailing sample, and test if they meet the required conditions.
-        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
+          The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
         5. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
         6. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
         7. Update the `gap` attributes with the interpolated values, labels, and details.

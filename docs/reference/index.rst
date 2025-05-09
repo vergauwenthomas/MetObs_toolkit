@@ -11,9 +11,13 @@ the MetObs toolkit to be used by a user and developer.
 
   Dataset <dataset>
   Station <station>
-  Gap <gap>
-  GEEDatasetManagers <geedatasetmanagers>
   Analysis <analysis>
+  Gap <gap>
+  SensorData <sensordata>
+  Obstypes <obstype>
+  ModelTimeSeries <modeltimeseries>
+  GEEDatasetManagers <geedatasetmanagers>
+  
   Utility functions <functions>
 
 

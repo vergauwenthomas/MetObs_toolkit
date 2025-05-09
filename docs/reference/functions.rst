@@ -52,4 +52,4 @@ Other utility functions
 .. autosummary::
    :toctree: api/
 
-   metobs_toolkit.import_data_from_pkl
+   metobs_toolkit.import_dataset_from_pkl

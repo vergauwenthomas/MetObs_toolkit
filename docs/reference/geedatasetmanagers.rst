@@ -5,16 +5,13 @@ GEEDatasetManagers
 =====================
 
 A GEEDatasetManager is a class that handles the interaction between metobs_toolkit and a specific
-dataset on Google Earth Engine. No modeldata is stored int the managers.
+dataset on Google Earth Engine. No modeldata is stored in the managers.
 
 There are two GEEDatasetManagers:
-   * `GeeStaticDatasetManager`: Reference to a dataset on GEE that does not have a time-dimension.
-   * `GeeDyanmicDatasetManager`: Reference to a dataset on GEE with a time dimension. `ModelObstype`s are used to map a dataset band to an equivalent `Obstype`.
-
+   * ``GEEStaticDatasetManager``: Reference to a dataset on GEE that does not have a time-dimension.
+   * ``GEEDynamicDatasetManager``: Reference to a dataset on GEE with a time dimension. ``ModelObstype``s are used to map a dataset band to an equivalent ``Obstype``.
 
 .. currentmodule:: metobs_toolkit.geedatasetmanagers
-
-
 
 Constructors
 -------------
@@ -28,7 +25,6 @@ Constructors
 
 Methods for Static dataset managers
 ------------------------------------
-
 A summary of all methods in the GEEStaticDatasetManager class.
 
 .. autosummary::

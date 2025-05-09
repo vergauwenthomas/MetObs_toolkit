@@ -19,20 +19,52 @@ Additionally, the package offers tools for analyzing the data, e.g. linkage
 with popular land-use datasets is included, through the use of the Google Earth Engine, such
 that microclimate effects can be investigated with the MetObs-toolkit.
 
-
 The MetObs-toolkit provides a comprehensive framework for scientists to process
 raw meteorological data for analysis by making intensive use of the `Pandas <https://pandas.pydata.org/>`_
 and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
-
-
 
 .. toctree::
    :hidden:
    :maxdepth: 5
 
    Home <self>
+   Introduction <intro>
    Documentation <reference/index>
    Examples <examples/index>
+
+How to install
+=======================
+
+To use the package python 3.9 or higher is required.
+To install the package one can use pip:
+
+.. code-block:: console
+
+   pip install metobs-toolkit
+
+To install the PyPi version of the toolkit. To install the github versions one can use these commands:
+
+.. code-block:: console
+
+   #main versions
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+
+   #development version
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
+
+   #specific release from github
+   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
+
+
+.. note::
+   To install the package in a notebook, one has to add ! in front of the pip install command.
+
+.. code-block:: python
+
+   import metobs_toolkit
+
+   #Check your version
+   metobs_toolkit.__version__
 
 
 

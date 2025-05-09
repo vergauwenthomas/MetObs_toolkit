@@ -43,7 +43,6 @@ General methods and attributes
 
 
    Station.get_info
-   Station.sync_records
    Station.resample
 
 
