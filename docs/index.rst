@@ -29,11 +29,14 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
 
    Home <self>
    Introduction <intro>
-   Documentation <reference/index>
    Examples <examples/index>
+   Documentation <reference/index>
+   Referencing <paper/index>
+   Extra topics <topics/index>
+   
 
 How to install
-=======================
+=================
 
 To use the package python 3.9 or higher is required.
 To install the package one can use pip:
