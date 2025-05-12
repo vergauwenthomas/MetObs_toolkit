@@ -79,8 +79,6 @@ Regular users do not interact directly with `Gap` objects. Instead, gaps can be 
 See the API documentation :ref:`Gap API <Gap api>` for more details.
 
 
-
-
 ``Analysis``
 -----------
 The :ref:`Analysis <Analysis api>` class is created from a Dataset and holds the observations that are assumed to be correct. In contrast to the Dataset, the Analysis methods do not change the observations but the focus is on filtering and aggregation.

@@ -33,6 +33,7 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
    Documentation <reference/index>
    Referencing <paper/index>
    Extra topics <topics/index>
+   Contributing <contributing_link>
    
 
 How to install
