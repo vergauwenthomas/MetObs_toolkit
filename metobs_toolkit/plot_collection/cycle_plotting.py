@@ -1,6 +1,5 @@
 import logging  # Python default package
 
-
 import matplotlib
 import matplotlib.pyplot as plt  # Dependency package
 import pandas as pd
@@ -29,7 +28,7 @@ def make_diurnal_plot(
 
     Parameters
     ----------
-    plotdf : pd.DataFrame
+    plotdf : pandas.DataFrame
         DataFrame containing the data to plot. Each column represents a station or category.
     ax : matplotlib.axes.Axes
         The matplotlib Axes object where the plot will be drawn.
@@ -44,12 +43,16 @@ def make_diurnal_plot(
     -------
     matplotlib.axes.Axes
         The Axes object with the plot.
-    """
-    logger.info("Entering make_diurnal_plot function.")
 
+    Raises
+    ------
+    ValueError
+        If not all present labels are in the colormap.
+    """
+    logger.debug("Entering make_diurnal_plot function.")
     # Create and check colordict
     if colordict is None:
-        logger.info("Creating default colormap.")
+        logger.debug("Creating default colormap.")
         colmap = create_categorical_color_map(
             catlist=plotdf.columns, cmapname=default_cycle_settings["cmap_categorical"]
         )
@@ -57,7 +60,7 @@ def make_diurnal_plot(
         colmap = colordict
 
     if refstation is not None:
-        logger.info(f"Plotting reference station: {refstation}.")
+        logger.debug(f"Plotting reference station: {refstation}.")
         # Plot reference as dashed line
         ax.axhline(
             y=0,
@@ -78,7 +81,7 @@ def make_diurnal_plot(
 
     # Plot each column as a solid line
     for column in plotdf.columns:
-        logger.info(f"Plotting column: {column}.")
+        logger.debug(f"Plotting column: {column}.")
         ax.plot(
             plotdf.index,
             plotdf[column],
@@ -87,5 +90,5 @@ def make_diurnal_plot(
             linestyle="-",
         )
 
-    logger.info("Exiting make_diurnal_plot function.")
+    logger.debug("Exiting make_diurnal_plot function.")
     return ax

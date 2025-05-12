@@ -16,12 +16,12 @@ pieplotsettings = default_plot_settings["pie_charts"]
 
 def qc_overview_pies(
     df: pd.DataFrame,
-    figsize: Tuple[int, int] = pieplotsettings["figsize"],  # TYPO
-    ncol: int = pieplotsettings["ncols"],  # TYPO
-    radius_big: float = pieplotsettings["radius_big"],  # TYPO
-    radius_small: float = pieplotsettings["radius_small"],  # TYPO
-    textsize_big_pies: int = pieplotsettings["txt_size_big_pies"],  # TYPO
-    textsize_small_pies: int = pieplotsettings["txt_size_small_pies"],  # TYPO
+    figsize: Tuple[int, int] = pieplotsettings["figsize"],
+    ncol: int = pieplotsettings["ncols"], 
+    radius_big: float = pieplotsettings["radius_big"],
+    radius_small: float = pieplotsettings["radius_small"],
+    textsize_big_pies: int = pieplotsettings["txt_size_big_pies"],
+    textsize_small_pies: int = pieplotsettings["txt_size_small_pies"],
 ) -> plt.Figure:
     """
     Generate a quality control (QC) overview using pie charts.
@@ -53,7 +53,7 @@ def qc_overview_pies(
     TypeError
         If any of the arguments are not of the expected type.
     """
-    logger.info("Entering qc_overview_pies function.")
+    logger.debug("Entering qc_overview_pies function.")
 
     # Validate argument types
     if not isinstance(df, pd.DataFrame):
@@ -138,7 +138,7 @@ def qc_overview_pies(
     ]
 
     # Label to QC check name map
-    labl_to_qcname_map = {val["label"]: key for key, val in label_def.items()}
+    label_too_qcname_map = {val["label"]: key for key, val in label_def.items()}
 
     i = 0
     for idx, row in plotdf.iterrows():
@@ -166,10 +166,10 @@ def qc_overview_pies(
             fontsize=textsize_small_pies,
         )
 
-        subax.set_title(f"Effectiveness of {labl_to_qcname_map[idx]}")
+        subax.set_title(f"Effectiveness of {label_too_qcname_map[idx]}")
         subax.set_ylabel("")
 
         i += 1
 
-    logger.info("Exiting qc_overview_pies function.")
+    logger.debug("Exiting qc_overview_pies function.")
     return fig

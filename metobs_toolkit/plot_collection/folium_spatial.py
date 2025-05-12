@@ -27,7 +27,7 @@ def _get_init_mapcenter(gdf: pd.DataFrame) -> List[float]:
     List[float]
         A list containing the latitude and longitude of the map center.
     """
-    logger.info("Calculating initial map center.")
+    logger.debug("Calculating initial map center.")
     centroid = gdf["geometry"].unary_union.centroid
     return [centroid.y, centroid.x]
 
@@ -41,7 +41,7 @@ def folium_map() -> geemap.Map:
     geemap.Map
         A folium map object.
     """
-    logger.info("Entering folium_map function.")
+    logger.debug("Entering folium_map function.")
     Map = geemap.Map(add_google_map=False)
     return Map
 
@@ -62,7 +62,7 @@ def add_title_to_folium_map(title: str, Map: folium.Map) -> folium.Map:
     folium.Map
         The updated folium map with the title added.
     """
-    logger.info("Entering add_title_to_folium_map function.")
+    logger.debug("Entering add_title_to_folium_map function.")
     if not isinstance(title, str):
         raise TypeError("Argument 'title' must be of type str.")
     if not isinstance(Map, folium.Map):
@@ -98,7 +98,7 @@ def add_stations_to_folium_map(
     folium.Map
         The updated folium map with station markers added.
     """
-    logger.info("Entering add_stations_to_folium_map function.")
+    logger.debug("Entering add_stations_to_folium_map function.")
 
     metadf = metadf.reset_index()
     metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
@@ -166,7 +166,7 @@ def make_folium_html_plot(
     folium.Map
         The generated folium map.
     """
-    logger.info("Entering make_folium_html_plot function.")
+    logger.debug("Entering make_folium_html_plot function.")
 
     # Create a map
     m = folium.Map(
