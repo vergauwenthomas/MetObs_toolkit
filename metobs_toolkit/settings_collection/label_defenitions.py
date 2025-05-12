@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The class object for a Vlinder/mocca station
+Label color and name defenitions for the metobs_toolkit.
+
 @author: thoverga
 """
 
@@ -107,5 +108,3 @@ qc_label_group = [
     "titan_sct_resistant_check",
 ]
 
-
-# print_settings = {"fmt_datetime": "%d/%m/%Y %H:%M:%S", "max_print_per_line": "40"}
