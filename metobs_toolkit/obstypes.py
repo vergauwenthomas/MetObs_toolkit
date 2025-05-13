@@ -188,6 +188,7 @@ class Obstype:
             None if printout is True, otherwise the information string.
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
+        infostr = ""
         infostr += printing.print_fmt_title('General info of Obstype')
         infostr += self._get_info_core()
         if printout:
