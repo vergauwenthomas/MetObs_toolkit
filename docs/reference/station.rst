@@ -41,7 +41,7 @@ General methods and attributes
 .. autosummary::
    :toctree: api/
 
-
+   Station.get_sensor
    Station.get_info
    Station.resample
 
