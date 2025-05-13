@@ -125,7 +125,6 @@ class Template:
 
         # Extra options (not required)
         self.tz = None
-
         # Not actively used attributes
         self.filepath = None
 
