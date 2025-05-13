@@ -175,10 +175,9 @@ def _find_spatial_buddies(
 
 
 def _filter_to_altitude_buddies(
-    spatial_buddies: Dict,
-    altitudes: pd.Series,
-    max_altitude_diff: Union[int, float]
-    ) -> Dict:
+        spatial_buddies: Dict,
+        altitudes: pd.Series,
+        max_altitude_diff: Union[int, float]) -> Dict:
     """
     Filter neighbours by maximum altitude difference.
 
@@ -282,7 +281,7 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
 
 
 def toolkit_buddy_check(
-    dataset: "Dataset",
+    dataset: "Dataset",  # noqa: F821
     obstype: str,
     buddy_radius: Union[int, float],
     min_sample_size: int,
@@ -392,7 +391,8 @@ def toolkit_buddy_check(
     # filter buddies by altitude difference
     if max_alt_diff is not None:
         if metadf["altitude"].isna().any():
-            raise ValueError("At least one station has a NaN value for 'altitude'")
+            raise ValueError("At least one station has a NaN \
+value for 'altitude'")
         # Filter by altitude difference
         buddies = _filter_to_altitude_buddies(
             spatial_buddies=buddies,
@@ -565,12 +565,16 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf = buddydf.loc[buddydf["timestamp_with_outlier"]]
 
     # locate the most extreme outlier per timestamp
-    buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
+    buddydf["is_the_most_extreme_outlier"] = (
+        buddydf[[*buddygroup]].idxmax(axis=1)
+    )
 
     def msgcreator(row):
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
-        retstr += f" with chi value {row[row['is_the_most_extreme_outlier']]:.2f},"
-        retstr += f" is part of {buddygroup}, with mean: {row['mean']:.2f}, std: {row['std']:.2f}"
+        retstr += f" with chi value \
+{row[row['is_the_most_extreme_outlier']]:.2f},"
+        retstr += f" is part of {buddygroup}, with mean: {row['mean']:.2f}, \
+std: {row['std']:.2f}"
         return retstr
 
     # detail info string
