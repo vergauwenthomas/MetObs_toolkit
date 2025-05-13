@@ -72,27 +72,36 @@ class TestBreakingDataset:
         # 2. apply a metobs manipulation
         # apply QC
         dataset.gross_value_check(
-            target_obstype="temp", lower_threshold=-15.0, upper_threshold=29.0
+            target_obstype="temp",
+            lower_threshold=-15.0,
+            upper_threshold=29.0,
+            use_mp=False,
         )
         # fake check on humidity to see if this does not affect temp records
         dataset.gross_value_check(
-            target_obstype="humidity", lower_threshold=5.0, upper_threshold=10.0
+            target_obstype="humidity",
+            lower_threshold=5.0,
+            upper_threshold=10.0,
+            use_mp=False,
         )
 
         dataset.persistence_check(
             target_obstype="temp",
             timewindow="1h",
             min_records_per_window=3,
-            use_mp=True,
+            use_mp=False,
         )
 
         dataset.repetitions_check(
-            target_obstype="temp", max_N_repetitions=5, use_mp=True
+            target_obstype="temp",
+            max_N_repetitions=5,
+            use_mp=False
         )
         dataset.step_check(
             target_obstype="temp",
             max_increase_per_second=8.0 / 3600.0,
             max_decrease_per_second=-10.0 / 3600.0,
+            use_mp=False
         )
         dataset.window_variation_check(
             target_obstype="temp",
@@ -100,7 +109,8 @@ class TestBreakingDataset:
             min_records_per_window=3,
             max_increase_per_second=8.0 / 3600.0,
             max_decrease_per_second=-10.0 / 3600.0,
-            use_mp=True,
+            # use_mp=True,
+            use_mp=False
         )
 
         #  3. overwrite solution?
