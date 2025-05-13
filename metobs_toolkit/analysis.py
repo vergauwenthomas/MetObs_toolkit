@@ -1,5 +1,6 @@
 import logging
 from typing import Union, Tuple, Callable
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -325,8 +326,14 @@ class Analysis:
         # Filter fulldf to relevant columns
         fulldf = fulldf[agg + [trgobstype]]
 
-        # Aggregate the df
-        agg_df = fulldf.groupby(agg, observed=True).agg(method)
+        
+
+        # Silence FutureWarning that DataFrameGrouBy.mean is currently used instead of np.mean 
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=FutureWarning, message=".*is currently using DataFrameGroupBy.mean.*")
+            # Aggregate the df
+            agg_df = fulldf.groupby(agg, observed=True).agg(method)
+        
         # sort index
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
@@ -533,7 +540,7 @@ class Analysis:
         # Aggregate the df
         aggdf = fulldf.groupby(
             [colorby, "hour", "minute", "second"], observed=True
-        ).agg(np.nanmean)
+        ).agg('mean')
 
         # create fake_datetime axes (fake because it is one day, but needed for representations of data sub hourly)
         aggdf = aggdf.reset_index()
@@ -722,7 +729,9 @@ def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
         # labels=binlabels, #ignored when bins is intervalindex
         retbins=False,
     ).map(
-        dict(zip(seasonbins, binlabels))
+        dict(zip(seasonbins, binlabels)),
+        na_action = None,
+
     )  # convert categories to seasonstrings
     # convert to series
     seasons = pd.Series(index=datetimeindex, data=seasons, name="season")
