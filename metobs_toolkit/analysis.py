@@ -7,9 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as datetypeclass
 
-from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.errorclasses import (
+     MetObsStationNotFound,
+     MetObsObstypeNotFound
+)
 from metobs_toolkit.backend_collection.argumentcheckers import (
-    fmt_timedelta_arg,
     fmt_datetime_arg,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
@@ -33,13 +35,14 @@ possible_time_aggregates = [  # TYPO
 
 class Analysis:
     """
-    Analysis class for handling and analyzing meteorological data from a Dataset or Station.
+    Analysis class for handling and analyzing meteorological data from a
+    Dataset or Station.
 
     Parameters
     ----------
     Dataholder : Union[Dataset, Station]
-        The data source to initialize the analysis object. It can either be a `Dataset`
-        or a `Station` object.
+        The data source to initialize the analysis object. It can either be
+        a `Dataset` or a `Station` object.
 
     Attributes
     ----------
@@ -53,7 +56,8 @@ class Analysis:
 
         if not isinstance(Dataholder, (Dataset, Station)):
             raise TypeError(
-                f"Dataholder is not a Dataset or Station, but a {type(Dataholder)}"
+                f"Dataholder is not a Dataset or Station, \
+but a {type(Dataholder)}"
             )
 
         if isinstance(Dataholder, Dataset):
@@ -106,7 +110,8 @@ class Analysis:
         Returns
         -------
         pd.DataFrame
-            DataFrame indexed by ['datetime', 'name'] and containing observation columns.
+            DataFrame indexed by ['datetime', 'name'] and containing
+            observation columns.
         """
         logger.debug(f"Entering {self.__class__.__name__}.df property")
         return self.fulldf.set_index(["datetime", "name"])[self._df_cols]
@@ -132,27 +137,30 @@ class Analysis:
 
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
-        Provides information about the Analysis instance, including the number of records,
-        observation types, metadata columns, station names, and known time derivatives.
+        Provides information about the Analysis instance, including the number
+        of records, observation types, metadata columns, station names, and
+        known time derivatives.
 
         Parameters
         ----------
         printout : bool, optional
-            If True, prints the information to the console. If False, returns the information
-            as a string. Default is True.
+            If True, prints the information to the console. If False, returns
+            the information as a string. Default is True.
 
         Returns
         -------
         None or str
-            Returns None if `printout` is True. Returns the information string if `printout`
-            is False.
+            Returns None if `printout` is True. Returns the information string
+            if `printout` is False.
         """
         logger.debug(f"Entering {self.__class__.__name__}.get_info")
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Analysis")
-        infostr += printing.print_fmt_line(f"Number of records: {len(self.df)}")
-        infostr += printing.print_fmt_line(f"Observation types: {list(self._df_cols)}")
+        infostr += printing.print_fmt_line(
+                    f"Number of records: {len(self.df)}")
+        infostr += printing.print_fmt_line(
+                    f"Observation types: {list(self._df_cols)}")
         infostr += printing.print_fmt_line(
             f"Available metadata columns: {self.metadf.columns.tolist()}"
         )
@@ -182,35 +190,41 @@ class Analysis:
 
     def apply_filter_on_metadata(self, filter_string: str) -> "Analysis":
         """
-        Apply a filter expression to the metadata and update the records accordingly.
+        Apply a filter expression to the metadata and update the records
+        accordingly.
 
         Parameters
         ----------
         filter_string : str
-            A string representation of a filter expression to be applied on the metadata. For more
-            details, see the documentation of pandas.DataFrame.query. The query is applied on
-            the `.metadf` attribute.
+            A string representation of a filter expression to be applied on
+            the metadata. For more details, see the documentation of
+            pandas.DataFrame.query. The query is applied on the `.metadf`
+            attribute.
 
         Warning
         -------
-        This function modifies the data in place, so filtered-out data will be lost.
+        This function modifies the data in place, so filtered-out data will
+        be lost.
 
         Note
         -----
-        A common error (UndefinedVariableError) is raised when a string value is not put
-        in quotation marks.
+        A common error (UndefinedVariableError) is raised when a string value
+        is not put in quotation marks.
 
         """
-        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
+        logger.debug(
+            f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
 
         # Apply the filter string
         try:
             self.metadf.query(filter_string, inplace=True)
         except Exception as e:
-            raise ValueError(f"Invalid filter string: {filter_string}. Error: {e}")
+            raise ValueError(
+                f"Invalid filter string: {filter_string}. Error: {e}")
 
         # Subset the fulldf by the leftover stations
-        self.fulldf = self.fulldf.loc[self.fulldf["name"].isin(self.metadf.index)]
+        self.fulldf = self.fulldf.loc[
+                    self.fulldf["name"].isin(self.metadf.index)]
 
         # Check if the filtered DataFrame is empty
         if self.fulldf.empty:
@@ -225,9 +239,10 @@ class Analysis:
         Parameters
         ----------
         filter_string : str
-            A string representation of a filter expression to be applied on the records. For more
-            details, see the documentation of pandas.DataFrame.query. The query is applied on
-            the `.fulldf` attribute.
+            A string representation of a filter expression to be applied on
+            the records. For more details, see the documentation of
+            pandas.DataFrame.query. The query is applied on the `.fulldf`
+            attribute.
 
         Warning
         -------

@@ -12,11 +12,16 @@ from matplotlib.pyplot import Axes
 import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.template import Template, update_known_obstype_with_original_data
+from metobs_toolkit.template import (
+    Template,
+    update_known_obstype_with_original_data
+    )
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
-from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
+from metobs_toolkit.io_collection.filereaders import (
+    CsvFileReader, PickleFileReader
+    )
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -24,7 +29,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
 )
 from metobs_toolkit.timestampmatcher import simplify_time
-from metobs_toolkit.obstypes import tlk_obstypes, ModelObstype
+from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
 
 import metobs_toolkit.plot_collection as plotting
@@ -32,7 +37,14 @@ import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.qc_collection import toolkit_buddy_check
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
-from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsStationNotFound,
+    MetObsDataAlreadyPresent,
+    MetObsMissingFile,
+    MetObsObstypeNotFound,
+    MetObsMissingArgument,
+    MetObsMetadataNotFound
+)
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
 
