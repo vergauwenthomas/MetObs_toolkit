@@ -651,15 +651,16 @@ class SensorData:
             infostr += printing.print_fmt_line(f"No outliers present.",nident_root)
         else:
             infostr += printing.print_fmt_line(f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).", nident_root)
-            infostr += printing.print_fmt_line(f"label counts: {self.outliersdf['label'].value_counts().to_dict()}", nident_root+1)
+            infostr += printing.print_fmt_line(f"label counts: ", nident_root+1) 
+            infostr += printing.print_fmt_dict(self.outliersdf['label'].value_counts().to_dict(), nident_root+2)
 
         # gaps info:
         if not self.gaps:
             infostr += printing.print_fmt_line(f"No gaps present.",nident_root)
         else:
             infostr += printing.print_fmt_line(f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.", nident_root)
-            infostr += printing.print_fmt_line(f"label counts: {self.gapsdf['label'].value_counts().to_dict()}", nident_root+1)
-        
+            infostr += printing.print_fmt_line(f"label counts: ", nident_root+1)
+            infostr += printing.print_fmt_dict(self.gapsdf['label'].value_counts().to_dict(), nident_root+2)
     
         return infostr
     # ------------------------------------------

@@ -375,6 +375,19 @@ class TestDataWithGaps:
             sta, solutionobj_A.get_station("vlinder01")
         )  # station comparison
 
+
+    def test_get_info_on_objects(self):
+        #   get_startpoint data
+        dataset_gf = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_diurnal_debias_modeldata_gapfill_A"
+        )
+        
+        #test on dataset with gapfilled data
+        _=dataset_gf.get_info(printout=False)
+        _=dataset_gf.get_station('vlinder04').get_info(printout=False)
+        # test the get_info method on gap
+        _ =dataset_gf.get_station('vlinder04').obsdata['temp'].gaps[0].get_info(printout=False)
+
     def test_weighted_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -443,8 +456,8 @@ if __name__ == "__main__":
     tester = TestDataWithGaps()
     # tester.test_import_data(overwrite_solution=False)
     # tester.test_interpolation_on_station(overwrite_solution=False)
-    tester.test_interpolation_on_dataset(overwrite_solution=False)
+    # tester.test_interpolation_on_dataset(overwrite_solution=False)
     # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
-    tester.test_debias_modeldata_gapfill(overwrite_solution=False)
-    tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
-    tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)

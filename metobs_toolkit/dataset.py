@@ -384,7 +384,8 @@ class Dataset:
                 infostr += printing.print_fmt_line(f"No QC outliers present.", 2)
             else:
                 infostr += printing.print_fmt_line("A total of {outldf.shape[0]} outliers are present.",2)
-                infostr += printing.print_fmt_line(f"label counts: {outldf['label'].value_counts().to_dict()}", 3)
+                infostr += printing.print_fmt_line(f"label counts:", 3)
+                infostr += printing.print_fmt_dict(outldf['label'].value_counts().to_dict(), identlvl=4)
                 infostr += printing.print_fmt_line(f"For these obstyes: {list(outldf.index.get_level_values('obstype').unique())}",2)
                 unique_stations = list(outldf.index.get_level_values("name").unique())
                 infostr += printing.print_fmt_line(f"For {len(unique_stations)} stations: {unique_stations}", 2)
@@ -396,7 +397,8 @@ class Dataset:
                 infostr += printing.print_fmt_line(f"No gaps present.", 2)
             else:
                 infostr += printing.print_fmt_line(f"A total of {gapsdf.shape[0]} gaps are present.",2)
-                infostr += printing.print_fmt_line(f"label counts: {gapsdf['label'].value_counts().to_dict()}",3)
+                infostr += printing.print_fmt_line(f"label counts: ", 3)
+                infostr += printing.print_fmt_dict(gapsdf['label'].value_counts().to_dict(), identlvl=4)
                 infostr += printing.print_fmt_line(f"For these obstyes: {list(gapsdf.index.get_level_values('obstype').unique())}",2)
                 unique_stations = list(gapsdf.index.get_level_values("name").unique())
                 infostr += printing.print_fmt_line(f"For {len(unique_stations)} stations: {unique_stations}",2)

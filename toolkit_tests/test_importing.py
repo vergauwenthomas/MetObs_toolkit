@@ -368,7 +368,7 @@ if __name__ == "__main__":
     # demo_tester.test_calling_methods_without_solution_on_station()
     # demo_tester.test_subset_by_stations(overwrite_solution=False)
     demo_tester.test_subset_by_stations_invalid()
-    # demo_tester.test_get_info(overwrite_solution=False)
+    demo_tester.test_get_info(overwrite_solution=False)
     # demo_tester.test_get_station(overwrite_solution=False)
     # demo_tester.test_pickling_dataset()
 

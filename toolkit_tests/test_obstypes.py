@@ -78,7 +78,14 @@ class TestObstype:
         temp.description = "dummy description"
 
         # get info's
-        temp.get_info(printout=False)
+        _= temp.get_info(printout=False)
+
+        #Method calls on modelobstypes
+        era5_manager = metobs_toolkit.default_GEE_datasets['ERA5-land']
+        _ = era5_manager.modelobstypes['temp'].get_info(printout=False)
+
+        #Method calls on modelobstypes_vectorfields
+        _ = era5_manager.modelobstypes['wind'].get_info(printout=False)
 
     def test_units_io(self):
         # 1. get_startpoint data
