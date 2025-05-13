@@ -107,7 +107,7 @@ class TestDemoData:
         # get info's
         station.get_info()
         station.site.get_info()
-        station.obsdata["temp"].get_info()
+        station.get_sensor("temp").get_info()
 
         # make plot
         station.make_plot()

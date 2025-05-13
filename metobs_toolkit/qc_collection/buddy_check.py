@@ -383,8 +383,8 @@ def toolkit_buddy_check(
     # construct a wide observation dataframe
     concatlist = []
     for sta in dataset.stations:
-        if obstype in sta.obsdata.keys():
-            records = sta.obsdata[obstype].series
+        if obstype in sta.sensordata.keys():
+            records = sta.get_sensor(obstype).series
             records.name = sta.name
             concatlist.append(records)
 

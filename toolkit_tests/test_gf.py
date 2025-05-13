@@ -386,7 +386,7 @@ class TestDataWithGaps:
         _=dataset_gf.get_info(printout=False)
         _=dataset_gf.get_station('vlinder04').get_info(printout=False)
         # test the get_info method on gap
-        _ =dataset_gf.get_station('vlinder04').obsdata['temp'].gaps[0].get_info(printout=False)
+        _ =dataset_gf.get_station('vlinder04').get_sensor('temp').gaps[0].get_info(printout=False)
 
     def test_weighted_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check

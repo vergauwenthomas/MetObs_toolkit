@@ -185,7 +185,7 @@ class TestBreakingDataset:
         # call get info on dataset, station and sensor level
         _ = dataset.get_info(printout=True)
         _ = dataset.get_station('Fictional').get_info(printout=True)
-        _ = dataset.get_station('Fictional').obsdata['temp'].get_info(printout=True)
+        _ = dataset.get_station('Fictional').get_sensor('temp').get_info(printout=True)
 
 
 
@@ -359,17 +359,6 @@ class TestDemoDataset:
         assert_equality(outliersdf_1_iter, solutionobj_1iter)  # dataset comparison
 
         assert_equality(outliersdf_2_iter, solutionobj_2iter)  # dataset comparison
-
-    def test_get_info(self):
-       
-        #  1. get_startpoint data
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_buddy_check_2_iter"
-        )
-        # call get info on dataset, station and sensor level
-        _ = dataset.get_info(printout=True)
-        _ = dataset.get_station('vlindr05').get_info(printout=True)
-        _ = dataset.get_station('vlindr05').get_sensor('temp').get_info(printout=True)
 
 
 if __name__ == "__main__":

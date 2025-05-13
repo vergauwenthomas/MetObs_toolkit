@@ -82,6 +82,22 @@ class Station:
     def sensordata(self) -> dict:
         """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
+    
+    def get_sensor(self, obstype: str) -> "SensorData":
+        """Get the SensorData instance for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to retrieve.
+
+        Returns
+        -------
+        SensorData
+            The SensorData instance for the specified observation type.
+        """
+        self._obstype_is_known_check(obstype)
+        return self.obsdata[obstype]
 
     @property
     def df(self) -> pd.DataFrame:
@@ -93,7 +109,7 @@ class Station:
         """
 
         # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
-        concatdf = save_concat(([sensor.df for sensor in self.obsdata.values()]))
+        concatdf = save_concat(([sensor.df for sensor in self.sensordata.values()]))
 
         # sort by datetime
         concatdf.sort_index(inplace=True)
@@ -115,7 +131,7 @@ class Station:
         """
 
         concatlist = []
-        for sensordata in self.obsdata.values():
+        for sensordata in self.sensordata.values():
             stadf = sensordata.outliersdf[["value", "label"]].reset_index()
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
@@ -144,7 +160,7 @@ class Station:
 
         """
         concatlist = []
-        for sensordata in self.obsdata.values():
+        for sensordata in self.sensordata.values():
             stadf = sensordata.gapsdf.reset_index()
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
@@ -225,7 +241,7 @@ class Station:
             The earliest start datetime among all sensor data.
         """
 
-        return min([sensdata.start_datetime for sensdata in self.obsdata.values()])
+        return min([sensdata.start_datetime for sensdata in self.sensordata.values()])
 
     @property
     def end_datetime(self) -> pd.Timestamp:
@@ -236,7 +252,7 @@ class Station:
         pd.Timestamp
             The maximum end datetime across all sensor data in the observation data.
         """
-        return max([sensdata.end_datetime for sensdata in self.obsdata.values()])
+        return max([sensdata.end_datetime for sensdata in self.sensordata.values()])
 
     @property
     def modeldata(self) -> dict:
@@ -260,7 +276,7 @@ class Station:
         list
             A list of all the present observations in the station.
         """
-        return sorted(list(self.obsdata.keys()))
+        return sorted(list(self.sensordata.keys()))
 
     def add_to_modeldata(
         self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
@@ -328,7 +344,7 @@ class Station:
             infostr += printing.print_fmt_line("Station instance with:", 0)
             for obstype in present_obstypes:
                 infostr += printing.print_fmt_line(f"{obstype}:", 1)
-                infostr += self.obsdata[obstype]._get_info_core(nident_root=2)
+                infostr += self.get_sensor(obstype)._get_info_core(nident_root=2)
 
         #Meta data info
         infostr += printing.print_fmt_section('Metadata info')
@@ -400,7 +416,7 @@ class Station:
 
         Notes
         -----
-        - If `target_obstype` is None, all sensors in `self.obsdata` will be
+        - If `target_obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
         - If `target_obstype` is specified, it must be a known observation type.
         Warning
@@ -419,7 +435,7 @@ class Station:
         origin = fmt_datetime_arg(origin, none_is_none=True)
 
         if target_obstype is None:
-            for sensor in self.obsdata.values():
+            for sensor in self.sensordata.values():
                 sensor.resample(
                     target_freq=target_freq,
                     shift_tolerance=shift_tolerance,
@@ -431,7 +447,7 @@ class Station:
             self._obstype_is_known_check(target_obstype)
 
             # resample
-            self.obsdata[target_obstype].resample(
+            self.sensordata[target_obstype].resample(
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
@@ -468,12 +484,12 @@ class Station:
         """
         logger.debug("Entering convert_outliers_to_gaps for %s", self)
         if all_observations:
-            for sensor in self.obsdata.values():
+            for sensor in self.sensordata.values():
                 sensor.convert_outliers_to_gaps()
 
         else:
             self._obstype_is_known_check(obstype)
-            self.obsdata[obstype].convert_outliers_to_gaps()
+            self.get_sensor(obstype).convert_outliers_to_gaps()
 
     def _rename(self, targetname):
         # Note: Not for users, one could accidentaly rename to another station in the dataset.
@@ -482,7 +498,7 @@ class Station:
         # rename all
         self._name = str(targetname)
         self._site._stationname = str(targetname)
-        for sensordat in self.obsdata.values():
+        for sensordat in self.sensordata.values():
             sensordat._rename(targetname)
 
     def get_static_gee_point_data(
@@ -856,7 +872,7 @@ class Station:
         # argument validity checks
         self._obstype_is_known_check(target_obstype)
 
-        self.obsdata[target_obstype].gross_value_check(
+        self.get_sensor(target_obstype).gross_value_check(
             lower_threshold=lower_threshold, upper_threshold=upper_threshold
         )
 
@@ -908,7 +924,7 @@ class Station:
         timewindow = fmt_timedelta_arg(timewindow)
 
         # apply check on the sensordata
-        self.obsdata[target_obstype].persistence_check(
+        self.get_sensor(target_obstype).persistence_check(
             timewindow=timewindow, min_records_per_window=min_records_per_window
         )
 
@@ -953,7 +969,7 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # apply check on the sensordata
-        self.obsdata[target_obstype].repetitions_check(
+        self.get_sensor(target_obstype).repetitions_check(
             max_N_repetitions=max_N_repetitions
         )
 
@@ -999,7 +1015,7 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # apply check on the sensordata
-        self.obsdata[target_obstype].step_check(
+        self.get_sensor(target_obstype).step_check(
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
         )
@@ -1060,7 +1076,7 @@ class Station:
         timewindow = fmt_timedelta_arg(timewindow)
 
         # apply check on the sensordata
-        self.obsdata[target_obstype].window_variation_check(
+        self.get_sensor(target_obstype).window_variation_check(
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
             max_increase_per_second=max_increase_per_second,
@@ -1105,7 +1121,7 @@ class Station:
         # argument checks
         self._obstype_is_known_check(target_obstype)
         # get freq statistics
-        qc_df = self.obsdata[target_obstype].get_qc_freq_statistics()
+        qc_df = self.get_sensor(target_obstype).get_qc_freq_statistics()
 
         if make_plot:
             plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
@@ -1332,7 +1348,8 @@ class Station:
             )
 
         # Styling
-        obstypeinstance = self.obsdata[obstype].obstype
+
+        obstypeinstance = self.get_sensor(obstype).obstype
 
         # Set title:
         if title is None:
@@ -1401,7 +1418,7 @@ class Station:
         modeltimeseries = self.modeldata[target_obstype]
 
         # fill the gaps
-        self.obsdata[target_obstype].fill_gap_with_modeldata(
+        self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill
         )
 
@@ -1474,7 +1491,7 @@ class Station:
         modeltimeseries = self.modeldata[target_obstype]
 
         # fill the gaps
-        self.obsdata[target_obstype].fill_gap_with_modeldata(
+        self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="debiased",
             method_kwargs={
@@ -1561,7 +1578,7 @@ class Station:
         modeltimeseries = self.modeldata[target_obstype]
 
         # fill the gaps
-        self.obsdata[target_obstype].fill_gap_with_modeldata(
+        self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="diurnal_debiased",
             method_kwargs={
@@ -1659,7 +1676,7 @@ class Station:
         modeltimeseries = self.modeldata[target_obstype]
 
         # fill the gaps
-        self.obsdata[target_obstype].fill_gap_with_modeldata(
+        self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="weighted_diurnal_debiased",
             method_kwargs={
@@ -1757,7 +1774,7 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # interpolate all the gaps
-        self.obsdata[target_obstype].interpolate_gaps(
+        self.get_sensor(target_obstype).interpolate_gaps(
             overwrite_fill=overwrite_fill,
             method=method,
             max_consec_fill=max_consec_fill,

@@ -483,8 +483,8 @@ class Dataset:
         timestamp_shift_tolerance = fmt_timedelta_arg(timestamp_shift_tolerance)
 
         for sta in self.stations:
-            if target_obstype in sta.obsdata.keys():
-                sensor = sta.obsdata[target_obstype]
+            if target_obstype in sta.sensordata.keys():
+                sensor = sta.get_sensor(target_obstype)
 
                 freq_target = simplify_time(
                     time=sensor.freq,
@@ -1651,9 +1651,9 @@ class Dataset:
 
         # update all the sensordata
         for station in self.stations:
-            if target_obstype in station.obsdata.keys():
+            if target_obstype in station.sensordata.keys():
                 # Get the sensordata object
-                sensorddata = station.obsdata[target_obstype]
+                sensorddata = station.get_sensor(target_obstype)
 
                 # get outlier datetimeindex
                 outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
