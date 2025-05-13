@@ -18,6 +18,7 @@ from pytz import all_timezones
 from metobs_toolkit.io_collection.filereaders import JsonFileReader
 from metobs_toolkit.backend_collection.errorclasses import MetobsTemplateError
 import metobs_toolkit.backend_collection.printing_collection as printing
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 # Blacklists are created for column names, which are also used as a specific
@@ -86,6 +87,7 @@ def _get_empty_templ_dict() -> dict:
     }
     return templ_dict
 
+
 class Template:
     """
     Contains all information and methods to work with a template.
@@ -137,26 +139,34 @@ class Template:
         """
         logger.debug(f"Entering get_info() for {self}")
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Template')
-        infostr += printing.print_fmt_section('Data obstypes map')
-    
+        infostr += printing.print_fmt_title("General info of Template")
+        infostr += printing.print_fmt_section("Data obstypes map")
+
         for key, val in self.obscolumnmap.items():
             infostr += printing.print_fmt_line(f"{key}: {val}", identlvl=1)
-            infostr += printing.print_fmt_line(f"raw data in {self.obsdetails[key]['unit']}", 2)
-            infostr += printing.print_fmt_line(f"description: {self.obsdetails[key]['description']}", 2)
-        
-        infostr += printing.print_fmt_section('Data extra mapping info')
-        infostr += printing.print_fmt_line(f"name column (data) <---> {str(self.data_namemap['name'])}")
-        
-        if self.data_is_single_station:
-            infostr += printing.print_fmt_line(f"single station name <---> {self.single_station_name}")
+            infostr += printing.print_fmt_line(
+                f"raw data in {self.obsdetails[key]['unit']}", 2
+            )
+            infostr += printing.print_fmt_line(
+                f"description: {self.obsdetails[key]['description']}", 2
+            )
 
-        infostr += printing.print_fmt_section('Data timestamp map')
+        infostr += printing.print_fmt_section("Data extra mapping info")
+        infostr += printing.print_fmt_line(
+            f"name column (data) <---> {str(self.data_namemap['name'])}"
+        )
+
+        if self.data_is_single_station:
+            infostr += printing.print_fmt_line(
+                f"single station name <---> {self.single_station_name}"
+            )
+
+        infostr += printing.print_fmt_section("Data timestamp map")
         for key, val in self.timestampinfo.items():
             infostr += printing.print_fmt_line(f"{key} <---> {str(val)}")
         infostr += printing.print_fmt_line(f"{'Timezone'} <---> {self.tz}")
 
-        infostr += printing.print_fmt_section('Metadata map')
+        infostr += printing.print_fmt_section("Metadata map")
         for key, val in self.metacolmapname.items():
             infostr += printing.print_fmt_line(f"{key} <---> {str(val)}")
 
@@ -413,9 +423,7 @@ class Template:
         if ts_info["datetimecolumn"] is not None:
             assert (
                 ts_info["fmt"] is not None
-            ), (
-                "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
-            )
+            ), "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
             if ts_info["time_column"] is not None:
                 self.timestampinfo["time_column"] = None
                 logger.warning(
@@ -432,9 +440,7 @@ class Template:
         if (ts_info["time_column"] is not None) & (ts_info["date_column"] is not None):
             assert (
                 ts_info["fmt"] is not None
-            ), (
-                "Datetimes are assumed to be present as a date and time column, but no formats are specified."
-            )
+            ), "Datetimes are assumed to be present as a date and time column, but no formats are specified."
             return
         sys.exit(
             "The timestamps are not correctly mapped (either by using a datetime column, or by a time and date column)"
@@ -617,7 +623,9 @@ class Template:
     # Other methods
     # =============================================================================
 
-    def read_template_from_file(self, jsonpath: str, templatefile_is_url: bool = False) -> None:
+    def read_template_from_file(
+        self, jsonpath: str, templatefile_is_url: bool = False
+    ) -> None:
         """
         Read the template file (JSON), and update the attributes of this Template.
 
@@ -728,4 +736,3 @@ def update_known_obstype_with_original_data(
         known_obstypes[obsname].original_unit = input_unit
 
     return known_obstypes
-

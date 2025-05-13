@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 def test_moving_window_condition(
     records: pd.Series, windowsize: pd.Timedelta, min_records_per_window: int
 ) -> bool:

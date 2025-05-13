@@ -4,7 +4,7 @@
 Combine seperate raw data files
 ********************************
 
-The toolkit expects that all the observations of your dataset are stored in a single (CSV) file. This however is not always the case, an the user must combine the observations into a single file. 
+The toolkit expects that all the observations of your dataset are stored in a single (CSV) file. This however is not always the case, an the user must combine the observations into a single file.
 
 Here is a mini example on how this can be done using Python with `pandas` (pandas is installed as a dependecy by the MetObs toolkit, so you do not need to install it yourself).
 
@@ -14,7 +14,7 @@ Here is a mini example on how this can be done using Python with `pandas` (panda
     import pandas as pd #Dependecy in MetObs-toolkit
 
 
-Reading all files one by one 
+Reading all files one by one
 ------------------------------------------------
 Say that we have a folder that holds 20 files, each file holds the observations of a single station. We want to read them one by one and combine them into a single dataframe.
 
@@ -33,7 +33,7 @@ in the data chunks before we combine them. There are two common structures:
 
 * The name of the station is present in the datafile as a seperate column. If this is the case, then we do not need to take extra actions, the combining of the data will include the names as well.
 
-* The name of the station is not present in the datafile, but is used in the filename. In this case, we need to extract the name from the filename, add a new column in the dataframe (not manually!), and set the stationname in that column. Often the name of the station is only a part of the filename, thus we must select only the name part of the filename. 
+* The name of the station is not present in the datafile, but is used in the filename. In this case, we need to extract the name from the filename, add a new column in the dataframe (not manually!), and set the stationname in that column. Often the name of the station is only a part of the filename, thus we must select only the name part of the filename.
 
 
 .. code-block:: python
@@ -48,14 +48,14 @@ in the data chunks before we combine them. There are two common structures:
                         decimal=',', #CHECK THIS ! The decimal character used in the CSV file can differ.
                         encoding='UTF-8')
 
-        #Extract the name 
+        #Extract the name
         #Option 1: stationname is a column in the CSV file --> skip the following line, go to the .append(df) line!
 
         #Option 2: stationname is part of the file-name of the CSV file.
 
         filename = csv_file.stem #Extract the name of the file without the extension
         stationname = filename[-5:] #stationname are the last 5 characters of the filename
-        
+
         #Create a new column 'stationname' in the DataFrame and fill it with the station name
         df['stationname'] = stationname #Add the station name to the DataFrame
 

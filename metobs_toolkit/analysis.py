@@ -50,7 +50,7 @@ class Analysis:
     """
 
     def __init__(self, Dataholder: Union[Dataset, Station]):
-        
+
         if not isinstance(Dataholder, (Dataset, Station)):
             raise TypeError(
                 f"Dataholder is not a Dataset or Station, but a {type(Dataholder)}"
@@ -150,12 +150,18 @@ class Analysis:
         logger.debug(f"Entering {self.__class__.__name__}.get_info")
 
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Analysis')
+        infostr += printing.print_fmt_title("General info of Analysis")
         infostr += printing.print_fmt_line(f"Number of records: {len(self.df)}")
         infostr += printing.print_fmt_line(f"Observation types: {list(self._df_cols)}")
-        infostr += printing.print_fmt_line(f"Available metadata columns: {self.metadf.columns.tolist()}")
-        infostr += printing.print_fmt_line(f"Stations: {self.fulldf['name'].unique().tolist()}")
-        infostr += printing.print_fmt_line(f"All known time-derivatives: {possible_time_aggregates}")
+        infostr += printing.print_fmt_line(
+            f"Available metadata columns: {self.metadf.columns.tolist()}"
+        )
+        infostr += printing.print_fmt_line(
+            f"Stations: {self.fulldf['name'].unique().tolist()}"
+        )
+        infostr += printing.print_fmt_line(
+            f"All known time-derivatives: {possible_time_aggregates}"
+        )
 
         if printout:
             print(infostr)
@@ -307,7 +313,7 @@ class Analysis:
             A DataFrame with aggregated values, indexed by the specified grouping columns.
         """
         logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
-    
+
         if not callable(method):
             raise TypeError("method must be callable.")
 
@@ -326,14 +332,16 @@ class Analysis:
         # Filter fulldf to relevant columns
         fulldf = fulldf[agg + [trgobstype]]
 
-        
-
-        # Silence FutureWarning that DataFrameGrouBy.mean is currently used instead of np.mean 
+        # Silence FutureWarning that DataFrameGrouBy.mean is currently used instead of np.mean
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=FutureWarning, message=".*is currently using DataFrameGroupBy.mean.*")
+            warnings.filterwarnings(
+                "ignore",
+                category=FutureWarning,
+                message=".*is currently using DataFrameGroupBy.mean.*",
+            )
             # Aggregate the df
             agg_df = fulldf.groupby(agg, observed=True).agg(method)
-        
+
         # sort index
         agg_df = agg_df.reset_index()
         agg_df = agg_df.set_index(agg)
@@ -378,7 +386,6 @@ class Analysis:
             The plot axes. If `return_data` is True, returns a tuple of the plot axes and the aggregated DataFrame.
         """
         logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
-      
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -506,8 +513,10 @@ class Analysis:
         (`colorby`) and time components (hour, minute, second). The resulting diurnal cycle
         is plotted, with options for customization.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle_with_reference_station")
-      
+        logger.debug(
+            f"Entering {self.__class__.__name__}.plot_diurnal_cycle_with_reference_station"
+        )
+
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
 
@@ -540,7 +549,7 @@ class Analysis:
         # Aggregate the df
         aggdf = fulldf.groupby(
             [colorby, "hour", "minute", "second"], observed=True
-        ).agg('mean')
+        ).agg("mean")
 
         # create fake_datetime axes (fake because it is one day, but needed for representations of data sub hourly)
         aggdf = aggdf.reset_index()
@@ -730,8 +739,7 @@ def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
         retbins=False,
     ).map(
         dict(zip(seasonbins, binlabels)),
-        na_action = None,
-
+        na_action=None,
     )  # convert categories to seasonstrings
     # convert to series
     seasons = pd.Series(index=datetimeindex, data=seasons, name="season")

@@ -11,9 +11,11 @@ Created on Fri Oct 21 09:13:01 2022
 import logging
 from typing import List, Any
 from shapely.geometry import box
+
 # import geopandas as gpd
 
 logger = logging.getLogger("<metobs_toolkit>")
+
 
 def gpd_to_extent_box(geodf: Any) -> box:
     """
@@ -69,7 +71,9 @@ def box_to_extent_list(bbox: box) -> List[float]:
     return list(bbox.bounds)
 
 
-def find_extent_of_geodf(geodf: Any, lat_size: float = 1.0, lon_size: float = 1.0) -> box:  #TYPO
+def find_extent_of_geodf(
+    geodf: Any, lat_size: float = 1.0, lon_size: float = 1.0
+) -> box:  # TYPO
     """
     Construct a bounding box for the plot based on the GeoDataFrame.
 
@@ -151,4 +155,3 @@ def find_plot_extent(
         return default_extentlist
 
     return box_to_extent_list(geodf_extent_box)
-

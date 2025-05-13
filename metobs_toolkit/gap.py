@@ -48,9 +48,7 @@ class Gap:
     ):
         """Initialize a Gap object."""
         gaprecords.name = "datetime"
-        self._records = pd.Series(
-            data=np.nan, index=gaprecords, name="value"
-        )
+        self._records = pd.Series(data=np.nan, index=gaprecords, name="value")
         self._labels = pd.Series(
             data=label_def["regular_gap"]["label"], index=gaprecords, name="label"
         )
@@ -75,6 +73,7 @@ class Gap:
     def stationname(self) -> str:
         """Return the station name."""
         return self._stationname
+
     @property
     def fillsettings(self) -> dict:
         """
@@ -181,14 +180,20 @@ class Gap:
         logger.debug(f"Entering get_info for {self} with printout={printout}")
 
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Gap')
-        infostr += printing.print_fmt_section('Gap details')
+        infostr += printing.print_fmt_title("General info of Gap")
+        infostr += printing.print_fmt_section("Gap details")
 
-        infostr += printing.print_fmt_line(f"Gap of {self.obstype.name} for station: {self.stationname}", 0)
-        infostr += printing.print_fmt_line(f"From {self.start_datetime} -> {self.end_datetime}", 1)
-        infostr += printing.print_fmt_line(f"Duration gap: {self.end_datetime - self.start_datetime}", 1)
-        
-        infostr += printing.print_fmt_section('Gap filling details')
+        infostr += printing.print_fmt_line(
+            f"Gap of {self.obstype.name} for station: {self.stationname}", 0
+        )
+        infostr += printing.print_fmt_line(
+            f"From {self.start_datetime} -> {self.end_datetime}", 1
+        )
+        infostr += printing.print_fmt_line(
+            f"Duration gap: {self.end_datetime - self.start_datetime}", 1
+        )
+
+        infostr += printing.print_fmt_section("Gap filling details")
         infostr += printing.print_fmt_line(f"Gap status: {self.fillstatus}")
         infostr += printing.print_fmt_line(f"Gapfill settings used:")
         infostr += printing.print_fmt_dict(d=self.fillsettings, identlvl=2)
@@ -252,7 +257,6 @@ class Gap:
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
-
 
         self._fillkwargs = {
             "applied_gapfill_method": "debias_model_gapfill",
@@ -828,9 +832,7 @@ class Gap:
         ]  # set the new filled records
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def["interpolated_gap"][
-            "label"
-        ]
+        self._labels.loc[self.records.notna()] = label_def["interpolated_gap"]["label"]
         self._labels.loc[self.records.isna()] = label_def["failed_interpolation_gap"][
             "label"
         ]
@@ -906,7 +908,6 @@ class Gap:
         logger.debug(f"Entering _setup_lead_and_trail_for_debias_gapfill for {self}")
 
         # Validate argument types
-        
 
         # 1. Get leading period
         lead_period, continueflag, err_msg = gf_methods.get_leading_period(

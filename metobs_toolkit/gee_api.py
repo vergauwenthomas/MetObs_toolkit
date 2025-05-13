@@ -254,7 +254,6 @@ def _is_eeobj_empty(geeobj) -> bool:
         return geeobj.size().getInfo() == 0
     elif isinstance(geeobj, ee.Image):
         return geeobj.bandNames().size().getInfo() == 0
-    
 
 
 def _is_image(geeobj) -> bool:
@@ -388,7 +387,9 @@ def _df_to_features_point_collection(df: pd.DataFrame) -> ee.FeatureCollection:
     return ee.FeatureCollection(features)
 
 
-def _df_to_features_buffer_collection(df: pd.DataFrame, bufferradius: float) -> ee.FeatureCollection:
+def _df_to_features_buffer_collection(
+    df: pd.DataFrame, bufferradius: float
+) -> ee.FeatureCollection:
     """
     Convert a DataFrame to a FeatureCollection row-wise (buffered points).
 
@@ -425,7 +426,9 @@ def _df_to_features_buffer_collection(df: pd.DataFrame, bufferradius: float) -> 
     return ee.FeatureCollection(features)
 
 
-def coordinates_available(metadf: pd.DataFrame, latcol: str = "lat", loncol: str = "lon") -> bool:
+def coordinates_available(
+    metadf: pd.DataFrame, latcol: str = "lat", loncol: str = "lon"
+) -> bool:
     """
     Test if all coordinates are available in the metadata DataFrame.
 
@@ -458,7 +461,9 @@ def coordinates_available(metadf: pd.DataFrame, latcol: str = "lat", loncol: str
     return True
 
 
-def _estimate_data_size(metadf: pd.DataFrame, startdt, enddt, time_res: str, n_bands: int = 1) -> int:
+def _estimate_data_size(
+    metadf: pd.DataFrame, startdt, enddt, time_res: str, n_bands: int = 1
+) -> int:
     """
     Estimate the size of the data to be extracted.
 
@@ -489,6 +494,3 @@ def _estimate_data_size(metadf: pd.DataFrame, startdt, enddt, time_res: str, n_b
 
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
     return metadf.shape[0] * len(datatimerange) * n_bands
-
-
-

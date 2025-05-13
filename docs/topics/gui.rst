@@ -23,7 +23,7 @@ How to launch the GUI
 ------------------------
 
 As explained above, the GUI can best be launched as a local Python script or as a local JupyterNotebook.
-To do that, make sure you have installed the **Metobs-GUI** on your machine. On installation, the GUI will 
+To do that, make sure you have installed the **Metobs-GUI** on your machine. On installation, the GUI will
 install a suitable version of the MetObs-toolkit
 
 .. code-block:: console

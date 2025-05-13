@@ -50,7 +50,6 @@ def persistence_check(
     """
     logger.debug("Entering function persistence_check")
 
-
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
         records=records,

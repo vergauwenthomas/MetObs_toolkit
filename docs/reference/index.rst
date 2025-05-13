@@ -17,7 +17,7 @@ the MetObs toolkit to be used by a user and developer.
   Obstypes <obstype>
   ModelTimeSeries <modeltimeseries>
   GEEDatasetManagers <geedatasetmanagers>
-  
+
   Utility functions <functions>
 
 

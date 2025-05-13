@@ -13,7 +13,8 @@ from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
 import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
-import metobs_toolkit.backend_collection.printing_collection as printing  
+import metobs_toolkit.backend_collection.printing_collection as printing
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -219,7 +220,7 @@ class SensorData:
         if freq is None:
             raise ValueError("Frequency could not be computed.")
         return to_timedelta(freq)
-    
+
     def _setup(
         self,
         freq_estimation_method: str,
@@ -381,7 +382,9 @@ class SensorData:
         MetobsQualityControlError
             If the check is already applied and overwrite is False.
         """
-        logger.debug("Entering _update_outliers for %s with check %s", self, qccheckname)
+        logger.debug(
+            "Entering _update_outliers for %s with check %s", self, qccheckname
+        )
 
         if not isinstance(qccheckname, str):
             raise TypeError("qccheckname must be a string")
@@ -629,8 +632,10 @@ class SensorData:
         logger.debug("Entering get_info for %s", self)
 
         infostr = ""
-        infostr += printing.print_fmt_title('General info of SensorData')
-        infostr += printing.print_fmt_line(f"{self.obstype.name} records of {self.stationname}:", 0)
+        infostr += printing.print_fmt_title("General info of SensorData")
+        infostr += printing.print_fmt_line(
+            f"{self.obstype.name} records of {self.stationname}:", 0
+        )
         infostr += self._get_info_core(nident_root=1)
 
         if printout:
@@ -639,30 +644,46 @@ class SensorData:
             return infostr
 
     def _get_info_core(self, nident_root=1) -> str:
-        
 
         infostr = ""
-        infostr += printing.print_fmt_line(f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root)
-        infostr += printing.print_fmt_line(f" from {self.start_datetime} -> {self.end_datetime}", nident_root)
-        infostr += printing.print_fmt_line(f" At a resolution of {self.freq}", nident_root)
+        infostr += printing.print_fmt_line(
+            f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root
+        )
+        infostr += printing.print_fmt_line(
+            f" from {self.start_datetime} -> {self.end_datetime}", nident_root
+        )
+        infostr += printing.print_fmt_line(
+            f" At a resolution of {self.freq}", nident_root
+        )
 
         # outliers info:
         if self.outliersdf.empty:
-            infostr += printing.print_fmt_line(f"No outliers present.",nident_root)
+            infostr += printing.print_fmt_line(f"No outliers present.", nident_root)
         else:
-            infostr += printing.print_fmt_line(f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).", nident_root)
-            infostr += printing.print_fmt_line(f"label counts: ", nident_root+1) 
-            infostr += printing.print_fmt_dict(self.outliersdf['label'].value_counts().to_dict(), nident_root+2)
+            infostr += printing.print_fmt_line(
+                f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).",
+                nident_root,
+            )
+            infostr += printing.print_fmt_line(f"label counts: ", nident_root + 1)
+            infostr += printing.print_fmt_dict(
+                self.outliersdf["label"].value_counts().to_dict(), nident_root + 2
+            )
 
         # gaps info:
         if not self.gaps:
-            infostr += printing.print_fmt_line(f"No gaps present.",nident_root)
+            infostr += printing.print_fmt_line(f"No gaps present.", nident_root)
         else:
-            infostr += printing.print_fmt_line(f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.", nident_root)
-            infostr += printing.print_fmt_line(f"label counts: ", nident_root+1)
-            infostr += printing.print_fmt_dict(self.gapsdf['label'].value_counts().to_dict(), nident_root+2)
-    
+            infostr += printing.print_fmt_line(
+                f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.",
+                nident_root,
+            )
+            infostr += printing.print_fmt_line(f"label counts: ", nident_root + 1)
+            infostr += printing.print_fmt_dict(
+                self.gapsdf["label"].value_counts().to_dict(), nident_root + 2
+            )
+
         return infostr
+
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
@@ -707,7 +728,7 @@ class SensorData:
 
         skipped_data = self.series.loc[skip_records]
         targets = self.series.drop(skip_records)
-        
+
         # Option 1: Create a outlier label for these invalid inputs,
         # and treath them as outliers
         # outlier_timestamps = targets[~targets.notnull()]
@@ -928,9 +949,11 @@ class SensorData:
     def fill_gap_with_modeldata(
         self,
         modeltimeseries: "ModelTimeSeries",
-        method: str = Literal["raw","debiased","diurnal_debiased","weighted_diurnal_debiased"],
+        method: str = Literal[
+            "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
+        ],
         overwrite_fill: bool = False,
-        method_kwargs: dict = {}
+        method_kwargs: dict = {},
     ) -> None:
         """
         Fill gaps using model data.
@@ -998,8 +1021,8 @@ class SensorData:
         max_consec_fill: int = 10,
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
-        max_lead_to_gap_distance: Union[pd.Timedelta, str, None]=None,
-        max_trail_to_gap_distance: Union[pd.Timedelta, str, None]=None,
+        max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,
+        max_trail_to_gap_distance: Union[pd.Timedelta, str, None] = None,
         method_kwargs: dict = {},
         overwrite_fill: bool = False,
     ) -> None:
@@ -1008,7 +1031,7 @@ class SensorData:
 
         Parameters
         ----------
-        
+
         method : str, optional
             Interpolation method, by default "time".
         max_consec_fill : int, optional

@@ -375,18 +375,23 @@ class TestDataWithGaps:
             sta, solutionobj_A.get_station("vlinder01")
         )  # station comparison
 
-
     def test_get_info_on_objects(self):
         #   get_startpoint data
         dataset_gf = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_diurnal_debias_modeldata_gapfill_A"
+            **TestDataWithGaps.solkwargs,
+            methodname="test_diurnal_debias_modeldata_gapfill_A",
         )
-        
-        #test on dataset with gapfilled data
-        _=dataset_gf.get_info(printout=False)
-        _=dataset_gf.get_station('vlinder04').get_info(printout=False)
+
+        # test on dataset with gapfilled data
+        _ = dataset_gf.get_info(printout=False)
+        _ = dataset_gf.get_station("vlinder04").get_info(printout=False)
         # test the get_info method on gap
-        _ =dataset_gf.get_station('vlinder04').get_sensor('temp').gaps[0].get_info(printout=False)
+        _ = (
+            dataset_gf.get_station("vlinder04")
+            .get_sensor("temp")
+            .gaps[0]
+            .get_info(printout=False)
+        )
 
     def test_weighted_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check

@@ -82,7 +82,7 @@ class Station:
     def sensordata(self) -> dict:
         """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
-    
+
     def get_sensor(self, obstype: str) -> "SensorData":
         """Get the SensorData instance for a specific observation type.
 
@@ -329,15 +329,17 @@ class Station:
             Otherwise, returns None.
         """
         logger.debug("Entering get_info for %s", self)
-    
+
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Station')
-       
+        infostr += printing.print_fmt_title("General info of Station")
+
         # --- Observational info ---
-        infostr += printing.print_fmt_section('Observational info')
+        infostr += printing.print_fmt_section("Observational info")
         df = self.df
         if df.empty:
-            infostr += printing.print_fmt_line("Station instance without observation records.")
+            infostr += printing.print_fmt_line(
+                "Station instance without observation records."
+            )
         else:
             present_obstypes = list(df.index.get_level_values("obstype").unique())
 
@@ -346,20 +348,20 @@ class Station:
                 infostr += printing.print_fmt_line(f"{obstype}:", 1)
                 infostr += self.get_sensor(obstype)._get_info_core(nident_root=2)
 
-        #Meta data info
-        infostr += printing.print_fmt_section('Metadata info')
+        # Meta data info
+        infostr += printing.print_fmt_section("Metadata info")
         infostr += self.site._get_info_core(nident_root=1)
-    
-        #Modeldata info
-        infostr += printing.print_fmt_section('Modeldata info')
-        if not bool(self.modeldata):    
+
+        # Modeldata info
+        infostr += printing.print_fmt_section("Modeldata info")
+        if not bool(self.modeldata):
             infostr += printing.print_fmt_line("Station instance without modeldata.")
         else:
-            
+
             for obstype, modeldata in self.modeldata.items():
                 infostr += printing.print_fmt_line(f"{obstype}:", 1)
                 infostr += modeldata._get_info_core(nident_root=2)
-        
+
         if printout:
             print(infostr)
         else:
@@ -574,7 +576,9 @@ class Station:
             initialize_gee=initialize_gee,
         )
 
-    def get_altitude(self, overwrite: bool = True, initialize_gee: bool = True) -> float:
+    def get_altitude(
+        self, overwrite: bool = True, initialize_gee: bool = True
+    ) -> float:
         """
         Retrieve altitude for the stations using Google Earth Engine (GEE).
 
@@ -664,7 +668,7 @@ class Station:
     ) -> dict:
         """
         Get landcover fractions for a circular buffer at the station using GEE.
-        
+
         Wrapper method for `get_static_gee_buffer_fraction_data` to retrieve land cover fractions
         based on the ESA worldcoverV200 dataset.
         Parameters
@@ -698,8 +702,8 @@ class Station:
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
-        startdt_utc: Union[datetime, pd.Timestamp, str, None]=None,
-        enddt_utc: Union[datetime, pd.Timestamp, str, None]=None,
+        startdt_utc: Union[datetime, pd.Timestamp, str, None] = None,
+        enddt_utc: Union[datetime, pd.Timestamp, str, None] = None,
         target_obstypes: list = ["temp"],
         get_all_bands: bool = False,
         drive_filename: str = None,
@@ -708,7 +712,7 @@ class Station:
         force_to_drive: bool = False,
     ) -> Union[pd.DataFrame, None]:
         """Extract time series data from GEE.
-        
+
         Extracts time series (extraction at station locations) data from a Google Earth Engine (GEE) dynamic dataset
         for a specified time range and observation types.
 
@@ -883,7 +887,7 @@ class Station:
         min_records_per_window: int = 5,
     ) -> None:
         """Check if values are not constant in a moving time window.
-        
+
         Perform a persistence check on a time series to identify periods where observations remain constant
         within a specified time window. If the values are constant, all records in the moving window are
         flagged as outliers.
@@ -932,7 +936,7 @@ class Station:
         self, target_obstype: str = "temp", max_N_repetitions: int = 5
     ) -> None:
         """Test if an observation changes after a number of repetitions.
-        
+
         Perform a check that tests if the observation changes after a number of repetitions.
         If a value is repeated more than the specified number of times, all the repeated
         records are flagged as outliers.
@@ -980,7 +984,7 @@ class Station:
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
     ) -> None:
         """Check for 'spikes' and 'dips' in a timeseries.
-        
+
         Test if observations do not produce spikes in timeseries. The maximum
         allowed increase and decrease per second is set in the argument,
         and is tested to each record (with respect to the previous record).
@@ -1030,7 +1034,7 @@ class Station:
     ) -> None:
         """
         Test if the increase/decrease in a timewindow exceeds a threshold.
-        
+
         Checks if the variation of observations in time,
         does not exceed a threshold. This is done by applying a moving window
         over the time series. The moving window is defined by a duration (timewindow),
@@ -1389,11 +1393,11 @@ class Station:
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. Defaults to False.
-        
+
         Returns
         -------
         None
-        
+
         Notes
         -----
         A schematic description of the raw model data gap fill:
@@ -1425,9 +1429,9 @@ class Station:
     def fill_gaps_with_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
-        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
+        trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
     ) -> None:
@@ -1474,7 +1478,7 @@ class Station:
 
         """
         logger.debug("Entering fill_gaps_with_debiased_modeldata for %s", self)
-        
+
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -1506,8 +1510,8 @@ class Station:
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
-        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
+        trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
     ) -> None:
@@ -1592,8 +1596,8 @@ class Station:
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
-        leading_period_duration: Union[ pd.Timedelta, str] =pd.Timedelta("24h"),
-        trailing_period_duration: Union[ pd.Timedelta, str]=pd.Timedelta("24h"),
+        leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
+        trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,
@@ -1659,7 +1663,9 @@ class Station:
         Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
-        logger.debug("Entering fill_gaps_with_weighted_diurnal_debiased_modeldata for %s", self)
+        logger.debug(
+            "Entering fill_gaps_with_weighted_diurnal_debiased_modeldata for %s", self
+        )
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)

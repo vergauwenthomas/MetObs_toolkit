@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 pd.options.mode.copy_on_write = True
 
+
 def save_concat(targets, **kwargs):
 
     if not isinstance(targets, list):

@@ -36,7 +36,6 @@ def repetitions_check(records: pd.Series, max_N_repetitions: int) -> pd.Datetime
     """
     logger.debug("Entering function repetitions_check")
 
-    
     # Drop outliers from the series (these are NaNs)
     input_series = records.dropna()
 

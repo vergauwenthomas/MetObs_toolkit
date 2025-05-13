@@ -163,7 +163,9 @@ class MetaDataParser:
         pd.DataFrame
             DataFrame containing only the relevant mapped columns.
         """
-        logger.debug(f"Entering _subset_to_mapped_columns() of {self.__class__.__name__}")
+        logger.debug(
+            f"Entering _subset_to_mapped_columns() of {self.__class__.__name__}"
+        )
         metacolmap = self.template._get_metadata_column_map()
         relev_columns = list(metacolmap.values())
 
@@ -239,7 +241,9 @@ class MetaDataParser:
         dict
             Dictionary of extra metadata for the station.
         """
-        logger.debug(f"Entering get_station_extra_metadata() of {self.__class__.__name__}")
+        logger.debug(
+            f"Entering get_station_extra_metadata() of {self.__class__.__name__}"
+        )
         not_extra_columns = ["lat", "lon"]
         if self._check_stationname_is_known(stationname=stationname):
             extra_info = (
@@ -266,7 +270,9 @@ class MetaDataParser:
         bool
             True if the station name is known, False otherwise.
         """
-        logger.debug(f"Entering _check_stationname_is_known() of {self.__class__.__name__}")
+        logger.debug(
+            f"Entering _check_stationname_is_known() of {self.__class__.__name__}"
+        )
         if stationname in self.datadf.index:
             return True
         else:
@@ -330,5 +336,3 @@ class MetaDataParser:
     def get_df(self) -> pd.DataFrame:
         """Return the parsed metadata DataFrame."""
         return self.datadf
-
-

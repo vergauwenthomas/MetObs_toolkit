@@ -44,7 +44,6 @@ def step_check(
     """
     logger.debug("Entering function step_check")
 
-
     # Validate argument values
     if max_decrease_per_second > 0:
         raise ValueError("max_decrease_per_second must be negative!")
@@ -63,8 +62,8 @@ def step_check(
         (
             (input_series - input_series.shift(1))
             > (float(max_increase_per_second) * time_diff.dt.total_seconds())
-        )
-        |  # or
+        )  # or
+        |
         # Step decrease
         (
             (input_series - input_series.shift(1))

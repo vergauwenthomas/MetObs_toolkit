@@ -8,6 +8,7 @@ from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 class TimestampMatcher:
     """
     Class for mapping and resampling timestamp records.
@@ -121,7 +122,7 @@ class TimestampMatcher:
         shift_tolerance: Union[pd.Timedelta, str],
         origin: Union[pd.Timestamp, None] = None,
         closing: Union[pd.Timestamp, None] = None,
-        direction: Literal['backward', 'forward', 'nearest'] = "nearest",
+        direction: Literal["backward", "forward", "nearest"] = "nearest",
     ) -> None:
         """
         Map original records to perfect timestamps.
@@ -285,6 +286,7 @@ class TimestampMatcher:
             closing=force_closing,
         )
 
+
 def simplify_time(
     time: Union[pd.Timestamp, pd.Timedelta],
     max_simplify_error: pd.Timedelta,
@@ -336,6 +338,7 @@ def simplify_time(
                 f"No simplification possible for {time}, and zero_protection is set to True."
             )
     return time
+
 
 def get_likely_frequency(
     timestamps: pd.DatetimeIndex,

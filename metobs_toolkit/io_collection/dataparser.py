@@ -23,7 +23,6 @@ class DataParser:
 
     def __init__(self, datafilereader: CsvFileReader, template: Template):
 
-
         self.filereader = datafilereader
         self.template = template
         self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style

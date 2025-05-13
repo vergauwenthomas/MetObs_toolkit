@@ -13,6 +13,7 @@ import metobs_toolkit.plot_collection.timeseries_plotting as plotting
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 class ModelTimeSeries:
     """Class for model-based timeseries at one location.
 
@@ -119,13 +120,26 @@ class ModelTimeSeries:
 
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
-        infostr += printing.print_fmt_line(f"Origin {self.modelname} -> variable/band: {self.modelvariable}", nident_root)
-        infostr += printing.print_fmt_line(f"From {self.start_datetime} --> {self.end_datetime}", nident_root)
-        infostr += printing.print_fmt_line(f"Assumed frequency: {self.freq}", nident_root)
-        infostr += printing.print_fmt_line(f"Number of records: {self.series.shape[0]}", nident_root)
-        infostr += printing.print_fmt_line(f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}", nident_root)
+        infostr += printing.print_fmt_line(
+            f"Origin {self.modelname} -> variable/band: {self.modelvariable}",
+            nident_root,
+        )
+        infostr += printing.print_fmt_line(
+            f"From {self.start_datetime} --> {self.end_datetime}", nident_root
+        )
+        infostr += printing.print_fmt_line(
+            f"Assumed frequency: {self.freq}", nident_root
+        )
+        infostr += printing.print_fmt_line(
+            f"Number of records: {self.series.shape[0]}", nident_root
+        )
+        infostr += printing.print_fmt_line(
+            f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}",
+            nident_root,
+        )
 
         return infostr
+
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return information about the ModelTimeSeries.
@@ -142,8 +156,10 @@ class ModelTimeSeries:
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
         infostr = ""
-        infostr += printing.print_fmt_title('General info of ModelTimeSeries')
-        infostr += printing.print_fmt_line(f"{self.obstype.name} model data at location of {self.stationname}")
+        infostr += printing.print_fmt_title("General info of ModelTimeSeries")
+        infostr += printing.print_fmt_line(
+            f"{self.obstype.name} model data at location of {self.stationname}"
+        )
         infostr += self._get_info_core(nident_root=1)
         if printout:
             print(infostr)

@@ -743,5 +743,3 @@ def build_template_prompt() -> None:
             print(")")
 
     return
-
-

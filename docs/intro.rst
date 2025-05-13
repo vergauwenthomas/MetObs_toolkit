@@ -2,7 +2,7 @@
 Toolkit objects overview
 **************************
 
-This toolkit is a Python package based on object-oriented programming (OOP). 
+This toolkit is a Python package based on object-oriented programming (OOP).
 Here you can find a short description of the classes that are commenly used.
 In the `introduction example` you can find a notebook example to illustrate these classes.
 
@@ -18,11 +18,11 @@ on a ``Station`` can be applied on a ``Dataset``. See the API documentation for 
 
    your_dataset = metobs_toolkit.Dataset()
 
-The dataset holds methods for 
+The dataset holds methods for
  - Importing raw data
  - Resampling/syncronizing timeseries
  - Extracting metadata
- - Visualizing 
+ - Visualizing
  - Quality control
  - Gap filling
 
@@ -49,10 +49,10 @@ A :ref:`Station <Station api>` is a class that has the same attributes and metho
 
 ``SensorData``
 --------------
-A ``SensorData`` object holds the timeseries data for a specific observation type (e.g., temperature, humidity, wind speed) at a station. 
-Each station can have multiple SensorData objects, one for each observation type. 
+A ``SensorData`` object holds the timeseries data for a specific observation type (e.g., temperature, humidity, wind speed) at a station.
+Each station can have multiple SensorData objects, one for each observation type.
 SensorData manages the actual measurements, associated timestamps, and quality control labels for its observation type. If present, gaps are stored in the `SensorData`
-SensorData objects are not created directly by users; they are managed by the toolkit when importing or processing data. 
+SensorData objects are not created directly by users; they are managed by the toolkit when importing or processing data.
 
 In pracktiche you do not need to interact directly with this class. You can inspect the observations by using the `df` attribute on a `Station` or `Dataset`.
 
@@ -135,7 +135,7 @@ See the API documentation :ref:`ModelTimeSeries API <ModelTimeSeries api>` and t
 
 ``Obstype and ModelObstype``
 ---------------------------
-An ``Obstype`` defines an observation type, such as temperature, humidity, or wind speed. 
+An ``Obstype`` defines an observation type, such as temperature, humidity, or wind speed.
 It specifies the standard name, standard unit, and a description for the observation type.
 Obstypes are used throughout the toolkit to ensure consistency in data handling, unit conversion, and quality control.
 
@@ -144,6 +144,3 @@ A ``ModelObstype`` extends the concept of an Obstype to model or reanalysis data
 You typically do not need to create these objects directly; common obstypes and modelobstypes are predefined and used internally by the toolkit and GEE dataset managers.
 
 See the API documentation :ref:`Obstype API <Obstype api>` and :ref:`ModelObstype API <ModelObstype api>` for more details.
-
-
-

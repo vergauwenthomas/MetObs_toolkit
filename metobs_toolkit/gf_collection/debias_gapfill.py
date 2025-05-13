@@ -3,13 +3,14 @@ import pandas as pd
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 def fill_regular_debias(df: pd.DataFrame) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame by applying a regular debiasing correction.
 
     The function calculates the mean bias between the 'modelvalue' and 'value' columns
     for rows labeled as 'lead' or 'trail'. This bias is then used to correct the 'modelvalue'
-    for all rows, and the corrected values are stored in a new column 'fillvalue'. 
+    for all rows, and the corrected values are stored in a new column 'fillvalue'.
     Additional columns 'correction' and 'msg' are also added to the DataFrame.
 
     Parameters

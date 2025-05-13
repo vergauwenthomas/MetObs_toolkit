@@ -107,4 +107,3 @@ qc_label_group = [
     "titan_buddy_check",
     "titan_sct_resistant_check",
 ]
-

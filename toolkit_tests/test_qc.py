@@ -177,16 +177,15 @@ class TestBreakingDataset:
         _statsdf = dataset.get_qc_stats(target_obstype="temp", make_plot=True)
 
     def test_get_info(self):
-       
+
         #  1. get_startpoint data
         dataset = TestBreakingDataset.solutionfixer.get_solution(
             **TestBreakingDataset.solkwargs, methodname="test_apply_qc"
         )
         # call get info on dataset, station and sensor level
         _ = dataset.get_info(printout=True)
-        _ = dataset.get_station('Fictional').get_info(printout=True)
-        _ = dataset.get_station('Fictional').get_sensor('temp').get_info(printout=True)
-
+        _ = dataset.get_station("Fictional").get_info(printout=True)
+        _ = dataset.get_station("Fictional").get_sensor("temp").get_info(printout=True)
 
 
 class TestDemoDataset:

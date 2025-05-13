@@ -6,8 +6,12 @@ import pandas as pd
 import pint
 
 
-from metobs_toolkit.backend_collection.errorclasses import MetObsUnitsIncompatible, MetObsUnitUnknown
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsUnitsIncompatible,
+    MetObsUnitUnknown,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
+
 # Use logger with name "<metobs_toolkit>"
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -101,12 +105,12 @@ class Obstype:
         self._description = str(value)
 
     @property
-    def orginal_name(self): 
+    def orginal_name(self):
         """Return the original name of the observation type."""
         return str(self._original_name)
 
     @orginal_name.setter
-    def original_name(self, value): 
+    def original_name(self, value):
         """Set the original name of the observation type."""
         self._original_name = str(value)
 
@@ -119,7 +123,9 @@ class Obstype:
         list
             List of compatible units as strings.
         """
-        logger.debug(f"{self.__class__.__name__}.get_compatible_units called for {self}")
+        logger.debug(
+            f"{self.__class__.__name__}.get_compatible_units called for {self}"
+        )
         # Get all units related to the same dimension
         compunits = list(ureg.get_compatible_units(self._std_unit.dimensionality))
         # return the units as strings
@@ -172,7 +178,6 @@ class Obstype:
         infostr += printing.print_fmt_line(f"description: {self.description}")
         return infostr
 
-
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the observation type.
@@ -189,7 +194,7 @@ class Obstype:
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Obstype')
+        infostr += printing.print_fmt_title("General info of Obstype")
         infostr += self._get_info_core()
         if printout:
             print(infostr)
@@ -216,7 +221,9 @@ class Obstype:
         array-like, pd.Series, int, or float
             The converted data in standard units.
         """
-        logger.debug(f"{self.__class__.__name__}.convert_to_standard_units called for {self}")
+        logger.debug(
+            f"{self.__class__.__name__}.convert_to_standard_units called for {self}"
+        )
         # format input unit
         input_unit = _fmtunit(input_unit)
         # Test if inputunit is compatible with std unit
@@ -244,8 +251,10 @@ class ModelObstype(Obstype):
         The model's band name.
     """
 
-    def __init__(self, obstype: Obstype, model_unit: Union[str, pint.Unit], model_band: str):
-        
+    def __init__(
+        self, obstype: Obstype, model_unit: Union[str, pint.Unit], model_band: str
+    ):
+
         # set regular obstype
         super().__init__(
             obsname=obstype.name,
@@ -286,15 +295,17 @@ class ModelObstype(Obstype):
         None or str
             None if printout is True, otherwise the information string.
         """
-      
+
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
         infostr = ""
-        infostr += printing.print_fmt_title('General info of ModelObstype')
-        infostr += printing.print_fmt_section('Obstype info')
+        infostr += printing.print_fmt_title("General info of ModelObstype")
+        infostr += printing.print_fmt_section("Obstype info")
         infostr += super()._get_info_core()
-        infostr += printing.print_fmt_section('Model related info')
+        infostr += printing.print_fmt_section("Model related info")
         infostr += printing.print_fmt_line(f"corresponding bandname: {self.model_band}")
-        infostr += printing.print_fmt_line(f"original modeldata unit: {self.model_unit}")
+        infostr += printing.print_fmt_line(
+            f"original modeldata unit: {self.model_unit}"
+        )
         if printout:
             print(infostr)
         else:
@@ -374,7 +385,7 @@ class ModelObstype_Vectorfield(Obstype):
         """Return the direction obstype name as string."""
         return str(self._dir_obs_name)
 
-    def get_info(self, printout: bool = True) -> Union[None, str]: 
+    def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the vectorfield model observation type.
 
@@ -390,15 +401,15 @@ class ModelObstype_Vectorfield(Obstype):
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
         infostr = ""
-        infostr += printing.print_fmt_title('General info of ModelObstype_Vectorfield')
-        infostr += printing.print_fmt_section('Obstype info')
+        infostr += printing.print_fmt_title("General info of ModelObstype_Vectorfield")
+        infostr += printing.print_fmt_section("Obstype info")
         infostr += super()._get_info_core()
-        infostr += printing.print_fmt_section('Model related info')
+        infostr += printing.print_fmt_section("Model related info")
         infostr += printing.print_fmt_line(f"U-component bandname: {self.model_band_u}")
         infostr += printing.print_fmt_line(f"in {self.model_unit}", 2)
         infostr += printing.print_fmt_line(f"V-component bandname: {self.model_band_v}")
         infostr += printing.print_fmt_line(f"in {self.model_unit}", 2)
-        
+
         if printout:
             print(infostr)
         else:

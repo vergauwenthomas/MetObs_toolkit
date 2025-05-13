@@ -1,7 +1,6 @@
 import logging
 from typing import Union
 import pandas as pd
-import numpy as np
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -24,7 +23,8 @@ def create_a_combined_df(
     Returns
     -------
     pd.DataFrame
-        Combined DataFrame with columns 'value' and 'label', indexed by datetime.
+        Combined DataFrame with columns 'value' and 'label', indexed by
+        datetime.
     """
     logger.debug("Entering create_a_combined_df")
     leaddf = pd.DataFrame(
@@ -39,11 +39,10 @@ def create_a_combined_df(
     return pd.concat([leaddf, traildf, gapdf]).sort_index()
 
 
-def add_modeldata_to_combdf(
-    combineddf: pd.DataFrame, modeltimeseries
-) -> pd.DataFrame:
+def add_modeldata_to_combdf(combineddf: pd.DataFrame, modeltimeseries) -> pd.DataFrame:
     """
-    Add model data to a combined DataFrame, interpolating model values to match the index.
+    Add model data to a combined DataFrame, interpolating model values to
+    match the index.
 
     Parameters
     ----------
@@ -65,27 +64,29 @@ def add_modeldata_to_combdf(
         modelseries = modelseries.tz_convert(combineddf.index.tz)
 
     modeldf = pd.DataFrame(index=modelseries.index, data={"modelvalue": modelseries})
-    #Interpolate modeldf to target timestamps
+    # Interpolate modeldf to target timestamps
 
     # Create a new index that is the union of combineddf and modeldf indices without duplicates
     all_timestamps_index = combineddf.index.union(modeldf.index).drop_duplicates()
-    #Note: The reindexing and interpolation of modeldata is needed
-    #because the model data is often only defined at a resolution of 1h,
-    #while the combineddf is not always at 1h resolution.
+    # Note: The reindexing and interpolation of modeldata is needed
+    # because the model data is often only defined at a resolution of 1h,
+    # while the combineddf is not always at 1h resolution.
 
-    # Combine all timestamps of model and combineddf, because if 
-    #only using the combineddf index, and limit_area="inside", no modeldata
-    #could be set for the extreme leading and trailing timestamps 
-    #if they appear not on the hour. Thus combine indexes, and after 
-    #the data is combined, subset to the combineddf index.
+    # Combine all timestamps of model and combineddf, because if
+    # only using the combineddf index, and limit_area="inside", no modeldata
+    # could be set for the extreme leading and trailing timestamps
+    # if they appear not on the hour. Thus combine indexes, and after
+    # the data is combined, subset to the combineddf index.
 
-    modeldf = (modeldf
-               .reindex(all_timestamps_index) #set the index for observation frequencies
-               .sort_index() #sort the index
-               .interpolate(method="time", limit_area="inside") #interpolate sub hourly
-                )
+    modeldf = (
+        modeldf.reindex(
+            all_timestamps_index
+        )  # set the index for observation frequencies
+        .sort_index()  # sort the index
+        .interpolate(method="time", limit_area="inside")  # interpolate sub hourly
+    )
     combdf_reindexed = pd.concat([combineddf, modeldf], axis=1)
-    
+
     combdf_reindexed = combdf_reindexed.loc[
         combineddf.index
     ]  # subset to gap + leading + trailing period
@@ -279,11 +280,11 @@ def get_leading_period(
     # lp should have a minimum sample size
     if lp.shape[0] < n_records:
         if duration is not None:
-            msg = (
-                f"Too few leading records ({lp.shape[0]} (with a maximum distance of {duration} wrt {gap.start_datetime}) found but {n_records} needed)"
-            )
+            msg = f"Too few leading records ({lp.shape[0]} (with a maximum distance of {duration} wrt {gap.start_datetime}) found but {n_records} needed)"
         else:
-            msg = f"Too few leading records ({lp.shape[0]} found but {n_records} needed)"
+            msg = (
+                f"Too few leading records ({lp.shape[0]} found but {n_records} needed)"
+            )
         logger.debug(msg)
         continueflag = False
     else:

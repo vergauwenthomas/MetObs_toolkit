@@ -50,7 +50,6 @@ console_handler.setFormatter(formatter)
 rootlog.addHandler(console_handler)
 
 
-
 # =============================================================================
 # Import classes and function to be used by the user
 # =============================================================================

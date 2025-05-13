@@ -12,6 +12,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 #    Figure/axes layouts
 # ------------------------------------------
 
+
 def create_axes(figsize: Tuple[int, int] = (15, 5), **kwargs) -> plt.Axes:
     """
     Create a matplotlib Axes object with a specified figure size.
@@ -31,6 +32,7 @@ def create_axes(figsize: Tuple[int, int] = (15, 5), **kwargs) -> plt.Axes:
     logger.debug("Entering create_axes function.")
     _fig, ax = plt.subplots(figsize=figsize, **kwargs)
     return ax
+
 
 # ------------------------------------------
 #    Styling
@@ -57,6 +59,7 @@ def set_title(ax: plt.Axes, titlestr: str) -> plt.Axes:
     ax.set_title(titlestr)
     return ax
 
+
 def set_ylabel(ax: plt.Axes, ylabel: str) -> plt.Axes:
     """
     Set the y-axis label of the axes.
@@ -77,6 +80,7 @@ def set_ylabel(ax: plt.Axes, ylabel: str) -> plt.Axes:
     ax.set_ylabel(ylabel)
     return ax
 
+
 def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
     """
     Set the x-axis label of the axes.
@@ -96,6 +100,7 @@ def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
     logger.debug("Entering set_xlabel function.")
     ax.set_xlabel(xlabel)
     return ax
+
 
 def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.Axes:
     """
@@ -127,9 +132,11 @@ def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.
     ax.xaxis.set_major_formatter(xtick_formatter)
     return ax
 
+
 # ------------------------------------------
 #    Legend handling
 # ------------------------------------------
+
 
 def _drop_cur_legend(ax: plt.Axes) -> None:
     """Remove the current legend from the axes if present."""
@@ -137,6 +144,7 @@ def _drop_cur_legend(ax: plt.Axes) -> None:
         return  # nothing to drop
     else:
         ax.get_legend().remove()
+
 
 def _get_unique_handles_and_labels(ax: plt.Axes):
     """
@@ -162,7 +170,8 @@ def _get_unique_handles_and_labels(ax: plt.Axes):
     handles = list(unique_labels.values())
     return handles, labels
 
-def _create_main_legend_items(handles, labels): 
+
+def _create_main_legend_items(handles, labels):
     """
     Create main legend items, grouping record and model data.
 
@@ -190,6 +199,7 @@ def _create_main_legend_items(handles, labels):
     ]
 
     return recorditems + modelitems_to_show
+
 
 def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
     """
@@ -279,9 +289,11 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
 
     return ax
 
+
 # ------------------------------------------
 #    Coloring
 # ------------------------------------------
+
 
 def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict:
     """

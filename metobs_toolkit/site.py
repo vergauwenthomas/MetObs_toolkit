@@ -33,7 +33,7 @@ class Site:
     def __init__(
         self, stationname: str, latitude: float, longitude: float, extradata: dict = {}
     ):
-    
+
         # Set data
         self._stationname = stationname
         self._lat = float(latitude)
@@ -44,7 +44,9 @@ class Site:
 
         # Data extracted from other sources
         self._geedata = {}  # example: "LCZ": 'LCZ-4'
-        self._gee_buffered_fractions = {}  # example: {100: {pervious: 0.8, impervious: 0.2}}
+        self._gee_buffered_fractions = (
+            {}
+        )  # example: {100: {pervious: 0.8, impervious: 0.2}}
 
     def __eq__(self, other):
         """Check equality with another Site object."""
@@ -378,12 +380,11 @@ class Site:
             bufferdict.update(fracdict)
         return bufferdict
 
-
     def _get_info_core(self, nident_root=1) -> str:
         """
         Generate a formatted string containing metadata information for parent objects.
-        This method compiles various metadata details such as coordinates, altitude, 
-        land cover zone (LCZ), land cover fractions, and extra metadata into a formatted 
+        This method compiles various metadata details such as coordinates, altitude,
+        land cover zone (LCZ), land cover fractions, and extra metadata into a formatted
         string. It is primarily used by the `get_info` methods of parent objects.
         Parameters
         ----------
@@ -396,44 +397,62 @@ class Site:
         """
 
         infostr = ""
-        #Coordinates
+        # Coordinates
         if self.flag_has_coordinates():
-            infostr += printing.print_fmt_line(f"Coordinates ({self.lat}, {self.lon}) (latitude, longitude)", nident_root)
+            infostr += printing.print_fmt_line(
+                f"Coordinates ({self.lat}, {self.lon}) (latitude, longitude)",
+                nident_root,
+            )
         else:
             infostr += printing.print_fmt_line("Coordinates are unknown", nident_root)
-        
-        #Altitude
-        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):  
-            infostr += printing.print_fmt_line(f"Altitude: {self.altitude} (m) (from metadata file)", nident_root)
+
+        # Altitude
+        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):
+            infostr += printing.print_fmt_line(
+                f"Altitude: {self.altitude} (m) (from metadata file)", nident_root
+            )
         elif self.flag_has_altitude() & (self.flag_altitude_from_gee()):
-            infostr += printing.print_fmt_line(f"Altitude: {self.altitude} (m) (from GEE extraction)", nident_root)
+            infostr += printing.print_fmt_line(
+                f"Altitude: {self.altitude} (m) (from GEE extraction)", nident_root
+            )
         else:
             infostr += printing.print_fmt_line("Altitude is unknown", nident_root)
 
-        #LCZ
+        # LCZ
         if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
-            infostr += printing.print_fmt_line(f"LCZ: {self.LCZ} (from GEE extraction)", nident_root)
+            infostr += printing.print_fmt_line(
+                f"LCZ: {self.LCZ} (from GEE extraction)", nident_root
+            )
         elif self.flag_has_LCZ():
-            infostr += printing.print_fmt_line(f"LCZ: {self.LCZ} (from metadata file)", nident_root)
+            infostr += printing.print_fmt_line(
+                f"LCZ: {self.LCZ} (from metadata file)", nident_root
+            )
         else:
             infostr += printing.print_fmt_line("LCZ is unknown", nident_root)
-        
-        #Buffered fractions
+
+        # Buffered fractions
         if self.flag_has_landcoverfractions():
-            infostr += printing.print_fmt_line("Land cover fractions are available", nident_root)
+            infostr += printing.print_fmt_line(
+                "Land cover fractions are available", nident_root
+            )
         else:
-            infostr += printing.print_fmt_line("Land cover fractions are unknown", nident_root)
-        
-        #Extra metadata
+            infostr += printing.print_fmt_line(
+                "Land cover fractions are unknown", nident_root
+            )
+
+        # Extra metadata
         if bool(self):
-            infostr += printing.print_fmt_line("Extra metadata from the metadata file:", nident_root)
+            infostr += printing.print_fmt_line(
+                "Extra metadata from the metadata file:", nident_root
+            )
             for key, value in self.extradata.items():
-                infostr += printing.print_fmt_line(f"{key}: {value}", nident_root+1)
+                infostr += printing.print_fmt_line(f"{key}: {value}", nident_root + 1)
         else:
-            infostr += printing.print_fmt_line("No extra metadata available", nident_root)
+            infostr += printing.print_fmt_line(
+                "No extra metadata available", nident_root
+            )
 
         return infostr
-
 
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
@@ -451,7 +470,7 @@ class Site:
         """
         logger.debug("Entering get_info for %s", self)
         infostr = ""
-        infostr += printing.print_fmt_title('General Info of Site')
+        infostr += printing.print_fmt_title("General Info of Site")
         infostr += printing.print_fmt_line(f"Site of {self.stationname}:", 0)
         infostr += self._get_info_core(nident_root=1)
 

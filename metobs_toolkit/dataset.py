@@ -83,19 +83,19 @@ class Dataset:
     # ------------------------------------------
 
     def __eq__(self, other: object) -> bool:
-        """ Check equality with another Dataset instance. """
+        """Check equality with another Dataset instance."""
         logger.debug("Entering Dataset.__eq__")
         if not isinstance(other, Dataset):
             return False
         return self.stations == other.stations
 
     def __str__(self) -> str:
-        """ Return a string representation of the Dataset. """
+        """Return a string representation of the Dataset."""
         logger.debug("Entering Dataset.__str__")
         return "Dataset instance"
 
     def __repr__(self) -> str:
-        """ Return an info representation of the Dataset."""
+        """Return an info representation of the Dataset."""
         logger.debug("Entering Dataset.__repr__")
         class_name = type(self).__name__
         return f"Instance of {class_name} at {hex(id(self))}"
@@ -141,7 +141,7 @@ class Dataset:
         Get the Template instance used when the data was imported.
 
         """
-        
+
         return self._template
 
     @stations.setter
@@ -149,7 +149,7 @@ class Dataset:
         """
         Set the list of stations.
         """
-        
+
         self._stations = stationlist
 
     @obstypes.setter
@@ -158,7 +158,7 @@ class Dataset:
         Set the obstypes.
 
         """
-        
+
         self._obstypes = obstypesdict
 
     @copy_doc(Station.df)
@@ -291,7 +291,9 @@ class Dataset:
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
-    def subset_by_stations(self, stationnames: list, deepcopy: bool = False) -> "Dataset":
+    def subset_by_stations(
+        self, stationnames: list, deepcopy: bool = False
+    ) -> "Dataset":
         """
         Create a subset of the dataset by selecting specific stations.
 
@@ -359,23 +361,31 @@ class Dataset:
     @copy_doc(Station.get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
         logger.debug("Entering Dataset.get_info")
-    
+
         infostr = ""
-        infostr += printing.print_fmt_title('General info of Dataset')
-       
+        infostr += printing.print_fmt_title("General info of Dataset")
+
         # --- Observational info ---
-        infostr += printing.print_fmt_section('Observational info')
+        infostr += printing.print_fmt_section("Observational info")
         df = self.df
         if df.empty:
-            infostr += printing.print_fmt_line("Dataset instance without observation records.")
+            infostr += printing.print_fmt_line(
+                "Dataset instance without observation records."
+            )
         else:
             present_obstypes = list(df.index.get_level_values("obstype").unique())
 
             infostr += printing.print_fmt_line("Dataset instance with:", 0)
-            infostr += printing.print_fmt_line(f"{len(self.stations)} number of stations")
+            infostr += printing.print_fmt_line(
+                f"{len(self.stations)} number of stations"
+            )
             infostr += printing.print_fmt_line(f"{len(df.index)} number of records")
-            infostr += printing.print_fmt_line(f"{len(present_obstypes)} types of sensor data are present.")
-            infostr += printing.print_fmt_line(f'Observations from {self.start_datetime} -> {self.end_datetime}')
+            infostr += printing.print_fmt_line(
+                f"{len(present_obstypes)} types of sensor data are present."
+            )
+            infostr += printing.print_fmt_line(
+                f"Observations from {self.start_datetime} -> {self.end_datetime}"
+            )
 
             # -- outlier info --
             outldf = self.outliersdf
@@ -383,46 +393,71 @@ class Dataset:
             if outldf.empty:
                 infostr += printing.print_fmt_line(f"No QC outliers present.", 2)
             else:
-                infostr += printing.print_fmt_line("A total of {outldf.shape[0]} outliers are present.",2)
+                infostr += printing.print_fmt_line(
+                    "A total of {outldf.shape[0]} outliers are present.", 2
+                )
                 infostr += printing.print_fmt_line(f"label counts:", 3)
-                infostr += printing.print_fmt_dict(outldf['label'].value_counts().to_dict(), identlvl=4)
-                infostr += printing.print_fmt_line(f"For these obstyes: {list(outldf.index.get_level_values('obstype').unique())}",2)
+                infostr += printing.print_fmt_dict(
+                    outldf["label"].value_counts().to_dict(), identlvl=4
+                )
+                infostr += printing.print_fmt_line(
+                    f"For these obstyes: {list(outldf.index.get_level_values('obstype').unique())}",
+                    2,
+                )
                 unique_stations = list(outldf.index.get_level_values("name").unique())
-                infostr += printing.print_fmt_line(f"For {len(unique_stations)} stations: {unique_stations}", 2)
-                
+                infostr += printing.print_fmt_line(
+                    f"For {len(unique_stations)} stations: {unique_stations}", 2
+                )
+
             # -- gap info --
             gapsdf = self.gapsdf
             infostr += printing.print_fmt_line("Gaps info:")
             if gapsdf.empty:
                 infostr += printing.print_fmt_line(f"No gaps present.", 2)
             else:
-                infostr += printing.print_fmt_line(f"A total of {gapsdf.shape[0]} gaps are present.",2)
+                infostr += printing.print_fmt_line(
+                    f"A total of {gapsdf.shape[0]} gaps are present.", 2
+                )
                 infostr += printing.print_fmt_line(f"label counts: ", 3)
-                infostr += printing.print_fmt_dict(gapsdf['label'].value_counts().to_dict(), identlvl=4)
-                infostr += printing.print_fmt_line(f"For these obstyes: {list(gapsdf.index.get_level_values('obstype').unique())}",2)
+                infostr += printing.print_fmt_dict(
+                    gapsdf["label"].value_counts().to_dict(), identlvl=4
+                )
+                infostr += printing.print_fmt_line(
+                    f"For these obstyes: {list(gapsdf.index.get_level_values('obstype').unique())}",
+                    2,
+                )
                 unique_stations = list(gapsdf.index.get_level_values("name").unique())
-                infostr += printing.print_fmt_line(f"For {len(unique_stations)} stations: {unique_stations}",2)
+                infostr += printing.print_fmt_line(
+                    f"For {len(unique_stations)} stations: {unique_stations}", 2
+                )
 
-        #Meta data info
-        infostr += printing.print_fmt_section('Metadata info')
-        
+        # Meta data info
+        infostr += printing.print_fmt_section("Metadata info")
+
         metadf = self.metadf
         if metadf.empty:
             infostr += printing.print_fmt_line("Dataset instance without metadata.")
         else:
-            infostr += printing.print_fmt_line(f"{len(metadf.index)} number of stations")
-            infostr += printing.print_fmt_line(f"The following metadata is present: {list(metadf.columns)}")
-    
-        #Modeldata info
+            infostr += printing.print_fmt_line(
+                f"{len(metadf.index)} number of stations"
+            )
+            infostr += printing.print_fmt_line(
+                f"The following metadata is present: {list(metadf.columns)}"
+            )
+
+        # Modeldata info
         modeldf = self.modeldatadf
-        infostr += printing.print_fmt_section('Modeldata info')
+        infostr += printing.print_fmt_section("Modeldata info")
         if modeldf.empty:
             infostr += printing.print_fmt_line("Dataset instance without modeldata.")
         else:
-            infostr += printing.print_fmt_line(f"Modeldata is present for {list(modeldf.index.get_level_values('obstype').unique())}")
-            infostr += printing.print_fmt_line(f"For period {modeldf.index.get_level_values('datetime').min()} -> {modeldf.index.get_level_values('datetime').max()}")
-      
-      
+            infostr += printing.print_fmt_line(
+                f"Modeldata is present for {list(modeldf.index.get_level_values('obstype').unique())}"
+            )
+            infostr += printing.print_fmt_line(
+                f"For period {modeldf.index.get_level_values('datetime').min()} -> {modeldf.index.get_level_values('datetime').max()}"
+            )
+
         if printout:
             print(infostr)
         else:
@@ -437,42 +472,42 @@ class Dataset:
     ) -> None:
         """Synchronize records of sensor data across stations.
 
-        Synchronize records of sensor data across stations (for a specific observation type).
-        This method aligns the sensor data of a specified observation type (`target_obstype`)
-        across all stations by resampling the data to a common frequency and ensuring
-        alignment errors of timestamps within specified tolerances.
+                Synchronize records of sensor data across stations (for a specific observation type).
+                This method aligns the sensor data of a specified observation type (`target_obstype`)
+                across all stations by resampling the data to a common frequency and ensuring
+                alignment errors of timestamps within specified tolerances.
 
-        Parameters
-        ----------
-        target_obstype : str, optional
-            The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
-        timestamp_shift_tolerance : str or pandas.Timedelta, optional
-            The maximum allowed time shift tolerance for aligning data during
-            resampling. Default is 2 minutes.
-        freq_shift_tolerance : str or pandas.Timedelta, optional
-            The maximum allowed error in simplifying the target frequency. Default is "1min".
-        fixed_origin : pandas.Timestamp, or None, optional
-            A fixed origin timestamp for resampling. If None, the origin is
-            determined automatically. Default is None.
+                Parameters
+                ----------
+                target_obstype : str, optional
+                    The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
+                timestamp_shift_tolerance : str or pandas.Timedelta, optional
+                    The maximum allowed time shift tolerance for aligning data during
+                    resampling. Default is 2 minutes.
+                freq_shift_tolerance : str or pandas.Timedelta, optional
+                    The maximum allowed error in simplifying the target frequency. Default is "1min".
+                fixed_origin : pandas.Timestamp, or None, optional
+                    A fixed origin timestamp for resampling. If None, the origin is
+                    determined automatically. Default is None.
 
-        Returns
--        -------
-        None.
+                Returns
+        -        -------
+                None.
 
-        Note
-        ------
-        In general, this method is a wrapper for `Dataset.resample()` but making sure that
-        the target frequencies are naturel multiples of each other thus ensuring syncronisation
-        accros stations.
+                Note
+                ------
+                In general, this method is a wrapper for `Dataset.resample()` but making sure that
+                the target frequencies are naturel multiples of each other thus ensuring syncronisation
+                accros stations.
 
-        Warning
-        ----------
-        Since the gaps depend on the record’s frequency and origin, all gaps
-        are removed and re-located. All progress in gap(filling) will be lost.
+                Warning
+                ----------
+                Since the gaps depend on the record’s frequency and origin, all gaps
+                are removed and re-located. All progress in gap(filling) will be lost.
 
-        Warning
-        --------
-        Cumulative tolerance errors can be introduced when this method is called multiple times.
+                Warning
+                --------
+                Cumulative tolerance errors can be introduced when this method is called multiple times.
 
 
         """
@@ -540,7 +575,7 @@ class Dataset:
         force_update: bool = True,
         _force_from_dataframe: Union[pd.DataFrame, None] = None,
     ) -> pd.DataFrame:
-        """        Import Google Earth Engine (GEE) data from a CSV file
+        """Import Google Earth Engine (GEE) data from a CSV file
 
         Import Google Earth Engine (GEE) data from a file, that was writen in your Google Drive,
         and integrate it into the dataset. Start by downloading the target CSV file from your
@@ -565,7 +600,7 @@ class Dataset:
             The processed DataFrame containing the GEE data.
         """
         logger.debug("Entering Dataset.import_gee_data_from_file")
-        
+
         if _force_from_dataframe is None:
             reader = CsvFileReader(file_path=filepath)
             data = reader.read_as_local_file()
@@ -742,7 +777,9 @@ class Dataset:
         """
         logger.debug("Entering Dataset.import_data_from_file")
 
-        freq_estimation_simplify_tolerance = fmt_timedelta_arg(freq_estimation_simplify_tolerance)
+        freq_estimation_simplify_tolerance = fmt_timedelta_arg(
+            freq_estimation_simplify_tolerance
+        )
         origin_simplify_tolerance = fmt_timedelta_arg(origin_simplify_tolerance)
         timestamp_tolerance = fmt_timedelta_arg(timestamp_tolerance)
 
@@ -1073,9 +1110,12 @@ class Dataset:
             The interactive map.
         """
         logger.debug("Entering Dataset.make_gee_plot")
-        if not isinstance(geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)):
-            raise TypeError("geedatasetmanager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance.")
-        
+        if not isinstance(
+            geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
+        ):
+            raise TypeError(
+                "geedatasetmanager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance."
+            )
 
         if isinstance(geedatasetmanager, GEEStaticDatasetManager):
             kwargs = dict(
@@ -1153,8 +1193,10 @@ class Dataset:
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
-            raise TypeError("geestaticdatasetmanager must be a GEEStaticDatasetManager instance.")
-        
+            raise TypeError(
+                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+            )
+
         if initialize_gee:
             connect_to_gee()
 
@@ -1215,8 +1257,10 @@ class Dataset:
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
-            raise TypeError("geestaticdatasetmanager must be a GEEStaticDatasetManager instance.")
-        
+            raise TypeError(
+                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+            )
+
         if initialize_gee:
             connect_to_gee()
 
@@ -1258,7 +1302,7 @@ class Dataset:
             A DataFrame containing the LCZ data for the stations, with the station names as index.
         """
         logger.debug("Entering Dataset.get_LCZ")
-      
+
         return self.get_static_gee_point_data(
             default_datasets["LCZ"],
             overwrite=overwrite,
@@ -1316,7 +1360,7 @@ class Dataset:
         dict
             A nested dictionary where the keys are buffer radii and the values are the
             corresponding (aggregated) landcoverclasses.
-        
+
         Warning
         --------
         This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
@@ -1349,7 +1393,9 @@ class Dataset:
     ) -> Union[pd.DataFrame, None]:
         logger.debug("Entering Dataset.get_gee_timeseries_data")
         if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
-            raise TypeError("geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance.")
+            raise TypeError(
+                "geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance."
+            )
         if not isinstance(target_obstypes, list):
             raise TypeError("target_obstypes must be a list.")
 
@@ -1617,7 +1663,7 @@ class Dataset:
         - This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         - The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-        
+
         """
         logger.debug("Entering Dataset.buddy_check")
 
@@ -1676,7 +1722,9 @@ class Dataset:
                 )
 
     @copy_doc(Station.get_qc_stats)
-    def get_qc_stats(self, target_obstype: str = "temp", make_plot: bool = True) -> Union[pd.DataFrame, None]:
+    def get_qc_stats(
+        self, target_obstype: str = "temp", make_plot: bool = True
+    ) -> Union[pd.DataFrame, None]:
         logger.debug("Entering Dataset.get_qc_stats")
         freqdf_list = [
             sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
@@ -1739,9 +1787,11 @@ class Dataset:
             self.get_station(origname)._rename(targetname=trgname)
 
     @copy_doc(Station.convert_outliers_to_gaps)
-    def convert_outliers_to_gaps(self, all_observations: bool = True, obstype: str = "temp") -> None:
+    def convert_outliers_to_gaps(
+        self, all_observations: bool = True, obstype: str = "temp"
+    ) -> None:
         logger.debug("Entering Dataset.convert_outliers_to_gaps")
-    
+
         for sta in self.stations:
             sta.convert_outliers_to_gaps(
                 all_observations=all_observations, obstype=obstype
@@ -1782,9 +1832,11 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
-    def fill_gaps_with_raw_modeldata(self, target_obstype: str, overwrite_fill: bool = False) -> None:
+    def fill_gaps_with_raw_modeldata(
+        self, target_obstype: str, overwrite_fill: bool = False
+    ) -> None:
         logger.debug("Entering Dataset.fill_gaps_with_raw_modeldata")
-    
+
         for sta in self.stations:
             sta.fill_gaps_with_raw_modeldata(
                 target_obstype=target_obstype, overwrite_fill=overwrite_fill
@@ -1848,7 +1900,9 @@ class Dataset:
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
     ) -> None:
-        logger.debug("Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata")
+        logger.debug(
+            "Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata"
+        )
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)

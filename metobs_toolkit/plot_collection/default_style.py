@@ -45,5 +45,3 @@ default_plot_settings["cycle_plot"] = {
     "cmap_categorical": "tab20",
     "legend_n_columns": 5,
 }
-
-

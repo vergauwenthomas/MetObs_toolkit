@@ -4,6 +4,7 @@ import numpy as np
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
     """
     Compute diurnal biases for the given DataFrame.
@@ -38,6 +39,7 @@ def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     return diurnalbias
+
 
 def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataFrame:
     """
@@ -96,6 +98,7 @@ def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataF
     # set datetime back as index
     df = df.set_index("datetime")
     return df[["value", "label", "modelvalue", "fillvalue", "msg"]]
+
 
 def fill_with_weighted_diurnal_debias(
     df: pd.DataFrame, min_lead_sample_size: int, min_trail_sample_size: int

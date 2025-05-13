@@ -42,6 +42,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 # Class Model data (collection of external model data)
 # =============================================================================
 
+
 class _GEEDatasetManager:
     """Parent class for working with a GEE modeldataset.
 
@@ -171,7 +172,7 @@ class _GEEDatasetManager:
             String with dataset details.
         """
         retstr = ""
-        retstr += printing.print_fmt_section('GEE Dataset details')
+        retstr += printing.print_fmt_section("GEE Dataset details")
         retstr += printing.print_fmt_line(f"name: {self.name}")
         retstr += printing.print_fmt_line(f"location: {self.location}")
         retstr += printing.print_fmt_line(f"value_type: {self.value_type}")
@@ -181,6 +182,7 @@ class _GEEDatasetManager:
         retstr += printing.print_fmt_line(f"is_mosaic: {self._is_mosaic}")
         retstr += printing.print_fmt_line(f"credentials: {self.credentials}")
         return retstr
+
 
 class GEEStaticDatasetManager(_GEEDatasetManager):
     """Class for working with static GEE modeldatasets."""
@@ -263,19 +265,19 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         None or str
         """
         logger.debug(f"Entering GEEStaticDatasetManager.get_info for {self}")
-        
+
         retstr = ""
-        retstr += printing.print_fmt_title('General info of GEEStaticDataset')
-        
+        retstr += printing.print_fmt_title("General info of GEEStaticDataset")
+
         retstr += self._get_base_details()
         retstr += printing.print_fmt_line(f"target band: {self.band_of_use}")
 
         retstr += printing.print_fmt_line(f"classification: ")
         retstr += printing.print_fmt_dict(self.class_map, identlvl=2)
-        
+
         retstr += printing.print_fmt_line(f"aggregation: ")
         retstr += printing.print_fmt_dict(self.agg_scheme, identlvl=2)
-        
+
         retstr += printing.print_fmt_line(f"colors: ")
         retstr += printing.print_fmt_dict(self.col_scheme, identlvl=2)
 
@@ -298,16 +300,16 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         pandas.DataFrame
             Dataframe with station names as index and one column with values.
         """
-        logger.debug(f"Entering GEEStaticDatasetManager.extract_static_point_data for {self}")
+        logger.debug(
+            f"Entering GEEStaticDatasetManager.extract_static_point_data for {self}"
+        )
         self._check_metadf_validity(metadf)
 
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
         raster = gee_api.get_ee_obj(self)
 
-        results = raster.sampleRegions(
-            collection=ee_fc, scale=self.scale
-        ).getInfo()
+        results = raster.sampleRegions(collection=ee_fc, scale=self.scale).getInfo()
 
         if not bool(results["features"]):
             logger.warning(
@@ -332,8 +334,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
     def extract_static_buffer_frac_data(
         self, metadf: pd.DataFrame, bufferradius: int, agg_bool: bool = False
     ) -> pd.DataFrame:
-        """ Extract cover frequencies in circular buffers at stations.
-        
+        """Extract cover frequencies in circular buffers at stations.
+
         This methods will create (circular) buffers, specified by the radius,
         on each station. All the gridpoint in the radius are sampled and
         occurence frequency is computed for each landcover category in the
@@ -357,7 +359,9 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         pandas.DataFrame
             Dataframe with station names as index and class frequencies as columns.
         """
-        logger.debug(f"Entering GEEStaticDatasetManager.extract_static_buffer_frac_data for {self}")
+        logger.debug(
+            f"Entering GEEStaticDatasetManager.extract_static_buffer_frac_data for {self}"
+        )
         if metadf.empty:
             raise MetObsModelDataError(
                 f"No metadata is present for the GeeStaticDataset. No extraction possible."
@@ -417,8 +421,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         save: bool = False,
         outputfolder: str = None,
         filename: str = None,
-        vmin: Union[float, int, None]= None,
-        vmax: Union[float, int, None]= None,
+        vmin: Union[float, int, None] = None,
+        vmax: Union[float, int, None] = None,
         overwrite: bool = False,
     ):
         """Make an interactive spatial plot of the GEE dataset and the stations.
@@ -592,6 +596,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         return MAP
 
+
 class GEEDynamicDatasetManager(_GEEDatasetManager):
     """Class for working with Dynamic GEE modeldatasets."""
 
@@ -633,7 +638,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             If True, ee.mosaic() is applied on the GEE dataset. Default is False.
         credentials : str, optional
             Credentials of the GEE dataset. Default is "".
-       
+
 
         Returns
         -------
@@ -733,7 +738,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         pandas.DataFrame
             Formatted dataframe.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager._format_gee_df_structure for {self}")
+        logger.debug(
+            f"Entering GEEDynamicDatasetManager._format_gee_df_structure for {self}"
+        )
         geedf["datetime"] = pd.to_datetime(geedf["datetime"], format="%Y%m%d%H%M%S")
         geedf["datetime"] = geedf["datetime"].dt.tz_localize("UTC")
 
@@ -782,7 +789,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         pandas.DataFrame
             Subsetted dataframe.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager._subset_to_obstypes for {self}")
+        logger.debug(
+            f"Entering GEEDynamicDatasetManager._subset_to_obstypes for {self}"
+        )
         keep_columns = []
 
         for obs in trg_obstypes:
@@ -845,19 +854,23 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         """
         logger.debug(f"Entering GEEDynamicDatasetManager.get_info for {self}")
         retstr = ""
-        retstr += printing.print_fmt_title('General info of GEEDynamicDataset')
+        retstr += printing.print_fmt_title("General info of GEEDynamicDataset")
 
         retstr += self._get_base_details()
         retstr += printing.print_fmt_line(f"time res: {self.time_res}")
-    
-        retstr += printing.print_fmt_section('Known Modelobstypes')
+
+        retstr += printing.print_fmt_section("Known Modelobstypes")
         for obs in self.modelobstypes.values():
             retstr += printing.print_fmt_line(f"{obs.name} : {obs}")
             if isinstance(obs, ModelObstype_Vectorfield):
-                retstr += printing.print_fmt_line("vectorfield that will be converted to: ",2)
+                retstr += printing.print_fmt_line(
+                    "vectorfield that will be converted to: ", 2
+                )
                 retstr += printing.print_fmt_line(f"{obs._amp_obs_name}", 3)
                 retstr += printing.print_fmt_line(f"{obs._dir_obs_name}", 3)
-            retstr += printing.print_fmt_line(f"conversion: {obs.model_unit} --> {obs.std_unit}", 2)
+            retstr += printing.print_fmt_line(
+                f"conversion: {obs.model_unit} --> {obs.std_unit}", 2
+            )
 
         if printout:
             print(retstr)
@@ -872,8 +885,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         save: bool = False,
         outputfolder: str = None,
         filename: str = None,
-        vmin: Union[float, int, None]= None,
-        vmax: Union[float, int, None]= None,
+        vmin: Union[float, int, None] = None,
+        vmax: Union[float, int, None] = None,
         overwrite: bool = False,
     ):
         """
@@ -1099,10 +1112,12 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         Note
         ------
         When extracting large amounts of data, the timeseries data will be
-        written to a file and saved on your Google Drive. In this case, use the 
+        written to a file and saved on your Google Drive. In this case, use the
         ``metobs_toolkit.Dataset.import_gee_data_from_file()`` method to import the data.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager.extract_timeseries_data for {self}")
+        logger.debug(
+            f"Entering GEEDynamicDatasetManager.extract_timeseries_data for {self}"
+        )
         self._check_metadf_validity(metadf)
 
         if (force_direct_transfer) & (force_to_drive):
@@ -1254,7 +1269,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             return
 
 
-
 # =============================================================================
 # Define default datasets
 # =============================================================================
@@ -1381,4 +1395,3 @@ default_datasets = {
     global_worldcover.name: global_worldcover,
     era5_land.name: era5_land,
 }
-

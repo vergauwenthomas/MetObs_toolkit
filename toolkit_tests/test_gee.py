@@ -272,7 +272,7 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
-   
+
     def test_get_info_on_modeltimeseries(self):
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -282,8 +282,6 @@ class TestDemoDataset:
         # test get info on metadata-only dataset
         for modeltimeseries in dataset.get_station("vlinder18").modeldata.values():
             _ = modeltimeseries.get_info(printout=False)
-       
-
 
     def test_ERA5_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check

@@ -1,5 +1,5 @@
-""" Collection of functions that checks/changes
-    arguments and input passed by the user."""
+"""Collection of functions that checks/changes
+arguments and input passed by the user."""
 
 import logging
 import datetime as datetimemodule
@@ -10,7 +10,6 @@ import pandas as pd
 from metobs_toolkit.backend_collection.errorclasses import MetobsArgumentError
 
 logger = logging.getLogger("<metobs_toolkit>")
-
 
 
 def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:

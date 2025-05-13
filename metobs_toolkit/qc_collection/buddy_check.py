@@ -68,7 +68,9 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
     return pd.DataFrame(distance_matrix)
 
 
-def synchronize_series(series_list: List[pd.Series], max_shift: pd.Timedelta) -> Tuple[pd.DataFrame, Dict]:
+def synchronize_series(
+    series_list: List[pd.Series], max_shift: pd.Timedelta
+) -> Tuple[pd.DataFrame, Dict]:
     """
     Synchronize a list of pandas Series with datetime indexes.
 
@@ -135,7 +137,9 @@ def synchronize_series(series_list: List[pd.Series], max_shift: pd.Timedelta) ->
     return pd.concat(synchronized_series, axis=1), timestamp_mapping
 
 
-def _find_spatial_buddies(distance_df: pd.DataFrame, buddy_radius: Union[int, float]) -> Dict:
+def _find_spatial_buddies(
+    distance_df: pd.DataFrame, buddy_radius: Union[int, float]
+) -> Dict:
     """
     Get neighbouring stations using buddy radius.
 
@@ -277,78 +281,78 @@ def toolkit_buddy_check(
     min_std: Union[int, float],
     std_threshold: Union[int, float],
     N_iter: int,
-    instantanious_tolerance: pd.Timedelta, #TYPO
+    instantanious_tolerance: pd.Timedelta,  # TYPO
     lapserate: Union[float, None] = None,  # -0.0065 for temperature #TYPO
     use_mp: bool = True,
 ) -> Tuple[list, dict]:
     """
-    Spatial buddy check.
+        Spatial buddy check.
 
-    The buddy check compares an observation against its neighbors (i.e. buddies). The check loops
-    over all the groups, which are stations within a radius of each other. For each group, the absolute
-    value of the difference with the group mean, normalized by the standard deviation (with a defined minimum),
-    is computed. If one (or more) exceeds the std_threshold, the most extreme (=baddest) observation of that group is labeled as an outlier.
+        The buddy check compares an observation against its neighbors (i.e. buddies). The check loops
+        over all the groups, which are stations within a radius of each other. For each group, the absolute
+        value of the difference with the group mean, normalized by the standard deviation (with a defined minimum),
+        is computed. If one (or more) exceeds the std_threshold, the most extreme (=baddest) observation of that group is labeled as an outlier.
 
-    Multiple iterations of this checks can be done using the N_iter.
+        Multiple iterations of this checks can be done using the N_iter.
 
-    A schematic step-by-step description of the buddy check:
+        A schematic step-by-step description of the buddy check:
 
-      1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
-      2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
-        * removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
-        * removing groups of buddies that are too small (based on the min_sample_size)
+          1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
+          2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
+            * removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
+            * removing groups of buddies that are too small (based on the min_sample_size)
 
-      3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
-      4. If a lapsrate is specified, the observations are corrected for altitude differences.
-      5. For each buddy group:
-        * The mean, standard deviation (std), and sample size are computed.
-        * If the std is lower than the minimum std, it is replaced by the minimum std.
-        * Chi values are calculated for all records.
-        * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
-          If so, that record is flagged as an outlier. It will be ignored in the next iteration.
-        * This is repeated N_iter times.
+          3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
+          4. If a lapsrate is specified, the observations are corrected for altitude differences.
+          5. For each buddy group:
+            * The mean, standard deviation (std), and sample size are computed.
+            * If the std is lower than the minimum std, it is replaced by the minimum std.
+            * Chi values are calculated for all records.
+            * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
+              If so, that record is flagged as an outlier. It will be ignored in the next iteration.
+            * This is repeated N_iter times.
 
 
-    Parameters
-    ----------
-    dataset : Dataset
-        The dataset to apply the buddy check on.
-    obstype : str
-        The observation type that has to be checked.
-    buddy_radius : int or float
-        The radius to define spatial neighbors in meters.
-    min_sample_size : int
-        The minimum sample size to calculate statistics on.
-    max_alt_diff : int, float, or None
-        The maximum altitude difference allowed for buddies. If None,
-        no altitude filter is applied.
-    min_std : int or float
-        The minimum standard deviation for sample statistics. This should
-        represent the accuracy of the observations.
-    std_threshold : int or float
-        The threshold (std units) for flagging observations as outliers.
-    N_iter : int
-        The number of iterations to perform the buddy check.
-    instantanious_tolerance : pandas.Timedelta
-        The maximum time difference allowed for synchronizing observations.
-    lapserate : float or None, optional
-        Describes how the obstype changes with altitude (in meters). If None, no
-        altitude correction is applied. For temperature, a common value is -0.0065.
-    use_mp : bool, optional
-        Use multiprocessing to speed up the buddy check.
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to apply the buddy check on.
+        obstype : str
+            The observation type that has to be checked.
+        buddy_radius : int or float
+            The radius to define spatial neighbors in meters.
+        min_sample_size : int
+            The minimum sample size to calculate statistics on.
+        max_alt_diff : int, float, or None
+            The maximum altitude difference allowed for buddies. If None,
+            no altitude filter is applied.
+        min_std : int or float
+            The minimum standard deviation for sample statistics. This should
+            represent the accuracy of the observations.
+        std_threshold : int or float
+            The threshold (std units) for flagging observations as outliers.
+        N_iter : int
+            The number of iterations to perform the buddy check.
+        instantanious_tolerance : pandas.Timedelta
+            The maximum time difference allowed for synchronizing observations.
+        lapserate : float or None, optional
+            Describes how the obstype changes with altitude (in meters). If None, no
+            altitude correction is applied. For temperature, a common value is -0.0065.
+        use_mp : bool, optional
+            Use multiprocessing to speed up the buddy check.
 
-    Returns
-    -------
-    list
-        A list of tuples containing the outlier station, timestamp, and detail message.
-        Each tuple is in the form (station_name, timestamp, message).
-    dict
-        A dictionary mapping each synchronized timestamp to its original timestamp.
+        Returns
+        -------
+        list
+            A list of tuples containing the outlier station, timestamp, and detail message.
+            Each tuple is in the form (station_name, timestamp, message).
+        dict
+            A dictionary mapping each synchronized timestamp to its original timestamp.
 
-    Notes
-    -----
--     The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-    
+        Notes
+        -----
+    -     The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+
     """
 
     # -----  Part 1: construct buddy groups ------

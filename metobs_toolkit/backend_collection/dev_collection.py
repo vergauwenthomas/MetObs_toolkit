@@ -1,6 +1,7 @@
-""" Goal is to define a decorator that copies the docstring
+"""Goal is to define a decorator that copies the docstring
 of one funtion to another. Useful for wrapping functions as
 class methods."""
+
 import logging
 import inspect
 from typing import Callable, TypeVar, Any

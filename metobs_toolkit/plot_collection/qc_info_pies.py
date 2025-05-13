@@ -17,7 +17,7 @@ pieplotsettings = default_plot_settings["pie_charts"]
 def qc_overview_pies(
     df: pd.DataFrame,
     figsize: Tuple[int, int] = pieplotsettings["figsize"],
-    ncol: int = pieplotsettings["ncols"], 
+    ncol: int = pieplotsettings["ncols"],
     radius_big: float = pieplotsettings["radius_big"],
     radius_small: float = pieplotsettings["radius_small"],
     textsize_big_pies: int = pieplotsettings["txt_size_big_pies"],
