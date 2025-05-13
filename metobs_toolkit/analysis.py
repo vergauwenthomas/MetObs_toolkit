@@ -11,6 +11,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+import metobs_toolkit.backend_collection.printing_collection as printing
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.dataset import Dataset
@@ -148,12 +149,12 @@ class Analysis:
         logger.debug(f"Entering {self.__class__.__name__}.get_info")
 
         infostr = ""
-        infostr += "Analysis Instance Information: \n"
-        infostr += f"Number of records: {len(self.df)}\n"
-        infostr += f"Observation types: {list(self._df_cols)}\n"
-        infostr += f"Available metadata columns: {self.metadf.columns.tolist()}\n"
-        infostr += f"Stations: {self.fulldf['name'].unique().tolist()}\n"
-        infostr += f"All known time-derivatives: {possible_time_aggregates}"
+        infostr += printing.print_fmt_title('General info of Analysis')
+        infostr += printing.print_fmt_line(f"Number of records: {len(self.df)}")
+        infostr += printing.print_fmt_line(f"Observation types: {list(self._df_cols)}")
+        infostr += printing.print_fmt_line(f"Available metadata columns: {self.metadf.columns.tolist()}")
+        infostr += printing.print_fmt_line(f"Stations: {self.fulldf['name'].unique().tolist()}")
+        infostr += printing.print_fmt_line(f"All known time-derivatives: {possible_time_aggregates}")
 
         if printout:
             print(infostr)

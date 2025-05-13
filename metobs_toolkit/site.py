@@ -8,6 +8,8 @@ import geopandas as gpd
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
+import metobs_toolkit.backend_collection.printing_collection as printing
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -257,7 +259,7 @@ class Site:
             True if land cover fractions are available, False otherwise.
         """
         logger.debug("Entering flag_has_landcoverfractions for %s", self)
-        return bool(self.landcover_fractions)
+        return bool(self.buffered_fractions)
 
     def flag_has_coordinates(self) -> bool:
         """
@@ -376,6 +378,63 @@ class Site:
             bufferdict.update(fracdict)
         return bufferdict
 
+
+    def _get_info_core(self, nident_root=1) -> str:
+        """
+        Generate a formatted string containing metadata information for parent objects.
+        This method compiles various metadata details such as coordinates, altitude, 
+        land cover zone (LCZ), land cover fractions, and extra metadata into a formatted 
+        string. It is primarily used by the `get_info` methods of parent objects.
+        Parameters
+        ----------
+        nident_root : int, optional
+            The base indentation level for the formatted output, by default 1.
+        Returns
+        -------
+        str
+            A formatted string containing the metadata information.
+        """
+
+        infostr = ""
+        #Coordinates
+        if self.flag_has_coordinates():
+            infostr += printing.print_fmt_line(f"Coordinates ({self.lat}, {self.lon}) (latitude, longitude)", nident_root)
+        else:
+            infostr += printing.print_fmt_line("Coordinates are unknown", nident_root)
+        
+        #Altitude
+        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):  
+            infostr += printing.print_fmt_line(f"Altitude: {self.altitude} (m) (from metadata file)", nident_root)
+        elif self.flag_has_altitude() & (self.flag_altitude_from_gee()):
+            infostr += printing.print_fmt_line(f"Altitude: {self.altitude} (m) (from GEE extraction)", nident_root)
+        else:
+            infostr += printing.print_fmt_line("Altitude is unknown", nident_root)
+
+        #LCZ
+        if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
+            infostr += printing.print_fmt_line(f"LCZ: {self.LCZ} (from GEE extraction)", nident_root)
+        elif self.flag_has_LCZ():
+            infostr += printing.print_fmt_line(f"LCZ: {self.LCZ} (from metadata file)", nident_root)
+        else:
+            infostr += printing.print_fmt_line("LCZ is unknown", nident_root)
+        
+        #Buffered fractions
+        if self.flag_has_landcoverfractions():
+            infostr += printing.print_fmt_line("Land cover fractions are available", nident_root)
+        else:
+            infostr += printing.print_fmt_line("Land cover fractions are unknown", nident_root)
+        
+        #Extra metadata
+        if bool(self):
+            infostr += printing.print_fmt_line("Extra metadata from the metadata file:", nident_root)
+            for key, value in self.extradata.items():
+                infostr += printing.print_fmt_line(f"{key}: {value}", nident_root+1)
+        else:
+            infostr += printing.print_fmt_line("No extra metadata available", nident_root)
+
+        return infostr
+
+
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print basic information about the site.
@@ -391,32 +450,10 @@ class Site:
             Information string if printout is False, else None.
         """
         logger.debug("Entering get_info for %s", self)
-        infostr = f"Site of {self.stationname}:\n"
-
-        infostr += f" -- metadata from file --\n"
-        if self.flag_has_coordinates():
-            infostr += (
-                f"  * Coordinates ({self.lat}, {self.lon}) (latitude, longitude)\n"
-            )
-        else:
-            infostr += "  * Coordinates are unknown\n"
-
-        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):
-            infostr += f"  * Altitude: {self.altitude} (m)\n"
-
-        infostr += "  Extra metadata from the metadatafile:\n"
-        for key, value in self.extradata.items():
-            infostr += f"    * {key}: {value}\n"
-
-        infostr += f" -- data extracted from GEE --\n"
-        if self.flag_has_altitude() & (self.flag_altitude_from_gee()):
-            infostr += f"  * Altitude: {self.altitude} (m)\n"
-
-        if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
-            infostr += f"  * LCZ: {self.LCZ}\n"
-
-        for key, value in self._geedata.items():
-            infostr += f"  * {key}: {value}\n"
+        infostr = ""
+        infostr += printing.print_fmt_title('General Info of Site')
+        infostr += printing.print_fmt_line(f"Site of {self.stationname}:", 0)
+        infostr += self._get_info_core(nident_root=1)
 
         if printout:
             print(infostr)

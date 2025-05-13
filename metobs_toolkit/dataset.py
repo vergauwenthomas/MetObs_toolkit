@@ -361,7 +361,7 @@ class Dataset:
         logger.debug("Entering Dataset.get_info")
     
         infostr = ""
-        infostr += printing.print_fmt_title('General Info')
+        infostr += printing.print_fmt_title('General info of Dataset')
        
         # --- Observational info ---
         infostr += printing.print_fmt_section('Observational info')

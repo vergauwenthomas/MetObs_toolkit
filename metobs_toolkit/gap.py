@@ -10,6 +10,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
 )
 from metobs_toolkit.backend_collection.errorclasses import *
+import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.settings_collection import label_def
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
 from metobs_toolkit.gf_collection.debias_gapfill import fill_regular_debias
@@ -74,6 +75,19 @@ class Gap:
     def stationname(self) -> str:
         """Return the station name."""
         return self._stationname
+    @property
+    def fillsettings(self) -> dict:
+        """
+        Return the settings used for filling the gap.
+
+        The settings are the kwargs (keyword arguments) used in the gapfill methods.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the settings used for filling the gap.
+        """
+        return self._fillkwargs
 
     @property
     def fillstatus(self) -> str:
@@ -166,21 +180,23 @@ class Gap:
         """
         logger.debug(f"Entering get_info for {self} with printout={printout}")
 
-        if not isinstance(printout, bool):
-            raise TypeError("Argument 'printout' must be of type bool.")
+        infostr = ""
+        infostr += printing.print_fmt_title('General info of Gap')
+        infostr += printing.print_fmt_section('Gap details')
 
-        retstr = ""
-        retstr += "---- Gap info -----\n"
-        retstr += f"  * Gap of {self.obstype.name} for station: {self.stationname} \n"
-        retstr += f"  * Start gap: {self.start_datetime}\n"
-        retstr += f"  * End gap: {self.end_datetime}\n"
-        retstr += f"  * Duration gap: {self.end_datetime - self.start_datetime}\n"
-        retstr += f"  * Gap status: {self.fillstatus}"
+        infostr += printing.print_fmt_line(f"Gap of {self.obstype.name} for station: {self.stationname}", 0)
+        infostr += printing.print_fmt_line(f"From {self.start_datetime} -> {self.end_datetime}", 1)
+        infostr += printing.print_fmt_line(f"Duration gap: {self.end_datetime - self.start_datetime}", 1)
+        
+        infostr += printing.print_fmt_section('Gap filling details')
+        infostr += printing.print_fmt_line(f"Gap status: {self.fillstatus}")
+        infostr += printing.print_fmt_line(f"Gapfill settings used:")
+        infostr += printing.print_fmt_dict(d=self.fillsettings, identlvl=2)
 
         if printout:
-            print(retstr)
+            print(infostr)
         else:
-            return retstr
+            return infostr
 
     def debiased_model_gapfill(
         self,

@@ -7,16 +7,17 @@ This module provides the Template class and related functions for handling
 template files and mappings between data/metadata columns and toolkit conventions.
 """
 
-import os
+
 import sys
-import json
 import logging
+from typing import Union
 
 
 import pandas as pd
 from pytz import all_timezones
 from metobs_toolkit.io_collection.filereaders import JsonFileReader
 from metobs_toolkit.backend_collection.errorclasses import MetobsTemplateError
+import metobs_toolkit.backend_collection.printing_collection as printing
 logger = logging.getLogger("<metobs_toolkit>")
 
 # Blacklists are created for column names, which are also used as a specific
@@ -126,7 +127,7 @@ class Template:
         # Not actively used attributes
         self.filepath = None
 
-    def get_info(self) -> None:
+    def get_info(self, printout=True) -> Union[None, str]:
         """
         Print an overview of the Template.
 
@@ -135,37 +136,34 @@ class Template:
         None
         """
         logger.debug(f"Entering get_info() for {self}")
-        key_len = 15
-        print("------ Data obstypes map ---------")
+        infostr = ""
+        infostr += printing.print_fmt_title('General info of Template')
+        infostr += printing.print_fmt_section('Data obstypes map')
+    
         for key, val in self.obscolumnmap.items():
-            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
-            print(f'     (raw data in {self.obsdetails[key]["unit"]})')
-            descr = self.obsdetails[key]["description"]
-            if len(descr) > 30:
-                print(f"     (description: {descr[:30]} ...)")
-            else:
-                print(f"     (description: {descr})")
-
-            print("")
-
-        print("\n------ Data extra mapping info ---------")
-
-        print(
-            f" * {'name column (data)'.ljust(key_len)} <---> {str(self.data_namemap['name'])}"
-        )
+            infostr += printing.print_fmt_line(f"{key}: {val}", identlvl=1)
+            infostr += printing.print_fmt_line(f"raw data in {self.obsdetails[key]['unit']}", 2)
+            infostr += printing.print_fmt_line(f"description: {self.obsdetails[key]['description']}", 2)
+        
+        infostr += printing.print_fmt_section('Data extra mapping info')
+        infostr += printing.print_fmt_line(f"name column (data) <---> {str(self.data_namemap['name'])}")
+        
         if self.data_is_single_station:
-            print(
-                f" * {'single station name'.ljust(key_len)} <---> {self.single_station_name}"
-            )
+            infostr += printing.print_fmt_line(f"single station name <---> {self.single_station_name}")
 
-        print("\n------ Data timestamp map ---------")
+        infostr += printing.print_fmt_section('Data timestamp map')
         for key, val in self.timestampinfo.items():
-            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
-        print(f" * {'Timezone'.ljust(key_len)} <---> {self.tz}")
+            infostr += printing.print_fmt_line(f"{key} <---> {str(val)}")
+        infostr += printing.print_fmt_line(f"{'Timezone'} <---> {self.tz}")
 
-        print("\n------ Metadata map ---------")
+        infostr += printing.print_fmt_section('Metadata map')
         for key, val in self.metacolmapname.items():
-            print(f" * {key.ljust(key_len)} <---> {str(val).ljust(key_len)}")
+            infostr += printing.print_fmt_line(f"{key} <---> {str(val)}")
+
+        if printout:
+            print(infostr)
+        else:
+            return infostr
 
     # =============================================================================
     # Setters

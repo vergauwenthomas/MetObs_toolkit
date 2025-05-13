@@ -7,6 +7,7 @@ import pint
 
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsUnitsIncompatible, MetObsUnitUnknown
+import metobs_toolkit.backend_collection.printing_collection as printing
 # Use logger with name "<metobs_toolkit>"
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -164,6 +165,14 @@ class Obstype:
         """Text representation."""
         return f"{type(self).__name__} instance of {self.name}"
 
+    def _get_info_core(self) -> str:
+        infostr = ""
+        infostr += printing.print_fmt_line(f"{self.name} observation with:", 0)
+        infostr += printing.print_fmt_line(f"standard unit: {self.std_unit}")
+        infostr += printing.print_fmt_line(f"description: {self.description}")
+        return infostr
+
+
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the observation type.
@@ -179,14 +188,12 @@ class Obstype:
             None if printout is True, otherwise the information string.
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
-        info_str = f"{self.name} observation with: \n \
-    * standard unit: {self.std_unit} \n \
-    * data column as {self.original_name} in {self.original_unit} \n \
-    * description: {self.description}"
+        infostr += printing.print_fmt_title('General info of Obstype')
+        infostr += self._get_info_core()
         if printout:
-            print(info_str)
+            print(infostr)
         else:
-            return info_str
+            return infostr
 
     def _get_plot_y_label(self) -> str:
         """Return a string to represent the vertical axes of a plot."""
@@ -278,15 +285,19 @@ class ModelObstype(Obstype):
         None or str
             None if printout is True, otherwise the information string.
         """
+      
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
-        standardinfo = super().get_info(False)
-        standardinfo += (
-            f"\n     * corresponding bandname {self.model_band} in {self.model_unit}"
-        )
+        infostr = ""
+        infostr += printing.print_fmt_title('General info of ModelObstype')
+        infostr += printing.print_fmt_section('Obstype info')
+        infostr += super()._get_info_core()
+        infostr += printing.print_fmt_section('Model related info')
+        infostr += printing.print_fmt_line(f"corresponding bandname: {self.model_band}")
+        infostr += printing.print_fmt_line(f"original modeldata unit: {self.model_unit}")
         if printout:
-            print(standardinfo)
+            print(infostr)
         else:
-            return standardinfo
+            return infostr
 
 
 class ModelObstype_Vectorfield(Obstype):
@@ -377,13 +388,20 @@ class ModelObstype_Vectorfield(Obstype):
             None if printout is True, otherwise the information string.
         """
         logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
-        standardinfo = super().get_info(False)
-        standardinfo += f"\n     * U-component bandname {self.model_band_u} in {self.model_unit} \n \
-    * V-component bandname {self.model_band_v} in {self.model_unit}"
+        infostr = ""
+        infostr += printing.print_fmt_title('General info of ModelObstype_Vectorfield')
+        infostr += printing.print_fmt_section('Obstype info')
+        infostr += super()._get_info_core()
+        infostr += printing.print_fmt_section('Model related info')
+        infostr += printing.print_fmt_line(f"U-component bandname: {self.model_band_u}")
+        infostr += printing.print_fmt_line(f"in {self.model_unit}", 2)
+        infostr += printing.print_fmt_line(f"V-component bandname: {self.model_band_v}")
+        infostr += printing.print_fmt_line(f"in {self.model_unit}", 2)
+        
         if printout:
-            print(standardinfo)
+            print(infostr)
         else:
-            return standardinfo
+            return infostr
 
     def _get_plot_y_label(self) -> str:
         """Return a string to represent the vertical axes of a plot."""

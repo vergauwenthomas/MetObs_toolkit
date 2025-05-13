@@ -13,7 +13,7 @@ from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
 import metobs_toolkit.plot_collection as plotting
 from metobs_toolkit.backend_collection.errorclasses import *
-
+import metobs_toolkit.backend_collection.printing_collection as printing  
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -629,20 +629,39 @@ class SensorData:
         logger.debug("Entering get_info for %s", self)
 
         infostr = ""
-        infostr += f"{self.obstype.name} records of {self.stationname}:\n"
-        infostr += f"  * from {self.start_datetime} --> {self.end_datetime}\n"
-        infostr += f"  * assumed frequency: {self.freq}\n"
-        infostr += f"  * Number of records: {self.series.shape[0]}\n"
-        infostr += f"    - of which outliers: {self.outliersdf.shape[0]}\n"
-        infostr += f"  * Number of gaps: {len(self.gaps)}\n"
+        infostr += printing.print_fmt_title('General info of SensorData')
+        infostr += printing.print_fmt_line(f"{self.obstype.name} records of {self.stationname}:", 0)
+        infostr += self._get_info_core(nident_root=1)
 
         if printout:
             print(infostr)
         else:
             return infostr
 
+    def _get_info_core(self, nident_root=1) -> str:
+        
 
+        infostr = ""
+        infostr += printing.print_fmt_line(f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root)
+        infostr += printing.print_fmt_line(f" from {self.start_datetime} -> {self.end_datetime}", nident_root)
+        infostr += printing.print_fmt_line(f" At a resolution of {self.freq}", nident_root)
 
+        # outliers info:
+        if self.outliersdf.empty:
+            infostr += printing.print_fmt_line(f"No outliers present.",nident_root)
+        else:
+            infostr += printing.print_fmt_line(f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).", nident_root)
+            infostr += printing.print_fmt_line(f"label counts: {self.outliersdf['label'].value_counts().to_dict()}", nident_root+1)
+
+        # gaps info:
+        if not self.gaps:
+            infostr += printing.print_fmt_line(f"No gaps present.",nident_root)
+        else:
+            infostr += printing.print_fmt_line(f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.", nident_root)
+            infostr += printing.print_fmt_line(f"label counts: {self.gapsdf['label'].value_counts().to_dict()}", nident_root+1)
+        
+    
+        return infostr
     # ------------------------------------------
     #    Specials
     # ------------------------------------------

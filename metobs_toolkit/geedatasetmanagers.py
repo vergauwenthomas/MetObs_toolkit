@@ -22,6 +22,7 @@ import ee
 # Local imports
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
+import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
     folium_map,
@@ -169,15 +170,16 @@ class _GEEDatasetManager:
         str
             String with dataset details.
         """
-        retstr = f"------ Details --------- \n"
-        retstr += f" * name: {self.name}\n"
-        retstr += f" * location: {self.location}\n"
-        retstr += f" * value_type: {self.value_type}\n"
-        retstr += f" * scale: {self.scale}\n"
-        retstr += f" * is_static: {self.is_static}\n"
-        retstr += f" * is_image: {self.is_image}\n"
-        retstr += f" * is_mosaic: {self._is_mosaic}\n"
-        retstr += f" * credentials: {self.credentials}\n"
+        retstr = ""
+        retstr += printing.print_fmt_section('GEE Dataset details')
+        retstr += printing.print_fmt_line(f"name: {self.name}")
+        retstr += printing.print_fmt_line(f"location: {self.location}")
+        retstr += printing.print_fmt_line(f"value_type: {self.value_type}")
+        retstr += printing.print_fmt_line(f"scale: {self.scale}")
+        retstr += printing.print_fmt_line(f"is_static: {self.is_static}")
+        retstr += printing.print_fmt_line(f"is_image: {self.is_image}")
+        retstr += printing.print_fmt_line(f"is_mosaic: {self._is_mosaic}")
+        retstr += printing.print_fmt_line(f"credentials: {self.credentials}")
         return retstr
 
 class GEEStaticDatasetManager(_GEEDatasetManager):
@@ -261,12 +263,21 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         None or str
         """
         logger.debug(f"Entering GEEStaticDatasetManager.get_info for {self}")
-        retstr = f"{self}\n"
+        
+        retstr = ""
+        retstr += printing.print_fmt_title('General info of GEEStaticDataset')
+        
         retstr += self._get_base_details()
-        retstr += f" -- Band -- \n {self.band_of_use} \n"
-        retstr += f" -- classification -- \n {self.class_map} \n"
-        retstr += f" -- aggregation -- \n {self.agg_scheme} \n"
-        retstr += f" -- colors -- \n {self.col_scheme} \n"
+        retstr += printing.print_fmt_line(f"target band: {self.band_of_use}")
+
+        retstr += printing.print_fmt_line(f"classification: ")
+        retstr += printing.print_fmt_dict(self.class_map, identlvl=2)
+        
+        retstr += printing.print_fmt_line(f"aggregation: ")
+        retstr += printing.print_fmt_dict(self.agg_scheme, identlvl=2)
+        
+        retstr += printing.print_fmt_line(f"colors: ")
+        retstr += printing.print_fmt_dict(self.col_scheme, identlvl=2)
 
         if printout:
             print(retstr)
@@ -832,18 +843,20 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         None or str
         """
         logger.debug(f"Entering GEEDynamicDatasetManager.get_info for {self}")
-        retstr = f"{self}\n"
+        retstr = ""
+        retstr += printing.print_fmt_title('General info of GEEDynamicDataset')
 
         retstr += self._get_base_details()
-        retstr += f" * time res: {self.time_res}\n"
-        retstr += "\n -- Known Modelobstypes -- \n"
+        retstr += printing.print_fmt_line(f"time res: {self.time_res}")
+    
+        retstr += printing.print_fmt_section('Known Modelobstypes')
         for obs in self.modelobstypes.values():
-            retstr += f" * {obs.name} : {obs}\n"
+            retstr += printing.print_fmt_line(f"{obs.name} : {obs}")
             if isinstance(obs, ModelObstype_Vectorfield):
-                retstr += "    vectorfield that will be converted to: \n"
-                retstr += f"      * {obs._amp_obs_name}\n"
-                retstr += f"      * {obs._dir_obs_name}\n"
-            retstr += f"    (conversion: {obs.model_unit} --> {obs.std_unit})\n"
+                retstr += printing.print_fmt_line("vectorfield that will be converted to: ",2)
+                retstr += printing.print_fmt_line(f"{obs._amp_obs_name}", 3)
+                retstr += printing.print_fmt_line(f"{obs._dir_obs_name}", 3)
+            retstr += printing.print_fmt_line(f"conversion: {obs.model_unit} --> {obs.std_unit}", 2)
 
         if printout:
             print(retstr)
