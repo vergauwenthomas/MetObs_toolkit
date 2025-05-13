@@ -8,6 +8,7 @@ temp_output/*
 *poetry.lock
 poetry.lock
 .virtual_documents
+.keys
 
 #Exclude deploy scripts
 deploiment/logs/*
@@ -16,9 +17,9 @@ deploiment/logs/*
 dist/*
 
 #exclude the python versions of the doc example notebooks
-docs/examples/*.py
-docs/notebook_references/*.py
-docs/topics/*.py
+#docs/examples/*.py
+#docs/notebook_references/*.py
+#docs/topics/*.py
 
 docs/paper/*.py
 

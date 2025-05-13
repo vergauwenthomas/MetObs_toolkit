@@ -1,45 +1,109 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Geometry utility functions for spatial plotting and bounding box calculations.
+
 Created on Fri Oct 21 09:13:01 2022
 
 @author: thoverga
 """
-# import geopandas as gpd
+
+import logging
+from typing import List, Any
 from shapely.geometry import box
 
+# import geopandas as gpd
 
-def gpd_to_extent_box(geodf):
-    """Convert GeoDataFrame to a box with coordinates of the bounds."""
+logger = logging.getLogger("<metobs_toolkit>")
+
+
+def gpd_to_extent_box(geodf: Any) -> box:
+    """
+    Convert a GeoDataFrame to a shapely box with coordinates of the bounds.
+
+    Parameters
+    ----------
+    geodf : GeoDataFrame
+        The GeoDataFrame whose total bounds will be used to create the box.
+
+    Returns
+    -------
+    shapely.geometry.box
+        A shapely box representing the bounds of the GeoDataFrame.
+    """
+    logger.debug("Entering gpd_to_extent_box function.")
     return box(*geodf.total_bounds)
 
 
-def extent_list_to_box(extentlist):
-    """Convert list of coordinates to a shapely box."""
+def extent_list_to_box(extentlist: List[float]) -> box:
+    """
+    Convert a list of coordinates to a shapely box.
+
+    Parameters
+    ----------
+    extentlist : list of float
+        List of coordinates [minx, miny, maxx, maxy] to define the box.
+
+    Returns
+    -------
+    shapely.geometry.box
+        A shapely box defined by the given coordinates.
+    """
+    logger.debug("Entering extent_list_to_box function.")
     return box(*extentlist)
 
 
-def box_to_extent_list(bbox):
-    """Convert shapely box to a list of the bound coordinates."""
+def box_to_extent_list(bbox: box) -> List[float]:
+    """
+    Convert a shapely box to a list of its bound coordinates.
+
+    Parameters
+    ----------
+    bbox : shapely.geometry.box
+        The shapely box to convert.
+
+    Returns
+    -------
+    list of float
+        List of coordinates [minx, miny, maxx, maxy] representing the box bounds.
+    """
+    logger.debug("Entering box_to_extent_list function.")
     return list(bbox.bounds)
 
 
-def find_extend_of_geodf(geodf, lat_size=1.0, lon_size=1.0):
-    """Construct a bounding box for the plot.
-
-    If the geodf contains more than one point, the bounding box is
-    defined as the spatial span of the points.
-
-    If the geodf contains only one point, a minimal span of lat_size,
-    lon_size is created with the point at the centroid.
+def find_extent_of_geodf(
+    geodf: Any, lat_size: float = 1.0, lon_size: float = 1.0
+) -> box:  # TYPO
     """
+    Construct a bounding box for the plot based on the GeoDataFrame.
+
+    If the GeoDataFrame contains more than one point, the bounding box is
+    defined as the spatial span of the points. If the GeoDataFrame contains
+    only one point, a minimal span of `lat_size` and `lon_size` is created
+    with the point at the centroid.
+
+    Parameters
+    ----------
+    geodf : GeoDataFrame
+        The GeoDataFrame containing the spatial points.
+    lat_size : float, optional
+        The minimum latitude span for a single point, by default 1.0.
+    lon_size : float, optional
+        The minimum longitude span for a single point, by default 1.0.
+
+    Returns
+    -------
+    shapely.geometry.box
+        A shapely box representing the bounding box for the plot.
+    """
+    logger.debug("Entering find_extent_of_geodf function.")
     geodf_extent_box = gpd_to_extent_box(geodf)
 
     if geodf_extent_box.area != 0.0:
-        # multiple stations can span the zoombox
+        # Multiple stations can span the zoom box
         return geodf_extent_box
 
-    # else: on station
+    # Else: one station
     center_x, center_y = geodf_extent_box.centroid.x, geodf_extent_box.centroid.y
 
     minx, maxx = center_x - (lon_size / 2.0), center_x + (lon_size / 2.0)
@@ -50,51 +114,44 @@ def find_extend_of_geodf(geodf, lat_size=1.0, lon_size=1.0):
     )
 
 
-def find_plot_extent(geodf, user_bounds, default_extentlist):
-    """Find the most suitable plot bounds for spatial plot.
+def find_plot_extent(
+    geodf: Any, user_bounds: List[float], default_extentlist: List[float]
+) -> List[float]:
+    """
+    Find the most suitable plot bounds for a spatial plot.
 
-    If the user_bounds are valid, these are used. Else the bounds of the goedf
-    computed. If these bounds are not contained by the default (Belgium) bounds
-    than the geodf extend is used else the default.
+    If `user_bounds` are valid, these are used. Otherwise, the bounds of the
+    GeoDataFrame are computed. If these bounds are not contained by the default
+    (e.g., Belgium) bounds, then the GeoDataFrame extent is used; otherwise, the default.
+
     Parameters
     ----------
-    geodf : geopandas.geoDataFrame
+    geodf : GeoDataFrame
         The geometry dataframe containing all the stations to plot.
-    user_bounds : list
-        List of bound coordinates.
-    default_extentlist : list
-        List of default bounds (Belgium).
+    user_bounds : list of float
+        List of bound coordinates [minx, miny, maxx, maxy] provided by the user.
+    default_extentlist : list of float
+        List of default bounds [minx, miny, maxx, maxy] (e.g., Belgium).
 
     Returns
     -------
-    list
+    list of float
         A list of bounds for the spatial plot.
-
     """
-    # test if user_bounds is valid and can be used
+    logger.debug("Entering find_plot_extent function.")
+    # Test if user_bounds is valid and can be used
     if bool(user_bounds):
         user_bounds = [float(x) for x in user_bounds]
-
         return user_bounds
 
-    # get extent of geodf as a box
-    # geodf_extent_box = gpd_to_extent_box(geodf)
-    geodf_extent_box = find_extend_of_geodf(geodf)
+    # Get extent of geodf as a box
+    geodf_extent_box = find_extent_of_geodf(geodf)
 
-    # get extendbox of extendlist
+    # Get extent box of extentlist
     default_extent_box = extent_list_to_box(default_extentlist)
 
-    # Check if default covers the geodf (default is belgium)
+    # Check if default covers the geodf (default is Belgium)
     if default_extent_box.covers(geodf_extent_box):
         return default_extentlist
 
     return box_to_extent_list(geodf_extent_box)
-
-
-# =============================================================================
-# Docstring test
-# =============================================================================
-if __name__ == "__main__":
-    from metobs_toolkit.doctest_fmt import setup_and_run_doctest
-
-    setup_and_run_doctest()

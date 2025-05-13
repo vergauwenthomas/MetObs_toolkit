@@ -1,408 +1,360 @@
-name: Test pushed version
+name: Main workflow
 
-on: [push]
+
+#The handling of the workflow trigger is done by the lauch job !!
+on:
+  push:
 
 jobs:
-#--- Build the package and save as artifacts----
-   packageing:
-      name: Build the package
+    scan-pr-labels:
+        runs-on: ubuntu-latest
+        # Map a step output to a job output
+        outputs:
+            output1: ${{ steps.ispresent.outputs.labelispresent }}
+        steps:
+        - uses: 8BitJonny/gh-get-current-pr@3.0.0
+          id: PR
+          with:
+            # Authetication token to access GitHub APIs. (Can be omitted by default.)
+            github-token: ${{ github.token }}
+            # Verbose setting SHA when using Pull_Request event trigger to fix #16. (For push even trigger this is not necessary.)
+            sha: ${{ github.sha }}
+
+        - id: ispresent
+          env:
+            prLabel: ${{ steps.PR.outputs.pr_labels }}
+          run: |
+              if [[ "$prLabel" == *"RUN TESTS"* ]]; then
+                  echo "The label 'RUN TESTS' is present."
+                  echo "labelispresent=1" >> "$GITHUB_OUTPUT"
+              else
+                  echo "The label 'RUN TESTS' is not present."
+                  echo "labelispresent=0" >> "$GITHUB_OUTPUT"
+              fi
+
+    launch-pipeline:
+        runs-on: ubuntu-latest
+        needs: scan-pr-labels
+        if :
+            github.ref == 'refs/heads/main' ||
+            github.ref == 'refs/heads/develop' ||
+            github.event_name == 'pull_request' ||
+            github.event_name == 'workflow_dispatch' ||
+            needs.scan-pr-labels.outputs.output1 == '1'
+        env:
+          OUTPUT1: ${{ needs.scan-pr-labels.outputs.output1 }}
+
+        steps:
+          - env:
+              OUTPUT1: ${{needs.job1.outputs.output1}}
+            run: echo "Conditions are met, proceeding with the workflow!"
+
+
+
+    build-package:
+      needs: launch-pipeline
       runs-on: ubuntu-latest
-      outputs:
-        pkg_file: ${{ steps.base_def.outputs.filename }}
       steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python39
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Set up Python
           uses: actions/setup-python@v4
           with:
             python-version: '3.9'
-            #cache: 'poetry'
-        # You can test your matrix by printing the current Python version
-        - name: Display Python version
-          run: python -c "import sys; print(sys.version)"
-        - name: remove previous builds
-          run: |
-              rm -f dist/metobs_toolkit-*.whl
-              rm -f dist/metobs_toolkit-*.tar.gz
-        - name: Install poetry
-          run: |
-              pip install poetry
-        - name: Install dependencies and build
-          run: |
-              poetry update --without titan,documentation
-              poetry install --without titan,documentation
-              poetry build
-        - name: get distribution file name
-          id: base_def
-          run: |
-              rel_path=$(find dist/ -name 'metobs_toolkit-*.tar.gz' -print -quit)
-              echo "filename=$(basename "$rel_path")" >> $GITHUB_OUTPUT
 
-        - name: save package as artifact
-          uses: actions/upload-artifact@v3
+        - name: Install Poetry
+          run: |
+            curl -sSL https://install.python-poetry.org | python3 -
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+        - name: Remove previous builds
+          run: |
+            cd $GITHUB_WORKSPACE
+            rm -f dist/metobs_toolkit-*
+            rm -rf *.egg-info
+
+        - name: Install dependencies
+          run: poetry install
+
+        - name: Build the package
+          run: poetry build
+
+        - name: Debug dist contents
+          run: |
+            cd $GITHUB_WORKSPACE
+            ls -l dist/
+
+        - name: Upload package artifact
+          uses: actions/upload-artifact@v4
           with:
-            name: package_build
-            path: dist/*.tar.gz
-        - name: build package with all extras
-          run: |
-              poetry update
-              poetry install --all-extras
-        - name: export documentation requirement group
-          run: |
-              poetry export -f requirements.txt --without-hashes --with=documentation,dev,titan --format=requirements.txt -o doc_build_req.txt
-        - name: convert doc requirments to artifact
-          uses: actions/upload-artifact@v3
+            name: regular_package
+            path: ./dist/metobs_toolkit-*.whl
+
+    test-install:
+        needs: build-package
+        continue-on-error: true
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+                python-version: [3.9, 3.12]
+        runs-on: ${{ matrix.os }}
+        steps:
+              - name: Download package artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: regular_package
+
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: ${{ matrix.python-version }}
+
+              - name: Find the package file
+                id: find_package
+                shell: bash
+                run: |
+                  PACKAGE_FILE=$(find ./ -name "metobs_toolkit-*.whl" | head -n 1)
+                  echo "Found package file: $PACKAGE_FILE"
+                  echo "package_file=$PACKAGE_FILE" >> $GITHUB_ENV
+
+              - name: Install package with pip
+                run: |
+                    pip install "${{ env.package_file }}"
+
+              - name: Run the trivial import test
+                run: |
+                    python -c "import metobs_toolkit; print('Import successful')"
+
+    build-examples:
+      needs: build-package
+      name: Run the examples and generate the notebook output
+      runs-on: ubuntu-latest
+      # Dynamically create a matrix of test files
+
+      strategy:
+        matrix:
+          test_file:
+            - docs/examples/introduction.ipynb
+            - docs/examples/qc_example.ipynb
+            - docs/examples/obstype_example.ipynb
+            - docs/examples/gee_example.ipynb
+            - docs/examples/filling_example.ipynb
+            - docs/examples/analysis_example.ipynb
+            - docs/notebook_references/log_example.ipynb
+
+
+      continue-on-error: true
+      steps:
+        # Checkout the repository
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        # Set up Python
+        - name: Set up Python
+          uses: actions/setup-python@v4
           with:
-            name: documentation_requirements
-            path: doc_build_req.txt
-        - name: export titan requirement group
+            python-version: '3.12'
+
+        # Install dependencies (only once, cached)
+        - name: Install dependencies
           run: |
-              poetry export -f requirements.txt --without-hashes --only titan -o only_titan_req.txt
-        - name: convert titan requirements to artifact
-          uses: actions/upload-artifact@v3
+            python -m pip install --upgrade pip
+            pip install ipython jupyter  # Ensure jupyter is installed
+            pip install -e .
+
+        # # Clear output from notebook test files
+        # - name: Clear notebook outputs
+        #   run: |
+        #     for notebook in ${{ matrix.test_file }}; do
+        #       jupyter nbconvert --clear-output --inplace "$notebook"
+        #     done
+
+        # Run notebook test files
+        - name: Run notebook tests
+          env:
+            GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+          run: |
+            for notebook in ${{ matrix.test_file }}; do
+              jupyter nbconvert --to notebook --execute --inplace "$notebook"
+            done
+        - name: Output test file base name
+          run: |
+            TEST_FILE_BASENAME=$(basename "${{ matrix.test_file }}" .ipynb)
+            echo "Base name of the test file: $TEST_FILE_BASENAME"
+            echo "artifact_name=$TEST_FILE_BASENAME" >> $GITHUB_ENV
+
+        # Upload each test_file as an artifact
+        - name: Upload test file artifact
+          uses: actions/upload-artifact@v4
           with:
-            name: titan_requirements
-            path: only_titan_req.txt
+            name: "${{ env.artifact_name }}"
+            path: ${{ matrix.test_file }}
 
 
-#---- Run tests -----#
-   run-tests:
-       name: run test scripts
-       needs: packageing
-       runs-on: ${{ matrix.os }}
-       strategy:
-       # You can use PyPy versions in python-version.
-       # For example, pypy-2.7 and pypy-3.8
-         matrix:
-           python-version: ["3.9", "3.10"]
-         # os: [ubuntu-latest, windows-latest]
-           os: [ubuntu-latest]
-           node-version: [12.x]
-       steps:
-         - uses: actions/checkout@v3
-         - name: Set up Python ${{ matrix.python-version }}
-           uses: actions/setup-python@v4
-           with:
-             python-version: ${{ matrix.python-version }}
-           #cache: 'poetry'
-       # You can test your matrix by printing the current Python version
-         - name: Display Python version
-           run: python -c "import sys; print(sys.version)"
-         - name: Download the package build
-           uses: actions/download-artifact@v3
-           with:
-             name: package_build
-         - name: Install the package
-           run: |
-               python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-         - name: get titanlib requirements
-           uses: actions/download-artifact@v3
-           with:
-             name: titan_requirements
-         - name: install titanlib
-           run: |
-               pip install -r only_titan_req.txt
-         - name: Run tests
-           run: |
-             python tests/push_test/gap_and_fill_test.py
-             python tests/push_test/IO_test.py
-             python tests/push_test/qc_test.py
-             python tests/push_test/breaking_test.py
-             #python tests/push_test/gui_launch_test.py
-             python tests/push_test/analysis_test.py
-             python tests/push_test/irregular_and_add_test.py
+    build-docs:
+        needs: build-examples
+        # needs: build-package
+        runs-on: ubuntu-latest
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
 
-#--- Package os installation ---
-   mac_install_testing:
-     name: Installation on Mac latest
-     needs: packageing
-     runs-on: macos-latest
-     steps:
-       - uses: actions/checkout@v3
-       - name: Set up Python39
-         uses: actions/setup-python@v4
-         with:
-           python-version: "3.9"
-       - name: Download the package build
-         uses: actions/download-artifact@v3
-         with:
-           name: package_build
-
-       - name: Install the package
-         run: |
-             python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-       - name: Run tests
-         run: |
-             python tests/push_test/import_test.py
-
-   windows_install_testing:
-     name: Installation on Windows latest
-     needs: packageing
-     runs-on: windows-latest
-     steps:
-       - uses: actions/checkout@v4
-       - name: Set up Python39
-         uses: actions/setup-python@v5
-         with:
-           python-version: "3.11"
-       - name: Download the package build
-         uses: actions/download-artifact@v3
-         with:
-           name: package_build
-
-       - name: Install the package
-         run: |
-             python3 -m pip install ${{needs.packageing.outputs.pkg_file}}
-       - name: Run tests
-         run: |
-             python tests\push_test\import_test.py
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.11'
 
 
-#---- Version Control -----#
-   versiontest:
-     name: check if version is valid
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v3
-       - name: get version
-         id: 'version_info'
-         run: |
-           CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
-           echo "current version (init) = ${CURRENT_VERSION}"
-           echo "::set-output name=current_version::$CURRENT_VERSION"
-           PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
-           echo "current version (pyproject) = ${PYPROJECT_VERSION}"
-           echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
-       - name: version-is-correct
-         if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
-         run: |
-           echo "version tags are not aligned!"
-           exit 1
+              - name: Install Poetry
+                run: |
+                    curl -sSL https://install.python-poetry.org | python3 -
+                    echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-# #---- Documentation build -----#
-#    docsbuild:
-#       name: documentation-test
-#       needs: packageing
-#       runs-on: ubuntu-latest
-#       steps:
-#         - uses: actions/checkout@v3
-#         - name: Set up Python310
-#           uses: actions/setup-python@v4
-#           with:
-#             python-version: '3.10'
-#             #cache: 'poetry'
-#         # You can test your matrix by printing the current Python version
-#         - name: Display Python version
-#           run: python -c "import sys; print(sys.version)"
-#         # - name: install pandoc (system wide)
-#         #   run: |
-#         #       sudo apt-get -y install pandoc
-#         - name: Download the package build
-#           uses: actions/download-artifact@v3
-#           with:
-#             name: package_build
-#         - name: Install the package
-#           run: |
-#               python -m pip install ./metobs_toolkit-*.tar.gz
-#         - name: get documentation requirements
-#           uses: actions/download-artifact@v3
-#           with:
-#             name: documentation_requirements
-#         - name: install doc depending packages
-#           run: |
-#               pip install -r doc_build_req.txt
-#         - name: Build documentation
-#           run: |
-#               sphinx-build -a -E docs _build
-#         - name: deploy documentation on dev
-#           if: |
-#             github.ref == 'refs/heads/dev' ||
-#             github.ref == 'refs/head/main' ||
-#             contains(github.event.head_commit.message, 'build doc')
-#           uses: peaceiris/actions-gh-pages@v3
-#           with:
-#             publish_branch: gh-pages-dev
-#             github_token: ${{ secrets.GITHUB_TOKEN }}
-#             publish_dir: _build/
-#             force_orphan: true
+              - name: install pandoc (system wide)
+                run: |
+                  sudo apt-get -y install pandoc
 
+              - name: Install package with dev and documentation groups
+                run: |
+                  poetry install --with dev,documentation
+                  poetry show
 
-#---- Documentation build -----#
-   # docsbuild:
-   #    name: documentation-building
-   #    needs: packageing
-   #    runs-on: ubuntu-latest
-   #    steps:
-   #      - uses: actions/checkout@v3
-   #      - name: Set up Python39
-   #        uses: actions/setup-python@v4
-   #        with:
-   #          python-version: '3.10'
-   #          #cache: 'poetry'
-   #      # You can test your matrix by printing the current Python version
-   #      - name: Display Python version
-   #        run: python -c "import sys; print(sys.version)"
-   #      - name: remove previous builds
-   #        run: |
-   #            rm -f dist/metobs_toolkit-*.whl
-   #            rm -f dist/metobs_toolkit-*.tar.gz
-   #      - name: Install poetry
-   #        run: |
-   #            pip install poetry
-   #      - name: make build of the package
-   #        run: |
-   #            ./deploiment/build_package.sh
-   #      - name: install the package for doc building
-   #        run: |
-   #            poetry install --with=documentation,dev
-   #            poetry add .
-   #      - name: Build documentation
-   #        run: |
-   #            poetry run sphinx-build -a -E docs _build
-      # steps:
-      #   - uses: actions/checkout@v3
-      #   - name: Set up Python310
-      #     uses: actions/setup-python@v4
-      #     with:
-      #       python-version: '3.10'
-      #       #cache: 'poetry'
-      #   # You can test your matrix by printing the current Python version
-      #   - name: Display Python version
-      #     run: python -c "import sys; print(sys.version)"
-      #   # - name: install pandoc (system wide)
-      #   #   run: |
-      #   #       sudo apt-get -y install pandoc
-      #   - name: Download the package build
-      #     uses: actions/download-artifact@v3
-      #     with:
-      #       name: package_build
-      #   - name: Install the package
-      #     run: |
-      #         python -m pip install ./metobs_toolkit-*.tar.gz
-      #   - name: get documentation requirements
-      #     uses: actions/download-artifact@v3
-      #     with:
-      #       name: documentation_requirements
-      #   - name: install doc depending packages
-      #     run: |
-      #         pip install -r doc_build_req.txt
-      #   - name: Build documentation
-      #     run: |
-      #         sphinx-build -a -E docs _build
-      #   - name: deploy documentation on dev
-      #     if: |
-      #       github.ref == 'refs/heads/dev' ||
-      #       github.ref == 'refs/head/main' ||
-      #       contains(github.event.head_commit.message, 'build doc')
-      #     uses: peaceiris/actions-gh-pages@v3
-      #     with:
-      #       publish_branch: gh-pages-dev
-      #       github_token: ${{ secrets.GITHUB_TOKEN }}
-      #       publish_dir: _build/
-      #       force_orphan: true
+              - name: Debug dist contents
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l
 
-# #---- Deploy documentation MAIN-----#
-#    deploy_doc_main:
-#     name: Deploy main documentation
-#     needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
-#     runs-on: ubuntu-latest
-#     if: |
-#         github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-#     steps:
-#         - uses: actions/checkout@v3
-#         - name: Set up Python39
-#           uses: actions/setup-python@v4
-#           with:
-#             python-version: '3.9'
-#             #cache: 'poetry'
-#         # You can test your matrix by printing the current Python version
-#         - name: Display Python version
-#           run: python -c "import sys; print(sys.version)"
-#         - name: install pandoc (system wide)
-#           run: |
-#               sudo apt-get -y install pandoc
-#         - name: Download the package build
-#           uses: actions/download-artifact@v3
-#           with:
-#             name: package_build
-#         - name: Install the package
-#           run: |
-#               python3 -m pip install ./metobs_toolkit-*.tar.gz
-#         - name: get documentation requirements
-#           uses: actions/download-artifact@v3
-#           with:
-#             name: documentation_requirements
-#         - name: install doc depending packages
-#           run: |
-#               pip install -r doc_build_req.txt
-#         - name: Build documentation
-#           run: |
-#               sphinx-build -a -E docs _build
-#         - name: deploy documentation
-#           uses: peaceiris/actions-gh-pages@v3
-#           with:
-#             publish_branch: gh-pages
-#             github_token: ${{ secrets.GITHUB_TOKEN }}
-#             publish_dir: _build/
-#             force_orphan: true
+              - name: Build documentation
+                env:
+                  GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  cd docs
 
-#---- Deploy documentation dev -----#
-   # deploy_doc_dev:
-   #  name: Deploy Dev documentation
-   #  needs: [docsbuild,run-tests,versiontest,mac_install_testing, windows_install_testing]
-   #  runs-on: ubuntu-latest
-   #  if: |
-   #      github.ref == 'refs/heads/dev'
-   #  steps:
-   #      - uses: actions/checkout@v3
-   #      - name: Set up Python39
-   #        uses: actions/setup-python@v4
-   #        with:
-   #          python-version: '3.9'
-   #          #cache: 'poetry'
-   #      # You can test your matrix by printing the current Python version
-   #      - name: Display Python version
-   #        run: python -c "import sys; print(sys.version)"
-   #      - name: install pandoc (system wide)
-   #        run: |
-   #            sudo apt-get -y install pandoc
-   #      - name: Download the package build
-   #        uses: actions/download-artifact@v3
-   #        with:
-   #          name: package_build
-   #      - name: Install the package
-   #        run: |
-   #            python3 -m pip install ./metobs_toolkit-*.tar.gz
-   #      - name: get documentation requirements
-   #        uses: actions/download-artifact@v3
-   #        with:
-   #          name: documentation_requirements
-   #      - name: install doc depending packages
-   #        run: |
-   #            pip install -r doc_build_req.txt
-   #      - name: Build documentation
-   #        run: |
-   #            sphinx-build -a -E docs _build
-   #      - name: deploy documentation
-   #        uses: peaceiris/actions-gh-pages@v3
-   #        with:
-   #          publish_branch: gh-pages-dev
-   #          github_token: ${{ secrets.GITHUB_TOKEN }}
-   #          publish_dir: _build/
-   #          force_orphan: true
+                  #clear previous builds
+                  rm -rf _build
+                  # Create _build directory if it does not exist
+                  mkdir -p _build
+
+                  #clear previous autodoc generated files
+                  rm -rf reference/api
+                  mkdir -p reference/api
+
+                  cd $GITHUB_WORKSPACE
+                  poetry run sphinx-build -a -E -v docs/ docs/_build/
+
+                  ls -l
+                  ls -l docs
+                  ls -l docs/_build
+
+              - name: Debug documentation build
+                run: |
+                  cd $GITHUB_WORKSPACE
+                  ls -l docs/_build
+
+              - name: Upload documentation artifact
+                uses: actions/upload-artifact@v4
+                with:
+                    name: documentation
+                    path: docs/_build
+
+    versiontest:
+        name: check if version is valid
+        needs: launch-pipeline
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+          - name: get_version
+            id: 'version_info'
+            run: |
+              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+              echo "current version (init) = ${CURRENT_VERSION}"
+              echo "::set-output name=current_version::$CURRENT_VERSION"
+              PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
+              echo "current version (pyproject) = ${PYPROJECT_VERSION}"
+              echo "::set-output name=pyproject_version::$PYPROJECT_VERSION"
+          - name: version-is-correct
+            if: ${{ steps.version_info.outputs.current_version != steps.version_info.outputs.pyproject_version }}
+            run: |
+              echo "version tags are not aligned!"
+              exit 1
+
+    pytest:
+        name: Run Pytest framework
+        needs: launch-pipeline
+        runs-on: ubuntu-latest
+        # Dynamically create a matrix of test files
+        strategy:
+          matrix:
+            test_file:
+            - toolkit_tests/test_qc.py
+            - toolkit_tests/test_obstypes.py
+            - toolkit_tests/test_gf.py
+            - toolkit_tests/test_analysis.py
+            - toolkit_tests/test_importing.py
+            - toolkit_tests/test_plotting.py
+            - toolkit_tests/test_gee.py
+
+        continue-on-error: true
+        steps:
+          # Checkout the repository
+          - name: Checkout code
+            uses: actions/checkout@v3
+
+          # Set up Python
+          - name: Set up Python
+            uses: actions/setup-python@v4
+            with:
+              python-version: '3.12'
+
+          # Install dependencies (only once, cached)
+          - name: Install dependencies
+            run: |
+              python -m pip install --upgrade pip
+              pip install ipython
+              pip install -e .
+              pip install pytest
+              pip install pytest-mpl
+
+          # List installed packages
+          - name: List installed packages
+            run: |
+              pip list
+
+          - name: Get test basename
+            id: get_test_basename
+            run: |
+              TEST_FILE_NAME=$(basename "${{ matrix.test_file }}" .py)
+              echo "test_basename=${TEST_FILE_NAME}" >> $GITHUB_ENV
+
+          - name: Run Pytest --mpl to generate comparison figure
+            continue-on-error: true #NO FAILURE --> so artifact step is executed
+            env:
+                GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+            run: |
+              if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
+                  mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                  pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                else
+                  echo "skip  ${{ matrix.test_file }}"
+                fi
+
+          - name: Upload mpl-diff artifact (only for test_plotting.py)
+            if: ${{ matrix.test_file == 'toolkit_tests/test_plotting.py' }}
+            uses: actions/upload-artifact@v4
+            with:
+              name: mpl-diff
+              path: tmp
 
 
-
-
-# ---- delete artifacts that are not for storage -----
-   cleanup_artifacts:
-     name: delete artifacts
-     needs: [run-tests,versiontest,mac_install_testing, windows_install_testing]
-     runs-on: ubuntu-latest
-     steps:
-     - uses: actions/checkout@v3
-     - uses: geekyeggo/delete-artifact@v2
-       with:
-         name: |
-             package_build
-             documentation_requirements
-             titan_requirements
+          - name: Run Pytest
+            env:
+              GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
+            run: |
+              if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
+                mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
+                pytest ${{ matrix.test_file }} --mpl
+              else
+                pytest ${{ matrix.test_file }}
+              fi

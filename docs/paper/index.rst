@@ -4,13 +4,11 @@ Referencing
 
 
 The Metobs-toolkit is published under the MIT license, you can use the software freely.
-
 The Metobs-toolkit (v0.2.0) was published in JOSS: `Publication <https://joss.theoj.org/papers/10.21105/joss.05916#>`_.
-
-
 
 Citing
 ----------
+
 When citing Metobs-Toolkit, you can use:
 
 *Vergauwen et al., (2024). MetObs - a Python toolkit for using non-traditional meteorological observations. Journal of Open Source Software, 9(95), 5916, https://doi.org/10.21105/joss.05916*
@@ -43,7 +41,7 @@ When referring to the MetObs-Toolkit software, please mention the used version.
 
 
 Publication code as an example
-----------------------------------
+-------------------------------
 
 You can find the notebook for creating the figures used in the JOSS publication as an example here:
 

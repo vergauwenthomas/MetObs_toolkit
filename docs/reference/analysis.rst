@@ -4,11 +4,9 @@
 Analysis
 =========
 
-The Analysis class holds observations (assumed to be correct) and methods for
-analysing and aggregating the data. An Analysis is typical created from a
-Dataset after the cleanup of the raw observations.
+The `Analysis` class holds 'good records', and some common methods to analyse the observations.
 
-.. currentmodule:: metobs_toolkit
+.. currentmodule:: metobs_toolkit.analysis
 
 Constructor
 -----------
@@ -19,37 +17,18 @@ Constructor
    Analysis
 
 
-Data and filtering methods
-----------------------------
+Methods
+----------
+A summary of all methods in the `Analysis` class.
 
 .. autosummary::
    :toctree: api/
 
-
+   Analysis.get_info
+   Analysis.get_tz
+   Analysis.apply_filter_on_metadata
+   Analysis.apply_filter_on_records
    Analysis.subset_period
-   Analysis.get_possible_filter_keywords
-   Analysis.apply_filter
-
-Aggregation methods
----------------------
-
-.. autosummary::
-   :toctree: api/
-
-   Analysis.get_analysis_records
    Analysis.aggregate_df
-   Analysis.get_annual_statistics
-   Analysis.get_diurnal_statistics
-   Analysis.get_diurnal_statistics_with_reference
-   Analysis.get_aggregated_cycle_statistics
-
-
-Other methods
----------------
-
-.. autosummary::
-   :toctree: api/
-
-   Analysis.get_lc_correlation_matrices
-   Analysis.plot_correlation_heatmap
-   Analysis.plot_correlation_variation
+   Analysis.plot_diurnal_cycle
+   Analysis.plot_diurnal_cycle_with_reference_station

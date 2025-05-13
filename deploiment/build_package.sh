@@ -22,7 +22,7 @@ poetry update
 
 # Toolkit dependencies
 poetry add numpy@^1 #v2.x.x conflicting with titanlib
-poetry add cartopy@latest
+poetry add cartopy@^0.23 #from <= v0.24 requires python >= 3.10 so not valid for py3.9
 poetry add earthengine-api@latest
 poetry add geemap@latest
 poetry add geopandas@latest
@@ -49,7 +49,7 @@ poetry add sphinx-rtd-theme@latest --group documentation
 poetry add ipykernel --group documentation #else there is a error when building doc: No such kernel named python3
 
 # Toolkit titan group
-poetry add titanlib@latest --group titan
+# poetry add titanlib@latest --group titan
 
 
 # 3. update the lock file

@@ -1,0 +1,24 @@
+Edit the code to fulfill the following needs:
+
+
+/doc Insert docstrings in Numpy style for all classes, methods and functions in this module.
+If a docstring is already present, make sure it is in the Numpy style and that the references to the arguments are correct.
+Do not include a example in the docstring.
+Do not write a Numpy style docstring for dunder-methods or methods decorated as property, but write a single line consice docstring instead.
+If a docstring is already present, check if it is still valid and change accordingly.
+If a docstring is already present, check for grammer and spelling errors.
+
+
+Check for typos whenever a new variable is declared, add #TYPO at the end of that line when a typo is detected in the name of the variable.
+
+Check for typos, grammer and spelling issues in the docstrings and fix them.
+
+/edit
+Check if type hinting is defined for all methods and functions. Add it if it is missing or wrong.
+
+Import the logging module and get the logger with name: "<metobs_toolkit>". Log entering a method or function at debug-level, and refer to self in the message. Do not add a entering-log in the methods decorated as property or in the __init__.
+
+Fix the identation of the code if needed.
+
+Rearange the imports to start with python default packages, then dependency packages and lastly  local modules
+Check the spelling of inline comments, but do not remove them.

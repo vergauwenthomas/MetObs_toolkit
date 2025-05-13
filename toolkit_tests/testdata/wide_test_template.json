@@ -1,0 +1,31 @@
+{
+    "data_related": {
+        "structure": "wide",
+        "timestamp": {
+            "datetime_column": "Tijd",
+            "datetime_fmt": "%Y-%m-%d %H:%M:%S",
+            "date_column": null,
+            "date_fmt": null,
+            "time_column": null,
+            "time_fmt": null,
+            "timezone": "Europe/Brussels"
+        },
+        "name_column": null,
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": null,
+                "unit": "degK",
+                "description": "2mT"
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": null,
+        "lat_column": null,
+        "lon_column": null,
+        "altitude_column": null,
+        "columns_to_include": []
+    },
+    "single_station_name": "dummy_station_name"
+}
