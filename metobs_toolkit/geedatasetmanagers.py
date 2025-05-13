@@ -499,7 +499,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             add_stations_to_folium_map(
                 Map=MAP, metadf=metadf, display_cols=["name", self.name]
             )
-            centroid = metadf.dissolve().centroid
+
+            centroid = metadf.to_crs("EPSG:3857").dissolve().centroid.to_crs(metadf.crs)
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
         if bool(self.class_map):
@@ -976,7 +977,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 Map=MAP, metadf=metadf, display_cols=["name"]
             )
             # fix center
-            centroid = metadf.dissolve().centroid
+            centroid = metadf.to_crs("EPSG:3857").dissolve().centroid.to_crs(metadf.crs)
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
             metadf = metadf.to_crs("epsg:4326")
