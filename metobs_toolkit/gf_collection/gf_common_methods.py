@@ -65,26 +65,30 @@ def add_modeldata_to_combdf(
         modelseries = modelseries.tz_convert(combineddf.index.tz)
 
     modeldf = pd.DataFrame(index=modelseries.index, data={"modelvalue": modelseries})
-    # 2. Reindex modelseries to match combineddf, interpolating if necessary
-    combdf_reindexed = (
-        pd.concat([combineddf, modeldf])
-        .sort_index()
-        .interpolate(method="time", limit_area="inside")
-    )
+    #Interpolate modeldf to target timestamps
+
+    # Create a new index that is the union of combineddf and modeldf indices without duplicates
+    all_timestamps_index = combineddf.index.union(modeldf.index).drop_duplicates()
+    #Note: The reindexing and interpolation of modeldata is needed
+    #because the model data is often only defined at a resolution of 1h,
+    #while the combineddf is not always at 1h resolution.
+
+    # Combine all timestamps of model and combineddf, because if 
+    #only using the combineddf index, and limit_area="inside", no modeldata
+    #could be set for the extreme leading and trailing timestamps 
+    #if they appear not on the hour. Thus combine indexes, and after 
+    #the data is combined, subset to the combineddf index.
+
+    modeldf = (modeldf
+               .reindex(all_timestamps_index) #set the index for observation frequencies
+               .sort_index() #sort the index
+               .interpolate(method="time", limit_area="inside") #interpolate sub hourly
+                )
+    combdf_reindexed = pd.concat([combineddf, modeldf], axis=1)
+    
     combdf_reindexed = combdf_reindexed.loc[
         combineddf.index
     ]  # subset to gap + leading + trailing period
-
-    # A duplicated row at round-hours is introduced, but the label is NaN -> remove these rows
-    combdf_reindexed = combdf_reindexed.dropna(subset=["label"])
-
-    # The interpolate call also interpolated the 'value' column, revert this
-    combdf_reindexed.loc[combdf_reindexed["label"] == "gap", "value"] = np.nan
-
-    # Duplicates are introduced when timestamps are both in modelseries and gapseries
-    combdf_reindexed = combdf_reindexed[
-        ~combdf_reindexed.index.duplicated(keep="first")
-    ]
 
     return combdf_reindexed
 
