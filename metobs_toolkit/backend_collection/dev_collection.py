@@ -6,7 +6,9 @@ import logging
 import inspect
 from typing import Callable, TypeVar, Any
 from typing_extensions import ParamSpec
-import re
+
+
+
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -110,7 +112,6 @@ def get_function_defaults(func: callable) -> dict:
     dict
         Dictionary of keyword arguments and their default values.
     """
-    logger.debug("Entering get_function_defaults()")
     signature = inspect.signature(func)
     return {
         k: v.default
