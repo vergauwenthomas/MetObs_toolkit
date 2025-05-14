@@ -76,4 +76,4 @@ from metobs_toolkit.gee_api import connect_to_gee
 # =============================================================================
 
 # DO not change this manually!
-__version__ = "0.4.0a"
+__version__ = "0.4.0a_patch"

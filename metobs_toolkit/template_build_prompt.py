@@ -8,9 +8,7 @@ Created on Wed May 24 10:25:45 2023
 
 import os
 import sys
-import inspect
 import copy
-from datetime import datetime
 import logging
 
 import pandas as pd
@@ -666,8 +664,8 @@ def build_template_prompt() -> None:
 
     # write to csv
     templatefilepath = os.path.join(save_dir, "template.json")
-    write_dict_to_json(templdict=tmpl_dict, trgfile=templatefilepath)
-
+    write_dict_to_json(dictionary=tmpl_dict,
+                       trgfile=templatefilepath)
     print(f" DONE! The template is written here: {templatefilepath}")
 
     # =============================================================================
