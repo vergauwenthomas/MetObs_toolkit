@@ -1085,7 +1085,7 @@ class Station:
         * A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
         * This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
           with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
-        
+
         """
         logger.debug("Entering window_variation_check for %s", self)
         # argument checks

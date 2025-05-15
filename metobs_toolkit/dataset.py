@@ -509,7 +509,7 @@ class Dataset:
 
         Warning
         ----------
-        
+
         * Since the gaps depend on the record’s frequency and origin, all gaps
           are removed and re-located. All progress in gap(filling) will be lost.
         * Cumulative tolerance errors can be introduced when this method is called multiple times.
@@ -1623,14 +1623,14 @@ class Dataset:
 
         1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
         2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
-          
+
            #. removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
            #. removing groups of buddies that are too small (based on the min_sample_size)
-        
+
         3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
         4. If a lapsrate is specified, the observations are corrected for altitude differences.
         5. For each buddy group:
-          
+
            #. The mean, standard deviation (std), and sample size are computed.
            #. If the std is lower than the minimum std, it is replaced by the minimum std.
            #. Chi values are calculated for all records.

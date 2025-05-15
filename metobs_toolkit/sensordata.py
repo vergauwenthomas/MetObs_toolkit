@@ -900,10 +900,10 @@ class SensorData:
 
             * `N_all`: Total number of records in the dataset (including gaps).
             * `N_labeled`: Number of records with the specific label.
-            * `N_checked`: Number of records checked for the specific QC check.  
+            * `N_checked`: Number of records checked for the specific QC check.
               This is not necessarily the same as `N_all`, as some records may be
               excluded from the check due to previous QC checks.
-              
+
         """
         logger.debug("Entering get_qc_freq_statistics for %s", self)
 
