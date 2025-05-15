@@ -80,7 +80,7 @@ See the API documentation :ref:`Gap API <Gap api>` for more details.
 
 
 ``Analysis``
------------
+------------
 The :ref:`Analysis <Analysis api>` class is created from a Dataset and holds the observations that are assumed to be correct. In contrast to the Dataset, the Analysis methods do not change the observations but the focus is on filtering and aggregation.
 The Analysis methods are focussed on  aggregating the observations to get insight into diurnal/seasonal patterns and landcover effects.
 
@@ -134,7 +134,7 @@ See the API documentation :ref:`ModelTimeSeries API <ModelTimeSeries api>` and t
 
 
 ``Obstype and ModelObstype``
----------------------------
+----------------------------
 An ``Obstype`` defines an observation type, such as temperature, humidity, or wind speed.
 It specifies the standard name, standard unit, and a description for the observation type.
 Obstypes are used throughout the toolkit to ensure consistency in data handling, unit conversion, and quality control.

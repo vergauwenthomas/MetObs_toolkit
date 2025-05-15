@@ -673,6 +673,7 @@ class Station:
 
         Wrapper method for `get_static_gee_buffer_fraction_data` to retrieve land cover fractions
         based on the ESA worldcoverV200 dataset.
+
         Parameters
         ----------
         buffers : list of int, optional
@@ -893,6 +894,7 @@ class Station:
         Perform a persistence check on a time series to identify periods where observations remain constant
         within a specified time window. If the values are constant, all records in the moving window are
         flagged as outliers.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -910,12 +912,13 @@ class Station:
 
         Notes
         -----
-        - This method modifies the outliers in place and does not return anything.
+
+        * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        - If the minimum number of records per window is locally not met, the function logs a warning and skips
+        * If the minimum number of records per window is locally not met, the function logs a warning and skips
           the persistence check.
-        - This function can be computationally expensive for large datasets or small time windows.
-        - The repetitions check is similar to the persistence check, but not identical.
+        * This function can be computationally expensive for large datasets or small time windows.
+        * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
@@ -945,6 +948,7 @@ class Station:
 
         Be aware that the performance of this check depends on the `max_N_repetitions`
         and the time resolution of the observations.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -959,9 +963,10 @@ class Station:
 
         Notes
         -----
-        - This method modifies the outliers in place and does not return anything.
+
+        * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        - The repetitions check is similar to the persistence check, but not identical.
+        * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
@@ -993,6 +998,7 @@ class Station:
 
         If the difference between two consecutive records (i.e., the spike/dip) is larger than the
         threshold, the record is flagged as an outlier.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -1010,11 +1016,13 @@ class Station:
 
         Notes
         -----
-        - This method modifies the outliers in place and does not return anything.
+
+        * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        - In general, for temperatures, the decrease threshold is set less stringent than the increase
+        * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
+
         """
         logger.debug("Entering step_check for %s", self)
         # argument checks
@@ -1045,6 +1053,7 @@ class Station:
         If the observations in the window increase/decrease more than a threshold, all
         observations in the window are flagged as outliers. The threshold is defined by the
         maximum increase/decrease per second multiplied by the window size in seconds.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -1067,14 +1076,16 @@ class Station:
 
         Notes
         -----
-        - This method modifies the outliers in place and does not return anything.
+
+        * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        - In general, for temperatures, the decrease threshold is set less stringent than the increase
+        * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
-        - A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
-        - This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
+        * A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
+        * This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
           with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
+        
         """
         logger.debug("Entering window_variation_check for %s", self)
         # argument checks
@@ -1119,9 +1130,11 @@ class Station:
             A DataFrame containing the QC frequency statistics. The DataFrame
             has a multi-index with the station name and QC check label, and
             includes the following columns:
-            - `N_all`: Total number of records in the dataset (including gaps).
-            - `N_labeled`: Number of records with the specific label.
-            - `N_checked`: Number of records checked for the specific QC check.
+
+            * `N_all`: Total number of records in the dataset (including gaps).
+            * `N_labeled`: Number of records with the specific label.
+            * `N_checked`: Number of records checked for the specific QC check.
+
         """
         logger.debug("Entering get_qc_stats for %s", self)
         # argument checks
@@ -1264,8 +1277,10 @@ class Station:
             The type of observation to plot. Default is "temp".
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
-            - "station": Colors by station.
-            - "label": Colors by label (the labels refer to the status of a record).
+
+            * "station": Colors by station.
+            * "label": Colors by label (the labels refer to the status of a record).
+
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
@@ -1290,9 +1305,11 @@ class Station:
 
         Notes
         -----
-        - The method checks if the specified `obstype` is known before proceeding.
-        - The plot can include observational data, model data, or both.
-        - The x-axis timestamps are formatted according to the timezone of the data.
+
+        * The method checks if the specified `obstype` is known before proceeding.
+        * The plot can include observational data, model data, or both.
+        * The x-axis timestamps are formatted according to the timezone of the data.
+
         """
         logger.debug("Entering make_plot for %s", self)
         # test if obstype have sensordata
@@ -1404,12 +1421,13 @@ class Station:
         -----
         A schematic description of the raw model data gap fill:
 
-        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        2. Iterate over the gaps of the target_obstype.
-        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        4. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
-        5. Interpolate the model data to match the missing records in the gap.
-        6. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the target_obstype.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
+        #. Interpolate the model data to match the missing records in the gap.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
+
         """
         logger.debug("Entering fill_gaps_with_raw_modeldata for %s", self)
         # obstype check
@@ -1470,13 +1488,13 @@ class Station:
         -----
         A schematic description of the debiased modeldata gap fill:
 
-        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        2. Iterate over the gaps of the target_obstype.
-        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        4. Construct a leading and trailing sample, and test if they meet the required conditions.
-        5. Compute the bias of the modeldata (combine leading and trailing samples).
-        6. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
-        7. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the target_obstype.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Construct a leading and trailing sample, and test if they meet the required conditions.
+        #. Compute the bias of the modeldata (combine leading and trailing samples).
+        #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
         logger.debug("Entering fill_gaps_with_debiased_modeldata for %s", self)
@@ -1549,14 +1567,14 @@ class Station:
         -----
         A schematic description of the diurnal debiased modeldata gap fill:
 
-        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        2. Iterate over the gaps of the target_obstype.
-        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        4. Construct a leading and trailing sample, and test if they meet the required conditions.
-          The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
-        5. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
-        6. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
-        7. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the target_obstype.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Construct a leading and trailing sample, and test if they meet the required conditions.
+           The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
+        #. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
+        #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
         --------
@@ -1645,14 +1663,14 @@ class Station:
         -----
         A schematic description of the weighted diurnal debiased modeldata gap fill:
 
-        1. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        2. Iterate over the gaps of the target_obstype.
-        3. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        4. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
-        5. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
-        6. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
-        7. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
-        8. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the target_obstype.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
+        #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
+        #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
         --------
@@ -1719,7 +1737,7 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-         method:  str, optional
+        method:  str, optional
             Interpolation technique to use. See pandas.DataFrame.interpolate
             method argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
@@ -1755,12 +1773,12 @@ class Station:
         -----
         A schematic description:
 
-        1. Iterate over all gaps related to the target obstype.
-        2. Get the leading and trailing periods of the gap.
-        3. Check if the leading and trailing periods are valid.
-        4. Create a combined DataFrame with the leading, trailing, and gap data.
-        5. Interpolate the missing records using the specified method.
-        6. Update the gap attributes with the interpolated values, labels, and details.
+        #. Iterate over all gaps related to the target obstype.
+        #. Get the leading and trailing periods of the gap.
+        #. Check if the leading and trailing periods are valid.
+        #. Create a combined DataFrame with the leading, trailing, and gap data.
+        #. Interpolate the missing records using the specified method.
+        #. Update the gap attributes with the interpolated values, labels, and details.
 
         Note
         -------

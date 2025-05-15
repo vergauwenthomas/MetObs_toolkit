@@ -367,12 +367,12 @@ class Gap:
         -----
         A schematic description of the diurnal debiased modeldata gap fill:
 
-        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        2. Construct a leading and trailing sample, and test if they meet the required conditions.
-        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
-        3. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
-        4. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
-        5. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Construct a leading and trailing sample, and test if they meet the required conditions.
+           The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
+        #. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
+        #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
         --------
@@ -505,19 +505,18 @@ class Gap:
         -----
         A schematic description of the weighted diurnal debiased modeldata gap fill:
 
-        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        2. Construct a leading and trailing sample, and test if they meet the required conditions.
-        The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
-        3. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
-        4. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
-        5. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
-        6. Update the `gap` attributes with the interpolated values, labels, and details.
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Construct a leading and trailing sample, and test if they meet the required conditions.
+           The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
+        #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
+        #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
         --------
         Note that a suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
-
 
         References
         -----------
@@ -624,11 +623,10 @@ class Gap:
         -----
         A schematic description of the raw model data gap fill:
 
-        1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        2. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
-        3. Interpolate the model data to match the missing records in the gap.
-        4. Update the `gap` attributes with the interpolated values, labels, and details.
-
+        #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
+        #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
+        #. Interpolate the model data to match the missing records in the gap.
+        #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
         logger.debug(f"Entering raw_model_gapfill for {self}")
@@ -733,26 +731,26 @@ class Gap:
         method_kwargs : dict, optional
             Extra arguments that are passed to pandas.DataFrame.interpolate() structured in a dict. Defaults to {}.
 
-         Notes
-         -----
-         A schematic description:
+        Notes
+        -----
+        A schematic description:
 
-         1. Get the leading and trailing periods of the gap.
-         2. Check if the leading and trailing periods are valid.
-         3. Create a combined DataFrame with the leading, trailing, and gap data.
-         4. Interpolate the missing records using the specified method.
-         5. Update the gap attributes with the interpolated values, labels, and details.
+        #. Get the leading and trailing periods of the gap.
+        #. Check if the leading and trailing periods are valid.
+        #. Create a combined DataFrame with the leading, trailing, and gap data.
+        #. Interpolate the missing records using the specified method.
+        #. Update the gap attributes with the interpolated values, labels, and details.
 
-         Note
-         -------
-         The impact of `max_consec_fill` is highly dependent on the resolution
-         of your records.
+        Note
+        -------
+        The impact of `max_consec_fill` is highly dependent on the resolution
+        of your records.
 
-         Note
-         ------
-         If you want to use a higher-order method of interpolation, make sure to
-         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
-         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
+        Note
+        ------
+        If you want to use a higher-order method of interpolation, make sure to
+        increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
+        For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
         """
         logger.debug(f"Entering interpolate for {self}")
         # store fill settings

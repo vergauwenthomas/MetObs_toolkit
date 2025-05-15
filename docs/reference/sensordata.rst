@@ -39,4 +39,14 @@ A summary of all methods in the SensorData class.
    :toctree: api/
 
    SensorData.get_info
-   SensorData.make_plot
+   SensorData.convert_outliers_to_gaps
+   SensorData.resample
+   SensorData.get_qc_freq_statistics
+   SensorData.fill_gap_with_modeldata
+   SensorData.interpolate_gaps
+   SensorData.convert_to_standard_units
+   SensorData.gross_value_check
+   SensorData.persistence_check
+   SensorData.repetitions_check
+   SensorData.step_check
+   SensorData.window_variation_check

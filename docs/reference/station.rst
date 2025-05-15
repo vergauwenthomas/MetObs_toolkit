@@ -46,7 +46,6 @@ General methods and attributes
    Station.resample
 
 
-
 GEE related methods
 ------------------------------
 .. autosummary::

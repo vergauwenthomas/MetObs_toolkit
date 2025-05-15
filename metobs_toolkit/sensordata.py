@@ -236,13 +236,14 @@ class SensorData:
         Set up the SensorData object.
 
         This includes:
-        1. Find the duplicates (remove them from observations and add them to outliers).
-        2. Invalid check (records that could not be typecast to numeric) are interpreted as gaps.
-        3. Convert the values to standard units and update the observation types.
-        4. Find gaps in the records (duplicates are excluded from the gaps).
-        5. Get a frequency estimate per station.
-        6. Initiate the gaps (find missing records).
-        7. Add the missing records to the dataframe.
+
+        #. Find the duplicates (remove them from observations and add them to outliers).
+        #. Invalid check (records that could not be typecast to numeric) are interpreted as gaps.
+        #. Convert the values to standard units and update the observation types.
+        #. Find gaps in the records (duplicates are excluded from the gaps).
+        #. Get a frequency estimate per station.
+        #. Initiate the gaps (find missing records).
+        #. Add the missing records to the dataframe.
 
         Parameters
         ----------
@@ -474,7 +475,6 @@ class SensorData:
 
         This method will convert all outliers to gaps. Doing so new gaps are constructed.
 
-
         Returns
         -------
         None.
@@ -621,11 +621,13 @@ class SensorData:
         Notes
         -----
         The information includes:
-        - Observation type and station name.
-        - Start and end datetime of the records.
-        - Assumed frequency of the data.
-        - Number of records and the count of outliers.
-        - Number of gaps in the data.
+
+        * Observation type and station name.
+        * Start and end datetime of the records.
+        * Assumed frequency of the data.
+        * Number of records and the count of outliers.
+        * Number of gaps in the data.
+
         """
         logger.debug("Entering get_info for %s", self)
 
@@ -895,11 +897,13 @@ class SensorData:
             A DataFrame containing the QC frequency statistics. The DataFrame
             has a multi-index with the station name and QC check label, and
             includes the following columns:
-            - `N_all`: Total number of records in the dataset (including gaps).
-            - `N_labeled`: Number of records with the specific label.
-            - `N_checked`: Number of records checked for the specific QC check.
+
+            * `N_all`: Total number of records in the dataset (including gaps).
+            * `N_labeled`: Number of records with the specific label.
+            * `N_checked`: Number of records checked for the specific QC check.  
               This is not necessarily the same as `N_all`, as some records may be
               excluded from the check due to previous QC checks.
+              
         """
         logger.debug("Entering get_qc_freq_statistics for %s", self)
 
