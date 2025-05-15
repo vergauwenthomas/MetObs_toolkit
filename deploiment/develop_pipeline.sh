@@ -8,17 +8,10 @@ echo " -----------------------------------"
 
 
 DEPLOY_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DEP_PIPE_LOG=${DEPLOY_DIR}/dev_pipeline_log
 REPODIR=${DEPLOY_DIR}/..
 
 cd ${DEPLOY_DIR}
 
-rm -f ${DEP_PIPE_LOG} #clean start
-touch ${DEP_PIPE_LOG}
-
-#remove previous logs
-LOGDIR=${DEPLOY_DIR}/logs
-rm ${LOGDIR}/*_log
 
 
 #2. Update and built package
@@ -34,35 +27,56 @@ poetry install --all-extras --no-root
 
 #1. Cleanup the code (run black, black config in pyproject file)
 echo "Running black"
+BLACK_LOG=${DEPLOY_DIR}/black_log.log
+rm -f ${BLACK_LOG} #clean start
+touch ${BLACK_LOG}
 cd $REPODIR
-poetry run black . 2>&1 | tee -a ${DEP_PIPE_LOG}
+poetry run black . 2>&1 | tee -a ${BLACK_LOG}
 
 
 #3. Run tests
-echo "Running testing framework"
+echo "Running testing framework on the tests"
+TEST_LOG=${DEPLOY_DIR}/pytest_tests_log.log
+rm -f ${TEST_LOG} #clean start
+touch ${TEST_LOG}
 cd ${REPODIR}/toolkit_tests
-poetry run pytest --mpl --mpl-generate-summary=html 2>&1 | tee -a ${DEP_PIPE_LOG}
-
+poetry run pytest . --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
 
 #4. Run notebook example as tests
-echo "Running testing framework"
+echo "Running doc notebooks as test"
+NB_LOG=${DEPLOY_DIR}/pytest_on_doc_notebooks_log.log
+rm -f ${NB_LOG} #clean start
+touch ${NB_LOG}
 cd ${REPODIR}/docs/examples
-poetry run pytest --nbval-lax 2>&1 | tee -a ${DEP_PIPE_LOG}
+poetry run pytest . --nbval-lax 2>&1 | tee -a ${NB_LOG}
 cd ${REPODIR}/docs/topics
-poetry run pytest --nbval-lax 2>&1 | tee -a ${DEP_PIPE_LOG}
+poetry run pytest . --nbval-lax 2>&1 | tee -a ${NB_LOG}
+
 
 #5. Build documentation
-#./build_documentation.sh 2>&1 | tee -a ${DEP_PIPE_LOG}
 echo "Building documentation"
+DOCS_LOG=${DEPLOY_DIR}/build_doc_log.log
+rm -f ${DOCS_LOG} #clean start
+touch ${DOCS_LOG}
 cd ${REPODIR}
 cd docs
-poetry run ./build_doc 2>&1 | tee -a ${DEP_PIPE_LOG}
+poetry run ./build_doc 2>&1 | tee -a ${DOCS_LOG}
 
+
+
+#6. Create a big log file
+
+BIG_LOG=${DEPLOY_DIR}/dev_pipeline_full_log.log
+rm -f ${BIG_LOG} # clean start
+touch ${BIG_LOG}
+
+cat ${BLACK_LOG} ${TEST_LOG} ${NB_LOG} ${DOCS_LOG} >> ${BIG_LOG}
 
 
 echo "open logs in geany"
-geany ${DEP_PIPE_LOG} &
+geany ${BIG_LOG} &
 
+cd ${REPODIR}
 
 
 echo " -----------------------------------"
