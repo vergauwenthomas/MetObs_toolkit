@@ -1,5 +1,5 @@
-from .default_style import default_plot_settings
-
+# flake8: noqa: F401
+from .default_style import default_plot_settings 
 from .general_functions import (
     create_axes,
     set_title,

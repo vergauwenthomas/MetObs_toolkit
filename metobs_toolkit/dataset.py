@@ -12,16 +12,11 @@ from matplotlib.pyplot import Axes
 import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.template import (
-    Template,
-    update_known_obstype_with_original_data
-    )
+from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
-from metobs_toolkit.io_collection.filereaders import (
-    CsvFileReader, PickleFileReader
-    )
+from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -43,7 +38,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMissingFile,
     MetObsObstypeNotFound,
     MetObsMissingArgument,
-    MetObsMetadataNotFound
+    MetObsMetadataNotFound,
 )
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
@@ -403,12 +398,12 @@ class Dataset:
             outldf = self.outliersdf
             infostr += printing.print_fmt_line("Outlier info:")
             if outldf.empty:
-                infostr += printing.print_fmt_line(f"No QC outliers present.", 2)
+                infostr += printing.print_fmt_line("No QC outliers present.", 2)
             else:
                 infostr += printing.print_fmt_line(
                     "A total of {outldf.shape[0]} outliers are present.", 2
                 )
-                infostr += printing.print_fmt_line(f"label counts:", 3)
+                infostr += printing.print_fmt_line("label counts:", 3)
                 infostr += printing.print_fmt_dict(
                     outldf["label"].value_counts().to_dict(), identlvl=4
                 )
@@ -425,12 +420,12 @@ class Dataset:
             gapsdf = self.gapsdf
             infostr += printing.print_fmt_line("Gaps info:")
             if gapsdf.empty:
-                infostr += printing.print_fmt_line(f"No gaps present.", 2)
+                infostr += printing.print_fmt_line("No gaps present.", 2)
             else:
                 infostr += printing.print_fmt_line(
                     f"A total of {gapsdf.shape[0]} gaps are present.", 2
                 )
-                infostr += printing.print_fmt_line(f"label counts: ", 3)
+                infostr += printing.print_fmt_line("label counts: ", 3)
                 infostr += printing.print_fmt_dict(
                     gapsdf["label"].value_counts().to_dict(), identlvl=4
                 )
@@ -797,12 +792,12 @@ class Dataset:
 
         if (input_data_file is None) & (template_file is None):
             raise MetObsMissingFile(
-                f"No input_data_file or input_metadata_file is provided"
+                "No input_data_file or input_metadata_file is provided"
             )
 
         assert template_file is not None, "No templatefile is specified."
 
-        logger.info(f"Reading the templatefile")
+        logger.info("Reading the templatefile")
         self.template.read_template_from_file(
             jsonpath=template_file, templatefile_is_url=templatefile_is_url
         )

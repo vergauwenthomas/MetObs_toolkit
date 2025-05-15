@@ -12,12 +12,16 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 )
 import metobs_toolkit.plot_collection as plotting
 
-from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsDataAlreadyPresent,
+    MetObsMetadataNotFound,
+    MetObsModelDataError,
+    MetObsSensorDataNotFound,
+    MetObsObstypeNotFound
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.settings_collection import label_def
-from metobs_toolkit.backend_collection.dev_collection import copy_doc
-import metobs_toolkit.qc_collection as qc_collection
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
@@ -83,7 +87,7 @@ class Station:
         """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
 
-    def get_sensor(self, obstype: str) -> "SensorData":
+    def get_sensor(self, obstype: str) -> "SensorData":  # type: ignore #noqa: F821
         """Get the SensorData instance for a specific observation type.
 
         Parameters
@@ -139,7 +143,6 @@ class Station:
         combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
         if combdf.empty:
-
             combdf = pd.DataFrame(
                 columns=["value", "label"],
                 index=pd.MultiIndex(
@@ -357,7 +360,6 @@ class Station:
         if not bool(self.modeldata):
             infostr += printing.print_fmt_line("Station instance without modeldata.")
         else:
-
             for obstype, modeldata in self.modeldata.items():
                 infostr += printing.print_fmt_line(f"{obstype}:", 1)
                 infostr += modeldata._get_info_core(nident_root=2)

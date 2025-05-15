@@ -78,7 +78,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=ana.df,  # test dataframe
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -118,7 +118,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=ana.fulldf,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -148,7 +148,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=ana.fulldf,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution

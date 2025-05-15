@@ -7,15 +7,8 @@ Created on Thu Mar  2 16:00:59 2023
 
 @author: thoverga
 """
-
-import sys
-import pandas as pd
-import numpy as np
-import geopandas as gpd
-import itertools
-import pytz
 import logging
-from typing import Literal
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +16,6 @@ pd.options.mode.copy_on_write = True
 
 
 def save_concat(targets, **kwargs):
-
     if not isinstance(targets, list):
         targets = list(targets)
 

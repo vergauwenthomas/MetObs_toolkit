@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 import pytz
 
-from metobs_toolkit.backend_collection.errorclasses import *
+# from metobs_toolkit.backend_collection.errorclasses import *
 from metobs_toolkit.backend_collection.dev_collection import get_function_defaults
 from metobs_toolkit.template import _get_empty_templ_dict
 from metobs_toolkit.dataset import Dataset
@@ -46,8 +46,10 @@ def test_unit(unitstring: str) -> bool:
         return True
     except MetObsUnitUnknown:
         print(
-            f"!! {unitstring} is not a known Pint-unit. See https://github.com/hgrecco/pint/blob/master/pint/default_en.txt for a complete list.\n \
-(Note that you can use prefixes (kilo, hecto, ... ) and expressions (meter/second, liter/second**2, ...)"
+            f"!! {unitstring} is not a known Pint-unit. \
+See https://github.com/hgrecco/pint/blob/master/pint/default_en.txt \
+for a complete list.\n (Note that you can use prefixes (kilo, hecto, ... ) \
+and expressions (meter/second, liter/second**2, ...)"
         )
         return False
 
@@ -70,20 +72,24 @@ def add_new_obstype() -> tuple:
         obsname = str(input("Give the name of your observation type: "))
         if obsname in tlk_obstypes.keys():
             print(
-                f"!! {obsname} is already a known observation type. This cannot be added."
+                f"!! {obsname} is already a known observation type. This \
+cannot be added."
             )
         else:
             name_ok = True
 
     # get std unit
     print(
-        "(Note: Units are handled by the pint-package. See a list of all available units here: https://github.com/hgrecco/pint/blob/master/pint/default_en.txt) "
+        "(Note: Units are handled by the pint-package. See a list of all \
+available units here: \
+https://github.com/hgrecco/pint/blob/master/pint/default_en.txt) "
     )
     stdunit_ok = False
     while not stdunit_ok:
         std_unit = str(
             input(
-                "Give the standard unit (how the toolkit should store/present the data): "
+                "Give the standard unit (how the toolkit should \
+store/present the data): "
             )
         )
         # test if the unit is valid
@@ -109,7 +115,8 @@ def add_new_obstype() -> tuple:
 
 def get_unit(trgobstype: Obstype) -> str:
     """
-    Prompt the user to specify the unit of the data for a given observation type.
+    Prompt the user to specify the unit of the data for a given observation
+    type.
 
     Parameters
     ----------
@@ -134,21 +141,24 @@ def get_unit(trgobstype: Obstype) -> str:
         curunit_ok = False
         while not curunit_ok:
             print(
-                f"The following units are compatible with {trgobstype}: \n {compatible_units}"
+                f"The following units are compatible with \
+{trgobstype}: \n {compatible_units}"
             )
             cur_unit = str(
                 input(
-                    "Give the unit your data is in (you can add prefixes like kilo/hecto/etc if you need): "
+                    "Give the unit your data is in (you can add prefixes \
+like kilo/hecto/etc if you need): "
                 )
             )
 
             # test unit
             try:
-                trgobstype.original_unit = cur_unit  # This will check the compatibility
+                trgobstype.original_unit = cur_unit  # checks compatibility
                 curunit_ok = True
             except MetObsUnitUnknown:
                 print(
-                    f"!! {cur_unit} is not compatible with {trgobstype}. Provide a compatible unit."
+                    f"!! {cur_unit} is not compatible with {trgobstype}. \
+Provide a compatible unit."
                 )
                 pass
         return cur_unit
@@ -291,9 +301,9 @@ def build_template_prompt() -> None:
     """
     Launch an interactive prompt to construct a template.json file.
 
-    When called, an interactive prompt will start. Answer the questions, and hit
-    Enter to continue. At the end of the prompt, you can specify a location where
-    to save the template.json file.
+    When called, an interactive prompt will start. Answer the questions, and
+    hit Enter to continue. At the end of the prompt, you can specify a
+    location where to save the template.json file.
 
     Returns
     -------
@@ -301,15 +311,18 @@ def build_template_prompt() -> None:
 
     Notes
     -----
-    It is good practice to rename the template.json file to specify the corresponding data file(s).
+    It is good practice to rename the template.json file to specify the
+    corresponding data file(s).
 
-    At the end, the prompt asks if you need further assistance. If you do, the prompt
-    will print out code that you can copy and run to create a `Dataset()`.
+    At the end, the prompt asks if you need further assistance. If you do, the
+    prompt will print out code that you can copy and run to create a
+    `Dataset()`.
 
     Warning
     -------
     In previous versions (<=v0.2.1) the template file was a CSV. Thus you have
-    to create the template again to be compatible with this version of the toolkit.
+    to create the template again to be compatible with this version of the
+      toolkit.
     """
     logger.debug("Entering build_template_prompt()")
     tmpl_dict = _get_empty_templ_dict()
@@ -318,7 +331,8 @@ def build_template_prompt() -> None:
     known_obstypes = copy.copy(tlk_obstypes)
 
     print(
-        "This prompt will help to build a template for your data and metadata. Answer the prompt and hit Enter. \n \n"
+        "This prompt will help to build a template for your data and metadata. \
+Answer the prompt and hit Enter. \n \n"
     )
 
     print(" *******      File locations   *********** \n")
@@ -334,9 +348,9 @@ def build_template_prompt() -> None:
     if (not data_avail) and (not meta_avail):
         sys.exit("No template can be built without a data or metadata file.")
 
-    # =============================================================================
+    # ==========================================================================
     # Map data file
-    # =============================================================================
+    # ==========================================================================
     if data_avail:
         print("\n\n *******      Data File   ***********")
 
@@ -349,7 +363,8 @@ def build_template_prompt() -> None:
         format_dict = {
             "Long format (station observations are stacked as rows)": 1,
             "Wide format (columns represent different stations)": 2,
-            "Single station format (columns represent observation(s) of one station)": 3,
+            "Single station format (columns represent \
+observation(s) of one station)": 3,
         }
 
         print("How is your dataset structured : \n")
@@ -374,7 +389,6 @@ def build_template_prompt() -> None:
         datetime_option = dt_dict[datetime_option]
 
         if datetime_option == 1:
-
             # Datetime mapping
 
             print("\n Which is your timestamp columnname: ")
@@ -387,7 +401,8 @@ def build_template_prompt() -> None:
             while not fmt_is_ok:
                 example = data[datetimecolumn].iloc[0]
                 datetimefmt = input(
-                    f"Type your datetime format (ex. %Y-%m-%d %H:%M:%S), (your first timestamp: {example}) : "
+                    f"Type your datetime format (ex. %Y-%m-%d %H:%M:%S), \
+(your first timestamp: {example}) : "
                 )
                 # Test datetime format
                 try:
@@ -395,7 +410,8 @@ def build_template_prompt() -> None:
                     fmt_is_ok = True
                 except ValueError:
                     print(
-                        f" !! {datetimefmt} is not a suitable format for your {datetimecolumn}-column, check your data and input a suitable format."
+                        f" !! {datetimefmt} is not a suitable format for your \
+{datetimecolumn}-column, check your data and input a suitable format."
                     )
                     pass
 
@@ -498,9 +514,9 @@ def build_template_prompt() -> None:
                 if inv_obstype_desc[desc_return] == "ADD NEW OBSERVATION TYPE":
                     new_obstype, cur_unit = add_new_obstype()
 
-                    known_obstypes[new_obstype.name] = (
-                        new_obstype  # add to known obstypes
-                    )
+                    known_obstypes[
+                        new_obstype.name
+                    ] = new_obstype  # add to known obstypes
                     obstype = new_obstype.name
                     units = cur_unit
                     description = new_obstype.description
@@ -664,8 +680,7 @@ def build_template_prompt() -> None:
 
     # write to csv
     templatefilepath = os.path.join(save_dir, "template.json")
-    write_dict_to_json(dictionary=tmpl_dict,
-                       trgfile=templatefilepath)
+    write_dict_to_json(dictionary=tmpl_dict, trgfile=templatefilepath)
     print(f" DONE! The template is written here: {templatefilepath}")
 
     # =============================================================================
@@ -674,7 +689,6 @@ def build_template_prompt() -> None:
 
     apply_tips = yes_no_ques("Do you want some help creating your Dataset?")
     if apply_tips is True:
-
         print("\n\n ========= RUN THIS CODE ========= \n\n")
 
         print("\n# Define the paths to your files: ")
@@ -727,7 +741,6 @@ def build_template_prompt() -> None:
                 if kwarg in skiplist:
                     continue
                 if isinstance(kwargvalue, str):
-
                     print(f'    {kwarg} = "{kwargvalue}",')
                 else:
                     print(f"    {kwarg} = {kwargvalue},")

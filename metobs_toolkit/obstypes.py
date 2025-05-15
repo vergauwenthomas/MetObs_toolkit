@@ -254,7 +254,6 @@ class ModelObstype(Obstype):
     def __init__(
         self, obstype: Obstype, model_unit: Union[str, pint.Unit], model_band: str
     ):
-
         # set regular obstype
         super().__init__(
             obsname=obstype.name,
@@ -550,7 +549,7 @@ def is_known_unit(unit: str) -> bool:
     bool
         True if known, False otherwise.
     """
-    logger.debug(f"is_known_unit called")
+    logger.debug("is_known_unit called")
     try:
         ureg.parse_expression(unit)
         return True
@@ -577,7 +576,7 @@ def _fmtunit(value) -> pint.Unit:
     MetObsUnitUnknown
         If the value cannot be converted to a known unit.
     """
-    logger.debug(f"_fmtunit called")
+    logger.debug("_fmtunit called")
     if isinstance(value, pint.Unit):
         return value
     elif isinstance(value, pint.Quantity):

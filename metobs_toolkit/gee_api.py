@@ -13,7 +13,6 @@ import os
 import json
 import logging
 from pathlib import Path
-from time import sleep
 
 import pandas as pd
 import ee

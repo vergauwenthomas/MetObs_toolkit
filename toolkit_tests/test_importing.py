@@ -48,7 +48,7 @@ class TestDemoData:
             TestDemoData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 methodname=_method_name,
-                **TestDemoData.solkwargs
+                **TestDemoData.solkwargs,
             )
 
         # 4. Get solution
@@ -132,7 +132,7 @@ class TestDemoData:
             TestDemoData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 **TestDemoData.solkwargs,
-                methodname=_method_name
+                methodname=_method_name,
             )
 
         # 4. Get solution
@@ -176,7 +176,7 @@ class TestDemoData:
             TestDemoData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 **TestDemoData.solkwargs,
-                methodname=_method_name
+                methodname=_method_name,
             )
         # 4. Get solution
         solutionobj = TestDemoData.solutionfixer.get_solution(
@@ -202,7 +202,7 @@ class TestDemoData:
             TestDemoData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 **TestDemoData.solkwargs,
-                methodname=_method_name
+                methodname=_method_name,
             )
 
         # 4. Get solution
@@ -273,7 +273,7 @@ class TestWideData:
             TestWideData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 methodname=_method_name,
-                **TestWideData.solkwargs
+                **TestWideData.solkwargs,
             )
 
         # 4. Get solution
@@ -347,7 +347,7 @@ class TestWideSingleStationData:
             TestWideSingleStationData.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 methodname=_method_name,
-                **TestWideSingleStationData.solkwargs
+                **TestWideSingleStationData.solkwargs,
             )
 
         # 4. Get solution

@@ -12,8 +12,7 @@ from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-def _calculate_distance_matrix_with_haverine(
-        metadf: pd.DataFrame) -> pd.DataFrame:
+def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate a distance matrix between points using the Haversine formula.
 
@@ -64,8 +63,7 @@ def _calculate_distance_matrix_with_haverine(
         distance_matrix[sta1] = {}
         for sta2, row2 in metadf.iterrows():
             distance_matrix[sta1][sta2] = haversine(
-                row1.geometry.x, row1.geometry.y,
-                row2.geometry.x, row2.geometry.y
+                row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
             )
     return pd.DataFrame(distance_matrix)
 
@@ -175,9 +173,8 @@ def _find_spatial_buddies(
 
 
 def _filter_to_altitude_buddies(
-        spatial_buddies: Dict,
-        altitudes: pd.Series,
-        max_altitude_diff: Union[int, float]) -> Dict:
+    spatial_buddies: Dict, altitudes: pd.Series, max_altitude_diff: Union[int, float]
+) -> Dict:
     """
     Filter neighbours by maximum altitude difference.
 
@@ -212,9 +209,7 @@ def _filter_to_altitude_buddies(
     return alt_buddies_dict
 
 
-def _filter_to_minimum_samplesize(
-        buddydict: Dict,
-        min_sample_size: int) -> Dict:
+def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict:
     """
     Filter stations that are too isolated using minimum sample size.
 
@@ -294,88 +289,88 @@ def toolkit_buddy_check(
     use_mp: bool = True,
 ) -> Tuple[list, dict]:
     """
-        Spatial buddy check.
+    Spatial buddy check.
 
-        The buddy check compares an observation against its neighbors
-        (i.e. buddies). The check loops over all the groups, which are stations
-        within a radius of each other. For each group, the absolute value of
-        the difference with the group mean, normalized by the standard
-        deviation (with a defined minimum), is computed. If one (or more)
-        exceeds the std_threshold, the most extreme (=baddest) observation of
-        that group is labeled as an outlier.
+    The buddy check compares an observation against its neighbors
+    (i.e. buddies). The check loops over all the groups, which are stations
+    within a radius of each other. For each group, the absolute value of
+    the difference with the group mean, normalized by the standard
+    deviation (with a defined minimum), is computed. If one (or more)
+    exceeds the std_threshold, the most extreme (=baddest) observation of
+    that group is labeled as an outlier.
 
-        Multiple iterations of this checks can be done using the N_iter.
+    Multiple iterations of this checks can be done using the N_iter.
 
-        A schematic step-by-step description of the buddy check:
+    A schematic step-by-step description of the buddy check:
 
-          1. A distance matrix is constructed for all interdistances between
-            the stations. This is done using the haversine approximation.
-          2. Groups of buddies (neighbours) are created by using the
-            buddy_radius. These groups are further filtered by:
-            * removing stations from the groups that differ to much in altitude
-              (based on the max_alt_diff)
-            * removing groups of buddies that are too small (based on the
-              min_sample_size)
+      1. A distance matrix is constructed for all interdistances between
+        the stations. This is done using the haversine approximation.
+      2. Groups of buddies (neighbours) are created by using the
+        buddy_radius. These groups are further filtered by:
+        * removing stations from the groups that differ to much in altitude
+          (based on the max_alt_diff)
+        * removing groups of buddies that are too small (based on the
+          min_sample_size)
 
-          3. Observations per group are synchronized in time (using the
-            max_shift as tolerance for allignment).
-          4. If a lapsrate is specified, the observations are corrected for
-            altitude differences.
-          5. For each buddy group:
-            * The mean, standard deviation (std), and sample size are computed.
-            * If the std is lower than the minimum std, it is replaced by the
-              minimum std.
-            * Chi values are calculated for all records.
-            * For each timestamp the record with the highest Chi is tested if
-              it is larger then std_threshold.
-              If so, that record is flagged as an outlier. It will be ignored
-                in the next iteration.
-            * This is repeated N_iter times.
+      3. Observations per group are synchronized in time (using the
+        max_shift as tolerance for allignment).
+      4. If a lapsrate is specified, the observations are corrected for
+        altitude differences.
+      5. For each buddy group:
+        * The mean, standard deviation (std), and sample size are computed.
+        * If the std is lower than the minimum std, it is replaced by the
+          minimum std.
+        * Chi values are calculated for all records.
+        * For each timestamp the record with the highest Chi is tested if
+          it is larger then std_threshold.
+          If so, that record is flagged as an outlier. It will be ignored
+            in the next iteration.
+        * This is repeated N_iter times.
 
 
-        Parameters
-        ----------
-        dataset : Dataset
-            The dataset to apply the buddy check on.
-        obstype : str
-            The observation type that has to be checked.
-        buddy_radius : int or float
-            The radius to define spatial neighbors in meters.
-        min_sample_size : int
-            The minimum sample size to calculate statistics on.
-        max_alt_diff : int, float, or None
-            The maximum altitude difference allowed for buddies. If None,
-            no altitude filter is applied.
-        min_std : int or float
-            The minimum standard deviation for sample statistics. This should
-            represent the accuracy of the observations.
-        std_threshold : int or float
-            The threshold (std units) for flagging observations as outliers.
-        N_iter : int
-            The number of iterations to perform the buddy check.
-        instantanious_tolerance : pandas.Timedelta
-            The maximum time difference allowed for synchronizing observations.
-        lapserate : float or None, optional
-            Describes how the obstype changes with altitude (in meters). If
-            None, no altitude correction is applied. For temperature, a
-            common value is -0.0065.
-        use_mp : bool, optional
-            Use multiprocessing to speed up the buddy check.
+    Parameters
+    ----------
+    dataset : Dataset
+        The dataset to apply the buddy check on.
+    obstype : str
+        The observation type that has to be checked.
+    buddy_radius : int or float
+        The radius to define spatial neighbors in meters.
+    min_sample_size : int
+        The minimum sample size to calculate statistics on.
+    max_alt_diff : int, float, or None
+        The maximum altitude difference allowed for buddies. If None,
+        no altitude filter is applied.
+    min_std : int or float
+        The minimum standard deviation for sample statistics. This should
+        represent the accuracy of the observations.
+    std_threshold : int or float
+        The threshold (std units) for flagging observations as outliers.
+    N_iter : int
+        The number of iterations to perform the buddy check.
+    instantanious_tolerance : pandas.Timedelta
+        The maximum time difference allowed for synchronizing observations.
+    lapserate : float or None, optional
+        Describes how the obstype changes with altitude (in meters). If
+        None, no altitude correction is applied. For temperature, a
+        common value is -0.0065.
+    use_mp : bool, optional
+        Use multiprocessing to speed up the buddy check.
 
-        Returns
-        -------
-        list
-            A list of tuples containing the outlier station, timestamp,
-            and detail message. Each tuple is in the form (station_name,
-            timestamp, message).
-        dict
-            A dictionary mapping each synchronized timestamp to its original
-              timestamp.
+    Returns
+    -------
+    list
+        A list of tuples containing the outlier station, timestamp,
+        and detail message. Each tuple is in the form (station_name,
+        timestamp, message).
+    dict
+        A dictionary mapping each synchronized timestamp to its original
+          timestamp.
 
-        Notes
-        -----
-        The altitude of the stations can be extracted from GEE by using the
-        `Dataset.get_altitude()` method.
+    Notes
+    -----
+    The altitude of the stations can be extracted from GEE by using the
+    `Dataset.get_altitude()` method.
 
     """
 
@@ -385,14 +380,15 @@ def toolkit_buddy_check(
     dist_matrix = _calculate_distance_matrix_with_haverine(metadf)
 
     # find potential buddies by distance
-    buddies = _find_spatial_buddies(distance_df=dist_matrix,
-                                    buddy_radius=buddy_radius)
+    buddies = _find_spatial_buddies(distance_df=dist_matrix, buddy_radius=buddy_radius)
 
     # filter buddies by altitude difference
     if max_alt_diff is not None:
         if metadf["altitude"].isna().any():
-            raise ValueError("At least one station has a NaN \
-value for 'altitude'")
+            raise ValueError(
+                "At least one station has a NaN \
+value for 'altitude'"
+            )
         # Filter by altitude difference
         buddies = _filter_to_altitude_buddies(
             spatial_buddies=buddies,
@@ -446,7 +442,7 @@ value for 'altitude'")
         if use_mp:
             # Use multiprocessing generator (parallelization)
             num_cpus = os.cpu_count()
-            # since this check is an instantaneous check --> 
+            # since this check is an instantaneous check -->
             # perfect for splitting the dataset in chunks in time
             chunks = np.array_split(combdf, num_cpus)
 
@@ -544,7 +540,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf["std"] = buddydf[[*buddygroup]].std(axis=1)
     buddydf["non_nan_count"] = buddydf[[*buddygroup]].notna().sum(axis=1)
 
-    # subset to samples with enough members (check for each timestamp 
+    # subset to samples with enough members (check for each timestamp
     # specifically)
     buddydf = buddydf.loc[buddydf["non_nan_count"] >= min_sample_size]
 
@@ -553,11 +549,9 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
     # Convert values to sigmas
     for station in buddygroup:
-        buddydf[station] = ((buddydf[station] - buddydf["mean"]).abs()
-                            /
-                            buddydf["std"])
+        buddydf[station] = (buddydf[station] - buddydf["mean"]).abs() / buddydf["std"]
 
-    # Drop rows for which all values are smaller than the threshold 
+    # Drop rows for which all values are smaller than the threshold
     # (speed up the last step)
     buddydf["timestamp_with_outlier"] = buddydf[[*buddygroup]].apply(
         lambda row: any(row > outlier_threshold), axis=1
@@ -565,9 +559,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf = buddydf.loc[buddydf["timestamp_with_outlier"]]
 
     # locate the most extreme outlier per timestamp
-    buddydf["is_the_most_extreme_outlier"] = (
-        buddydf[[*buddygroup]].idxmax(axis=1)
-    )
+    buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
 
     def msgcreator(row):
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
@@ -584,8 +576,6 @@ std: {row['std']:.2f}"
 
     return list(
         zip(
-            buddydf["is_the_most_extreme_outlier"],
-            buddydf.index,
-            buddydf["detail_msg"]
+            buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
         )
     )

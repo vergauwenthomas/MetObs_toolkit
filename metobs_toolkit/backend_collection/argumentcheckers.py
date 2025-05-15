@@ -4,10 +4,9 @@ arguments and input passed by the user."""
 import logging
 import datetime as datetimemodule
 
-import numpy as np
 import pandas as pd
 
-from metobs_toolkit.backend_collection.errorclasses import MetobsArgumentError
+from metobs_toolkit.backend_collection.errorclasses import MetObsArgumentError
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -22,8 +21,9 @@ def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
     elif isinstance(timedeltaarg, pd.Timedelta):
         dt = dt
     else:
-        MetobsArgumentError(
-            f"{timedeltaarg} could not be interpreted as a Timedelta, convert it to a pd.Timedelta()."
+        MetObsArgumentError(
+            f"{timedeltaarg} could not be interpreted as a Timedelta, \
+convert it to a pd.Timedelta()."
         )
 
     if dt == pd.Timedelta(0):
@@ -49,8 +49,9 @@ def fmt_datetime_arg(
     elif isinstance(datetimearg, pd.Timestamp):
         dt = datetimearg
     else:
-        raise MetobsArgumentError(
-            f"{datetimearg} is not in a datetime format (datetime.datetime or pandas.Timestamp)."
+        raise MetObsArgumentError(
+            f"{datetimearg} is not in a datetime format (datetime.datetime or \
+pandas.Timestamp)."
         )
 
     # check timezone and make tz-awer

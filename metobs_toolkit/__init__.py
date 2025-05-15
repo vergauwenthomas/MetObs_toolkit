@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# flake8: noqa: F401
 
 import os
 import sys
@@ -12,11 +12,7 @@ import logging
 
 
 from metobs_toolkit.dataset import Dataset
-from metobs_toolkit.obstypes import (
-    Obstype,
-    ModelObstype,
-    ModelObstype_Vectorfield
-    )
+from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
 
 from metobs_toolkit.analysis import Analysis
 from metobs_toolkit.geedatasetmanagers import (
@@ -71,9 +67,7 @@ rootlog.handlers.clear()  # clear all handlers
 # Set the default handler
 console_handler = logging.StreamHandler()
 console_handler.setLevel("WARNING")
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler.setFormatter(formatter)
 rootlog.addHandler(console_handler)
 
@@ -84,23 +78,3 @@ rootlog.addHandler(console_handler)
 
 # DO not change this manually!
 __version__ = "0.4.0"
-
-
-__all__ = [
-    #Classes
-    "Dataset",
-    "Obstype",
-    "ModelObstype",
-    "ModelObstype_Vectorfield",
-    "Analysis",
-    "GEEStaticDatasetManager",
-    "GEEDynamicDatasetManager",
-    #Functions
-    "add_FileHandler",
-    "add_StreamHandler",
-    "import_dataset_from_pkl",
-    "build_template_prompt",
-    "connect_to_gee",
-    #Variables
-    "default_GEE_datasets",
-]

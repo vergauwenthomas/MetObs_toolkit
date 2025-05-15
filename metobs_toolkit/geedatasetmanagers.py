@@ -139,13 +139,13 @@ class _GEEDatasetManager:
             raise MetObsModelDataError(f'No "lat" column in the metadf of {self}.')
         if metadf["lat"].isnull().all():
             raise MetObsModelDataError(
-                f'All values of the "lat" column in the metadf are Nan.'
+                'All values of the "lat" column in the metadf are Nan.'
             )
         if "lon" not in metadf.columns:
             raise MetObsModelDataError(f'No "lon" column in the metadf of {self}.')
         if metadf["lon"].isnull().all():
             raise MetObsModelDataError(
-                f'All values of the "lon" column in the metadf are Nan.'
+                'All values of the "lon" column in the metadf are Nan.'
             )
 
     def _get_all_gee_bandnames(self) -> list:
@@ -272,13 +272,13 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         retstr += self._get_base_details()
         retstr += printing.print_fmt_line(f"target band: {self.band_of_use}")
 
-        retstr += printing.print_fmt_line(f"classification: ")
+        retstr += printing.print_fmt_line("classification: ")
         retstr += printing.print_fmt_dict(self.class_map, identlvl=2)
 
-        retstr += printing.print_fmt_line(f"aggregation: ")
+        retstr += printing.print_fmt_line("aggregation: ")
         retstr += printing.print_fmt_dict(self.agg_scheme, identlvl=2)
 
-        retstr += printing.print_fmt_line(f"colors: ")
+        retstr += printing.print_fmt_line("colors: ")
         retstr += printing.print_fmt_dict(self.col_scheme, identlvl=2)
 
         if printout:
@@ -364,7 +364,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         )
         if metadf.empty:
             raise MetObsModelDataError(
-                f"No metadata is present for the GeeStaticDataset. No extraction possible."
+                "No metadata is present for the GeeStaticDataset. No extraction possible."
             )
 
         self._check_metadf_validity(metadf)
@@ -535,16 +535,16 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         else:
             if metadf.empty:
-                if vmin == None:
+                if vmin is None:
                     vmin = 0.0
-                if vmax == None:
+                if vmax is None:
                     vmax = 1.0
             else:
                 obsmin = df[self.name].min()
                 obsmax = df[self.name].max()
-                if vmin == None:
+                if vmin is None:
                     vmin = obsmin - ((obsmax - obsmin) * 0.15)
-                if vmax == None:
+                if vmax is None:
                     vmax = obsmax + ((obsmax - obsmin) * 0.15)
 
             var_visualization = {
@@ -1263,7 +1263,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             )
             logger.warning(f"{doc_folder_id} \n\n")
             logger.warning(
-                "To upload the data to the model, use the Modeldata.set_model_from_csv() method"
+                "To upload the data to the model, use the \
+Dataset.import_gee_data_from_file() method."
             )
 
             return
