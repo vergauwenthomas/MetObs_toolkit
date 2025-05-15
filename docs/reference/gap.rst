@@ -8,7 +8,7 @@ The gaps are described by the `Gap` class, containing methods for manipulating t
 
 
 A regular user *should not directly interact with a `Gap`* instance. All methods
-for filling gaps are accesable in the ``Station`` and ``Dataset`` classes.
+for filling gaps are accessible in the ``Station`` and ``Dataset`` classes.
 
 
 .. currentmodule:: metobs_toolkit.gap

@@ -3,7 +3,7 @@ Toolkit objects overview
 **************************
 
 This toolkit is a Python package based on object-oriented programming (OOP).
-Here you can find a short description of the classes that are commenly used.
+Here you can find a short description of the classes that are commonly used.
 In the `introduction example` you can find a notebook example to illustrate these classes.
 
 
@@ -20,7 +20,7 @@ on a ``Station`` can be applied on a ``Dataset``. See the API documentation for 
 
 The dataset holds methods for
  - Importing raw data
- - Resampling/syncronizing timeseries
+ - Resampling/synchronizing timeseries
  - Extracting metadata
  - Visualizing
  - Quality control
@@ -54,7 +54,7 @@ Each station can have multiple SensorData objects, one for each observation type
 SensorData manages the actual measurements, associated timestamps, and quality control labels for its observation type. If present, gaps are stored in the `SensorData`
 SensorData objects are not created directly by users; they are managed by the toolkit when importing or processing data.
 
-In pracktiche you do not need to interact directly with this class. You can inspect the observations by using the `df` attribute on a `Station` or `Dataset`.
+In practice you do not need to interact directly with this class. You can inspect the observations by using the `df` attribute on a `Station` or `Dataset`.
 
 .. code-block:: python
 

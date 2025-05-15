@@ -2,8 +2,7 @@
 Extra Topics
 ###########################
 
-Here is a collection of topics to addres common issues or questions.
-
+Here is a collection of topics to address common issues or questions.
 
 
 .. toctree::

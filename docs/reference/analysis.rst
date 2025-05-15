@@ -4,7 +4,7 @@
 Analysis
 =========
 
-The `Analysis` class holds 'good records', and some common methods to analyse the observations.
+The `Analysis` class holds 'good records', and some common methods to analyze the observations.
 
 .. currentmodule:: metobs_toolkit.analysis
 
