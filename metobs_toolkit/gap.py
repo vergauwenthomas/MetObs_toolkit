@@ -201,7 +201,7 @@ class Gap:
             print(infostr)
         else:
             return infostr
-        
+
     def debiased_model_gapfill(
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821

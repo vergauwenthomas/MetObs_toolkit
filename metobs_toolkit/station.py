@@ -17,7 +17,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMetadataNotFound,
     MetObsModelDataError,
     MetObsSensorDataNotFound,
-    MetObsObstypeNotFound
+    MetObsObstypeNotFound,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat

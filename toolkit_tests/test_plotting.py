@@ -11,7 +11,7 @@ import pandas as pd
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder

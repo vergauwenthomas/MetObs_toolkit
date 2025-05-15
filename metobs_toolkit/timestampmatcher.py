@@ -5,7 +5,6 @@ import numpy as np
 
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsTimeSimplifyError,
-    
 )
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 

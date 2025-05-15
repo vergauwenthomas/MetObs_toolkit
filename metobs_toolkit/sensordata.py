@@ -11,9 +11,7 @@ from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
-from metobs_toolkit.backend_collection.errorclasses import (
-    MetObsQualityControlError
-)
+from metobs_toolkit.backend_collection.errorclasses import MetObsQualityControlError
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 logger = logging.getLogger("<metobs_toolkit>")
