@@ -319,6 +319,7 @@ jobs:
               pip install -e .
               pip install pytest
               pip install pytest-mpl
+              pip install nbval
 
           # List installed packages
           - name: List installed packages
