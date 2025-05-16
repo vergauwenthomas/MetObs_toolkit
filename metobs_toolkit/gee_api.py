@@ -40,14 +40,15 @@ def connect_to_gee(**kwargs) -> None:
 
     Notes
     -----
-    - This function assumes you have a Google developers account and a project with the
+    
+    * This function assumes you have a Google developers account and a project with the
       Google Earth Engine API enabled.
-    - During authentication, you may be asked if you want a read-only scope. A read-only
+    * During authentication, you may be asked if you want a read-only scope. A read-only
       scope is sufficient for small data transfers, but not for extracting large amounts
       of data (e.g., model data written to Google Drive).
-    - If an EEException is thrown, it is likely due to an invalid credential file. You can
+    * If an EEException is thrown, it is likely due to an invalid credential file. You can
       update your credential file and specify a specific authentication method.
-    - Example usage:
+    * Example usage:
 
       .. code-block:: python
 

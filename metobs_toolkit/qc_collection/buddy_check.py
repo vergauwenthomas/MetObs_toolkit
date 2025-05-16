@@ -75,6 +75,7 @@ def synchronize_series(
     Synchronize a list of pandas Series with datetime indexes.
 
     The target timestamps are defined by:
+
      * freq: the highest frequency present in the input series
      * origin: the earliest timestamp found, rounded down by the freq
      * closing: the latest timestamp found, rounded up by the freq.
@@ -307,6 +308,7 @@ def toolkit_buddy_check(
         the stations. This is done using the haversine approximation.
       2. Groups of buddies (neighbours) are created by using the
         buddy_radius. These groups are further filtered by:
+
         * removing stations from the groups that differ to much in altitude
           (based on the max_alt_diff)
         * removing groups of buddies that are too small (based on the
@@ -317,6 +319,7 @@ def toolkit_buddy_check(
       4. If a lapsrate is specified, the observations are corrected for
         altitude differences.
       5. For each buddy group:
+      
         * The mean, standard deviation (std), and sample size are computed.
         * If the std is lower than the minimum std, it is replaced by the
           minimum std.
@@ -482,39 +485,43 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     ----------
     inputarg : tuple
         A tuple containing:
-        - buddygroup : list
+        
+        * buddygroup : list
             List of station names that form the buddy group.
-        - combdf : pandas.DataFrame
+        * combdf : pandas.DataFrame
             DataFrame containing the combined data for all stations.
-        - min_sample_size : int
+        * min_sample_size : int
             Minimum number of non-NaN values required in the buddy group for a
             valid comparison.
-        - min_std : float
+        * min_std : float
             Minimum standard deviation to use when calculating z-scores.
-        - outlier_threshold : float
+        * outlier_threshold : float
             Threshold for identifying outliers in terms of z-scores.
 
     Returns
     -------
     list of tuple
         Each tuple contains:
-        - str : The station name of the most extreme outlier.
-        - pandas.Timestamp : The timestamp of the outlier.
-        - str : A detailed message describing the outlier.
+
+        * str : The station name of the most extreme outlier.
+        * pandas.Timestamp : The timestamp of the outlier.
+        * str : A detailed message describing the outlier.
 
     Notes
     -----
     This function performs the following steps:
+
     1. Subsets the data to the buddy group.
     2. Calculates the mean, standard deviation, and count of non-NaN values
-      for each timestamp.
+       for each timestamp.
     3. Filters out timestamps with insufficient data.
     4. Replaces standard deviations below the minimum threshold with the
-      minimum value.
+       minimum value.
     5. Converts station values to z-scores.
     6. Identifies timestamps with at least one outlier.
     7. Locates the most extreme outlier for each timestamp.
     8. Generates a detailed message for each outlier.
+
     """
     logger.debug("Entering find_buddy_group_outlier")
     if not isinstance(inputarg, tuple):

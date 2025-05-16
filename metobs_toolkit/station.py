@@ -423,9 +423,10 @@ class Station:
 
         Notes
         -----
-        - If `target_obstype` is None, all sensors in `self.sensordata` will be
+        
+        * If `target_obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
-        - If `target_obstype` is specified, it must be a known observation type.
+        * If `target_obstype` is specified, it must be a known observation type.
 
         Warning
         -------
@@ -778,10 +779,12 @@ class Station:
 
         Notes
         -----
-        - The method creates `ModelTimeSeries` instances for each valid observation
+
+        * The method creates `ModelTimeSeries` instances for each valid observation
           type in the extracted data and appends them to the station's model data.
-        - If no data is returned by the GEE API request, a warning is logged and
+        * If no data is returned by the GEE API request, a warning is logged and
           the method returns None.
+          
         """
         logger.debug("Entering get_gee_timeseries_data for %s", self)
         # Check geedynamic dataset

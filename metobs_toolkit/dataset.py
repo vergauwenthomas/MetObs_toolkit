@@ -965,9 +965,11 @@ class Dataset:
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
-            - "station": Colors by station.
-            - "label": Colors by label (the labels refer to the status of a record).
-            Default is "label".
+
+            * "station": Colors by station.
+            * "label": Colors by label (the labels refer to the status of a record).
+              Default is "label".
+
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
         show_outliers : bool, optional
@@ -1774,8 +1776,9 @@ class Dataset:
 
         Warnings
         --------
-        - If a station name in `renamedict` does not exist in the dataset, it will be skipped.
-        - If a target station name in `renamedict` already exists in the dataset, the renaming
+        
+        * If a station name in `renamedict` does not exist in the dataset, it will be skipped.
+        * If a target station name in `renamedict` already exists in the dataset, the renaming
           operation for that station will be skipped.
 
         """

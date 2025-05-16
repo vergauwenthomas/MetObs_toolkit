@@ -100,7 +100,7 @@ class Gap:
             * 'unfilled'
             * 'failed gapfill'
             * 'successful gapfill'
-            
+
         """
         if self.records.isna().all() and not bool(self._fillkwargs):
             return _unfilled_label

@@ -36,11 +36,12 @@ def persistence_check(
 
     Notes
     -----
-    The function uses a rolling window approach to check if all non-NaN values within the window
-    are identical.
-    If the minimum number of records per window is locally not met, the function logs a warning and skips
-    the persistence check.
-    This function can be computationally expensive for large datasets or small time windows.
+    
+    * The function uses a rolling window approach to check if all non-NaN values within the window
+      are identical.
+    * If the minimum number of records per window is locally not met, the function logs a warning and skips
+      the persistence check.
+    * This function can be computationally expensive for large datasets or small time windows.
 
     Warnings
     --------
