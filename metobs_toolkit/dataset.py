@@ -1776,7 +1776,7 @@ class Dataset:
 
         Warnings
         --------
-        
+
         * If a station name in `renamedict` does not exist in the dataset, it will be skipped.
         * If a target station name in `renamedict` already exists in the dataset, the renaming
           operation for that station will be skipped.

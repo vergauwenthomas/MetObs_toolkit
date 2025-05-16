@@ -319,7 +319,7 @@ def toolkit_buddy_check(
       4. If a lapsrate is specified, the observations are corrected for
         altitude differences.
       5. For each buddy group:
-      
+
         * The mean, standard deviation (std), and sample size are computed.
         * If the std is lower than the minimum std, it is replaced by the
           minimum std.
@@ -485,7 +485,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     ----------
     inputarg : tuple
         A tuple containing:
-        
+
         * buddygroup : list
             List of station names that form the buddy group.
         * combdf : pandas.DataFrame

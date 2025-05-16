@@ -40,7 +40,7 @@ def connect_to_gee(**kwargs) -> None:
 
     Notes
     -----
-    
+
     * This function assumes you have a Google developers account and a project with the
       Google Earth Engine API enabled.
     * During authentication, you may be asked if you want a read-only scope. A read-only
