@@ -15,21 +15,21 @@ When citing Metobs-Toolkit, you can use:
 
 or using BiBTeX:
 
-```
 
-@article{Vergauwen2024,
-         doi = {10.21105/joss.05916},
-         url = {https://doi.org/10.21105/joss.05916},
-         year = {2024},
-         publisher = {The Open Journal},
-         volume = {9},
-         number = {95},
-         pages = {5916},
-         author = {Thomas Vergauwen and Michiel Vieijra and Andrei Covaci and Amber Jacobs and Sara Top and Wout Dewettinck and Kobe Vandelanotte and Ian Hellebosch and Steven Caluwaerts},
-         title = {MetObs - a Python toolkit for using non-traditional meteorological observations}, journal = {Journal of Open Source Software}
-         }
+.. code-block:: bibtex
 
-```
+  @article{Vergauwen2024,
+   doi = {10.21105/joss.05916},
+   url = {https://doi.org/10.21105/joss.05916},
+   year = {2024},
+   publisher = {The Open Journal},
+   volume = {9},
+   number = {95},
+   pages = {5916},
+   author = {Thomas Vergauwen and Michiel Vieijra and Andrei Covaci and Amber Jacobs and Sara Top and Wout Dewettinck and Kobe Vandelanotte and Ian Hellebosch and Steven Caluwaerts},
+   title = {MetObs - a Python toolkit for using non-traditional meteorological observations}, journal = {Journal of Open Source Software}
+   }   
+
 
 When referring to the MetObs-Toolkit software, please mention the used version.
 

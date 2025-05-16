@@ -7,7 +7,6 @@ import geopandas as gpd
 
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
-from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
@@ -33,7 +32,6 @@ class Site:
     def __init__(
         self, stationname: str, latitude: float, longitude: float, extradata: dict = {}
     ):
-
         # Set data
         self._stationname = stationname
         self._lat = float(latitude)

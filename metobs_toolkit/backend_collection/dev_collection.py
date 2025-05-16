@@ -2,11 +2,9 @@
 of one funtion to another. Useful for wrapping functions as
 class methods."""
 
-import logging
 import inspect
 from typing import Callable, TypeVar, Any
 from typing_extensions import ParamSpec
-import re
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -61,7 +59,6 @@ def copy_doc(
 
 
 def add_new_arg_in_docstr(docstr, newargstr, firstline_indent=8, description_indent=4):
-
     newargstr = newargstr.lstrip()  # drop leading spaces
     # Remove all leading spaces from each line in the newargstr
     newargstr = "\n".join(line.lstrip() for line in newargstr.splitlines())
@@ -98,7 +95,8 @@ def add_new_arg_in_docstr(docstr, newargstr, firstline_indent=8, description_ind
 
 def get_function_defaults(func: callable) -> dict:
     """
-    Return the keyword arguments with default values as a dictionary for a function.
+    Return the keyword arguments with default values as a dictionary for
+    a function.
 
     Parameters
     ----------
@@ -110,7 +108,6 @@ def get_function_defaults(func: callable) -> dict:
     dict
         Dictionary of keyword arguments and their default values.
     """
-    logger.debug("Entering get_function_defaults()")
     signature = inspect.signature(func)
     return {
         k: v.default

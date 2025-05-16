@@ -4,7 +4,7 @@
 Analysis
 =========
 
-The `Analysis` class holds 'good records', and some common methods to analyse the observations.
+The ``Analysis`` class holds 'good records', and some common methods to analyze the observations.
 
 .. currentmodule:: metobs_toolkit.analysis
 
@@ -19,7 +19,7 @@ Constructor
 
 Methods
 ----------
-A summary of all methods in the `Analysis` class.
+A summary of all methods in the ``Analysis`` class.
 
 .. autosummary::
    :toctree: api/

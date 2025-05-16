@@ -145,7 +145,7 @@ Test your GEE access
 
    To update your credential file (which is saved at `~/.config/EarthEngine/credentials`),
    you can use the ``connect_to_gee()`` function and pass additional arguments.
-   Here an exmaple on how to update the credetial files:
+   Here an example on how to update the credential files:
 
    .. code-block:: python
 

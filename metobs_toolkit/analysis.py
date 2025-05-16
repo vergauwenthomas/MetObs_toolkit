@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime as datetypeclass
 
 from metobs_toolkit.backend_collection.errorclasses import (
-     MetObsStationNotFound,
-     MetObsObstypeNotFound
+    MetObsStationNotFound,
+    MetObsObstypeNotFound,
 )
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
@@ -53,7 +53,6 @@ class Analysis:
     """
 
     def __init__(self, Dataholder: Union[Dataset, Station]):
-
         if not isinstance(Dataholder, (Dataset, Station)):
             raise TypeError(
                 f"Dataholder is not a Dataset or Station, \
@@ -157,10 +156,8 @@ but a {type(Dataholder)}"
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Analysis")
-        infostr += printing.print_fmt_line(
-                    f"Number of records: {len(self.df)}")
-        infostr += printing.print_fmt_line(
-                    f"Observation types: {list(self._df_cols)}")
+        infostr += printing.print_fmt_line(f"Number of records: {len(self.df)}")
+        infostr += printing.print_fmt_line(f"Observation types: {list(self._df_cols)}")
         infostr += printing.print_fmt_line(
             f"Available metadata columns: {self.metadf.columns.tolist()}"
         )
@@ -212,19 +209,16 @@ but a {type(Dataholder)}"
         is not put in quotation marks.
 
         """
-        logger.debug(
-            f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
+        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
 
         # Apply the filter string
         try:
             self.metadf.query(filter_string, inplace=True)
         except Exception as e:
-            raise ValueError(
-                f"Invalid filter string: {filter_string}. Error: {e}")
+            raise ValueError(f"Invalid filter string: {filter_string}. Error: {e}")
 
         # Subset the fulldf by the leftover stations
-        self.fulldf = self.fulldf.loc[
-                    self.fulldf["name"].isin(self.metadf.index)]
+        self.fulldf = self.fulldf.loc[self.fulldf["name"].isin(self.metadf.index)]
 
         # Check if the filtered DataFrame is empty
         if self.fulldf.empty:
@@ -246,12 +240,13 @@ but a {type(Dataholder)}"
 
         Warning
         -------
-        This function modifies the data in place, so filtered-out data will be lost.
+        This function modifies the data in place, so filtered-out data will be
+        lost.
 
         Note
         -----
-        A common error (UndefinedVariableError) is raised when a string value is not put
-        in quotation marks.
+        A common error (UndefinedVariableError) is raised when a string value
+        is not put in quotation marks.
 
         """
         logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_records")
@@ -285,11 +280,13 @@ but a {type(Dataholder)}"
         Returns
         -------
         pd.DataFrame
-            A DataFrame containing only the rows within the specified time period.
+            A DataFrame containing only the rows within the specified time
+            period.
 
         Warning
         -------
-        This function modifies the data in place, so filtered-out data will be lost.
+        This function modifies the data in place, so filtered-out data will
+        be lost.
         """
         logger.debug(f"Entering {self.__class__.__name__}.subset_period")
         startdt = fmt_datetime_arg(startdt)
@@ -311,21 +308,24 @@ but a {type(Dataholder)}"
         method: Callable = np.nanmean,
     ) -> pd.DataFrame:
         """
-        Aggregate all 'values' to specific groups and return the resulting DataFrame.
+        Aggregate all 'values' to specific groups and return the resulting
+        DataFrame.
 
         Parameters
         ----------
         trgobstype : str, optional
             The target observation type to aggregate, by default "temp".
         agg : list of str, optional
-            List of column names to group by for aggregation, by default ["LCZ", "hour"].
+            List of column names to group by for aggregation, by default
+            ["LCZ", "hour"].
         method : callable, optional
             Aggregation method to apply, by default `np.nanmean`.
 
         Returns
         -------
         pd.DataFrame
-            A DataFrame with aggregated values, indexed by the specified grouping columns.
+            A DataFrame with aggregated values, indexed by the specified
+            grouping columns.
         """
         logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
 
@@ -339,15 +339,19 @@ but a {type(Dataholder)}"
         for aggcat in agg:
             if aggcat not in self._all_possible_agg_categories():
                 raise ValueError(
-                    f"{aggcat} is not a possible agg category for {self}. These are all the possible agg categories: {self._all_possible_agg_categories()}."
+                    f"{aggcat} is not a possible agg category for {self}. \
+These are all the possible agg categories: \
+{self._all_possible_agg_categories()}."
                 )
 
         # create a fulldf
         fulldf = pd.merge(left=self.fulldf, right=self.metadf, how="left", on="name")
+
         # Filter fulldf to relevant columns
         fulldf = fulldf[agg + [trgobstype]]
 
-        # Silence FutureWarning that DataFrameGrouBy.mean is currently used instead of np.mean
+        # Silence FutureWarning that DataFrameGrouBy.mean is currently used
+        # instead of np.mean
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
@@ -374,31 +378,40 @@ but a {type(Dataholder)}"
         figkwargs: dict = {},
     ) -> Union[plt.Axes, Tuple[plt.Axes, pd.DataFrame]]:
         """
-        Plot the diurnal cycle of a specified observation type, grouped by a given category.
+        Plot the diurnal cycle of a specified observation type, grouped
+        by a given category.
 
         Parameters
         ----------
         trgobstype : str, optional
-            The target observation type to plot (e.g., "temp"). Default is "temp".
+            The target observation type to plot (e.g., "temp"). Default is
+            "temp".
         colorby : str, optional
-            The category by which to group and color the data (e.g., "name"). Default is "name".
+            The category by which to group and color the data (e.g., "name").
+            Default is "name".
         title : str or None, optional
-            The title of the plot. If None, a default title is generated. Default is None.
+            The title of the plot. If None, a default title is generated.
+            Default is None.
         ax : matplotlib.axes.Axes or None, optional
-            The axes on which to plot. If None, a new figure and axes are created. Default is None.
+            The axes on which to plot. If None, a new figure and axes are
+            created. Default is None.
         colordict : dict or None, optional
-            A dictionary mapping group names to colors. If None, default colors are used. Default is None.
+            A dictionary mapping group names to colors. If None, default colors
+            are used. Default is None.
         legend : bool, optional
             Whether to include a legend in the plot. Default is True.
         return_data : bool, optional
-            If True, returns the plot axes and the aggregated data used for plotting. Default is False.
+            If True, returns the plot axes and the aggregated data used for
+            plotting. Default is False.
         figkwargs : dict, optional
-            Additional keyword arguments for figure creation. Default is an empty dictionary.
+            Additional keyword arguments for figure creation. Default is an
+            empty dictionary.
 
         Returns
         -------
         matplotlib.axes.Axes or tuple
-            The plot axes. If `return_data` is True, returns a tuple of the plot axes and the aggregated DataFrame.
+            The plot axes. If `return_data` is True, returns a tuple of the
+            plot axes and the aggregated DataFrame.
         """
         logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
 
@@ -408,7 +421,8 @@ but a {type(Dataholder)}"
         # test if colorby is valid
         if colorby not in self._all_possible_agg_categories():
             raise ValueError(
-                f"{colorby} is not a possible agg category for {self}. These are all the possible agg categories: {self._all_possible_agg_categories()}."
+                f"{colorby} is not a possible agg category for {self}. These \
+are all the possible agg categories: {self._all_possible_agg_categories()}."
             )
 
         colorby_blacklist = ["hour", "minute", "second"]
@@ -421,7 +435,8 @@ but a {type(Dataholder)}"
             agg=[colorby, "hour", "minute", "second"],
             method=np.nanmean,
         )
-        # create fake_datetime axes (fake because it is one day, but needed for representations of data sub hourly)
+        # create fake_datetime axes (fake because it is one day, but needed
+        # for representations of data sub hourly)
         aggdf = aggdf.reset_index()
         aggdf["fake_datetime"] = pd.to_datetime(
             "1990-01-01 "
@@ -433,9 +448,13 @@ but a {type(Dataholder)}"
         )
         aggdf["fake_datetime"] = aggdf["fake_datetime"].dt.tz_localize(self.get_tz())
 
-        # construct plotdf (index: fake_datetime, columns: colorby-groups, values: value)
-        plotdf = aggdf[[colorby, "fake_datetime", trgobstype]]
-        plotdf = plotdf.set_index(["fake_datetime", colorby]).unstack(level=colorby)
+        # construct plotdf
+        # (index: fake_datetime, columns: colorby-groups, values: value)
+        plotdf = (
+            aggdf[[colorby, "fake_datetime", trgobstype]]
+            .set_index(["fake_datetime", colorby])
+            .unstack(level=colorby)
+        )
         plotdf = plotdf[trgobstype]  # selection by level0 of columns
 
         # Styling
@@ -443,7 +462,7 @@ but a {type(Dataholder)}"
 
         if ax is None:
             default_kwargs = {"figsize": default_style["figsize"]}
-            default_kwargs.update(figkwargs)  # overwrite default with user defined
+            default_kwargs.update(figkwargs)  # overwrite default
             ax = plotting.create_axes(**default_kwargs)
 
         # plot the cycles
@@ -493,7 +512,8 @@ but a {type(Dataholder)}"
         figkwargs: dict = {},
     ) -> Union[plt.Axes, Tuple[plt.Axes, pd.DataFrame]]:
         """
-        Plot the diurnal cycle of differences between observations and a reference station.
+        Plot the diurnal cycle of differences between observations and a
+        reference station.
 
         Parameters
         ----------
@@ -502,34 +522,46 @@ but a {type(Dataholder)}"
         trgobstype : str, optional
             The observation type to analyze (e.g., "temp"). Default is "temp".
         colorby : str, optional
-            The column name to group data by for coloring the plot. Default is "name".
+            The column name to group data by for coloring the plot. Default
+            is "name".
         title : str or None, optional
-            The title of the plot. If None, a default title is generated. Default is None.
+            The title of the plot. If None, a default title is generated.
+            Default is None.
         ax : matplotlib.axes.Axes or None, optional
-            The axes object to plot on. If None, a new figure and axes are created. Default is None.
+            The axes object to plot on. If None, a new figure and axes are
+            created. Default is None.
         colordict : dict or None, optional
-            A dictionary mapping group names (from `colorby`) to colors. Default is None.
+            A dictionary mapping group names (from `colorby`) to colors.
+            Default is None.
         legend : bool, optional
             Whether to include a legend in the plot. Default is True.
         return_data : bool, optional
-            If True, returns the aggregated data used for plotting along with the axes. Default is False.
+            If True, returns the aggregated data used for plotting along with
+            the axes. Default is False.
         figkwargs : dict, optional
-            Additional keyword arguments for figure creation. Default is an empty dictionary.
+            Additional keyword arguments for figure creation. Default is an
+            empty dictionary.
 
         Returns
         -------
-        Union[matplotlib.axes.Axes, Tuple[matplotlib.axes.Axes, pandas.DataFrame]]
-            The axes object with the plot. If `return_data` is True, also returns the aggregated DataFrame.
+        Union[
+            matplotlib.axes.Axes,
+            Tuple[matplotlib.axes.Axes, pandas.DataFrame]
+        ]
+            The axes object with the plot. If `return_data` is True, also
+            returns the aggregated DataFrame.
 
         Notes
         -----
-        The method computes the differences between the target observation type (`trgobstype`)
-        and the reference station's values, then aggregates the data by the specified grouping
-        (`colorby`) and time components (hour, minute, second). The resulting diurnal cycle
-        is plotted, with options for customization.
+        The method computes the differences between the target observation
+        type (`trgobstype`) and the reference station's values, then
+        aggregates the data by the specified grouping (`colorby`) and time
+        components (hour, minute, second). The resulting diurnal cycle is
+        plotted, with options for customization.
         """
         logger.debug(
-            f"Entering {self.__class__.__name__}.plot_diurnal_cycle_with_reference_station"
+            f"Entering {self.__class__.__name__}.plot_\
+diurnal_cycle_with_reference_station"
         )
 
         # test if trgobstype is known
@@ -538,7 +570,9 @@ but a {type(Dataholder)}"
         # test if colorby is valid
         if colorby not in self._all_possible_agg_categories():
             raise ValueError(
-                f"{colorby} is not a possible agg category for {self}. These are all the possible agg categories: {self._all_possible_agg_categories()}."
+                f"{colorby} is not a possible agg category for {self}. \
+These are all the possible agg categories: \
+{self._all_possible_agg_categories()}."
             )
 
         colorby_blacklist = ["hour", "minute", "second"]
@@ -566,7 +600,8 @@ but a {type(Dataholder)}"
             [colorby, "hour", "minute", "second"], observed=True
         ).agg("mean")
 
-        # create fake_datetime axes (fake because it is one day, but needed for representations of data sub hourly)
+        # create fake_datetime axes (fake because it is one day, but needed
+        # for representations of data sub hourly)
         aggdf = aggdf.reset_index()
         aggdf["fake_datetime"] = pd.to_datetime(
             "1990-01-01 "
@@ -578,9 +613,13 @@ but a {type(Dataholder)}"
         )
         aggdf["fake_datetime"] = aggdf["fake_datetime"].dt.tz_localize(self.get_tz())
 
-        # construct plotdf (index: fake_datetime, columns: colorby-groups, values: value)
-        plotdf = aggdf[[colorby, "fake_datetime", "diff_value"]]
-        plotdf = plotdf.set_index(["fake_datetime", colorby]).unstack(level=colorby)
+        # construct plotdf
+        # (index: fake_datetime, columns: colorby-groups, values: value)
+        plotdf = (
+            aggdf[[colorby, "fake_datetime", "diff_value"]]
+            .set_index(["fake_datetime", colorby])
+            .unstack(level=colorby)
+        )
         plotdf = plotdf["diff_value"]  # selection by level0 of columns
 
         # Styling
@@ -588,7 +627,7 @@ but a {type(Dataholder)}"
 
         if ax is None:
             default_kwargs = {"figsize": default_style["figsize"]}
-            default_kwargs.update(figkwargs)  # overwrite default with user defined
+            default_kwargs.update(figkwargs)  # overwrite defaults
             ax = plotting.create_axes(**default_kwargs)
 
         # plot the cycles
@@ -617,7 +656,8 @@ but a {type(Dataholder)}"
 
         # set title
         if title is None:
-            title = f"Diurnal cycle of {obstype.name} differences with {ref_station} as reference, grouped per {colorby}."
+            title = f"Diurnal cycle of {obstype.name} differences \
+with {ref_station} as reference, grouped per {colorby}."
         plotting.set_title(ax, titlestr=title)
 
         if return_data:
@@ -656,7 +696,10 @@ but a {type(Dataholder)}"
         list
             List of possible aggregation categories.
         """
-        logger.debug(f"Entering {self.__class__.__name__}._all_possible_agg_categories")
+        logger.debug(
+            f"Entering {self.__class__.__name__}._all_\
+possible_agg_categories"
+        )
         metacategories = list(self.metadf.reset_index().columns)
         return list(set(metacategories + possible_time_aggregates))
 

@@ -3,7 +3,7 @@ from typing import Literal, Union
 
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import Axes
+
 
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
 from metobs_toolkit.settings_collection import label_def
@@ -11,8 +11,7 @@ from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
-import metobs_toolkit.plot_collection as plotting
-from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.errorclasses import MetObsQualityControlError
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -61,7 +60,6 @@ class SensorData:
         origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
         timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
     ):
-
         if not isinstance(stationname, str):
             raise TypeError("stationname must be a string")
         if not isinstance(datarecords, np.ndarray):
@@ -238,13 +236,14 @@ class SensorData:
         Set up the SensorData object.
 
         This includes:
-        1. Find the duplicates (remove them from observations and add them to outliers).
-        2. Invalid check (records that could not be typecast to numeric) are interpreted as gaps.
-        3. Convert the values to standard units and update the observation types.
-        4. Find gaps in the records (duplicates are excluded from the gaps).
-        5. Get a frequency estimate per station.
-        6. Initiate the gaps (find missing records).
-        7. Add the missing records to the dataframe.
+
+        #. Find the duplicates (remove them from observations and add them to outliers).
+        #. Invalid check (records that could not be typecast to numeric) are interpreted as gaps.
+        #. Convert the values to standard units and update the observation types.
+        #. Find gaps in the records (duplicates are excluded from the gaps).
+        #. Get a frequency estimate per station.
+        #. Initiate the gaps (find missing records).
+        #. Add the missing records to the dataframe.
 
         Parameters
         ----------
@@ -402,7 +401,7 @@ class SensorData:
                 if overwrite:
                     self.outliers.remove(applied_qc_info)
                 else:
-                    raise MetobsQualityControlError(
+                    raise MetObsQualityControlError(
                         f"The {qccheckname} is already applied on {self}. Fix error or set overwrite=True"
                     )
 
@@ -475,7 +474,6 @@ class SensorData:
         Convert all outliers to gaps.
 
         This method will convert all outliers to gaps. Doing so new gaps are constructed.
-
 
         Returns
         -------
@@ -620,14 +618,6 @@ class SensorData:
             If `printout` is False, returns a string containing the information
             about the sensor data. If `printout` is True, returns None.
 
-        Notes
-        -----
-        The information includes:
-        - Observation type and station name.
-        - Start and end datetime of the records.
-        - Assumed frequency of the data.
-        - Number of records and the count of outliers.
-        - Number of gaps in the data.
         """
         logger.debug("Entering get_info for %s", self)
 
@@ -644,7 +634,6 @@ class SensorData:
             return infostr
 
     def _get_info_core(self, nident_root=1) -> str:
-
         infostr = ""
         infostr += printing.print_fmt_line(
             f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root
@@ -658,26 +647,26 @@ class SensorData:
 
         # outliers info:
         if self.outliersdf.empty:
-            infostr += printing.print_fmt_line(f"No outliers present.", nident_root)
+            infostr += printing.print_fmt_line("No outliers present.", nident_root)
         else:
             infostr += printing.print_fmt_line(
                 f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).",
                 nident_root,
             )
-            infostr += printing.print_fmt_line(f"label counts: ", nident_root + 1)
+            infostr += printing.print_fmt_line("label counts: ", nident_root + 1)
             infostr += printing.print_fmt_dict(
                 self.outliersdf["label"].value_counts().to_dict(), nident_root + 2
             )
 
         # gaps info:
         if not self.gaps:
-            infostr += printing.print_fmt_line(f"No gaps present.", nident_root)
+            infostr += printing.print_fmt_line("No gaps present.", nident_root)
         else:
             infostr += printing.print_fmt_line(
                 f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.",
                 nident_root,
             )
-            infostr += printing.print_fmt_line(f"label counts: ", nident_root + 1)
+            infostr += printing.print_fmt_line("label counts: ", nident_root + 1)
             infostr += printing.print_fmt_dict(
                 self.gapsdf["label"].value_counts().to_dict(), nident_root + 2
             )
@@ -898,11 +887,13 @@ class SensorData:
             A DataFrame containing the QC frequency statistics. The DataFrame
             has a multi-index with the station name and QC check label, and
             includes the following columns:
-            - `N_all`: Total number of records in the dataset (including gaps).
-            - `N_labeled`: Number of records with the specific label.
-            - `N_checked`: Number of records checked for the specific QC check.
+
+            * `N_all`: Total number of records in the dataset (including gaps).
+            * `N_labeled`: Number of records with the specific label.
+            * `N_checked`: Number of records checked for the specific QC check.
               This is not necessarily the same as `N_all`, as some records may be
               excluded from the check due to previous QC checks.
+
         """
         logger.debug("Entering get_qc_freq_statistics for %s", self)
 
@@ -948,7 +939,7 @@ class SensorData:
     # ------------------------------------------
     def fill_gap_with_modeldata(
         self,
-        modeltimeseries: "ModelTimeSeries",
+        modeltimeseries: "ModelTimeSeries",  # type: ignore #noqa: F821
         method: str = Literal[
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
         ],

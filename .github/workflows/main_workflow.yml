@@ -141,7 +141,10 @@ jobs:
             - docs/examples/gee_example.ipynb
             - docs/examples/filling_example.ipynb
             - docs/examples/analysis_example.ipynb
-            - docs/notebook_references/log_example.ipynb
+            - docs/topics/log_example.ipynb
+            - docs/topics/metadata_only.ipynb
+            - docs/topics/template_doc.ipynb
+
 
 
       continue-on-error: true
@@ -316,6 +319,7 @@ jobs:
               pip install -e .
               pip install pytest
               pip install pytest-mpl
+              pip install nbval
 
           # List installed packages
           - name: List installed packages

@@ -23,7 +23,6 @@ MetObs toolkit Utility functions
 A collection of utility functions is presented. These functions are not
 part of a class, but are used in the toolkit.
 
-.. currentpackage:: metobs_toolkit
 
 
 Logging functions

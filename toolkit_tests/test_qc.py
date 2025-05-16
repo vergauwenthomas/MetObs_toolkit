@@ -10,7 +10,7 @@ import pandas as pd
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder
@@ -93,15 +93,13 @@ class TestBreakingDataset:
         )
 
         dataset.repetitions_check(
-            target_obstype="temp",
-            max_N_repetitions=5,
-            use_mp=False
+            target_obstype="temp", max_N_repetitions=5, use_mp=False
         )
         dataset.step_check(
             target_obstype="temp",
             max_increase_per_second=8.0 / 3600.0,
             max_decrease_per_second=-10.0 / 3600.0,
-            use_mp=False
+            use_mp=False,
         )
         dataset.window_variation_check(
             target_obstype="temp",
@@ -110,7 +108,7 @@ class TestBreakingDataset:
             max_increase_per_second=8.0 / 3600.0,
             max_decrease_per_second=-10.0 / 3600.0,
             # use_mp=True,
-            use_mp=False
+            use_mp=False,
         )
 
         #  3. overwrite solution?
@@ -187,7 +185,6 @@ class TestBreakingDataset:
         _statsdf = dataset.get_qc_stats(target_obstype="temp", make_plot=True)
 
     def test_get_info(self):
-
         #  1. get_startpoint data
         dataset = TestBreakingDataset.solutionfixer.get_solution(
             **TestBreakingDataset.solkwargs, methodname="test_apply_qc"

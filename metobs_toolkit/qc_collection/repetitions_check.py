@@ -58,7 +58,12 @@ def repetitions_check(records: pd.Series, max_N_repetitions: int) -> pd.Datetime
         return pd.DatetimeIndex([])
 
     outliers = pd.concat(
-        [groups.get_group(outlgroup) for outlgroup in outlier_groups.index]
+        [
+            groups.get_group(
+                outlgroup,
+            )
+            for outlgroup in outlier_groups.index
+        ]
     )
     logger.debug("Outliers detected. Exiting repetitions_check function.")
     return outliers.index

@@ -12,7 +12,7 @@ import pandas as pd
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder
@@ -47,7 +47,7 @@ class TestObstype:
             TestObstype.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 methodname=_method_name,
-                **TestObstype.solkwargs
+                **TestObstype.solkwargs,
             )
 
         # 4. Get solution
@@ -108,7 +108,6 @@ class TestObstype:
         assert isinstance(temp.description, str)
 
     def test_creating_new_obstypes(self):
-
         # 1. Create a new Obstype instance
         new_obstype = metobs_toolkit.obstypes.Obstype(
             obsname="new_temp", std_unit="°F", description="New temperature observation"
@@ -153,7 +152,6 @@ class TestObstype:
             dataset.add_new_observationtype(obstype=dataset.obstypes["humidity"])
 
     def test_calling_methods_on_modelobstypes(self):
-
         # 1. get_startpoint data
         modeltemp = metobs_toolkit.default_GEE_datasets["ERA5-land"].modelobstypes[
             "temp"

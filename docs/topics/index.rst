@@ -2,8 +2,7 @@
 Extra Topics
 ###########################
 
-Here is a collection of topics to addres common issues or questions.
-
+Here is a collection of topics to address common issues or questions.
 
 
 .. toctree::
@@ -13,4 +12,5 @@ Here is a collection of topics to addres common issues or questions.
   GEE authentication <gee_authentication>
   Metadata only <metadata_only.ipynb>
   Combine seperate raw data files <combine_seperate_datafiles>
+  logging <log_example.ipynb>
   GUI <gui>

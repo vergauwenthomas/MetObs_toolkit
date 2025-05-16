@@ -12,16 +12,11 @@ from matplotlib.pyplot import Axes
 import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.template import (
-    Template,
-    update_known_obstype_with_original_data
-    )
+from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
-from metobs_toolkit.io_collection.filereaders import (
-    CsvFileReader, PickleFileReader
-    )
+from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -43,7 +38,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMissingFile,
     MetObsObstypeNotFound,
     MetObsMissingArgument,
-    MetObsMetadataNotFound
+    MetObsMetadataNotFound,
 )
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
@@ -403,12 +398,12 @@ class Dataset:
             outldf = self.outliersdf
             infostr += printing.print_fmt_line("Outlier info:")
             if outldf.empty:
-                infostr += printing.print_fmt_line(f"No QC outliers present.", 2)
+                infostr += printing.print_fmt_line("No QC outliers present.", 2)
             else:
                 infostr += printing.print_fmt_line(
                     "A total of {outldf.shape[0]} outliers are present.", 2
                 )
-                infostr += printing.print_fmt_line(f"label counts:", 3)
+                infostr += printing.print_fmt_line("label counts:", 3)
                 infostr += printing.print_fmt_dict(
                     outldf["label"].value_counts().to_dict(), identlvl=4
                 )
@@ -425,12 +420,12 @@ class Dataset:
             gapsdf = self.gapsdf
             infostr += printing.print_fmt_line("Gaps info:")
             if gapsdf.empty:
-                infostr += printing.print_fmt_line(f"No gaps present.", 2)
+                infostr += printing.print_fmt_line("No gaps present.", 2)
             else:
                 infostr += printing.print_fmt_line(
                     f"A total of {gapsdf.shape[0]} gaps are present.", 2
                 )
-                infostr += printing.print_fmt_line(f"label counts: ", 3)
+                infostr += printing.print_fmt_line("label counts: ", 3)
                 infostr += printing.print_fmt_dict(
                     gapsdf["label"].value_counts().to_dict(), identlvl=4
                 )
@@ -484,43 +479,40 @@ class Dataset:
     ) -> None:
         """Synchronize records of sensor data across stations.
 
-                Synchronize records of sensor data across stations (for a specific observation type).
-                This method aligns the sensor data of a specified observation type (`target_obstype`)
-                across all stations by resampling the data to a common frequency and ensuring
-                alignment errors of timestamps within specified tolerances.
+        Synchronize records of sensor data across stations (for a specific observation type).
+        This method aligns the sensor data of a specified observation type (`target_obstype`)
+        across all stations by resampling the data to a common frequency and ensuring
+        alignment errors of timestamps within specified tolerances.
 
-                Parameters
-                ----------
-                target_obstype : str, optional
-                    The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
-                timestamp_shift_tolerance : str or pandas.Timedelta, optional
-                    The maximum allowed time shift tolerance for aligning data during
-                    resampling. Default is 2 minutes.
-                freq_shift_tolerance : str or pandas.Timedelta, optional
-                    The maximum allowed error in simplifying the target frequency. Default is "1min".
-                fixed_origin : pandas.Timestamp, or None, optional
-                    A fixed origin timestamp for resampling. If None, the origin is
-                    determined automatically. Default is None.
+        Parameters
+        ----------
+        target_obstype : str, optional
+            The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
+        timestamp_shift_tolerance : str or pandas.Timedelta, optional
+            The maximum allowed time shift tolerance for aligning data during
+            resampling. Default is 2 minutes.
+        freq_shift_tolerance : str or pandas.Timedelta, optional
+            The maximum allowed error in simplifying the target frequency. Default is "1min".
+        fixed_origin : pandas.Timestamp, or None, optional
+            A fixed origin timestamp for resampling. If None, the origin is
+            determined automatically. Default is None.
 
-                Returns
-        -        -------
-                None.
+        Returns
+        -------
+        None.
 
-                Note
-                ------
-                In general, this method is a wrapper for `Dataset.resample()` but making sure that
-                the target frequencies are naturel multiples of each other thus ensuring syncronisation
-                accros stations.
+        Note
+        ------
+        In general, this method is a wrapper for `Dataset.resample()` but making sure that
+        the target frequencies are naturel multiples of each other thus ensuring syncronisation
+        accros stations.
 
-                Warning
-                ----------
-                Since the gaps depend on the record’s frequency and origin, all gaps
-                are removed and re-located. All progress in gap(filling) will be lost.
+        Warning
+        ----------
 
-                Warning
-                --------
-                Cumulative tolerance errors can be introduced when this method is called multiple times.
-
+        * Since the gaps depend on the record’s frequency and origin, all gaps
+          are removed and re-located. All progress in gap(filling) will be lost.
+        * Cumulative tolerance errors can be introduced when this method is called multiple times.
 
         """
 
@@ -745,13 +737,13 @@ class Dataset:
         if present.
 
         The method performs the following steps:
-        - Estimates the frequency of observations using the ´freq_estimation_method´.
-        - Simplifies the estimated frequency and origin timestamps based on tolerances.
-        - Alligns the raw timestamps with target timestamps (by origin, and freq) using
-          a nearest merge, considering a specified timestamp tolerance.
-        - Executes checks for duplicates and invalid input.
-        - Identifies gaps in the data.
 
+        * Estimates the frequency of observations using the ´freq_estimation_method´.
+        * Simplifies the estimated frequency and origin timestamps based on tolerances.
+        * Alligns the raw timestamps with target timestamps (by origin, and freq) using
+          a nearest merge, considering a specified timestamp tolerance.
+        * Executes checks for duplicates and invalid input.
+        * Identifies gaps in the data.
 
         if `input_metadata_file` is provided, the method reads the metadata (CSV).
 
@@ -797,12 +789,12 @@ class Dataset:
 
         if (input_data_file is None) & (template_file is None):
             raise MetObsMissingFile(
-                f"No input_data_file or input_metadata_file is provided"
+                "No input_data_file or input_metadata_file is provided"
             )
 
         assert template_file is not None, "No templatefile is specified."
 
-        logger.info(f"Reading the templatefile")
+        logger.info("Reading the templatefile")
         self.template.read_template_from_file(
             jsonpath=template_file, templatefile_is_url=templatefile_is_url
         )
@@ -973,8 +965,10 @@ class Dataset:
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
-            - "station": Colors by station.
-            - "label": Colors by label (the labels refer to the status of a record).
+
+            * "station": Colors by station.
+            * "label": Colors by label (the labels refer to the status of a record).
+
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
@@ -1631,17 +1625,20 @@ class Dataset:
 
         1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
         2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
-            * removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
-            * removing groups of buddies that are too small (based on the min_sample_size)
+
+           #. removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
+           #. removing groups of buddies that are too small (based on the min_sample_size)
+
         3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
         4. If a lapsrate is specified, the observations are corrected for altitude differences.
         5. For each buddy group:
-            * The mean, standard deviation (std), and sample size are computed.
-            * If the std is lower than the minimum std, it is replaced by the minimum std.
-            * Chi values are calculated for all records.
-            * For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
-            If so, that record is flagged as an outlier. It will be ignored in the next iteration.
-            * This is repeated N_iter times.
+
+           #. The mean, standard deviation (std), and sample size are computed.
+           #. If the std is lower than the minimum std, it is replaced by the minimum std.
+           #. Chi values are calculated for all records.
+           #. For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
+              If so, that record is flagged as an outlier. It will be ignored in the next iteration.
+           #. This is repeated N_iter times.
 
         Parameters
         ----------
@@ -1672,9 +1669,9 @@ class Dataset:
 
         Notes
         ------
-        - This method modifies the outliers in place and does not return anything.
+        * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        - The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+        * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
 
         """
         logger.debug("Entering Dataset.buddy_check")
@@ -1779,8 +1776,9 @@ class Dataset:
 
         Warnings
         --------
-        - If a station name in `renamedict` does not exist in the dataset, it will be skipped.
-        - If a target station name in `renamedict` already exists in the dataset, the renaming
+
+        * If a station name in `renamedict` does not exist in the dataset, it will be skipped.
+        * If a target station name in `renamedict` already exists in the dataset, the renaming
           operation for that station will be skipped.
 
         """

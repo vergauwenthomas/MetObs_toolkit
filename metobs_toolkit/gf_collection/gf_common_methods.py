@@ -40,9 +40,7 @@ def create_a_combined_df(
     return pd.concat([leaddf, traildf, gapdf]).sort_index()
 
 
-def add_modeldata_to_combdf(
-        combineddf: pd.DataFrame,
-        modeltimeseries) -> pd.DataFrame:
+def add_modeldata_to_combdf(combineddf: pd.DataFrame, modeltimeseries) -> pd.DataFrame:
     """
     Add model data to a combined DataFrame, interpolating model values to
     match the index.
@@ -69,16 +67,12 @@ def add_modeldata_to_combdf(
     if modelseries.index.tz != combineddf.index.tz:
         modelseries = modelseries.tz_convert(combineddf.index.tz)
 
-    modeldf = pd.DataFrame(
-                index=modelseries.index,
-                data={"modelvalue": modelseries})
+    modeldf = pd.DataFrame(index=modelseries.index, data={"modelvalue": modelseries})
     # Interpolate modeldf to target timestamps
 
     # Create a new index that is the union of combineddf and modeldf
     # indices without duplicates
-    all_timestamps_index = (combineddf.index
-                            .union(modeldf.index)
-                            .drop_duplicates())
+    all_timestamps_index = combineddf.index.union(modeldf.index).drop_duplicates()
     # Note: The reindexing and interpolation of modeldata is needed
     # because the model data is often only defined at a resolution of 1h,
     # while the combineddf is not always at 1h resolution.
@@ -205,9 +199,7 @@ def get_trailing_period(
     sta_obs_series = sensordata.series
 
     potential_trail_period = (
-        sta_obs_series[sta_obs_series.index > gap.end_datetime]
-        .dropna()
-        .sort_index()
+        sta_obs_series[sta_obs_series.index > gap.end_datetime].dropna().sort_index()
     )
 
     if (fixed_by_duration, fixed_by_records) == (True, False):
@@ -278,9 +270,7 @@ def get_leading_period(
     sta_obs_series = sensordata.series
 
     potential_lead_period = (
-        sta_obs_series[sta_obs_series.index < gap.start_datetime]
-        .dropna()
-        .sort_index()
+        sta_obs_series[sta_obs_series.index < gap.start_datetime].dropna().sort_index()
     )
 
     if (fixed_by_duration, fixed_by_records) == (True, False):
@@ -310,10 +300,8 @@ fixed_by_duration: {fixed_by_duration} is not implemented."
 maximum distance of {duration} wrt {gap.start_datetime}) found \
 but {n_records} needed)"
         else:
-            msg = (
-                f"Too few leading records ({lp.shape[0]} found \
+            msg = f"Too few leading records ({lp.shape[0]} found \
 but {n_records} needed)"
-            )
         logger.debug(msg)
         continueflag = False
     else:
