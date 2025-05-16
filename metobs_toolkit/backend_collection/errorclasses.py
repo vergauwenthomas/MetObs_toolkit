@@ -66,7 +66,7 @@ class MetObsDataAlreadyPresent(Exception):
         super().__init__(*args, **kwargs)
 
 
-class MetobsQualityControlError(Exception):
+class MetObsQualityControlError(Exception):
     """
     Exception raised for errors in the dataset base.
     """
@@ -134,7 +134,7 @@ class MetObsUnitUnknown(Exception):
         super().__init__(*args, **kwargs)
 
 
-class MetobsTemplateError(Exception):
+class MetObsTemplateError(Exception):
     """
     Exception raised for errors in the template.
     """
@@ -143,7 +143,7 @@ class MetobsTemplateError(Exception):
         super().__init__(*args, **kwargs)
 
 
-class MetobsArgumentError(Exception):
+class MetObsArgumentError(Exception):
     """Raise when an argument could not be converted to a target type."""
 
     def __init__(self, *args, **kwargs) -> None:

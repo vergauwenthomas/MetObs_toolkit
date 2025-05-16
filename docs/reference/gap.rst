@@ -3,12 +3,12 @@
 =========
 Gap
 =========
-A Gap is a part of the observational timeseries that is missing. It is thus related to a station and an observationtype.
-The gaps are described by the `Gap` class, containing methods for manipulating the gap (i.g. filling a gap).
+A gap is a part of the observational timeseries that is missing. It is thus related to a station and an observationtype.
+The gaps are described by the ``Gap`` class, containing methods for manipulating the gap (i.g. filling a gap).
 
 
-A regular user *should not directly interact with a `Gap`* instance. All methods
-for filling gaps are accesable in the ``Station`` and ``Dataset`` classes.
+A regular user *should not directly interact with a ``Gap`` instance*. All methods
+for filling gaps are accessible in the ``Station`` and ``Dataset`` classes.
 
 
 .. currentmodule:: metobs_toolkit.gap

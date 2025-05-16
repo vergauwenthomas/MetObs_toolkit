@@ -3,7 +3,9 @@ from typing import Literal, Union
 import pandas as pd
 import numpy as np
 
-from metobs_toolkit.backend_collection.errorclasses import *
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsTimeSimplifyError,
+)
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -176,9 +178,9 @@ class TimestampMatcher:
         )
 
         rawdf = self.orig_records.to_frame()
-        rawdf["datetimedummy"] = (
-            rawdf.index
-        )  # To keep track of the original raw timestamps
+        rawdf[
+            "datetimedummy"
+        ] = rawdf.index  # To keep track of the original raw timestamps
 
         targetdf = pd.DataFrame(
             data={"datetimedummy": target_dtrange}, index=target_dtrange

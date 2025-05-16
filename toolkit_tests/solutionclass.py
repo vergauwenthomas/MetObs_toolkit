@@ -10,7 +10,6 @@ datadir = libfolder.joinpath("toolkit_tests").joinpath("testdata")
 
 
 class SolutionFixer:
-
     def __init__(self, solutiondir):
         self.solutiondir = Path(solutiondir)
 
@@ -145,7 +144,6 @@ def assert_equality(to_check, solution):
 
     # metobs_toolkit.Dataset test
     elif to_check.__class__.__name__ == "Dataset":
-
         compare_df_attr(to_check, solution, "metadf")
         compare_df_attr(to_check, solution, "gapsdf")
         compare_df_attr(to_check, solution, "modeldatadf")
@@ -157,7 +155,6 @@ def assert_equality(to_check, solution):
 
     # metobs_toolkit.Station test
     elif to_check.__class__.__name__ == "Station":
-
         compare_df_attr(to_check, solution, "metadf")
         compare_df_attr(to_check, solution, "gapsdf")
         compare_df_attr(to_check, solution, "modeldatadf")

@@ -12,7 +12,7 @@ import geemap.foliumap as geemap
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder
@@ -49,7 +49,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=data_to_test,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -79,7 +79,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -109,7 +109,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -194,7 +194,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -262,7 +262,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -317,7 +317,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -329,7 +329,6 @@ class TestDemoDataset:
         assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_pickling(self):
-
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_ERA5_extraction"
@@ -362,7 +361,6 @@ class TestDemoDataset:
         assert dataset.get_station("vlinder02").modeldatadf.shape == (19, 2)
 
     def test_ERA5_google_drive_interface(self):
-
         # 1. Test writing to drive file
         # Extract ERA5data and force the storing in drive
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -396,7 +394,7 @@ class TestDemoDataset:
         # compare with solution of direct import of gee data
         dataset_direct = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs,
-            methodname="test_ERA5_extraction_on_metadata_only"
+            methodname="test_ERA5_extraction_on_metadata_only",
         )
 
         # test equality
@@ -416,7 +414,6 @@ class TestDemoDataset:
 
 
 if __name__ == "__main__":
-
     test = TestDemoDataset()
     test.test_import_demo_metadata(overwrite_solution=False)
     test.test_LCZ_extraction(overwrite_solution=False)

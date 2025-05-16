@@ -92,7 +92,7 @@ def add_vertical_lines_to_axes(
     linestyle: Literal["-", "--", "-.", ":", ""] = "-",
     color: str = "navy",
     linewidth: int = 2,
-    zorder: [int, float] = 1.1,
+    zorder: Union[int, float] = 1.1,
 ) -> plt.Axes:
     """
     Add vertical lines to the given axes.

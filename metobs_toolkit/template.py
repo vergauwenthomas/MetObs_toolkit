@@ -12,11 +12,9 @@ import sys
 import logging
 from typing import Union
 
-
-import pandas as pd
 from pytz import all_timezones
 from metobs_toolkit.io_collection.filereaders import JsonFileReader
-from metobs_toolkit.backend_collection.errorclasses import MetobsTemplateError
+from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -416,7 +414,7 @@ class Template:
 
         # Check if timezone is known
         if self._get_tz() not in all_timezones:
-            raise MetobsTemplateError(f"{self._get_tz()} is not a known timezone.")
+            raise MetObsTemplateError(f"{self._get_tz()} is not a known timezone.")
 
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
@@ -468,19 +466,19 @@ class Template:
         self._check_if_datetime_is_mapped()
         if self.timestampinfo["datetimecolumn"] is not None:
             if not (self.timestampinfo["datetimecolumn"] in datacolumns):
-                raise MetobsTemplateError(
+                raise MetObsTemplateError(
                     f'The column {self.timestampinfo["datetimecolumn"]} is incorrectly mapped in the template as the "datetime" column. The template is therefore not valid with the data.'
                 )
 
         if self.timestampinfo["time_column"] is not None:
             if not (self.timestampinfo["time_column"] in datacolumns):
-                raise MetobsTemplateError(
+                raise MetObsTemplateError(
                     f'The column {self.timestampinfo["time_column"]} is incorrectly mapped in the template as the "_time" column. The template is therefore not valid with the data.'
                 )
 
         if self.timestampinfo["date_column"] is not None:
             if not (self.timestampinfo["date_column"] in datacolumns):
-                raise MetobsTemplateError(
+                raise MetObsTemplateError(
                     f'The column {self.timestampinfo["date_column"]} is incorrectly mapped in the template as the "_date" column. The template is therefore not valid with the data.'
                 )
 
@@ -488,7 +486,7 @@ class Template:
             # check name column
             if not self._is_data_single_station():
                 if not (self.data_namemap["name"] in datacolumns):
-                    raise MetobsTemplateError(
+                    raise MetObsTemplateError(
                         f'The column {self.data_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the data.'
                     )
 
@@ -539,7 +537,7 @@ class Template:
         # check name column (must be present if multiple stations are in the data)
         if not self._is_data_single_station():
             if not (self.metadata_namemap["name"] in metadatacolumns):
-                raise MetobsTemplateError(
+                raise MetObsTemplateError(
                     f'The column {self.metadata_namemap["name"]} is not (or incorrectly) mapped in the template as the "name" column. The template is therefore not valid with the metadata.'
                 )
 
@@ -688,7 +686,7 @@ class Template:
                     "altitude_column"
                 ]
         except KeyError:
-            raise MetobsTemplateError(
+            raise MetObsTemplateError(
                 f'"altitude_column" is not present in the templatefile ({jsonpath}). Rebuild the template to fix this.'
             )
 
@@ -718,7 +716,6 @@ def update_known_obstype_with_original_data(
     if template._is_data_long():
         orig_data_column_name_map = template._get_obs_column_map()
         for orig_name, obsname in orig_data_column_name_map.items():
-
             # set original name (column)
             known_obstypes[obsname].original_name = orig_name
 

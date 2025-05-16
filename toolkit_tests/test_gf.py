@@ -9,7 +9,7 @@ import pandas as pd
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder
@@ -30,7 +30,6 @@ class TestDataWithGaps:
 
         # 1. get_startpoint data
         if overwrite_solution:  # GEE INTERACTION !!
-
             dataset = metobs_toolkit.Dataset()
             dataset.import_data_from_file(
                 template_file=metobs_toolkit.demo_template,
@@ -134,7 +133,6 @@ class TestDataWithGaps:
         _statsdf = sta.make_plot()
 
     def test_interpolation_on_dataset(self, overwrite_solution=False):
-
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 

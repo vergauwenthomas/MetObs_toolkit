@@ -1,6 +1,6 @@
 import logging
 import locale
-from typing import Literal, Tuple
+from typing import Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -276,7 +276,7 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
             bottom=0.2
         )  # Adjust the bottom margin to make space for the legend
         # create legend
-        main_legend = ax.legend(
+        _ = ax.legend(
             main_handles,
             main_labels,
             loc="upper center",
@@ -285,7 +285,7 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
         )
     else:
         # create legend
-        main_legend = ax.legend(main_handles, main_labels)
+        _ = ax.legend(main_handles, main_labels)
 
     return ax
 

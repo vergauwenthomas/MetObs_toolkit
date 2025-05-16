@@ -1,10 +1,8 @@
 import logging
-from typing import Any, Dict
-import numpy as np
 import pandas as pd
 
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
-from metobs_toolkit.template import Template, MetobsTemplateError
+from metobs_toolkit.template import Template, MetObsTemplateError
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -22,7 +20,6 @@ class DataParser:
     """
 
     def __init__(self, datafilereader: CsvFileReader, template: Template):
-
         self.filereader = datafilereader
         self.template = template
         self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style
@@ -131,9 +128,9 @@ class DataParser:
         # Check if there is a column indicating the name of the station that is mapped
         assumed_name_col = list(self.template._get_data_name_map().keys())[0]
         if assumed_name_col is None:
-            rawdf["_dummy_name_column"] = (
-                self.template._get_single_station_default_name()
-            )
+            rawdf[
+                "_dummy_name_column"
+            ] = self.template._get_single_station_default_name()
             # Add it to the template
             self.template._set_dataname("_dummy_name_column")
         return rawdf
@@ -267,7 +264,7 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
 
     if template.timestampinfo["datetimecolumn"] is not None:
         if not (template.timestampinfo["datetimecolumn"] in df.columns):
-            raise MetobsTemplateError(
+            raise MetObsTemplateError(
                 f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
             )
         df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
@@ -275,19 +272,19 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
             df["datetime"] = pd.to_datetime(
                 df["datetime"], format=template.timestampinfo["fmt"]
             )
-        except Exception as e:
-            raise MetobsTemplateError(
+        except Exception:
+            raise MetObsTemplateError(
                 "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
             )
 
     else:
         # By date and time column
         if not (template.timestampinfo["time_column"] in df.columns):
-            raise MetobsTemplateError(
+            raise MetObsTemplateError(
                 f'The {template.timestampinfo["time_column"]} is not found in the columns of the data file: {df.columns}'
             )
         if not (template.timestampinfo["date_column"] in df.columns):
-            raise MetobsTemplateError(
+            raise MetObsTemplateError(
                 f'The {template.timestampinfo["date_column"]} is not found in the columns of the data file: {df.columns}'
             )
 
@@ -302,8 +299,8 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
                 df["_date"] + " " + df["_time"], format=template.timestampinfo["fmt"]
             )
 
-        except Exception as e:
-            raise MetobsTemplateError(
+        except Exception:
+            raise MetObsTemplateError(
                 "The timestamps could not be converted to datetimes, check the timestamp format(s) in your template."
             )
 

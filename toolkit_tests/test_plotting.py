@@ -11,7 +11,7 @@ import pandas as pd
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 
 # point to current version of the toolkit
-sys.path.insert(1, str(libfolder))
+# sys.path.insert(1, str(libfolder))
 import metobs_toolkit
 
 # solutionfolder
@@ -53,7 +53,7 @@ class TestDemoDataset:
             TestDemoDataset.solutionfixer.create_solution(
                 solutiondata=dataset,
                 methodname=_method_name,
-                **TestDemoDataset.solkwargs
+                **TestDemoDataset.solkwargs,
             )
 
         # 4. Get solution
@@ -66,7 +66,6 @@ class TestDemoDataset:
 
     @pytest.mark.mpl_image_compare
     def test_dataset_timeseries_plotting_by_label(self):
-
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
@@ -79,7 +78,6 @@ class TestDemoDataset:
 
     @pytest.mark.mpl_image_compare
     def test_dataset_timeseries_plotting_by_station(self):
-
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
@@ -92,7 +90,6 @@ class TestDemoDataset:
 
     # @pytest.mark.mpl_image_compare
     def test_station_timeseries_plotting_existing_ax(self):
-
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"

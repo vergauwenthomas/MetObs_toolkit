@@ -1,11 +1,10 @@
 import logging  # Python default package
 
 import matplotlib
-import matplotlib.pyplot as plt  # Dependency package
+import matplotlib.pyplot as plt  # noqa: F401  # Dependency package
 import pandas as pd
 
 from metobs_toolkit.plot_collection import (  # Local modules
-    create_axes,
     create_categorical_color_map,
     default_plot_settings,
 )
