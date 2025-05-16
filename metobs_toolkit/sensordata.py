@@ -618,16 +618,6 @@ class SensorData:
             If `printout` is False, returns a string containing the information
             about the sensor data. If `printout` is True, returns None.
 
-        Notes
-        -----
-        The information includes:
-
-        * Observation type and station name.
-        * Start and end datetime of the records.
-        * Assumed frequency of the data.
-        * Number of records and the count of outliers.
-        * Number of gaps in the data.
-
         """
         logger.debug("Entering get_info for %s", self)
 

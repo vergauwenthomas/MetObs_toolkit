@@ -968,8 +968,8 @@ class Dataset:
 
             * "station": Colors by station.
             * "label": Colors by label (the labels refer to the status of a record).
-              Default is "label".
-
+            
+            Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
         show_outliers : bool, optional

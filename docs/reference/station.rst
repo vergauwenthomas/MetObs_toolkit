@@ -6,9 +6,9 @@ Station
 
 The Station holds all the data related to a single station. This includes:
 
- * observational data, stored as ``SensorData``,
- * metadata, stored as a ``Site``,
- * and timeseries of a model source, stored as ``ModelTimeSeries``.
+* observational data, stored as ``SensorData``,
+* metadata, stored as a ``Site``,
+* and timeseries of a model source, stored as ``ModelTimeSeries``.
 
 .. currentmodule:: metobs_toolkit.station
 

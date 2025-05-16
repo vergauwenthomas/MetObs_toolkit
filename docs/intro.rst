@@ -20,12 +20,12 @@ on a ``Station`` can be applied on a ``Dataset``. See the API documentation for 
 
 The dataset holds methods for
 
- * Importing raw data
- * Resampling/synchronizing timeseries
- * Extracting metadata
- * Visualizing
- * Quality control
- * Gap filling
+* Importing raw data
+* Resampling/synchronizing timeseries
+* Extracting metadata
+* Visualizing
+* Quality control
+* Gap filling
 
 
 ``Station``
