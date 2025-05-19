@@ -30,11 +30,10 @@ label_def = {
         "color": "#05f0c9",
     },
     "buddy_check": {"label": "buddy check outlier", "color": "#8300c4"},
-    "titan_buddy_check": {"label": "titan buddy check outlier", "color": "#8300c4"},
-    "titan_sct_resistant_check": {
-        "label": "sct resistant check outlier",
-        "color": "#c17fe1",
-    },
+    "buddy_check_with_lcz_safety_net": {
+        "label": "buddy check (with LCZ-safety net) outlier",
+        "color": "#8300c4"},
+
     # aggregated
     "outlier": {
         "label": "QC outlier",
@@ -105,6 +104,5 @@ qc_label_group = [
     "step",
     "window_variation",
     "buddy_check",
-    "titan_buddy_check",
-    "titan_sct_resistant_check",
+    "buddy_check_with_lcz_safety_net",
 ]

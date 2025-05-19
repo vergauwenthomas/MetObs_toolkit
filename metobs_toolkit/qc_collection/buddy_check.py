@@ -140,6 +140,29 @@ def synchronize_series(
     return pd.concat(synchronized_series, axis=1), timestamp_mapping
 
 
+def _find_lcz_buddies(
+                metadf: pd.DataFrame,
+                max_dist: Union[int, float],
+                distance_df: pd.DataFrame) -> Dict:
+    
+    lcz_buddies = {}
+    #Find buddies by lcz
+    for refstation in metadf.index:
+        ref_lcz = metadf.loc[refstation, 'LCZ']
+        ref_buddies = metadf.loc[metadf['LCZ'] == ref_lcz].index.to_list()
+        lcz_buddies[refstation] = ref_buddies
+
+    #Find buddies by distance
+    spatial_buddies = _find_spatial_buddies(distance_df, max_dist)
+    
+    #Crossection of both buddy defenitions
+    final_buddies = {}
+    for refstation in lcz_buddies.keys():
+        final_buddies[refstation] = list(set(lcz_buddies[refstation]).intersection(set(spatial_buddies[refstation])))
+
+    return final_buddies  
+
+
 def _find_spatial_buddies(
     distance_df: pd.DataFrame, buddy_radius: Union[int, float]
 ) -> Dict:
@@ -285,10 +308,17 @@ def toolkit_buddy_check(
     min_std: Union[int, float],
     std_threshold: Union[int, float],
     N_iter: int,
-    instantanious_tolerance: pd.Timedelta,  # TYPO
-    lapserate: Union[float, None] = None,  # -0.0065 for temperature #TYPO
+    instantanious_tolerance: pd.Timedelta,  #TYPO
+    #LCZ safety net
+    max_lcz_buddy_dist: Union[int, float, None],
+    min_lcz_safetynet_sample_size: Union[int, None],
+    safetynet_z_threshold: Union[int, float, None],
+    use_lcz_safetynet: bool = False, 
+    #Technical
+    lapserate: Union[float, None] = None, # -0.0065 for temperature 
     use_mp: bool = True,
 ) -> Tuple[list, dict]:
+    #TODO: update docstring
     """
     Spatial buddy check.
 
@@ -383,7 +413,15 @@ def toolkit_buddy_check(
     dist_matrix = _calculate_distance_matrix_with_haverine(metadf)
 
     # find potential buddies by distance
-    buddies = _find_spatial_buddies(distance_df=dist_matrix, buddy_radius=buddy_radius)
+    buddies = _find_spatial_buddies(
+                    distance_df=dist_matrix,
+                    buddy_radius=buddy_radius)
+    
+    if use_lcz_safetynet:
+        lcz_buddies = _find_lcz_buddies(
+                            metadf=metadf,
+                            max_dist=max_lcz_buddy_dist,
+                            distance_df=dist_matrix)
 
     # filter buddies by altitude difference
     if max_alt_diff is not None:
@@ -471,10 +509,85 @@ value for 'altitude'"
 
         # unpack double nested list
         outliers = [item for sublist in outliers for item in sublist]
+        
+        # apply lcz safety net
+        if use_lcz_safetynet:
+            outliers = apply_lcz_safety_net(
+                            outliers = outliers,
+                            lcz_buddies=lcz_buddies,
+                            wideobsds=combdf,
+                            safety_std_threshold=safetynet_z_threshold,
+                            min_sample_size=min_lcz_safetynet_sample_size,
+                            min_std=min_std)
+            #NOTE: The records that were saved by the safety net, will be tested
+            # again in the following iteration. (A different result can occure 
+            # if the spatial-/savetynet-sample is changed in the next iteration.
+
         outliersbin.extend(outliers)
         i += 1
 
     return outliersbin, timestamp_map
+
+def apply_lcz_safety_net(outliers,
+                        lcz_buddies,
+                        wideobsds,
+                        safety_std_threshold,
+                        min_sample_size,
+                        min_std):
+    
+    checked_outliers = []
+    for outl in outliers:
+        
+        outlstation, outltimestamp, outl_msg = outl
+        
+        outl_value = wideobsds.loc[outltimestamp, outlstation]
+        outl_lcz_buddies = lcz_buddies[outlstation]
+
+        #check if samplesize is suffcient
+        if len(outl_lcz_buddies) < min_sample_size:
+            msg = f'Too few LCZ buddies to apply a safety net check ({len(outl_lcz_buddies)} < {min_sample_size})'
+            logger.debug(f'skip LCZ-safety net for {outlstation}, too few LCZ buddies({len(outl_lcz_buddies)} < {min_sample_size}).')
+            checked_outliers.append((outlstation, outltimestamp, outl_msg + msg))
+            continue
+        
+        #get LCZ safetynet samples
+        #NOTE: The sample is constructd using the wideobsds, thus outliers
+        # from the current iteration of the spatial buddy check are not taken into account !! 
+        # Outliers from the previous iterations are taken into account, since
+        # wideobsdf is alterd (nan's are placed at outlier records) in the beginning
+        # of each iteration.
+        savetynet_samples = wideobsds.loc[outltimestamp][lcz_buddies[outlstation]]
+
+        #Compute scores
+        sample_mean = savetynet_samples.mean()
+        sample_std = savetynet_samples.std()
+        sample_non_nan_count = savetynet_samples.notna().sum()
+
+        # instantanious sample size check
+        if sample_non_nan_count < min_sample_size:
+            msg = f'Too few non-nan LCZ buddies to apply a safety net check ({sample_non_nan_count} < {min_sample_size})'
+            logger.debug(f'skip LCZ-safety net for {outlstation}, too few non-nan LCZ buddies({sample_non_nan_count} < {min_sample_size}).')
+            checked_outliers.append((outlstation, outltimestamp, outl_msg + msg))
+            continue
+
+        #apply min std 
+        if sample_std < min_std:
+            sample_std = min_std #set minimum std
+
+        #Check if saved
+        z_value = abs(((outl_value) - sample_mean)/sample_std)
+        if z_value <= safety_std_threshold:
+            #is saved
+            logger.debug(f'{outlstation} at {outltimestamp} is saved by the LCZ safetynet with a z={z_value}.')
+            #Do not append the current outl to the checked
+        
+        else:
+            #not saved by the savety net
+            msg = f'LCZ safety net check applied but not saved (since z= {z_value} > {safety_std_threshold})'
+            checked_outliers.append((outlstation, outltimestamp, outl_msg + msg))
+            continue
+    logger.debug(f'A total of {len(outliers) - len(checked_outliers)} records are saved by the LCZ safety net.')
+    return checked_outliers
 
 
 def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
@@ -573,7 +686,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         retstr += f" with chi value \
 {row[row['is_the_most_extreme_outlier']]:.2f},"
         retstr += f" is part of {buddygroup}, with mean: {row['mean']:.2f}, \
-std: {row['std']:.2f}"
+std: {row['std']:.2f}. "
         return retstr
 
     # detail info string
