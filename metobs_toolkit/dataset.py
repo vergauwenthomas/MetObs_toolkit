@@ -1602,11 +1602,11 @@ class Dataset:
     def buddy_check(
         self,
         target_obstype: str = "temp",
-        buddy_radius: Union[int, float] = 10000,
+        spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
         min_std: Union[int, float] = 1.0,
-        std_threshold: Union[int, float] = 3.1,
+        spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantanious_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
@@ -1614,37 +1614,51 @@ class Dataset:
     ):
         """Spatial buddy check.
 
-        The buddy check compares an observation against its neighbors (i.e. buddies). The check loops
-        over all the groups, which are stations within a radius of each other. For each group, the absolute
-        value of the difference with the groupmean, normalized by the standared deviation (with a defined minimum),
-        is computed. If one (or more) exeeds the std_theshold, the most extreme (=baddest) observation of that group is labeled as an outlier.
-
+        The buddy check compares an observation against its neighbors
+        (i.e. spatial buddies). The check loops over all the groups, which are stations
+        within a radius of each other. For each group, the z-value of the reference
+        observation is computed given the sample of spatial buddies. If one (or more)
+        exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
+        that group is labeled as an outlier.
+    
         Multiple iterations of this checks can be done using the N_iter.
 
         A schematic step-by-step description of the buddy check:
 
-        1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
-        2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
+        #. A distance matrix is constructed for all interdistances between
+           the stations. This is done using the haversine approximation.
+        #. Groups of spatial buddies (neighbours) are created by using the
+           `spatial_buddy_radius.` These groups are further filtered by:
 
-           #. removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
-           #. removing groups of buddies that are too small (based on the min_sample_size)
+           * removing stations from the groups that differ to much in altitude
+             (based on the `max_alt_diff`)
+           * removing groups of buddies that are too small (based on the
+             `min_sample_size`)
 
-        3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
-        4. If a lapsrate is specified, the observations are corrected for altitude differences.
-        5. For each buddy group:
+        #. Observations per group are synchronized in time (using the
+           `instantanious_tolerance` for allignment).
+        #. If a `lapsrate` is specified, the observations are corrected for
+           altitude differences.
+        #. The following steps are repeated for `N-iter` iterations:
 
-           #. The mean, standard deviation (std), and sample size are computed.
-           #. If the std is lower than the minimum std, it is replaced by the minimum std.
-           #. Chi values are calculated for all records.
-           #. For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
-              If so, that record is flagged as an outlier. It will be ignored in the next iteration.
-           #. This is repeated N_iter times.
+           #. The values of outliers flaged by a previous iteration are converted to
+              NaN's. Therefore they are not used in any following score or sample. 
+           #. For each buddy group:
 
+            * The mean, standard deviation (std), and sample size are computed.
+            * If the std is lower than the `minimum_std`, it is replaced by the
+              minimum std.
+            * Chi values are calculated for all records.
+            * For each timestamp the record with the highest Chi is tested if
+              it is larger then spatial_z_threshold. If so, that record is
+              flagged as an outlier. It will be ignored in the next iteration.
+
+            
         Parameters
         ----------
         target_obstype : str, optional
             The target observation to check. Default is "temp".
-        buddy_radius : int | float, optional
+        spatial_buddy_radius : int | float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Default is 4.
@@ -1652,7 +1666,7 @@ class Dataset:
             The maximum altitude difference allowed for buddies. Default is None.
         min_std : int | float, optional
             The minimum standard deviation for sample statistics. Default is 1.0.
-        std_threshold : int | float, optional
+        spatial_z_threshold : int | float, optional
             The threshold (std units) for flagging observations as outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
@@ -1685,19 +1699,19 @@ class Dataset:
 
         qc_kwargs = dict(
             obstype=target_obstype,
-            buddy_radius=buddy_radius,
-            min_sample_size=min_sample_size,
+            spatial_buddy_radius=spatial_buddy_radius,
+            spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
             min_std=min_std,
-            std_threshold=std_threshold,
+            spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantanious_tolerance=instantanious_tolerance,
             lapserate=lapserate,
             #LCZ-safety net
-            max_lcz_buddy_dist=None, #without LCZ safetynet
-            min_lcz_safetynet_sample_size=None, #without LCZ safetynet
+            max_LCZ_buddy_dist=None, #without LCZ safetynet
+            min_LCZ_safetynet_sample_size=None, #without LCZ safetynet
             safetynet_z_threshold=None, #without LCZ safetynet
-            use_lcz_safetynet=False, #without LCZ safetynet
+            use_LCZ_safetynet=False, #without LCZ safetynet
             #technical
             use_mp=use_mp,
         )
@@ -1738,52 +1752,89 @@ class Dataset:
     def buddy_check_with_LCZ_safety_net(
         self,
         target_obstype: str = "temp",
-        buddy_radius: Union[int, float] = 10000,
-        lcz_buddy_radius: Union[int, float] = 40000,
+        spatial_buddy_radius: Union[int, float] = 10000,
+        LCZ_buddy_radius: Union[int, float] = 40000,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
         min_std: Union[int, float] = 1.0,
-        std_threshold: Union[int, float] = 3.1,
-        safetynet_max_save_threshold: Union[int, float] = 2.1,
+        spatial_z_threshold: Union[int, float] = 3.1,
+        safetynet_z_threshold: Union[int, float] = 2.1,
         N_iter: int = 2,
         instantanious_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         use_mp: bool = True,
     ):
+        """Spatial buddy check with LCZ saftey net.
+
+        The buddy check compares an observation against its neighbors
+        (i.e. spatial buddies). The check loops over all the groups, which are stations
+        within a radius of each other. For each group, the z-value of the reference
+        observation is computed given the sample of spatial buddies. If one (or more)
+        exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
+        that group is labeled as an outlier.
         
-        """Spatial buddy check.
-
-        The buddy check compares an observation against its neighbors (i.e. buddies). The check loops
-        over all the groups, which are stations within a radius of each other. For each group, the absolute
-        value of the difference with the groupmean, normalized by the standared deviation (with a defined minimum),
-        is computed. If one (or more) exeeds the std_theshold, the most extreme (=baddest) observation of that group is labeled as an outlier.
-
         Multiple iterations of this checks can be done using the N_iter.
+
+        The (potential) outliers, per iteration, are tested with another 
+        sample. This sample contains the LCZ-buddies, that are stations with the 
+        same LCZ as the reference station, and with a maximum distance of 
+        `max_LCZ_buddy_dist`. If a `max_alt_diff` is specified, a altitude-difference
+        filtering is applied on these buddies aswell.  If a test is sucsesfull, that 
+        is if the z-value is smaller than the `safetynet_z_threshold`, then the 
+        outlier is saved. It will be removed from the outliers, and will pass to the
+        next iteration or the end of this function. 
 
         A schematic step-by-step description of the buddy check:
 
-        1. A distance matrix is constructed for all interdistances between the stations. This is done using the haversine approximation.
-        2. Groups of buddies (neighbours) are created by using the buddy_radius. These groups are further filtered by:
+        #. A distance matrix is constructed for all interdistances between
+           the stations. This is done using the haversine approximation.
+        #. Groups of spatial buddies (neighbours) are created by using the
+           `spatial_buddy_radius.` These groups are further filtered by:
 
-           #. removing stations from the groups that differ to much in altitude (based on the max_alt_diff)
-           #. removing groups of buddies that are too small (based on the min_sample_size)
+           * removing stations from the groups that differ to much in altitude
+             (based on the `max_alt_diff`)
+           * removing groups of buddies that are too small (based on the
+             `min_sample_size`)
 
-        3. Observations per group are synchronized in time (using the max_shift as tolerance for allignment).
-        4. If a lapsrate is specified, the observations are corrected for altitude differences.
-        5. For each buddy group:
+        #. Observations per group are synchronized in time (using the
+           `instantanious_tolerance` for allignment).
+        #. If a `lapsrate` is specified, the observations are corrected for
+           altitude differences.
+        #. The following steps are repeated for `N-iter` iterations:
 
-           #. The mean, standard deviation (std), and sample size are computed.
-           #. If the std is lower than the minimum std, it is replaced by the minimum std.
-           #. Chi values are calculated for all records.
-           #. For each timestamp the record with the highest Chi is tested if it is larger then std_threshold.
-              If so, that record is flagged as an outlier. It will be ignored in the next iteration.
-           #. This is repeated N_iter times.
+           #. The values of outliers flaged by a previous iteration are converted to
+              NaN's. Therefore they are not used in any following score or sample. 
+           #. For each buddy group:
+
+              * The mean, standard deviation (std), and sample size are computed.
+              * If the std is lower than the `minimum_std`, it is replaced by the
+                minimum std.
+              * Chi values are calculated for all records.
+              * For each timestamp the record with the highest Chi is tested if
+                it is larger then spatial_z_threshold.
+                If so, that record is flagged as an outlier. It will be ignored
+                in the next iteration.
+
+           #. The following steps are applied on 
+              the outliers flagged by the current iteration.
+
+              * The LCZ-buddy sample is tested in size (samplesize must be bigger
+                then `min_LCZ_safetynet_sample_size`). If the condition is not met, 
+                the safetynet test is not applied.
+              * The safetynet test is applied:
+
+                * The mean and std are computed of the LCZ-buddy sample. If the 
+                  std is smaller then `min_std`, then the latter is used.
+                * The z-value is computed for the target record (= flagged outlier).
+                * If the z-value is smaller than `safetynet_z_threshold`, the 
+                  tested outlier is "saved", and is removed from the set of outliers
+                  for the current iteration.
 
         Parameters
         ----------
         target_obstype : str, optional
             The target observation to check. Default is "temp".
-        buddy_radius : int | float, optional
+        spatial_buddy_radius : int | float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Use for
@@ -1791,9 +1842,15 @@ class Dataset:
         max_alt_diff : int | float | None, optional
             The maximum altitude difference allowed for buddies. Default is None.
         min_std : int | float, optional
-            The minimum standard deviation for sample statistics. Default is 1.0.
-        std_threshold : int | float, optional
-            The threshold (std units) for flagging observations as outliers. Default is 3.1.
+            The minimum standard deviation for sample statistics. This is used
+            in spatial and LCZ samples. Default is 1.0.
+        spatial_z_threshold : int | float, optional
+            The threshold, tested with z-scores, for flagging observations as outliers. Default is 3.1.
+        safetynet_z_threshold: int or float or None
+            The threshold for a succesfull safety net test. If the z-value is 
+            less than `safetynet_z_threshold`, the test is succesfull and the 
+            outlier is "saved". It can proceed as a regular observation in the 
+            next iteration.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
         instantanious_tolerance : str | pd.Timedelta, optional
@@ -1809,6 +1866,7 @@ class Dataset:
 
         Notes
         ------
+
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
@@ -1817,34 +1875,36 @@ class Dataset:
         logger.debug("Entering Dataset.buddy_check_with_LCZ_safety_net")
 
         instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
+        if not all(sta.site.flag_has_LCZ() for sta in self.stations):
+            raise MetObsMetadataNotFound(
+                    "Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method, or use the buddy check (without LCZ safety net)."
+                )
+
         if (lapserate is not None) | (max_alt_diff is not None):
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
                     "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
                 )
-        #TODO: check if lcz data is known
-        #TODO: update docstring
-        #TODO: replace all occurences of lcz with LCZ
+        
         #TODO: write test for this function
-        #TODO: add api ref in the documentation
-        #TODO: check altitude differences and apply lapseratete on LCZ buddies
-     
+        #TODO: Test impact
+        #TODO: apply black
 
         qc_kwargs = dict(
             obstype=target_obstype,
-            buddy_radius=buddy_radius,
-            min_sample_size=min_sample_size,
+            spatial_buddy_radius=spatial_buddy_radius,
+            spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
             min_std=min_std,
-            std_threshold=std_threshold,
+            spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantanious_tolerance=instantanious_tolerance,
             lapserate=lapserate,
-            #lcz safety net related
-            max_lcz_buddy_dist=lcz_buddy_radius, 
-            min_lcz_safetynet_sample_size=min_sample_size,  # same as for spatial samples
-            safetynet_z_threshold=safetynet_max_save_threshold, 
-            use_lcz_safetynet=True, 
+            #LCZ safety net related
+            max_LCZ_buddy_dist=LCZ_buddy_radius, 
+            min_LCZ_safetynet_sample_size=min_sample_size,  # same as for spatial samples
+            safetynet_z_threshold=safetynet_z_threshold, 
+            use_LCZ_safetynet=True, 
             #technical
             use_mp=use_mp,
         )
@@ -1873,7 +1933,7 @@ class Dataset:
 
                 # update the sensordata
                 sensorddata._update_outliers(
-                    qccheckname="buddy_check_with_lcz_safety_net",
+                    qccheckname="buddy_check_with_LCZ_safety_net",
                     outliertimestamps=outldt,
                     check_kwargs=qc_kwargs,
                     extra_columns={

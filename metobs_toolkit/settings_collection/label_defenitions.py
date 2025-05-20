@@ -30,7 +30,7 @@ label_def = {
         "color": "#05f0c9",
     },
     "buddy_check": {"label": "buddy check outlier", "color": "#8300c4"},
-    "buddy_check_with_lcz_safety_net": {
+    "buddy_check_with_LCZ_safety_net": {
         "label": "buddy check (with LCZ-safety net) outlier",
         "color": "#8300c4"},
 
@@ -104,5 +104,5 @@ qc_label_group = [
     "step",
     "window_variation",
     "buddy_check",
-    "buddy_check_with_lcz_safety_net",
+    "buddy_check_with_LCZ_safety_net",
 ]
