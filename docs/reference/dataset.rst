@@ -97,6 +97,7 @@ Quality control related methods
    Dataset.step_check
    Dataset.window_variation_check
    Dataset.buddy_check
+   Dataset.buddy_check_with_LCZ_safety_net
    Dataset.get_qc_stats
    Dataset.convert_outliers_to_gaps
 
