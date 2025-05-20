@@ -1645,13 +1645,13 @@ class Dataset:
               NaN's. Therefore they are not used in any following score or sample. 
            #. For each buddy group:
 
-            * The mean, standard deviation (std), and sample size are computed.
-            * If the std is lower than the `minimum_std`, it is replaced by the
-              minimum std.
-            * Chi values are calculated for all records.
-            * For each timestamp the record with the highest Chi is tested if
-              it is larger then spatial_z_threshold. If so, that record is
-              flagged as an outlier. It will be ignored in the next iteration.
+              * The mean, standard deviation (std), and sample size are computed.
+              * If the std is lower than the `minimum_std`, it is replaced by the
+                minimum std.
+              * Chi values are calculated for all records.
+              * For each timestamp the record with the highest Chi is tested if
+                it is larger then spatial_z_threshold. If so, that record is
+                flagged as an outlier. It will be ignored in the next iteration.
 
             
         Parameters
