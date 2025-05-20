@@ -1608,7 +1608,7 @@ class Dataset:
         min_std: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
-        instantanious_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+        instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         use_mp: bool = True,
     ):
@@ -1636,7 +1636,7 @@ class Dataset:
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantanious_tolerance` for allignment).
+           `instantaneous_tolerance` for allignment).
         #. If a `lapsrate` is specified, the observations are corrected for
            altitude differences.
         #. The following steps are repeated for `N-iter` iterations:
@@ -1670,7 +1670,7 @@ class Dataset:
             The threshold (std units) for flagging observations as outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
-        instantanious_tolerance : str | pd.Timedelta, optional
+        instantaneous_tolerance : str | pd.Timedelta, optional
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
@@ -1690,7 +1690,7 @@ class Dataset:
         """
         logger.debug("Entering Dataset.buddy_check")
 
-        instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
+        instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
         if (lapserate is not None) | (max_alt_diff is not None):
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
@@ -1705,7 +1705,7 @@ class Dataset:
             min_std=min_std,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
-            instantanious_tolerance=instantanious_tolerance,
+            instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             # LCZ-safety net
             max_LCZ_buddy_dist=None,  # without LCZ safetynet
@@ -1761,7 +1761,7 @@ class Dataset:
         spatial_z_threshold: Union[int, float] = 3.1,
         safetynet_z_threshold: Union[int, float] = 2.1,
         N_iter: int = 2,
-        instantanious_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
+        instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         use_mp: bool = True,
     ):
@@ -1798,7 +1798,7 @@ class Dataset:
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantanious_tolerance` for allignment).
+           `instantaneous_tolerance` for allignment).
         #. If a `lapsrate` is specified, the observations are corrected for
            altitude differences.
         #. The following steps are repeated for `N-iter` iterations:
@@ -1854,7 +1854,7 @@ class Dataset:
             next iteration.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
-        instantanious_tolerance : str | pd.Timedelta, optional
+        instantaneous_tolerance : str | pd.Timedelta, optional
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
@@ -1875,7 +1875,7 @@ class Dataset:
         """
         logger.debug("Entering Dataset.buddy_check_with_LCZ_safety_net")
 
-        instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
+        instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
         if not all(sta.site.flag_has_LCZ() for sta in self.stations):
             raise MetObsMetadataNotFound(
                 "Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method, or use the buddy check (without LCZ safety net)."
@@ -1897,7 +1897,7 @@ class Dataset:
             min_std=min_std,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
-            instantanious_tolerance=instantanious_tolerance,
+            instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             # LCZ safety net related
             max_LCZ_buddy_dist=LCZ_buddy_radius,

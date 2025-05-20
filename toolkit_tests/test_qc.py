@@ -259,7 +259,7 @@ class TestDemoDataset:
                 min_std=1.0,
                 spatial_z_threshold=2.4,
                 N_iter=1,
-                instantanious_tolerance=pd.Timedelta("4min"),
+                instantaneous_tolerance=pd.Timedelta("4min"),
                 lapserate=-0.0065,  # -0.0065
                 use_mp=False,
             )
@@ -278,7 +278,7 @@ class TestDemoDataset:
                 min_std=1.0,
                 spatial_z_threshold=2.4,
                 N_iter=1,
-                instantanious_tolerance=pd.Timedelta("4min"),
+                instantaneous_tolerance=pd.Timedelta("4min"),
                 lapserate=None,  # -0.0065
                 use_mp=False,
             )
@@ -292,7 +292,7 @@ class TestDemoDataset:
             min_std=1.0,
             spatial_z_threshold=5.9,  # this does noet create outliers
             N_iter=1,
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -313,7 +313,7 @@ class TestDemoDataset:
             min_std=1.0,
             spatial_z_threshold=2.1,
             N_iter=1,  # one iteration test
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -329,7 +329,7 @@ class TestDemoDataset:
             min_std=1.0,
             spatial_z_threshold=2.1,
             N_iter=2,  # one iteration test
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -394,7 +394,7 @@ class TestDemoDataset:
             spatial_z_threshold=2.1,
             safetynet_z_threshold=1.4,
             N_iter=1,
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,
             use_mp=False,
         )
@@ -411,7 +411,7 @@ class TestDemoDataset:
             spatial_z_threshold=2.1,
             safetynet_z_threshold=2.1,
             N_iter=2,
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,
             use_mp=False,
         )

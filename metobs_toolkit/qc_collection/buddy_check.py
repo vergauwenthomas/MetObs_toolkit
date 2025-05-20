@@ -42,8 +42,6 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
     the shortest distance over the Earth's surface.
     """
     logger.debug("Entering _calculate_distance_matrix_with_haverine")
-    if not isinstance(metadf, pd.DataFrame):
-        raise TypeError("metadf must be a pandas.DataFrame")
 
     def haversine(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
         """Calculate the great circle distance between two points."""
@@ -97,12 +95,6 @@ def synchronize_series(
         original timestamp.
     """
     logger.debug("Entering synchronize_series")
-    if not isinstance(series_list, list):
-        raise TypeError("series_list must be a list of pandas.Series")
-    if not all(isinstance(s, pd.Series) for s in series_list):
-        raise TypeError("All elements in series_list must be pandas.Series")
-    if not isinstance(max_shift, pd.Timedelta):
-        raise TypeError("max_shift must be a pandas.Timedelta")
 
     # find highest frequency
     frequencies = [to_timedelta(s.index.inferred_freq) for s in series_list]
@@ -143,6 +135,29 @@ def synchronize_series(
 def _find_LCZ_buddies(
     metadf: pd.DataFrame, max_dist: Union[int, float], distance_df: pd.DataFrame
 ) -> Dict:
+    """
+    Get neighbouring stations using both LCZ class and spatial distance.
+
+    Parameters
+    ----------
+    metadf : pandas.DataFrame
+        DataFrame containing metadata for stations. Must include an 'LCZ' column.
+    max_dist : int or float
+        Maximum distance (in meters) to consider as a LCZ buddy.
+    distance_df : pandas.DataFrame
+        DataFrame containing distances between stations.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each station to a list of its LCZ buddies that are also within the specified distance.
+
+    Notes
+    -----
+    - LCZ buddies are stations with the same LCZ class as the reference station.
+    - The final buddies are the intersection of LCZ buddies and spatial buddies within `max_dist`.
+    """
+
     LCZ_buddies = {}
     # Find buddies by LCZ
     for refstation in metadf.index:
@@ -271,8 +286,6 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
         List of tuples, each containing a group of station names.
     """
     logger.debug("Entering create_groups_of_buddies")
-    if not isinstance(buddydict, dict):
-        raise TypeError("buddydict must be a dict")
 
     grouped_stations = []
     groups = []
@@ -298,7 +311,7 @@ def toolkit_buddy_check(
     min_std: Union[int, float],
     spatial_z_threshold: Union[int, float],
     N_iter: int,
-    instantanious_tolerance: pd.Timedelta,  # TYPO
+    instantaneous_tolerance: pd.Timedelta,
     # LCZ safety net
     max_LCZ_buddy_dist: Union[int, float, None],
     min_LCZ_safetynet_sample_size: Union[int, None],
@@ -343,7 +356,7 @@ def toolkit_buddy_check(
          `min_sample_size`)
 
     #. Observations per group are synchronized in time (using the
-       `instantanious_tolerance` for allignment).
+       `instantaneous_tolerance` for allignment).
     #. If a `lapsrate` is specified, the observations are corrected for
        altitude differences.
     #. The following steps are repeated for `N-iter` iterations:
@@ -397,7 +410,7 @@ def toolkit_buddy_check(
         The threshold, tested with z-scores, for flagging observations as outliers.
     N_iter : int
         The number of iterations to perform the buddy check.
-    instantanious_tolerance : pandas.Timedelta
+    instantaneous_tolerance : pandas.Timedelta
         The maximum time difference allowed for synchronizing observations.
     max_LCZ_buddy_dist:  int or float or None
         The radius to look for LCZ buddies (= same LCZ as a reference station).
@@ -498,7 +511,7 @@ value for 'altitude'"
 
     # synchronize the timestamps
     combdf, timestamp_map = synchronize_series(
-        series_list=concatlist, max_shift=instantanious_tolerance
+        series_list=concatlist, max_shift=instantaneous_tolerance
     )
 
     # lapse rate correction
