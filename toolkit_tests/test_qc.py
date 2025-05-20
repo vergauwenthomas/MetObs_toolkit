@@ -253,13 +253,13 @@ class TestDemoDataset:
             # Should raise error because no altitude info is available and lapsrate is not none
             dataset.buddy_check(
                 target_obstype="temp",
-                buddy_radius=17000,
+                spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
                 min_std=1.0,
-                std_threshold=2.4,
+                spatial_z_threshold=2.4,
                 N_iter=1,
-                instantanious_tolerance=pd.Timedelta("4min"),
+                instantaneous_tolerance=pd.Timedelta("4min"),
                 lapserate=-0.0065,  # -0.0065
                 use_mp=False,
             )
@@ -272,13 +272,13 @@ class TestDemoDataset:
             # Should raise error because no altitude info is available and max_alt_diffis not none
             dataset.buddy_check(
                 target_obstype="temp",
-                buddy_radius=17000,
+                spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
                 min_std=1.0,
-                std_threshold=2.4,
+                spatial_z_threshold=2.4,
                 N_iter=1,
-                instantanious_tolerance=pd.Timedelta("4min"),
+                instantaneous_tolerance=pd.Timedelta("4min"),
                 lapserate=None,  # -0.0065
                 use_mp=False,
             )
@@ -286,13 +286,13 @@ class TestDemoDataset:
         # Test that buddy check runs, with settings that does not create outliers
         dataset.buddy_check(
             target_obstype="temp",
-            buddy_radius=25000,
+            spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
             min_std=1.0,
-            std_threshold=5.9,  # this does noet create outliers
+            spatial_z_threshold=5.9,  # this does noet create outliers
             N_iter=1,
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -307,13 +307,13 @@ class TestDemoDataset:
         # test one iteration
         dataset1.buddy_check(
             target_obstype="temp",
-            buddy_radius=25000,
+            spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
             min_std=1.0,
-            std_threshold=2.1,
+            spatial_z_threshold=2.1,
             N_iter=1,  # one iteration test
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -323,13 +323,13 @@ class TestDemoDataset:
         # test two iteration
         dataset2.buddy_check(
             target_obstype="temp",
-            buddy_radius=25000,
+            spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
             min_std=1.0,
-            std_threshold=2.1,
+            spatial_z_threshold=2.1,
             N_iter=2,  # one iteration test
-            instantanious_tolerance=pd.Timedelta("4min"),
+            instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
             use_mp=False,
         )
@@ -366,15 +366,96 @@ class TestDemoDataset:
 
         assert_equality(outliersdf_2_iter, solutionobj_2iter)  # dataset comparison
 
+    def test_buddy_check_with_LCZ_safety_net(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+
+        #  1. get_startpoint data
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # Ensure LCZ data is present for all stations
+        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
+            dataset.get_LCZ()
+
+        # Run buddy check with LCZ safety net, settings chosen to create outliers
+        dataset1 = copy.deepcopy(dataset)  # 1 iteration
+        dataset2 = copy.deepcopy(dataset)  # 2 iterations
+
+        # test one iteration
+        dataset1.buddy_check_with_LCZ_safety_net(
+            target_obstype="temp",
+            spatial_buddy_radius=25000,
+            LCZ_buddy_radius=100000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_std=1.0,
+            spatial_z_threshold=2.1,
+            safetynet_z_threshold=1.4,
+            N_iter=1,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,
+            use_mp=False,
+        )
+        outliersdf_1_iter = dataset1.outliersdf
+
+        # test two iterations
+        dataset2.buddy_check_with_LCZ_safety_net(
+            target_obstype="temp",
+            spatial_buddy_radius=25000,
+            LCZ_buddy_radius=40000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_std=1.0,
+            spatial_z_threshold=2.1,
+            safetynet_z_threshold=2.1,
+            N_iter=2,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,
+            use_mp=False,
+        )
+        outliersdf_2_iter = dataset2.outliersdf
+
+        assert not outliersdf_1_iter.equals(
+            outliersdf_2_iter
+        ), "Outliers should differ between 1 and 2 iterations"
+
+        # overwrite solution?
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solutiondata=outliersdf_1_iter,
+                **TestDemoDataset.solkwargs,
+                methodname=_method_name + "_1_iter",
+            )
+            TestDemoDataset.solutionfixer.create_solution(
+                solutiondata=outliersdf_2_iter,
+                **TestDemoDataset.solkwargs,
+                methodname=_method_name + "_2_iter",
+            )
+
+        # 4. Get solution
+        solutionobj_1iter = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname=_method_name + "_1_iter"
+        )
+        solutionobj_2iter = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname=_method_name + "_2_iter"
+        )
+
+        # validate expression
+        assert_equality(outliersdf_1_iter, solutionobj_1iter)
+        assert_equality(outliersdf_2_iter, solutionobj_2iter)
+
 
 if __name__ == "__main__":
     # pytest.main([__file__])
     # Run all methods with overwrite_solution=True
-    test_breaking_dataset = TestBreakingDataset()
-    test_breaking_dataset.test_import_data(overwrite_solution=False)
-    test_breaking_dataset.test_apply_qc(overwrite_solution=False)
-    test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
+    # test_breaking_dataset = TestBreakingDataset()
+    # test_breaking_dataset.test_import_data(overwrite_solution=False)
+    # test_breaking_dataset.test_apply_qc(overwrite_solution=False)
+    # test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
 
     test_demo_dataset = TestDemoDataset()
     test_demo_dataset.test_import_data(overwrite_solution=False)
-    test_demo_dataset.test_buddy_check(overwrite_solution=False)
+    # test_demo_dataset.test_buddy_check(overwrite_solution=False)
+    test_demo_dataset.test_buddy_check_with_LCZ_safety_net(overwrite_solution=False)

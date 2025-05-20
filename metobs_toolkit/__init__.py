@@ -77,4 +77,4 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 # DO not change this manually!
-__version__ = "0.4.0"
+__version__ = "0.4.1a"
