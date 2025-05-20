@@ -32,8 +32,8 @@ label_def = {
     "buddy_check": {"label": "buddy check outlier", "color": "#8300c4"},
     "buddy_check_with_LCZ_safety_net": {
         "label": "buddy check (with LCZ-safety net) outlier",
-        "color": "#8300c4"},
-
+        "color": "#8300c4",
+    },
     # aggregated
     "outlier": {
         "label": "QC outlier",

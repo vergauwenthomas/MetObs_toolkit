@@ -378,7 +378,7 @@ class TestDemoDataset:
         # Ensure LCZ data is present for all stations
         if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
             dataset.get_LCZ()
-        
+
         # Run buddy check with LCZ safety net, settings chosen to create outliers
         dataset1 = copy.deepcopy(dataset)  # 1 iteration
         dataset2 = copy.deepcopy(dataset)  # 2 iterations

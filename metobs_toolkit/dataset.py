@@ -1620,7 +1620,7 @@ class Dataset:
         observation is computed given the sample of spatial buddies. If one (or more)
         exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
         that group is labeled as an outlier.
-    
+
         Multiple iterations of this checks can be done using the N_iter.
 
         A schematic step-by-step description of the buddy check:
@@ -1642,7 +1642,7 @@ class Dataset:
         #. The following steps are repeated for `N-iter` iterations:
 
            #. The values of outliers flaged by a previous iteration are converted to
-              NaN's. Therefore they are not used in any following score or sample. 
+              NaN's. Therefore they are not used in any following score or sample.
            #. For each buddy group:
 
               * The mean, standard deviation (std), and sample size are computed.
@@ -1653,7 +1653,7 @@ class Dataset:
                 it is larger then spatial_z_threshold. If so, that record is
                 flagged as an outlier. It will be ignored in the next iteration.
 
-            
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -1707,12 +1707,12 @@ class Dataset:
             N_iter=N_iter,
             instantanious_tolerance=instantanious_tolerance,
             lapserate=lapserate,
-            #LCZ-safety net
-            max_LCZ_buddy_dist=None, #without LCZ safetynet
-            min_LCZ_safetynet_sample_size=None, #without LCZ safetynet
-            safetynet_z_threshold=None, #without LCZ safetynet
-            use_LCZ_safetynet=False, #without LCZ safetynet
-            #technical
+            # LCZ-safety net
+            max_LCZ_buddy_dist=None,  # without LCZ safetynet
+            min_LCZ_safetynet_sample_size=None,  # without LCZ safetynet
+            safetynet_z_threshold=None,  # without LCZ safetynet
+            use_LCZ_safetynet=False,  # without LCZ safetynet
+            # technical
             use_mp=use_mp,
         )
 
@@ -1749,6 +1749,7 @@ class Dataset:
                         ].to_numpy()
                     },
                 )
+
     def buddy_check_with_LCZ_safety_net(
         self,
         target_obstype: str = "temp",
@@ -1772,17 +1773,17 @@ class Dataset:
         observation is computed given the sample of spatial buddies. If one (or more)
         exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
         that group is labeled as an outlier.
-        
+
         Multiple iterations of this checks can be done using the N_iter.
 
-        The (potential) outliers, per iteration, are tested with another 
-        sample. This sample contains the LCZ-buddies, that are stations with the 
-        same LCZ as the reference station, and with a maximum distance of 
+        The (potential) outliers, per iteration, are tested with another
+        sample. This sample contains the LCZ-buddies, that are stations with the
+        same LCZ as the reference station, and with a maximum distance of
         `max_LCZ_buddy_dist`. If a `max_alt_diff` is specified, a altitude-difference
-        filtering is applied on these buddies aswell.  If a test is sucsesfull, that 
-        is if the z-value is smaller than the `safetynet_z_threshold`, then the 
+        filtering is applied on these buddies aswell.  If a test is sucsesfull, that
+        is if the z-value is smaller than the `safetynet_z_threshold`, then the
         outlier is saved. It will be removed from the outliers, and will pass to the
-        next iteration or the end of this function. 
+        next iteration or the end of this function.
 
         A schematic step-by-step description of the buddy check:
 
@@ -1803,7 +1804,7 @@ class Dataset:
         #. The following steps are repeated for `N-iter` iterations:
 
            #. The values of outliers flaged by a previous iteration are converted to
-              NaN's. Therefore they are not used in any following score or sample. 
+              NaN's. Therefore they are not used in any following score or sample.
            #. For each buddy group:
 
               * The mean, standard deviation (std), and sample size are computed.
@@ -1815,18 +1816,18 @@ class Dataset:
                 If so, that record is flagged as an outlier. It will be ignored
                 in the next iteration.
 
-           #. The following steps are applied on 
+           #. The following steps are applied on
               the outliers flagged by the current iteration.
 
               * The LCZ-buddy sample is tested in size (samplesize must be bigger
-                then `min_LCZ_safetynet_sample_size`). If the condition is not met, 
+                then `min_LCZ_safetynet_sample_size`). If the condition is not met,
                 the safetynet test is not applied.
               * The safetynet test is applied:
 
-                * The mean and std are computed of the LCZ-buddy sample. If the 
+                * The mean and std are computed of the LCZ-buddy sample. If the
                   std is smaller then `min_std`, then the latter is used.
                 * The z-value is computed for the target record (= flagged outlier).
-                * If the z-value is smaller than `safetynet_z_threshold`, the 
+                * If the z-value is smaller than `safetynet_z_threshold`, the
                   tested outlier is "saved", and is removed from the set of outliers
                   for the current iteration.
 
@@ -1847,9 +1848,9 @@ class Dataset:
         spatial_z_threshold : int | float, optional
             The threshold, tested with z-scores, for flagging observations as outliers. Default is 3.1.
         safetynet_z_threshold: int or float or None
-            The threshold for a succesfull safety net test. If the z-value is 
-            less than `safetynet_z_threshold`, the test is succesfull and the 
-            outlier is "saved". It can proceed as a regular observation in the 
+            The threshold for a succesfull safety net test. If the z-value is
+            less than `safetynet_z_threshold`, the test is succesfull and the
+            outlier is "saved". It can proceed as a regular observation in the
             next iteration.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
@@ -1877,18 +1878,16 @@ class Dataset:
         instantanious_tolerance = fmt_timedelta_arg(instantanious_tolerance)
         if not all(sta.site.flag_has_LCZ() for sta in self.stations):
             raise MetObsMetadataNotFound(
-                    "Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method, or use the buddy check (without LCZ safety net)."
-                )
+                "Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method, or use the buddy check (without LCZ safety net)."
+            )
 
         if (lapserate is not None) | (max_alt_diff is not None):
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
                     "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
                 )
-        
-        #TODO: write test for this function
-        #TODO: Test impact
-        #TODO: apply black
+
+        # TODO: apply black
 
         qc_kwargs = dict(
             obstype=target_obstype,
@@ -1900,12 +1899,12 @@ class Dataset:
             N_iter=N_iter,
             instantanious_tolerance=instantanious_tolerance,
             lapserate=lapserate,
-            #LCZ safety net related
-            max_LCZ_buddy_dist=LCZ_buddy_radius, 
+            # LCZ safety net related
+            max_LCZ_buddy_dist=LCZ_buddy_radius,
             min_LCZ_safetynet_sample_size=min_sample_size,  # same as for spatial samples
-            safetynet_z_threshold=safetynet_z_threshold, 
-            use_LCZ_safetynet=True, 
-            #technical
+            safetynet_z_threshold=safetynet_z_threshold,
+            use_LCZ_safetynet=True,
+            # technical
             use_mp=use_mp,
         )
 
