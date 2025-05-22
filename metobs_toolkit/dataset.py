@@ -1384,6 +1384,23 @@ class Dataset:
             initialize_gee=initialize_gee,
         )
 
+    @copy_doc(Station.get_NWP_timeseries_data)
+    def get_NWP_timeseries_data(
+        self,
+            modeldataset: "ModelDataset", 
+            target_variables: list | None = None,
+            get_all_variables: bool = True,
+            force_update: bool = False,
+            ):
+        logger.debug("Entering Dataset.get_NWP_timeseries_data")
+
+        for sta in self.stations:
+            sta.get_NWP_timeseries_data(modeldataset=modeldataset,
+                                        target_variables=target_variables,
+                                        get_all_variables=get_all_variables,
+                                        force_update=force_update)
+            
+
     @copy_doc(Station.get_gee_timeseries_data)
     def get_gee_timeseries_data(
         self,

@@ -12,6 +12,7 @@ import logging
 
 
 from metobs_toolkit.dataset import Dataset
+from metobs_toolkit.modelxrdataset import ModelDataset
 from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
 
 from metobs_toolkit.analysis import Analysis
@@ -23,6 +24,8 @@ from metobs_toolkit.geedatasetmanagers import (
 from metobs_toolkit.geedatasetmanagers import (
     default_datasets as default_GEE_datasets,
 )
+
+from metobs_toolkit.nwp_collection.field_defenitions import default_SFX_fields
 
 # Special functions that can be directly called by te user
 from metobs_toolkit.dataset import import_dataset_from_pkl

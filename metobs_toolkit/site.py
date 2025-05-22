@@ -46,6 +46,9 @@ class Site:
             {}
         )  # example: {100: {pervious: 0.8, impervious: 0.2}}
 
+        # Link with gridded data (nearest gp link)
+        self._grid_info = {}
+
     def __eq__(self, other):
         """Check equality with another Site object."""
         if not isinstance(other, Site):
@@ -115,6 +118,11 @@ class Site:
     def extradata(self):
         """Return the extra metadata dictionary."""
         return self._extradata
+    
+    @property
+    def grid_info(self):
+        return self._grid_info
+    
 
     @property
     def metadf(self) -> pd.DataFrame:
@@ -272,6 +280,12 @@ class Site:
         """
         logger.debug("Entering flag_has_coordinates for %s", self)
         return (not pd.isnull(self.lat)) and (not pd.isnull(self.lon))
+
+    def get_gp_x_index(self):
+        return int(self.grid_info["gridpoint_x"])
+    
+    def get_gp_y_index(self):
+        return int(self.grid_info["gridpoint_y"])
 
     # ------------------------------------------
     #    Methods
@@ -439,7 +453,7 @@ class Site:
             )
 
         # Extra metadata
-        if bool(self):
+        if bool(self.extradata):
             infostr += printing.print_fmt_line(
                 "Extra metadata from the metadata file:", nident_root
             )
@@ -448,6 +462,18 @@ class Site:
         else:
             infostr += printing.print_fmt_line(
                 "No extra metadata available", nident_root
+            )
+
+        # grid info
+        if bool(self.grid_info):
+            infostr += printing.print_fmt_line(
+                "Link with model output grid:", nident_root
+            )
+            for key, value in self.grid_info.items():
+                infostr += printing.print_fmt_line(f"{key}: {value}", nident_root + 1)
+        else:
+            infostr += printing.print_fmt_line(
+                "No link with model output grid", nident_root
             )
 
         return infostr

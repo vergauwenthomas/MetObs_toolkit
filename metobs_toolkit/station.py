@@ -300,6 +300,9 @@ class Station:
         -------
         None
         """
+
+        #TODO: obstype name is NOT a suitable ID candidate! 
+
         logger.debug("Entering add_to_modeldata for %s", self)
         # Validate argument types
         if not isinstance(new_modeltimeseries, ModelTimeSeries):
@@ -705,6 +708,36 @@ class Station:
             overwrite=overwrite,
         )
 
+    def get_NWP_timeseries_data(
+            self,
+            modeldataset: "ModelDataset", 
+            target_variables: list | None = None,
+            get_all_variables: bool = True,
+            force_update: bool = False,
+            ):
+        
+        #TODO: docstring
+        
+        #Check if station has coordinats
+        if not self.site.flag_has_coordinates():
+            raise MetObsMetadataNotFound(f'No timeseries could be extracted, {self} has not coordinates.')
+
+        #update the grid info (details on which is the corresponding gripdpoint)
+        self.site._grid_info = modeldataset._get_nn_gridpoint(
+                                trg_lat=self.site.lat,
+                                trg_lon=self.site.lon)
+        
+        if get_all_variables:
+            target_variables = modeldataset.variable_names
+
+        for trg in target_variables:
+            modeltimeseries = modeldataset.extract_modeltimeseries(
+                            station=self,
+                            trg_variable= trg)
+            self.add_to_modeldata(new_modeltimeseries=modeltimeseries,
+                                  force_update=force_update)
+            
+    
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,

@@ -628,7 +628,10 @@ def convert_units(records, cur_unit, trg_unit):
     elif isinstance(records, float):
         return ureg.Quantity(records, cur_unit).to(trg_unit).magnitude
     else:
-        raise NotImplementedError(f"{records} is not a supported input type.")
+        try:
+            return ureg.Quantity(records, cur_unit).to(trg_unit).magnitude
+        except:
+            raise NotImplementedError(f"{records} is not a supported input type.")
 
 
 # ------------------------------------------
