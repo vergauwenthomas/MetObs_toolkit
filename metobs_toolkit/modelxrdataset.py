@@ -21,8 +21,79 @@ from metobs_toolkit.modeltimeseries import ModelTimeSeries
 # Use logger with name "<metobs_toolkit>"
 logger = logging.getLogger("<metobs_toolkit>")
 
+class Grid:
+    def __init__(self, gridds):
+        self.gridds = gridds.compute()
+        #setup gridpoint index
+        self.gp_index, self.gp_1d = self._construct_gp_index()
 
 
+    def _construct_gp_index(self):
+
+        #Create a array of [lat,lon] pairs for each gridpoint
+        latdata = self.gridds.lat.data
+        londata = self.gridds.lon.data
+
+        d3comb = np.stack((latdata, londata), axis=-1) #as a 3D array
+        d1comb = d3comb.reshape(-1, d3comb.shape[-1]) #as a 1D array of pairs
+
+        #Create an indexer, with 'haversine' metric
+        index = BallTree(np.deg2rad(d1comb), 
+                    leaf_size=40, #default
+                    metric='haversine', #haversine approx metric for latlon space
+                    #other arguments are passed to the metric
+                    )
+        return index, d1comb
+    
+    def _get_nearest_1d_index(self, trg_lat, trg_lon):
+
+        #Find the nearest gridpoint to the target point
+        trgpoint = [[trg_lat, trg_lon]]
+        
+
+        #find nearset index to target locations
+        dist, trgidx1D = self.gp_index.query(
+                                np.deg2rad(trgpoint), 
+                                k=1, #only the NN
+                                return_distance=True)
+        
+        # metric_dist_approx= dist*63781370000 #earth radius in meters
+        return trgidx1D.ravel()[0]
+        #get lat,lon pair of nearest gp
+        return nn_gp[0], nn_gp[1]
+    
+    def _get_xy_of_1d_index(self, indexint):
+        latdata = self.gridds.lat.data
+        londata = self.gridds.lon.data
+        d3comb = np.stack((latdata, londata), axis=-1)
+        i,j = np.unravel_index(indexint, d3comb.shape[:-1])
+
+        x = self.gridds['x'].data[i]
+        y =  self.gridds['y'].data[j]
+        return x, y
+    def get_nearest_gp(self, trg_lat, trg_lon):
+        #Get nearest gridpoint in 1D space (as index)
+        idx_1d= self._get_nearest_1d_index(
+                                        trg_lat=trg_lat,
+                                        trg_lon = trg_lon)
+        
+        #Get the nearest gridpoint in lat-lon space
+        # nn_gp = self.gp_1d[idx_1d]
+
+        #Get the nearest gridpoint in model-space (x, y)
+        nn_x, nn_y = self._get_xy_of_1d_index(idx_1d)
+
+        #Safty, recompute the nnlat and nnlon from the gridpoint x,y.
+        #so the the xy and latlon coordinates are surely linked 
+        nnlat = float(self.gridds['lat'].sel(x=nn_x, y=nn_y).data)
+        nnlon = float(self.gridds['lon'].sel(x=nn_x, y=nn_y).data)
+        
+        return {"nnlat": nnlat,
+                "nnlon": nnlon,
+                "gridpoint_x": int(nn_x),
+                "gridpoint_y": int(nn_y)}
+        
+    
 
 
 class ModelDataset:
@@ -34,7 +105,7 @@ class ModelDataset:
 
     REQUIRED_COORDS = ['lat', 'lon', 'validtime', 'reference_time']
 
-    def __init__(self, ID:str, dataset: xr.Dataset, field_defenitions: list):
+    def __init__(self, modelID:str, dataset: xr.Dataset, field_defenitions: list):
         """
         Initialize the ModelDataset.
 
@@ -49,7 +120,7 @@ class ModelDataset:
             If any of the required coordinates are missing.
         """
 
-        self.ID = ID
+        self.modelID = modelID
         self.dataset = dataset
         self.field_defs = field_defenitions
 
@@ -58,8 +129,11 @@ class ModelDataset:
         self._subset_to_mapped_fields()
         self._too_standard_units()
 
+        #Set grid
+        self.grid = Grid(self.dataset[['lat', 'lon']])
+
     def __repr__(self):
-        return str(self.dataset)
+        return f"Gridded output of {self.modelID}:\n {self.dataset}"
     
     @property
     def variable_names(self):
@@ -126,7 +200,7 @@ class ModelDataset:
         #Set validtime
         if validtime is None:
             #Pick the first present validtime
-            validtime = dataset['validtime'].data[0]
+            validtime = self.dataset['validtime'].data[0]
         else: 
             #test if validtime is in the dataset
             if not isinstance(validtime, pd.Timestamp):
@@ -163,49 +237,12 @@ class ModelDataset:
         return geo_axes
 
 
+
+
     def _get_nn_gridpoint(self, trg_lat, trg_lon):
 
-        #IDEA:  The creattion of the index is recalculated for each nn computation,
-        #this is not needed, it is overkill
-
-        #Create a array of [lat,lon] pairs for each gridpoint
-        latdata = self.dataset.lat.data.compute()
-        londata = self.dataset.lon.data.compute()
-
-        d3comb = np.stack((latdata, londata), axis=-1) #as a 3D array
-        d1comb = d3comb.reshape(-1, d3comb.shape[-1]) #as a 1D array of pairs
-
-        #Create an indexer, with 'haversine' metric
-        index = BallTree(np.deg2rad(d1comb), #RADIANS for haversine !! 
-                    leaf_size=40, #default
-                    metric='haversine', #haversine approx metric for latlon space
-                    #other arguments are passed to the metric
-                    )
+        return self.grid.get_nearest_gp(trg_lat=trg_lat, trg_lon=trg_lon)
         
-        #Find the nearest gridpoint to the target point
-        trgpoint = [[trg_lat, trg_lon]]
-        #find nearset index to target locations
-        dist, trgidx1D = index.query(
-                                np.deg2rad(trgpoint), #RADIANS for haversine
-                                k=1, #only the NN
-                                return_distance=True)
-        
-        metric_dist_approx= dist*63781370000 #earth radius in meters
-
-        nnlat = d1comb[trgidx1D.ravel()[0]][0]
-        nnlon = d1comb[trgidx1D.ravel()[0]][1]
-
-        # Get the x, y of the gridpoint
-        gridpoint_x, gridpoint_y = np.argwhere(latdata == nnlat)[0]
-        
-
-        return {
-            "nnlat": float(nnlat),
-            "nnlon": float(nnlon),
-            "gridpoint_x": int(gridpoint_x),
-            "gridpoint_y": int(gridpoint_y),
-            "distance_m": float(metric_dist_approx.ravel()[0])
-        }
 
     def _modelobstype_from_variablename(self, variabelname):
         trgmodelobscandiates = [modelobs for modelobs in self.field_defs if modelobs.model_band == variabelname]
@@ -222,22 +259,59 @@ class ModelDataset:
 
 
 
-
-    def extract_modeltimeseries(self, station, trg_variable) -> None:
-        self._check_fieldname_is_known(trg_variable)
-        #subset the grid to single gp
-        pointds = self.dataset.sel(
-                        {'x': station.site.get_gp_x_index(),
-                         'y': station.site.get_gp_y_index()}).compute()
+    def insert_modeltimeseries(
+            self,
+            stationlist: list,
+            target_variables: list,
+            force_update: bool = False) -> None: 
         
-        #Extract timeseries
-        return ModelTimeSeries(
-                    site=station.site,
-                    datarecords=pointds[trg_variable].data,
-                    timestamps=pointds.validtime.data, 
-                    obstype=self._modelobstype_from_variablename(trg_variable),
-                    datadtype=np.float32,
-                    timezone='UTC',
-                    modelname=self.ID,
-                    modelvariable=trg_variable)
-            
+
+        #Update the stations sites
+        stations_grid_info = {
+                'name':[],
+                'x':[],
+                'y':[]}
+
+
+        for sta in stationlist:
+            #Get the nn gridpoint for the station
+            sta.site._grid_info = self._get_nn_gridpoint(
+                                        trg_lat=sta.site.lat,
+                                        trg_lon=sta.site.lon)
+            #Add it to the dict
+            stations_grid_info['name'].append(sta.name)
+            stations_grid_info['x'].append(sta.site.get_gp_x_index())
+            stations_grid_info['y'].append(sta.site.get_gp_y_index())
+
+
+        # create xr dataset with station locations
+        targetds = xr.Dataset(pd.DataFrame(data=stations_grid_info).set_index('name'))
+
+        #clip the stations from the model
+        targetds = self.dataset.sel(targetds)
+
+        #Construct Dataframe
+        trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
+        targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
+        targetdf = targetdf[target_variables] #drop columns representing coordinates
+        
+        #add it as modeltimeseries to the stations
+        for sta in stationlist:
+            stadf = targetdf.xs(sta.name, level='name')
+            #each column represents bandvalues
+            for colname in stadf.columns:
+
+                sta.add_to_modeldata(ModelTimeSeries(
+                            site=sta.site,
+                            datarecords=stadf[colname].to_numpy(),
+                            timestamps=stadf.index.to_numpy(),
+                            modelobstype=self._modelobstype_from_variablename(colname),
+                            datadtype=np.float32,
+                            timezone='UTC',
+                            modelID=self.modelID,
+                            ),
+                            force_update=force_update)
+        
+
+
+   

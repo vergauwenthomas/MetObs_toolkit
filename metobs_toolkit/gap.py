@@ -683,7 +683,7 @@ class Gap:
         # update details
         self._extra_info.loc[
             self.records.notna()
-        ] = f"Successful raw modeldata fill using {modeltimeseries.modelvariable} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelname}"
+        ] = f"Successful raw modeldata fill using {modeltimeseries} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelID}"
         self._extra_info.loc[self.records.isna()] = "Unsuccessful raw modeldata fill."
 
     def interpolate(

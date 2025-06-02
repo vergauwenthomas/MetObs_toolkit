@@ -132,6 +132,8 @@ class TestDataWithGaps:
         # Test plotting
         _statsdf = sta.make_plot()
 
+
+
     def test_interpolation_on_dataset(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -241,9 +243,9 @@ class TestDataWithGaps:
 
         assert_equality(dataset, solutionobj_A)  # dataset comparison
 
-        from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
+        from metobs_toolkit.backend_collection.errorclasses import MetObsObstypeNotFound
 
-        with pytest.raises(MetObsModelDataError):
+        with pytest.raises(MetObsObstypeNotFound):
             dataset.fill_gaps_with_raw_modeldata(
                 target_obstype="humidity", overwrite_fill=True
             )

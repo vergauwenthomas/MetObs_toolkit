@@ -16,6 +16,7 @@ from metobs_toolkit.modelxrdataset import ModelDataset
 from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
 
 from metobs_toolkit.analysis import Analysis
+from metobs_toolkit.verification import Verification
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,

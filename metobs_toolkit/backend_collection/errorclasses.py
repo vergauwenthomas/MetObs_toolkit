@@ -74,6 +74,14 @@ class MetObsQualityControlError(Exception):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+class MetObsNoUniqueSelection(Exception):
+    """
+    Exception raised when the argument does not limit to a unique selection
+    """
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
 
 class MetObsModelDataError(Exception):
     """

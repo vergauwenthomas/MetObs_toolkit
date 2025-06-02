@@ -243,11 +243,11 @@ class Dataset:
     def modeldatadf(self) -> pd.DataFrame:
         concatlist = []
         for sta in self.stations:
-            stadf = sta.modeldatadf.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
+            stadf = (sta.modeldatadf
+                    .assign(name=sta.name)
+                    .set_index('name', append=True)
+            )
+            concatlist.append(stadf)
 
         combdf = save_concat((concatlist))
         combdf.sort_index(inplace=True)
@@ -255,9 +255,9 @@ class Dataset:
             combdf = pd.DataFrame(
                 columns=["value", "details"],
                 index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
+                    levels=[[], [], [], [], []],
+                    codes=[[], [], [], [], []],
+                    names=["datetime", "modelID", "obstype", "bandname", "name"],
                 ),
             )
         return combdf
@@ -635,12 +635,9 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
-                    modelname=geedynamicdatasetmanager.name,
-                    modelvariable=geedynamicdatasetmanager.modelobstypes[
-                        col
-                    ].model_band,
+                    modelID=geedynamicdatasetmanager.name,
                 )
                 sta.add_to_modeldata(modeltimeseries, force_update=force_update)
 
@@ -1387,19 +1384,24 @@ class Dataset:
     @copy_doc(Station.get_NWP_timeseries_data)
     def get_NWP_timeseries_data(
         self,
-            modeldataset: "ModelDataset", 
-            target_variables: list | None = None,
-            get_all_variables: bool = True,
-            force_update: bool = False,
-            ):
+        modeldataset: "ModelDataset", 
+        target_variables: list | None = None,
+        get_all_variables: bool = True,
+        force_update: bool = False,
+        ):
         logger.debug("Entering Dataset.get_NWP_timeseries_data")
 
         for sta in self.stations:
-            sta.get_NWP_timeseries_data(modeldataset=modeldataset,
-                                        target_variables=target_variables,
-                                        get_all_variables=get_all_variables,
-                                        force_update=force_update)
-            
+            if not sta.site.flag_has_coordinates():
+                raise MetObsMetadataNotFound(f'No timeseries could be extracted, {sta} has not coordinates.')
+        
+        if get_all_variables:
+            target_variables = modeldataset.variable_names
+
+        modeldataset.insert_modeltimeseries(stationlist=self.stations,
+                                            target_variables=target_variables,
+                                            force_update=force_update)
+        
 
     @copy_doc(Station.get_gee_timeseries_data)
     def get_gee_timeseries_data(

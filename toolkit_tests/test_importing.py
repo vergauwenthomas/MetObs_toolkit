@@ -87,6 +87,27 @@ class TestDemoData:
             renamedict={"vlinder01": "fakename", "vlider14": "fakename2"}
         )
 
+    def test_dataset_and_station_equality(self):
+        # Create two identical datasets
+        ds1 = metobs_toolkit.Dataset()
+        ds2 = metobs_toolkit.Dataset()
+        ds1.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        ds2.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        assert ds1 == ds2
+
+        # Get a station from each dataset and check equality
+        sta1 = ds1.get_station(ds1.stations[0].name)
+        sta2 = ds2.get_station(ds2.stations[0].name)
+        assert sta1 == sta2
+
     def test_calling_methods_without_solution_on_station(self):
         # 1. get_startpoint data
         dataset = TestDemoData.solutionfixer.get_solution(

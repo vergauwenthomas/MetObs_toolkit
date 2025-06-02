@@ -25,16 +25,14 @@ class ModelTimeSeries:
         Array of data records.
     timestamps : np.ndarray
         Array of timestamps corresponding to the data records.
-    obstype : Obstype
-        The observation type.
+    modelobstype : ModelObstype
+        The modelobstype representing the data.
     datadtype : type, optional
         Data type for the records, by default np.float32.
     timezone : str, optional
         Timezone for the timestamps, by default "UTC".
-    modelname : str, optional
+    modelID : str, optional
         Name of the model, by default None.
-    modelvariable : str, optional
-        Name of the model variable, by default None.
     """
 
     def __init__(
@@ -42,26 +40,27 @@ class ModelTimeSeries:
         site,
         datarecords: np.ndarray,
         timestamps: np.ndarray,
-        obstype: Obstype,
+        modelobstype: Obstype,
         datadtype: type = np.float32,
         timezone: str = "UTC",
-        modelname: str = None,
-        modelvariable: str = None,
+        modelID: str = None,
     ):
+        #Set metadata
         self.site = site
-        self.obstype = obstype
+        self.modelobstype = modelobstype
+        self.modelID = modelID #to construct the id
+
+        #a unique ID
+        self.ID = f'{self.modelID}:{self.modelobstype.name}:{self.modelobstype.model_band}' 
 
         # Data
         data = pd.Series(
             data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
-            name=obstype.name,
+            name=self.ID,
         )
         self.series = data
 
-        # model metadata
-        self.modelname = modelname
-        self.modelvariable = modelvariable
 
     # ------------------------------------------
     #    Specials
@@ -74,9 +73,12 @@ class ModelTimeSeries:
             self.site == other.site
             and self.obstype == other.obstype
             and self.series.equals(other.series)
-            and self.modelname == other.modelname
+            and self.modelID == other.modelID
             and self.modelvariable == other.modelvariable
         )
+
+    def __str__(self):
+        return f"ModelTimeseries of {self.ID} at {self.site.stationname}"
 
     @property
     def df(self) -> pd.DataFrame:
@@ -84,10 +86,13 @@ class ModelTimeSeries:
         # get all records
         df = (
             self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(model=self.modelname)
+            .rename(columns={self.ID: "value"})
         )
         return df
+
+    @property
+    def bandname(self) -> str:
+        return self.modelobstype.model_band
 
     @property
     def stationname(self) -> str:
@@ -121,8 +126,16 @@ class ModelTimeSeries:
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
         infostr += printing.print_fmt_line(
-            f"Origin {self.modelname} -> variable/band: {self.modelvariable}",
+            f"Origin {self.modelID} -> variable/band: {self.bandname}",
             nident_root,
+        )
+        infostr += printing.print_fmt_line(
+            f"Representation of: {self.modelobstype.name}",
+            nident_root+1,
+        )
+        infostr += printing.print_fmt_line(
+            f"Description: {self.modelobstype.description}",
+            nident_root+1,
         )
         infostr += printing.print_fmt_line(
             f"From {self.start_datetime} --> {self.end_datetime}", nident_root
@@ -134,7 +147,7 @@ class ModelTimeSeries:
             f"Number of records: {self.series.shape[0]}", nident_root
         )
         infostr += printing.print_fmt_line(
-            f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}",
+            f"Units are converted from {self.modelobstype.model_unit} --> {self.modelobstype.std_unit}",
             nident_root,
         )
 
@@ -158,7 +171,7 @@ class ModelTimeSeries:
         infostr = ""
         infostr += printing.print_fmt_title("General info of ModelTimeSeries")
         infostr += printing.print_fmt_line(
-            f"{self.obstype.name} model data at location of {self.stationname}"
+            f"{self.ID} data at location of {self.stationname}"
         )
         infostr += self._get_info_core(nident_root=1)
         if printout:
@@ -204,7 +217,7 @@ class ModelTimeSeries:
         else:
             color = linecolor
 
-        legendname = f"{self.modelname}:{self.modelvariable}@{self.stationname}"
+        legendname = f"{self.modelID}:{self.modelvariable}@{self.stationname}"
 
         ax = plotting.add_lines_to_axes(
             ax=ax,
