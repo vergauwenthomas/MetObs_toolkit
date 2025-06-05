@@ -88,7 +88,7 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
-    # @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare
     def test_station_timeseries_plotting_existing_ax(self):
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
