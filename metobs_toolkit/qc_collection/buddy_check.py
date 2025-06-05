@@ -62,7 +62,6 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
         for sta2, row2 in metadf.iterrows():
             distance_matrix[sta1][sta2] = haversine(
                 row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
-                row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
             )
     return pd.DataFrame(distance_matrix)
 
@@ -244,7 +243,6 @@ def _filter_to_altitude_buddies(
     return alt_buddies_dict
 
 
-def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict:
 def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict:
     """
     Filter stations that are too isolated using minimum sample size.
@@ -846,7 +844,6 @@ std: {row['std']:.2f}. "
 
     return list(
         zip(
-            buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
             buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
         )
     )
