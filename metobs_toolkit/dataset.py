@@ -1391,14 +1391,17 @@ class Dataset:
         ):
         logger.debug("Entering Dataset.get_NWP_timeseries_data")
 
+        target_stations = []
         for sta in self.stations:
             if not sta.site.flag_has_coordinates():
-                raise MetObsMetadataNotFound(f'No timeseries could be extracted, {sta} has not coordinates.')
-        
+                warnings.warn(f'No timeseries could be extracted for {sta}, it has not coordinates!Skipped')
+            else:
+                target_stations.append(sta)
+
         if get_all_variables:
             target_variables = modeldataset.variable_names
 
-        modeldataset.insert_modeltimeseries(stationlist=self.stations,
+        modeldataset.insert_modeltimeseries(stationlist=target_stations,
                                             target_variables=target_variables,
                                             force_update=force_update)
         
