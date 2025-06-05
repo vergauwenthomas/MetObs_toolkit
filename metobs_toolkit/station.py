@@ -245,8 +245,12 @@ class Station:
         pd.Timestamp
             The earliest start datetime among all sensor data.
         """
-
-        return min([sensdata.start_datetime for sensdata in self.sensordata.values()])
+        if bool(self.sensordata):
+            mindt = min([sensdata.start_datetime for sensdata in self.sensordata.values()])
+        else:
+            #no sensordata, metadata only station
+            mindt = pd.NaT
+        return mindt
 
     @property
     def end_datetime(self) -> pd.Timestamp:
@@ -258,7 +262,13 @@ class Station:
         pd.Timestamp
             The maximum end datetime across all sensor data in the observation data.
         """
-        return max([sensdata.end_datetime for sensdata in self.sensordata.values()])
+
+        if bool(self.sensordata):
+            mindt = max([sensdata.start_datetime for sensdata in self.sensordata.values()])
+        else:
+            #no sensordata, metadata only station
+            mindt = pd.NaT
+        return mindt
 
     @property
     def modeldata(self) -> dict:
