@@ -13,7 +13,6 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
-def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate a distance matrix between points using the Haversine formula.
 
