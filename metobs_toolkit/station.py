@@ -123,17 +123,16 @@ class Station:
 
     @property
     def outliersdf(self) -> pd.DataFrame:
-        """Construct a DataFrame representation of all the outliers.
+        """
+        Construct a DataFrame representation of all the outliers.
 
         Outliers are the observations that are flagged by the performed quality control.
 
-
         Returns
-        --------
-        pandas.DataFrame:
+        -------
+        pandas.DataFrame
             A DataFrame with two columns ['value', 'label'], representing
             the value and details of the flagged observation.
-
         """
 
         concatlist = []
@@ -155,14 +154,14 @@ class Station:
 
     @property
     def gapsdf(self) -> pd.DataFrame:
-        """Construct a DataFrame representation of all the gaps.
+        """
+        Construct a DataFrame representation of all the gaps.
 
         Returns
-        --------
-        pandas.DataFrame:
+        -------
+        pandas.DataFrame
             A DataFrame with columns ['value', 'label', 'details'], representing
-            the value, the gap-label and details of the gap record.
-
+            the value, the gap label, and details of the gap record.
         """
         concatlist = []
         for sensordata in self.sensordata.values():
@@ -184,33 +183,33 @@ class Station:
 
     @property
     def metadf(self) -> pd.DataFrame:
-        """Construct a DataFrame representation of metadata.
+        """
+        Construct a DataFrame representation of metadata.
 
         Metadata is the information related to the sensors, that does not change over time.
         The metadata is extracted from the site instance.
 
         Returns
-        --------
-        pandas.DataFrame:
+        -------
+        pandas.DataFrame
             A DataFrame with the station names as index, and the metadata as columns.
-
         """
 
         return self.site.metadf
 
     @property
     def modeldatadf(self) -> pd.DataFrame:
-        """Construct a DataFrame representation of all the present modeldata.
+        """
+        Construct a DataFrame representation of all the present model data.
 
-        Modeldata is stored as ´ModelTimeSeries´ instances, and is set as an attribute of
-        a ´Station´.
+        Model data is stored as `ModelTimeSeries` instances, and is set as an attribute of
+        a `Station`.
 
         Returns
-        --------
-        pandas.DataFrame:
+        -------
+        pandas.DataFrame
             A DataFrame with columns ['value', 'details'], representing
-            the value, and details of the corresponding modeldata.
-
+            the value, and details of the corresponding model data.
         """
         concatlist = []
         for modeldata in self.modeldata.values():
@@ -238,7 +237,8 @@ class Station:
 
     @property
     def start_datetime(self) -> pd.Timestamp:
-        """Get the earliest start datetime from the observation data.
+        """
+        Get the earliest start datetime from the observation data.
 
         Returns
         -------
@@ -250,7 +250,8 @@ class Station:
 
     @property
     def end_datetime(self) -> pd.Timestamp:
-        """Get the latest end datetime from the observation data.
+        """
+        Get the latest end datetime from the observation data.
 
         Returns
         -------
@@ -274,7 +275,8 @@ class Station:
 
     @property
     def present_observations(self) -> list:
-        """Get a list of all the present observation types.
+        """
+        Get a list of all the present observation types.
 
         Returns
         -------
@@ -309,10 +311,10 @@ class Station:
         if not isinstance(force_update, bool):
             raise TypeError("force_update must be a boolean.")
 
-        # Test if there is already modeldata for the same obstype available
+        # Test if there is already model data for the same obstype available
         if (new_modeltimeseries.obstype.name in self.sensordata) & (not force_update):
             raise MetObsDataAlreadyPresent(
-                f"There is already an modeltimeseries instance represinting {new_modeltimeseries.obstype.name}, and force_update is False."
+                f"There is already a modeltimeseries instance representing {new_modeltimeseries.obstype.name}, and force_update is False."
             )
 
         self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
@@ -357,10 +359,10 @@ class Station:
         infostr += printing.print_fmt_section("Metadata info")
         infostr += self.site._get_info_core(nident_root=1)
 
-        # Modeldata info
+        # Model data info
         infostr += printing.print_fmt_section("Modeldata info")
         if not bool(self.modeldata):
-            infostr += printing.print_fmt_line("Station instance without modeldata.")
+            infostr += printing.print_fmt_line("Station instance without model data.")
         else:
             for obstype, modeldata in self.modeldata.items():
                 infostr += printing.print_fmt_line(f"{obstype}:", 1)
@@ -383,16 +385,15 @@ class Station:
         Resample observation data to a specified frequency.
 
         Resampling is done by creating target timestamps, aligning them with the present timestamps,
-        and transfer the nearest (in time) value to the target timestamp. There is no interpolation in time.
+        and transferring the nearest (in time) value to the target timestamp. There is no interpolation in time.
 
-        Aligning restrictions can be specified by setting the shif_tolerance, which indicates the maximum shift
-        (in time) that alligned timestamps can have.
+        Alignment restrictions can be specified by setting the shift_tolerance, which indicates the maximum shift
+        (in time) that aligned timestamps can have.
 
         Since the origin (the first timestamp in the current observations) is in general not a suitable candidate
-        to serve as origin for the target frequency, a suitable origin is deduced. This can be done by specifying
-        the origin argument, or if None it is done automatically. This is done by simplifying the
+        to serve as origin for the target frequency, a suitable origin is deduced. This can be done by specifying the
+        origin argument, or if None it is done automatically. This is done by simplifying the
         current origin by rounding it down, and testing if the shift in the new tolerance is smaller than origin_simplify_tolerance.
-
 
         Parameters
         ----------
@@ -406,15 +407,14 @@ class Station:
         shift_tolerance : str or pandas.Timedelta, optional
             The maximum allowed time shift tolerance for aligning data during
             resampling. Default is 4 minutes.
-        origin_utc : pandas.Timestamp, or None, optional
+        origin : pandas.Timestamp, or None, optional
             The origin timestamp (=first timestamp) of the target records. Can be a pandas.Timestamp or None.
             If a timezone-naive timestamp is given, it is assumed to be in UTC.
-            If None, then a suitable origin is used by simplifying the current origing and making
+            If None, then a suitable origin is used by simplifying the current origin and making
             sure that origin_simplify_tolerance is met. Default is None.
         origin_simplify_tolerance : pandas.Timedelta, optional
             This is only used when origin is None. The tolerance for simplifying the origin
             alignment during resampling. Default is 4 minutes.
-
 
         Returns
         -------
@@ -424,12 +424,14 @@ class Station:
         -----
 
         * If `target_obstype` is None, all sensors in `self.sensordata` will be
+
+        * If `target_obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
         * If `target_obstype` is specified, it must be a known observation type.
         Warning
         -------
         Since the gaps depend on the record’s frequency and origin, all gaps
-        are removed and re-located. All progress in gap(filling) will be lost.
+        are removed and re-located. All progress in gap filling will be lost.
 
         Warning
         -------
@@ -450,7 +452,7 @@ class Station:
                     origin_simplify_tolerance=origin_simplify_tolerance,
                 )
         else:
-            # check if target obstype is knonw
+            # check if target obstype is known
             self._obstype_is_known_check(target_obstype)
 
             # resample
@@ -468,7 +470,7 @@ class Station:
         Convert outlier values in the observation data to gaps.
 
         This method replaces outlier values with gaps, effectively marking them as missing.
-        In practice, this method is used so that generated gaps can be filled, to obtain a continious timeseries.
+        In practice, this method is used so that generated gaps can be filled, to obtain a continuous time series.
 
         The operation can be applied to all observation types or a specific observation type.
 
@@ -499,8 +501,8 @@ class Station:
             self.get_sensor(obstype).convert_outliers_to_gaps()
 
     def _rename(self, targetname):
-        # Note: Not for users, one could accidentaly rename to another station in the dataset.
-        # So --> only accecible as method in the dataset, that checks this possible error.
+        # Note: Not for users, one could accidentally rename to another station in the dataset.
+        # So --> only accessible as method in the dataset, that checks this possible error.
 
         # rename all
         self._name = str(targetname)
@@ -514,7 +516,8 @@ class Station:
         overwrite: bool = True,
         initialize_gee: bool = True,
     ):
-        """Extract static data from GEE dataset at Station locations.
+        """
+        Extract static data from GEE dataset at Station locations.
 
         Retrieve Google Earth Engine (GEE) point data of a static dataset, for the station.
         The retrieved data is stored if overwrite is True.
@@ -542,7 +545,7 @@ class Station:
         logger.debug("Entering get_static_gee_point_data for %s", self)
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
+                f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
             )
 
         value = self.site.get_gee_point_metadata(
@@ -555,7 +558,7 @@ class Station:
 
     def get_LCZ(self, overwrite: bool = True, initialize_gee: bool = True) -> str:
         """
-        Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
+        Retrieve Local Climate Zone (LCZ) for the station using Google Earth Engine (GEE).
 
         Parameters
         ----------
@@ -585,7 +588,7 @@ class Station:
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> float:
         """
-        Retrieve altitude for the stations using Google Earth Engine (GEE).
+        Retrieve altitude for the station using Google Earth Engine (GEE).
 
         Parameters
         ----------
@@ -645,7 +648,7 @@ class Station:
 
         Warning
         -------
-        This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
+        This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
 
         Warning
         -------
@@ -654,7 +657,7 @@ class Station:
         logger.debug("Entering get_static_gee_buffer_fraction_data for %s", self)
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdataset)}"
             )
 
         nesteddict = self.site.get_gee_point_buffer_fractions(
@@ -695,7 +698,7 @@ class Station:
 
         Warning
         -------
-        This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
+        This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
         """
         logger.debug("Entering get_landcover_fractions for %s", self)
         return self.get_static_gee_buffer_fraction_data(
@@ -717,15 +720,15 @@ class Station:
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
     ) -> Union[pd.DataFrame, None]:
-        """Extract time series data from GEE.
+        """
+        Extract time series data from GEE.
 
         Extracts time series (extraction at station locations) data from a Google Earth Engine (GEE) dynamic dataset
         for a specified time range and observation types.
 
         If the data request is small, GEE sends the data directly. If not, the data will be
-        writen to a CSV file and saved on your Google Drive. In this case, you can import the modeldata
-        by using the ´Datset.import_gee_data_from_file()´ method.
-
+        written to a CSV file and saved on your Google Drive. In this case, you can import the model data
+        by using the `Dataset.import_gee_data_from_file()` method.
 
         Parameters
         ----------
@@ -761,17 +764,17 @@ class Station:
 
         Note
         -----
-        If a timezone unaware datetime is given as an argument, it is interpreted as if it has the same timezone as the observations.
+        If a timezone-unaware datetime is given as an argument, it is interpreted as if it has the same timezone as the observations.
 
         Warning
         -------
-        This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
+        This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
 
         Warning
         -------
         When extracting large amounts of data,
-        the timeseries data will be written to a file and saved
-        on your Google Drive. In this case, you can import the modeldata
+        the time series data will be written to a file and saved
+        on your Google Drive. In this case, you can import the model data
         by using the Dataset.import_gee_data_from_file() method.
 
         Notes
@@ -787,7 +790,7 @@ class Station:
         # Check geedynamic dataset
         if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
             raise ValueError(
-                f"geedynamicdataset should be an isntance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
+                f"geedynamicdataset should be an instance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
             )
 
         # Format datetime arguments
@@ -865,7 +868,7 @@ class Station:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. By default "temp"
         lower_threshold : float, optional
            Thresholds to flag records below as outliers. The default is -15.0.
         upper_threshold : float, optional
@@ -894,7 +897,8 @@ class Station:
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
     ) -> None:
-        """Check if values are not constant in a moving time window.
+        """
+        Check if values are not constant in a moving time window.
 
         Perform a persistence check on a time series to identify periods where observations remain constant
         within a specified time window. If the values are constant, all records in the moving window are
@@ -903,7 +907,7 @@ class Station:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. By default "temp"
         timewindow : str or pd.Timedelta
             The size of the rolling time window to check for persistence.
             The default is pd.Timedelta("60min")
@@ -945,7 +949,8 @@ class Station:
     def repetitions_check(
         self, target_obstype: str = "temp", max_N_repetitions: int = 5
     ) -> None:
-        """Test if an observation changes after a number of repetitions.
+        """
+        Test if an observation changes after a number of repetitions.
 
         Perform a check that tests if the observation changes after a number of repetitions.
         If a value is repeated more than the specified number of times, all the repeated
@@ -957,7 +962,7 @@ class Station:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. By default "temp"
         max_N_repetitions : int
             The maximum number of repetitions allowed before the records are flagged as outliers.
             If the number of repetitions exceeds this value, all repeated records are flagged as outliers. The default is 5.
@@ -971,6 +976,7 @@ class Station:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
+        * The repetitions check is similar to the persistence check, but not identical.
         * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
@@ -995,11 +1001,12 @@ class Station:
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
     ) -> None:
-        """Check for 'spikes' and 'dips' in a timeseries.
+        """
+        Check for 'spikes' and 'dips' in a time series.
 
-        Test if observations do not produce spikes in timeseries. The maximum
+        Test if observations do not produce spikes in the time series. The maximum
         allowed increase and decrease per second is set in the argument,
-        and is tested to each record (with respect to the previous record).
+        and is tested for each record (with respect to the previous record).
 
         If the difference between two consecutive records (i.e., the spike/dip) is larger than the
         threshold, the record is flagged as an outlier.
@@ -1007,13 +1014,13 @@ class Station:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. By default "temp"
         max_increase_per_second : int or float, >0, optional
             The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
             This value must be positive!  The default is 8.0/3600.0
         max_decrease_per_second : int or float, <0, optional
             The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
-            This value must be negative!, The default is -10.0/3600.0
+            This value must be negative! The default is -10.0/3600.0
 
         Returns
         -------
@@ -1024,6 +1031,7 @@ class Station:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
+        * In general, for temperatures, the decrease threshold is set less stringent than the increase
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
@@ -1048,9 +1056,9 @@ class Station:
         max_decrease_per_second: Union[int, float] = -10.0 / 3600,
     ) -> None:
         """
-        Test if the increase/decrease in a timewindow exceeds a threshold.
+        Test if the increase/decrease in a time window exceeds a threshold.
 
-        Checks if the variation of observations in time,
+        Checks if the variation of observations in time
         does not exceed a threshold. This is done by applying a moving window
         over the time series. The moving window is defined by a duration (timewindow),
         and tested if the window contains at least a minimum number of records.
@@ -1062,7 +1070,7 @@ class Station:
         Parameters
         ----------
         target_obstype : str, optional
-            The target observation to check. by default "temp"
+            The target observation to check. By default "temp"
         timewindow : pd.Timedelta
             The duration of the moving window. This should be a pandas Timedelta object. The default is pd.Timedelta("1h")
         min_records_per_window : int
@@ -1084,6 +1092,7 @@ class Station:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
+        * In general, for temperatures, the decrease threshold is set less stringent than the increase
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
@@ -1108,24 +1117,25 @@ class Station:
     def get_qc_stats(
         self, target_obstype: str = "temp", make_plot: bool = True
     ) -> pd.DataFrame:
-        """Generate quality control (QC) frequency statistics.
+        """
+        Generate quality control (QC) frequency statistics.
 
         This method calculates the frequency statistics for various QC checks
         applied, and other labels. The order of checks is taken into
         account.
 
-        Frequency of labels is combuted based on the set of all labels (for all
+        Frequency of labels is computed based on the set of all labels (for all
         records including gaps). The effectiveness of a check is shown by
-        the frequency of outliers wrt the numer of records that were given
+        the frequency of outliers with respect to the number of records that were given
         to the check (thus taking into account the order of checks).
 
-        The frequencies are retured in a dataframe, and can be plotted
+        The frequencies are returned in a dataframe, and can be plotted
         as pie charts.
 
         Parameters
         ----------
         target_obstype : str, optional
-            The target observationtype for which to compute frequency statistics, by default "temp".
+            The target observation type for which to compute frequency statistics, by default "temp".
         make_plot : bool, optional
             If True, a figure with pie charts representing the frequencies is generated. The default is True.
 
@@ -1178,12 +1188,12 @@ class Station:
         figkwargs: dict = {},
     ) -> Axes:
         """
-        Generate a timeseries plot of model data for a specific observation type.
+        Generate a time series plot of model data for a specific observation type.
 
         Parameters
         ----------
         obstype : str, optional
-            The type of observation to plot modeldata for, by default "temp".
+            The type of observation to plot model data for, by default "temp".
         linecolor : str or None, optional
             The color of the line in the plot. If None, a default color map is used.
         title : str or None, optional
@@ -1201,7 +1211,7 @@ class Station:
             The axes object containing the plot.
         """
         logger.debug("Entering make_plot_of_modeldata for %s", self)
-        # test if the obstype has modeldata
+        # test if the obstype has model data
         self._obstype_has_modeldata_check(obstype)
 
         # Create new axes if needed
@@ -1405,7 +1415,8 @@ class Station:
     def fill_gaps_with_raw_modeldata(
         self, target_obstype: str, overwrite_fill: bool = False
     ) -> None:
-        """Fill the gap(s) using model data without correction.
+        """
+        Fill the gap(s) using model data without correction.
 
         This method fills all the gaps of a specific *target_obstype*, by directly interpolating
         the model data to the missing records.
@@ -1460,7 +1471,8 @@ class Station:
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
     ) -> None:
-        """Fill the gaps using modeldata corrected for the bias.
+        """
+        Fill the gaps using model data corrected for the bias.
 
         This method fills the gaps using model data corrected for bias.
         The bias is estimated using a leading (before the gap)
@@ -1486,12 +1498,12 @@ class Station:
             If False, only gaps without gapfill data are filled. The default is False.
 
         Returns
-        ----------
+        -------
         None
 
         Notes
         -----
-        A schematic description of the debiased modeldata gap fill:
+        A schematic description of the debiased model data gap fill:
 
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
@@ -1540,13 +1552,13 @@ class Station:
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
     ) -> None:
-        """Fill the gaps using modeldata corrected for the diurnal-bias.
+        """
+        Fill the gaps using model data corrected for the diurnal bias.
 
-        This method fills the gap using model data corrected for its diuranal-bias.
+        This method fills the gap using model data corrected for its diurnal bias.
         The diurnal bias is a bias that is estimated for each timestamp in the leading
         and trailing period. All biases are averaged over hour, minute and second, to
         obtain a diurnal bias (for each timestamp).
-
 
         Parameters
         ----------
@@ -1570,7 +1582,7 @@ class Station:
 
         Notes
         -----
-        A schematic description of the diurnal debiased modeldata gap fill:
+        A schematic description of the diurnal debiased model data gap fill:
 
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
@@ -1582,13 +1594,13 @@ class Station:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
-        --------
+        -----
         Note that a suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
         """
         logger.debug("Entering fill_gaps_with_diurnal_debiased_modeldata for %s", self)
         # special formatters
@@ -1627,17 +1639,17 @@ class Station:
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,
     ):
-        """Fill the gaps using a weighted sum of modeldata corrected for the diurnal-bias and weights wrt the start of the gap.
+        """
+        Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
 
-        This method fills the gaps using model data corrected for its diuranal-bias.
+        This method fills the gaps using model data corrected for its diurnal bias.
         The diurnal bias is a bias that is estimated for each timestamp in the leading
-        and trailing period (seperatly). For both periods seperatly, all biases are averaged over hour, minute and second, to
+        and trailing period (separately). For both periods separately, all biases are averaged over hour, minute and second, to
         obtain a diurnal bias (for each timestamp).
 
-        In addition, a normalized weight is computed for each gap-record indicating the distance (in time) to
-        the start and end of the gap. The correction applied on the interpolated (in time) modeldata, is
-        thus a weighted sum of corrections comming from both the leading and trailing period.
-
+        In addition, a normalized weight is computed for each gap record indicating the distance (in time) to
+        the start and end of the gap. The correction applied on the interpolated (in time) model data, is
+        thus a weighted sum of corrections coming from both the leading and trailing period.
 
         Parameters
         ----------
@@ -1650,23 +1662,22 @@ class Station:
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_lead_debias_sample_size : int, optional
-            The minimum number of leading-samples required for bias estimation. If this condition is not met, the gap
+            The minimum number of leading samples required for bias estimation. If this condition is not met, the gap
             is not filled. The default is 2.
         min_trail_debias_sample_size : int, optional
-            The minimum number of trailing-samples required for bias estimation. If this condition is not met, the gap
+            The minimum number of trailing samples required for bias estimation. If this condition is not met, the gap
             is not filled. The default is 2.
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
 
         Returns
-        --------
-        None.
-
+        -------
+        None
 
         Notes
         -----
-        A schematic description of the weighted diurnal debiased modeldata gap fill:
+        A schematic description of the weighted diurnal debiased model data gap fill:
 
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
@@ -1678,15 +1689,13 @@ class Station:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
-        --------
+        -----
         Note that a suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
-
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
-
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
         """
         logger.debug(
             "Entering fill_gaps_with_weighted_diurnal_debiased_modeldata for %s", self
@@ -1731,7 +1740,8 @@ class Station:
         overwrite_fill=False,
         method_kwargs={},
     ):
-        """Fill the gap(s) using interpolation of SensorData.
+        """
+        Fill the gap(s) using interpolation of SensorData.
 
         This method fills all the gaps of a specific *target_obstype*, by directly interpolating
         corresponding SensorData. Each gap is interpolated using the leading and trailing periods of the gap. One can select different
@@ -1746,7 +1756,7 @@ class Station:
             Interpolation technique to use. See pandas.DataFrame.interpolate
             method argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
-            set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".. Defaults to "time".
+            set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
         max_consec_fill: int, optional
             The maximum number of consecutive timestamps to fill. The result is
             dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
@@ -1768,7 +1778,7 @@ class Station:
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. Defaults to False.
         method_kwargs : dict, optional
-            Extra arguments that are passed to pandas.Dataframe.interpolate() structured in a dict. Defaults to {}.
+            Extra arguments that are passed to pandas.DataFrame.interpolate() structured in a dict. Defaults to {}.
 
         Returns
         -------
@@ -1786,16 +1796,15 @@ class Station:
         #. Update the gap attributes with the interpolated values, labels, and details.
 
         Note
-        -------
+        -----
         The impact of `max_consec_fill` is highly dependent on the resolution
         of your records.
 
         Note
-        ------
+        -----
         If you want to use a higher-order method of interpolation, make sure to
         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
-
         """
         logger.debug("Entering interpolate_gaps for %s", self)
         # special formatters

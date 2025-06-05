@@ -45,6 +45,7 @@ label_def = {
     # ----- Interpolation labels -----
     "interpolated_gap": {"label": "interpolation", "color": "#d406c6"},
     "failed_interpolation_gap": {"label": "failed interpolation", "color": "#d406c6"},
+    "failed_interpolation_gap": {"label": "failed interpolation", "color": "#d406c6"},
     # ----- raw model gapfill -----
     "raw_modeldata_fill": {"label": "raw modeldata fill", "color": "#6e1868"},
     "failed_raw_modeldata_fill": {
@@ -52,6 +53,7 @@ label_def = {
         "color": "#6e1868",
     },
     # ----- debias model gapfill -----
+    "debias_modeldata_fill": {"label": "debiased modeldata fill", "color": "#6e1868"},
     "debias_modeldata_fill": {"label": "debiased modeldata fill", "color": "#6e1868"},
     "failed_debias_modeldata_fill": {
         "label": "failed debiased modeldata fill",
@@ -76,7 +78,9 @@ label_def = {
 }
 
 label_to_color_map = {group["label"]: group["color"] for group in label_def.values()}
+label_to_color_map = {group["label"]: group["color"] for group in label_def.values()}
 # make lists per label-theme, so if a new thematic label is added,
+# functionallity through the full toolkit is done by adding it to the
 # functionallity through the full toolkit is done by adding it to the
 # defenition and the labelgroup
 

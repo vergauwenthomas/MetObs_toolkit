@@ -13,6 +13,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
+def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate a distance matrix between points using the Haversine formula.
 
@@ -62,6 +63,7 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
         for sta2, row2 in metadf.iterrows():
             distance_matrix[sta1][sta2] = haversine(
                 row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
+                row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
             )
     return pd.DataFrame(distance_matrix)
 
@@ -73,6 +75,7 @@ def synchronize_series(
     Synchronize a list of pandas Series with datetime indexes.
 
     The target timestamps are defined by:
+
 
      * freq: the highest frequency present in the input series
      * origin: the earliest timestamp found, rounded down by the freq
@@ -243,6 +246,7 @@ def _filter_to_altitude_buddies(
 
 
 def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict:
+def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict:
     """
     Filter stations that are too isolated using minimum sample size.
 
@@ -323,6 +327,7 @@ def toolkit_buddy_check(
 ) -> Tuple[list, dict]:
     """
     Spatial buddy check.
+    Spatial buddy check.
 
     The buddy check compares an observation against its neighbors
     (i.e. spatial buddies). The check loops over all the groups, which are stations
@@ -343,6 +348,7 @@ def toolkit_buddy_check(
     outlier is saved. It will be removed from the outliers, and will pass to the
     next iteration or the end of this function.
 
+    A schematic step-by-step description of the buddy check:
     A schematic step-by-step description of the buddy check:
 
     #. A distance matrix is constructed for all interdistances between
@@ -444,6 +450,15 @@ def toolkit_buddy_check(
     dict
         A dictionary mapping each synchronized timestamp to its original
           timestamp.
+    Returns
+    -------
+    list
+        A list of tuples containing the outlier station, timestamp,
+        and detail message. Each tuple is in the form (station_name,
+        timestamp, message).
+    dict
+        A dictionary mapping each synchronized timestamp to its original
+          timestamp.
 
     Notes
     -----
@@ -474,6 +489,10 @@ def toolkit_buddy_check(
     # filter buddies by altitude difference
     if max_alt_diff is not None:
         if metadf["altitude"].isna().any():
+            raise ValueError(
+                "At least one station has a NaN \
+value for 'altitude'"
+            )
             raise ValueError(
                 "At least one station has a NaN \
 value for 'altitude'"
@@ -537,6 +556,7 @@ value for 'altitude'"
         if use_mp:
             # Use multiprocessing generator (parallelization)
             num_cpus = os.cpu_count()
+            # since this check is an instantaneous check -->
             # since this check is an instantaneous check -->
             # perfect for splitting the dataset in chunks in time
             chunks = np.array_split(combdf, num_cpus)
@@ -713,14 +733,20 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         A tuple containing:
 
         * buddygroup : list
+
+        * buddygroup : list
             List of station names that form the buddy group.
         * combdf : pandas.DataFrame
+        * combdf : pandas.DataFrame
             DataFrame containing the combined data for all stations.
+        * min_sample_size : int
         * min_sample_size : int
             Minimum number of non-NaN values required in the buddy group for a
             valid comparison.
         * min_std : float
+        * min_std : float
             Minimum standard deviation to use when calculating z-scores.
+        * outlier_threshold : float
         * outlier_threshold : float
             Threshold for identifying outliers in terms of z-scores.
 
@@ -733,20 +759,28 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         * pandas.Timestamp : The timestamp of the outlier.
         * str : A detailed message describing the outlier.
 
+        * str : The station name of the most extreme outlier.
+        * pandas.Timestamp : The timestamp of the outlier.
+        * str : A detailed message describing the outlier.
+
     Notes
     -----
     This function performs the following steps:
 
+
     1. Subsets the data to the buddy group.
     2. Calculates the mean, standard deviation, and count of non-NaN values
        for each timestamp.
+       for each timestamp.
     3. Filters out timestamps with insufficient data.
     4. Replaces standard deviations below the minimum threshold with the
+       minimum value.
        minimum value.
     5. Converts station values to z-scores.
     6. Identifies timestamps with at least one outlier.
     7. Locates the most extreme outlier for each timestamp.
     8. Generates a detailed message for each outlier.
+
 
     """
     logger.debug("Entering find_buddy_group_outlier")
@@ -774,6 +808,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf["non_nan_count"] = buddydf[[*buddygroup]].notna().sum(axis=1)
 
     # subset to samples with enough members (check for each timestamp
+    # subset to samples with enough members (check for each timestamp
     # specifically)
     buddydf = buddydf.loc[buddydf["non_nan_count"] >= min_sample_size]
 
@@ -783,7 +818,9 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     # Convert values to sigmas
     for station in buddygroup:
         buddydf[station] = (buddydf[station] - buddydf["mean"]).abs() / buddydf["std"]
+        buddydf[station] = (buddydf[station] - buddydf["mean"]).abs() / buddydf["std"]
 
+    # Drop rows for which all values are smaller than the threshold
     # Drop rows for which all values are smaller than the threshold
     # (speed up the last step)
     buddydf["timestamp_with_outlier"] = buddydf[[*buddygroup]].apply(
@@ -792,6 +829,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf = buddydf.loc[buddydf["timestamp_with_outlier"]]
 
     # locate the most extreme outlier per timestamp
+    buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
     buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
 
     def msgcreator(row):
@@ -809,6 +847,7 @@ std: {row['std']:.2f}. "
 
     return list(
         zip(
+            buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
             buddydf["is_the_most_extreme_outlier"], buddydf.index, buddydf["detail_msg"]
         )
     )

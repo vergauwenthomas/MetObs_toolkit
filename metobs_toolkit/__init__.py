@@ -41,7 +41,6 @@ from metobs_toolkit.backend_collection.loggingmodule import (
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # demo files
 demo_datafile = os.path.join(
     BASE_PATH, "metobs_toolkit", "datafiles", "demo_datafile.csv"
@@ -77,4 +76,4 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 # DO not change this manually!
-__version__ = "0.4.1a"
+__version__ = "0.4.1"
