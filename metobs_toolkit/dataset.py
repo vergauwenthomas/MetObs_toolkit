@@ -2281,9 +2281,9 @@ def createstations(
             stationdata = stationdata.loc[pd.notnull(stationdata["datetime"])]
 
             # 3. Skip stations if there are less than 2 records (no freq can be estimated)
-            if stationdata.shape[0] < 2:
+            if stationdata.shape[0] < 3:
                 logger.warning(
-                    f"Station {stationname} is skipped because it has only one record."
+                    f"Station {stationname} is skipped because it has only {stationdata.shape[0]} (is < 3) records."
                 )
                 continue
 
