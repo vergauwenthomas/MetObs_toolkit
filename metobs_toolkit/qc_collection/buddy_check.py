@@ -781,10 +781,9 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
     """
     logger.debug("Entering find_buddy_group_outlier")
-   
+
     buddygroup, combdf = inputarg[0], inputarg[1]
     min_sample_size, min_std, outlier_threshold = inputarg[2:]
-   
 
     # subset to the buddies
     buddydf = combdf[[*buddygroup]]
