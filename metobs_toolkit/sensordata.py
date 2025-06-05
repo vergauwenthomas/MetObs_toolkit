@@ -60,7 +60,6 @@ class SensorData:
         origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
         timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
     ):
-    
         # Set data
         self._stationname = stationname
         self.obstype = obstype
