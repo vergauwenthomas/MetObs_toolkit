@@ -781,20 +781,10 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
     """
     logger.debug("Entering find_buddy_group_outlier")
-    if not isinstance(inputarg, tuple):
-        raise TypeError("inputarg must be a tuple")
+   
     buddygroup, combdf = inputarg[0], inputarg[1]
     min_sample_size, min_std, outlier_threshold = inputarg[2:]
-    if not isinstance(buddygroup, (list, tuple)):
-        raise TypeError("buddygroup must be a list or tuple")
-    if not isinstance(combdf, pd.DataFrame):
-        raise TypeError("combdf must be a pandas.DataFrame")
-    if not isinstance(min_sample_size, int):
-        raise TypeError("min_sample_size must be an int")
-    if not isinstance(min_std, (int, float)):
-        raise TypeError("min_std must be an int or float")
-    if not isinstance(outlier_threshold, (int, float)):
-        raise TypeError("outlier_threshold must be an int or float")
+   
 
     # subset to the buddies
     buddydf = combdf[[*buddygroup]]
@@ -805,7 +795,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf["non_nan_count"] = buddydf[[*buddygroup]].notna().sum(axis=1)
 
     # subset to samples with enough members (check for each timestamp
-    # subset to samples with enough members (check for each timestamp
+
     # specifically)
     buddydf = buddydf.loc[buddydf["non_nan_count"] >= min_sample_size]
 
@@ -815,9 +805,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     # Convert values to sigmas
     for station in buddygroup:
         buddydf[station] = (buddydf[station] - buddydf["mean"]).abs() / buddydf["std"]
-        buddydf[station] = (buddydf[station] - buddydf["mean"]).abs() / buddydf["std"]
 
-    # Drop rows for which all values are smaller than the threshold
     # Drop rows for which all values are smaller than the threshold
     # (speed up the last step)
     buddydf["timestamp_with_outlier"] = buddydf[[*buddygroup]].apply(
@@ -826,7 +814,6 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf = buddydf.loc[buddydf["timestamp_with_outlier"]]
 
     # locate the most extreme outlier per timestamp
-    buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
     buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
 
     def msgcreator(row):
