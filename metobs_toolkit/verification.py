@@ -62,22 +62,40 @@ class Verification:
             obsdf = obsdf.set_index('name', append=True)
 
         #model
+        fcdf = self.obj.modeldatadf
+        #1: filter on obstype
         #TODO check of obstype is present
-        #TODO check of modelID is unique
-        #TODO check if bandname is unique
+        fcdf = fcdf.xs(target_obstype, level='obstype', drop_level=True)
+        
+        #2. filter on modelID
+        if trg_modelID is None:
+            # Check if modelID is unique
+            model_ids = fcdf.index.get_level_values('modelID').unique()
+            if len(model_ids) != 1:
+                raise ValueError(f"Multiple modelID values found: {model_ids}. Please specify trg_modelID.")
+            trg_modelID = model_ids[0]
 
-        fcdf = (self.obj.modeldatadf
-                .xs(target_obstype, level='obstype', drop_level=True)
-                #TODO: subset modelID
-                #TODO: subset bandname
-                .droplevel(['modelID', 'bandname'])
-                .rename(columns={'value': 'fc'})
-                )[['fc']]
+        fcdf = fcdf.xs(trg_modelID, level='modelID', drop_level=True)
+        
+        #3. filter on bandname
+        if trg_bandname is None:
+            # Check if modelID is unique
+            bandnames = fcdf.index.get_level_values('bandname').unique()
+            if len(bandnames) != 1:
+                raise ValueError(f"Multiple bandnames values found: {bandnames}. Please specify trg_bandname.")
+            trg_modelID = model_ids[0]
+
+        fcdf = fcdf.xs(trg_bandname, level='bandname', drop_level=True)
+
         
         #For stations
         if 'name' not in fcdf.index.names:
             fcdf['name'] = self.obj.name
             fcdf = fcdf.set_index('name', append=True)
+        
+        #Format the fcdf
+        fcdf = fcdf.rename(columns={'value':'fc'})[['fc']]
+
 
         verifdf = pd.merge_asof(left=fcdf.reset_index(),
                                 right=obsdf.reset_index(),
@@ -103,7 +121,8 @@ class Verification:
         #Construct the verifdf
         verifdf = self._create_verifdf(
                     target_obstype=target_obstype,
-                    shift_tolerance=shift_tolerance)
+                    shift_tolerance=shift_tolerance,
+                    **fc_trg_id_kwargs)
         verifdf = verifdf.reset_index()
 
 
@@ -386,4 +405,129 @@ class Verification:
 
         plt.tight_layout()
         return ax_main, ax_resid
+
+
+    def plot_value_cycles(
+            self,
+            target_obstype:str='temp',
+            reference_station: str | None = None, #Always observations as reference !!! 
+            colorby:str = 'LCZ',
+            xaxis:str='hour', #or datetime?
+            colmap: dict|None = None,
+            ax=None,
+            figkwargs = {},
+            fc_trg_id_kwargs = {},
+            output_is_obs = True,
+            ):
+        
+        # ---- Filter datasources -------
+        #Get obstypes (for plotting details)
+        obs_obstype, fc_obstype = self.get_obstypes(
+                        target_obstype=target_obstype,
+                        fc_trg_id_kwargs=fc_trg_id_kwargs)
+
+        if output_is_obs:
+            df = (self.obj.df
+                    .xs(target_obstype, level='obstype', drop_level=True)
+                        )
+            #use only the 'ok' labels for verification
+            df.loc[df['label'] != 'ok', 'value'] = np.nan
+        else:
+            df = (self.obj.modeldatadf
+                        .xs(target_obstype, level='obstype', drop_level=True)
+                        #TODO: subset modelID
+                        #TODO: subset bandname
+                        .droplevel(['modelID', 'bandname'])
+                        # .rename(columns={'value': 'fc'})
+                        )
+                
+        #Get reference values
+        if reference_station is not None:
+            assert reference_station in df.index.get_level_values('name'), f'{reference_station} is not found in the name level.'
+            refrecords = (self.obj.df
+                        .xs(target_obstype, level='obstype', drop_level=True)
+                        .xs(reference_station, level='name', drop_level=True)
+                        .rename(columns={'value': 'ref_value'})
+                        )
+            
+            #merge by datetimes
+            df = pd.merge(left=df.reset_index(),
+                                right=refrecords.reset_index(),
+                                how='left',
+                                on='datetime')
+
+            #compute the difference
+            df['value'] = df['value'] - df['ref_value']
+            #Set index
+            df = df.set_index(['datetime', 'name'])
+        
+        df = df[['value']]
+
+        # ---- Combine meta and time derivatives ---- 
+
+
+        trg_columns = list(set([colorby, xaxis]))
+        #Metamerge
+        #subset to target columns
+        metadf = self.obj.metadf.reset_index()
+        metadf = metadf[list(set(trg_columns+['name']).intersection(set(metadf.columns)))]
+        df = pd.merge(left=df.reset_index(),
+                        right=metadf,
+                        how='left',
+                        on='name')
+
+
+        #datetime agg merge
+        dt_aggdf = _get_time_derivates(datetimes=pd.DatetimeIndex(df['datetime']))
+        dt_aggdf = dt_aggdf[list(set(trg_columns+['datetime']).intersection(set(dt_aggdf.columns)))]
+        df = pd.concat([df.set_index('datetime'), dt_aggdf], axis=1)
+
+        # --- Group and aggregate data to xaxis and color groups ---
+        plotdf = df.reset_index()[list(set([colorby, xaxis, 'value']))].groupby([colorby, xaxis]).mean()
+
+        # --- Data plotting -----
+                
+
+        # color scheme:
+        if colmap is None:
+            colmap = plotting.create_categorical_color_map(
+                    catlist=plotdf.index.get_level_values(colorby).unique()
+                )
+
+        #axes
+        if ax is None:
+            ax = plotting.create_axes(**figkwargs)
+
+        #iterate over color group
+        for colgroupid, colgroupdf in plotdf.groupby(by=colorby):
+            colgroupdf = colgroupdf.droplevel(colorby)
+
+            colgroupdf['value'].plot(kind='line',
+                            color=colmap[colgroupid],
+                            ax=ax,
+                            label=colgroupid,
+                            )
+            
+        if output_is_obs:
+            plotting.set_ylabel(ax,f'{obs_obstype._get_plot_y_label()})')
+            if reference_station is None:
+                plotting.set_title(ax, f"{obs_obstype} observational values grouped per {colorby}.")
+            else:
+                 plotting.set_title(ax, f"{obs_obstype} observational differences with {reference_station}, grouped per {colorby}.")
+        else: 
+            plotting.set_ylabel(ax,f'{fc_obstype._get_plot_y_label()})')
+
+            if reference_station is None:
+                plotting.set_title(ax, f"{fc_obstype} forecasted values grouped per {colorby}.")
+            else:
+                plotting.set_title(ax, f"{fc_obstype} forecasted differences with {reference_station}, grouped per {colorby}.")
+
+        
+        plotting.set_xlabel(ax, xlabel=xaxis)
+        plotting.set_legend(ax=ax)
+        plt.tight_layout()
+
+        return ax
+
+
 
