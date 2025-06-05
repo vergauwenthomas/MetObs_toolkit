@@ -115,10 +115,13 @@ class _GEEDatasetManager:
     # =============================================================================
     # Checks
     # =============================================================================
-    def _check_metadf_validity(self, metadf):
+    def _check_metadf_validity(self, metadf) -> pd.DataFrame:
         """
         Check if a metadf is valid (coordinates and structure-wise). If
         it is not valid, an error is raised.
+
+        It filters out the rows in the metadf for which there are
+        no 'lat' or 'lon' values.
 
         Parameters
         ----------
@@ -127,7 +130,8 @@ class _GEEDatasetManager:
 
         Returns
         -------
-        None
+        pandas.Dataframe:
+            The formatted metadf.
         """
         if metadf.empty:
             raise MetObsModelDataError(f"There is no metadata provided for {self}.")
@@ -147,6 +151,18 @@ class _GEEDatasetManager:
             raise MetObsModelDataError(
                 'All values of the "lon" column in the metadf are Nan.'
             )
+        
+        #at this point, it can happen that some stations do not have
+        #a coordinate and others does. Drop these rows in the metadf,
+        #since a call to Nan coordinates results in an error.
+
+        if metadf[["lat", "lon"]].isnull().any(axis=1).any():
+            missing_coords = metadf[metadf[["lat", "lon"]].isnull().any(axis=1)].index.tolist()
+            logger.warning(
+                f"The following stations have missing coordinates, no data will be extracted: {missing_coords}"
+            )
+        metadf = metadf.dropna(subset=['lat', 'lon'])
+        return metadf
 
     def _get_all_gee_bandnames(self) -> list:
         """
@@ -303,7 +319,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         logger.debug(
             f"Entering GEEStaticDatasetManager.extract_static_point_data for {self}"
         )
-        self._check_metadf_validity(metadf)
+        metadf = self._check_metadf_validity(metadf)
 
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
@@ -367,7 +383,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 "No metadata is present for the GeeStaticDataset. No extraction possible."
             )
 
-        self._check_metadf_validity(metadf)
+        metadf = self._check_metadf_validity(metadf)
 
         ee_fc = gee_api._df_to_features_buffer_collection(metadf, int(bufferradius))
 
@@ -1118,7 +1134,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         logger.debug(
             f"Entering GEEDynamicDatasetManager.extract_timeseries_data for {self}"
         )
-        self._check_metadf_validity(metadf)
+        metadf = self._check_metadf_validity(metadf)
 
         if (force_direct_transfer) & (force_to_drive):
             raise MetObsModelDataError(
