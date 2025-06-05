@@ -40,7 +40,7 @@ from metobs_toolkit.backend_collection.loggingmodule import (
 # =============================================================================
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# sys.path.append(BASE_PATH)
+
 
 # demo files
 demo_datafile = os.path.join(
