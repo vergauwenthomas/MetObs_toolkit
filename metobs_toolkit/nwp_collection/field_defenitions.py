@@ -17,3 +17,10 @@ default_SFX_fields = [
                                  model_unit='m/s',
                                  model_band="SFX.ZON10M"),
 ]
+
+
+default_AROME_fields = [
+    ModelObstype(obstype=tlk_obstypes['temp'],
+                model_unit='degK',
+                model_band="CLSTEMPERATURE"),
+]

@@ -111,7 +111,8 @@ class Verification:
             self,
             target_obstype='temp',
             groupby=['name'],
-            fc_trg_id_kwargs={},
+            trg_modelID=None,
+            trg_bandname=None,
             shift_tolerance = pd.Timedelta('5min')
             ):
         
@@ -122,7 +123,8 @@ class Verification:
         verifdf = self._create_verifdf(
                     target_obstype=target_obstype,
                     shift_tolerance=shift_tolerance,
-                    **fc_trg_id_kwargs)
+                    trg_modelID=trg_modelID,
+                    trg_bandname=trg_bandname)
         verifdf = verifdf.reset_index()
 
 
@@ -187,7 +189,8 @@ class Verification:
     def get_scores_time_related(
             self,
             target_obstype='temp',
-            fc_trg_id_kwargs={},):
+            trg_modelID=None,
+            trg_bandname=None):
         #TODO
         pass
 
@@ -196,24 +199,27 @@ class Verification:
             self,
             target_obstype='temp',
             timeinstancev: pd.Timestamp | None = None,
-            fc_trg_id_kwargs={},):
+            trg_modelID=None,
+            trg_bandname=None):
         pass
         #TODO
 
 
-    def get_obstypes(self, target_obstype:str, fc_trg_id_kwargs={}): #passed to find_modeltimeseries
+    def get_obstypes(self, trg_obstype:str,
+                     trg_modelID=None,
+                     trg_bandname=None): #passed to find_modeltimeseries
         
-
-        fc_trg_id_kwargs['trg_obstype'] = target_obstype
-
         #Get the obstype of the observations
         if hasattr(self.obj, 'obstypes'):
             #is a dataset
-            obs_obstype = self.obj.obstypes[target_obstype]
+            obs_obstype = self.obj.obstypes[trg_obstype]
             for sta in self.obj.stations:
                 is_found=False
                 try:
-                    fc_obstype = sta.find_modeltimeseries(**fc_trg_id_kwargs).modelobstype
+                    fc_obstype = sta.find_modeltimeseries(
+                                        trg_obstype=trg_obstype,
+                                        trg_modelID=trg_modelID,
+                                        trg_bandname=trg_bandname).modelobstype
                 except (MetObsModelDataError, MetObsObstypeNotFound):
                     continue
 
@@ -221,11 +227,14 @@ class Verification:
                 break
 
             if not is_found:
-                raise MetObsModelDataError(f'No modeldata found for {fc_trg_id_kwargs}.')
+                raise MetObsModelDataError(f'No modeldata found for {trg_obstype} in {trg_modelID} with {trg_bandname}.')
         else:  
             # obj is a station
-            obs_obstype = self.obj.get_sensor(target_obstype).obstype
-            fc_obstype = self.obj.find_modeltimeseries(**fc_trg_id_kwargs).modelobstype
+            obs_obstype = self.obj.get_sensor(trg_obstype).obstype
+            fc_obstype = self.obj.find_modeltimeseries(
+                                    trg_obstype=trg_obstype,
+                                    trg_modelID=trg_modelID,
+                                    trg_bandname=trg_bandname).modelobstype
 
         return obs_obstype, fc_obstype
     
@@ -238,7 +247,8 @@ class Verification:
             to_plot_level='score',
             colmap: dict | None = None,
             ax=None,
-            figkwargs={}
+            figkwargs={},
+            draw_h_line_at: None | float = None,
     ):
     
         #subset to relevant values
@@ -314,7 +324,15 @@ class Verification:
                                 ax=ax,
                                 label=colgroupid)
         
-        plotting.set_title(ax, f"{to_plot_value} values grouped per {color_level}.")
+        if isinstance(draw_h_line_at, (int, float, np.integer, np.floating)):
+            ax.axhline(draw_h_line_at, color='black', linestyle=':', zorder=0.1)
+        
+        #Title
+        if to_plot_level is None:
+            plotting.set_title(ax, f"all values from the {to_plot_level}-level, grouped per {color_level} and {xaxis_level}.")
+        else: 
+            plotting.set_title(ax, f"{to_plot_value} values grouped per {color_level} and {xaxis_level}.")
+        
         plotting.set_ylabel(ax, to_plot_value)
         plotting.set_xlabel(ax, xlabel=xaxis_level)
         if kind=='scatter':
@@ -329,18 +347,23 @@ class Verification:
                                       target_obstype='temp',
                                       ax=None,
                                       colmap=None,
-                                      fc_trg_id_kwargs={},
+                                      trg_modelID=None,
+                                      trg_bandname=None,
                                       figkwargs={}):
         
 
         # Get verifdf
         verifdf = self._create_verifdf(target_obstype=target_obstype,
-                                      **fc_trg_id_kwargs)
+                                       trg_bandname=trg_bandname,
+                                       trg_modelID=trg_modelID,
+                                      )
 
         #Get obstypes (for plotting details)
         obs_obstype, fc_obstype = self.get_obstypes(
-                        target_obstype=target_obstype,
-                        fc_trg_id_kwargs=fc_trg_id_kwargs)
+                        trg_obstype=target_obstype,
+                        trg_modelID=trg_modelID,
+                        trg_bandname=trg_bandname)
+                        
         
         # Prepare colormap (by stations)
         if colmap is None:
@@ -416,15 +439,17 @@ class Verification:
             colmap: dict|None = None,
             ax=None,
             figkwargs = {},
-            fc_trg_id_kwargs = {},
+            trg_modelID=None,
+            trg_bandname=None,
             output_is_obs = True,
             ):
         
         # ---- Filter datasources -------
         #Get obstypes (for plotting details)
         obs_obstype, fc_obstype = self.get_obstypes(
-                        target_obstype=target_obstype,
-                        fc_trg_id_kwargs=fc_trg_id_kwargs)
+                        trg_obstype=target_obstype,
+                        trg_bandname=trg_bandname,
+                        trg_modelID=trg_modelID)
 
         if output_is_obs:
             df = (self.obj.df

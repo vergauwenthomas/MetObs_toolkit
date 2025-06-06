@@ -74,6 +74,7 @@ def synchronize_series(
 
     The target timestamps are defined by:
 
+
      * freq: the highest frequency present in the input series
      * origin: the earliest timestamp found, rounded down by the freq
      * closing: the latest timestamp found, rounded up by the freq.
@@ -323,6 +324,7 @@ def toolkit_buddy_check(
 ) -> Tuple[list, dict]:
     """
     Spatial buddy check.
+    Spatial buddy check.
 
     The buddy check compares an observation against its neighbors
     (i.e. spatial buddies). The check loops over all the groups, which are stations
@@ -343,6 +345,7 @@ def toolkit_buddy_check(
     outlier is saved. It will be removed from the outliers, and will pass to the
     next iteration or the end of this function.
 
+    A schematic step-by-step description of the buddy check:
     A schematic step-by-step description of the buddy check:
 
     #. A distance matrix is constructed for all interdistances between
@@ -444,6 +447,15 @@ def toolkit_buddy_check(
     dict
         A dictionary mapping each synchronized timestamp to its original
           timestamp.
+    Returns
+    -------
+    list
+        A list of tuples containing the outlier station, timestamp,
+        and detail message. Each tuple is in the form (station_name,
+        timestamp, message).
+    dict
+        A dictionary mapping each synchronized timestamp to its original
+          timestamp.
 
     Notes
     -----
@@ -474,6 +486,10 @@ def toolkit_buddy_check(
     # filter buddies by altitude difference
     if max_alt_diff is not None:
         if metadf["altitude"].isna().any():
+            raise ValueError(
+                "At least one station has a NaN \
+value for 'altitude'"
+            )
             raise ValueError(
                 "At least one station has a NaN \
 value for 'altitude'"
@@ -537,6 +553,7 @@ value for 'altitude'"
         if use_mp:
             # Use multiprocessing generator (parallelization)
             num_cpus = os.cpu_count()
+            # since this check is an instantaneous check -->
             # since this check is an instantaneous check -->
             # perfect for splitting the dataset in chunks in time
             chunks = np.array_split(combdf, num_cpus)
@@ -713,14 +730,20 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         A tuple containing:
 
         * buddygroup : list
+
+        * buddygroup : list
             List of station names that form the buddy group.
         * combdf : pandas.DataFrame
+        * combdf : pandas.DataFrame
             DataFrame containing the combined data for all stations.
+        * min_sample_size : int
         * min_sample_size : int
             Minimum number of non-NaN values required in the buddy group for a
             valid comparison.
         * min_std : float
+        * min_std : float
             Minimum standard deviation to use when calculating z-scores.
+        * outlier_threshold : float
         * outlier_threshold : float
             Threshold for identifying outliers in terms of z-scores.
 
@@ -733,37 +756,34 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         * pandas.Timestamp : The timestamp of the outlier.
         * str : A detailed message describing the outlier.
 
+        * str : The station name of the most extreme outlier.
+        * pandas.Timestamp : The timestamp of the outlier.
+        * str : A detailed message describing the outlier.
+
     Notes
     -----
     This function performs the following steps:
 
+
     1. Subsets the data to the buddy group.
     2. Calculates the mean, standard deviation, and count of non-NaN values
        for each timestamp.
+       for each timestamp.
     3. Filters out timestamps with insufficient data.
     4. Replaces standard deviations below the minimum threshold with the
+       minimum value.
        minimum value.
     5. Converts station values to z-scores.
     6. Identifies timestamps with at least one outlier.
     7. Locates the most extreme outlier for each timestamp.
     8. Generates a detailed message for each outlier.
 
+
     """
     logger.debug("Entering find_buddy_group_outlier")
-    if not isinstance(inputarg, tuple):
-        raise TypeError("inputarg must be a tuple")
+
     buddygroup, combdf = inputarg[0], inputarg[1]
     min_sample_size, min_std, outlier_threshold = inputarg[2:]
-    if not isinstance(buddygroup, (list, tuple)):
-        raise TypeError("buddygroup must be a list or tuple")
-    if not isinstance(combdf, pd.DataFrame):
-        raise TypeError("combdf must be a pandas.DataFrame")
-    if not isinstance(min_sample_size, int):
-        raise TypeError("min_sample_size must be an int")
-    if not isinstance(min_std, (int, float)):
-        raise TypeError("min_std must be an int or float")
-    if not isinstance(outlier_threshold, (int, float)):
-        raise TypeError("outlier_threshold must be an int or float")
 
     # subset to the buddies
     buddydf = combdf[[*buddygroup]]
@@ -774,6 +794,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     buddydf["non_nan_count"] = buddydf[[*buddygroup]].notna().sum(axis=1)
 
     # subset to samples with enough members (check for each timestamp
+
     # specifically)
     buddydf = buddydf.loc[buddydf["non_nan_count"] >= min_sample_size]
 

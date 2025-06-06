@@ -1,7 +1,9 @@
 import logging
 
 import pandas as pd
+import geopandas as gpd
 import xarray as xr
+import regionmask
 
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -151,7 +153,8 @@ class ModelDataset:
             logger.warning(f'The following variables are unmapped and are removed from the modeldataset: {droped_vars}')
 
         #Do not drop the coordinates
-        self.dataset = self.dataset[in_defs + coord_names(self.dataset)]
+        target_subset = set(in_dataset).intersection(set(in_defs))
+        self.dataset = self.dataset[list(target_subset) + list(coord_names(self.dataset))]
         return
     
     def _too_standard_units(self):
@@ -256,9 +259,6 @@ class ModelDataset:
             raise MetObsFieldNotFound(f'{fieldname} not a known fieldname. These fields are present: {self.variable_names}')
         return
 
-
-
-
     def insert_modeltimeseries(
             self,
             stationlist: list,
@@ -315,3 +315,176 @@ class ModelDataset:
 
 
    
+
+    # package_root=Path(__file__).parent
+    # #file with country shapes
+    # country_shp = os.path.join(package_root, 'data', 'world-administrative-boundaries.shp')
+
+
+    def trim_to_box(self, minlat, maxlat, minlon, maxlon, drop=False):
+        self.dataset = self.dataset.where(
+                    ((self.dataset['lat'] <= maxlat) &
+                        (self.dataset['lat'] >= minlat) &
+                        (self.dataset['lon'] <= maxlon) &
+                        (self.dataset['lon'] >= minlon)),
+                    drop=drop)
+        
+
+    def trim_to_country(self, country_shp_file,
+                        country='Belgium',
+                        drop=False):
+        
+        #read the shape file
+        shpfile = gpd.read_file(country_shp_file)
+
+        #subset one country
+        trg_shp = shpfile.loc[shpfile['name'] == country]
+        
+        #convert trg_shp to  regionmask
+        trg_region = regionmask.from_geopandas(trg_shp) #to region
+        
+        #rasterize (convert to a dataset with nan's out of the trg region)
+        maskraster = trg_region.mask(self.dataset,
+                                        lon_name = 'lon',
+                                        lat_name='lat')
+        
+        self.dataset = self.dataset.where(maskraster.notnull(), drop=drop)
+        
+        
+
+
+    def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h'), drop=False):
+        if isinstance(spinup_duration, str):
+            #convert to pandas Timedelta
+            spinup_duration = pd.Timedelta(spinup_duration)
+        
+        self.dataset = self.dataset.where(  
+                    self.dataset['validtime'] - self.dataset['reference_time'] >= spinup_duration,
+                    drop=drop)
+    
+
+
+    def trim_tails_of_cycled_ds(self, keep_smallest_lt=True,
+                                validtimename='validtime',
+                                referecetimename='reference_time'):
+        """ Drop the tails of data that are captured by a newer cycle for all variables. """
+        #WARNING! make shure that the leadtime is extracted before executing this function !! 
+        if keep_smallest_lt:
+            select_duplicate_idx = -1 #last from duplicates
+        else: 
+            select_duplicate_idx = 1 #first from duplicates
+
+
+        #attempt
+        #reshape so that reference time is last dimension
+        self.dataset = self.dataset.transpose(..., validtimename, referecetimename)  # equivalent
+        #sort data by all dimensions
+        self.dataset = self.dataset.sortby([validtimename, referecetimename])
+
+
+        for field in self.dataset.variables: 
+            if field == referecetimename:
+                continue #remove after all references in the fields are removed
+        
+            if referecetimename in self.dataset[field].dims:
+                #trgdims: the order of dimensions, referencetimename must be the last dimension !!! 
+                #reshape so that reference_time is last dimension
+                # trgdims = tuple(set(self.dataset[field].dims) - set([referecetimename]))+tuple([referecetimename])
+                # fieldds = self.dataset[field].transpose(*trgdims)
+            
+                #sort data by all dimensions
+                # fieldds = fieldds.sortby(variables = list(trgdims))
+
+                #reduce the data
+                # newdata = _reduce_last_dimension(arr=fieldds.data,
+                #                                 keepidx=select_duplicate_idx)
+                newdata = _reduce_last_dimension(arr=self.dataset[field].data,
+                                                keepidx=select_duplicate_idx)
+
+                #construct a dataarray
+                newcoords = {coord: self.dataset[field][coord] for coord in self.dataset[field].coords if coord != referecetimename}
+                newfieldds = xr.DataArray(
+                    data=newdata,
+                    coords=newcoords,
+                    dims=self.dataset[field].dims[:-1],  # drop the last dimension
+                    attrs=self.dataset[field].attrs
+                )  # the last dimension is resolved
+            
+                #overwrite the field
+                self.dataset[field] = newfieldds
+        
+        # Drop the reference_time dimension from the dataset
+        self.dataset = self.dataset.drop_dims(referecetimename)
+
+# Reduce the last dimension by taking the last non-NaN element along that dimension
+def _reduce_last_dimension(arr, keepidx=-1):
+    """
+    Reduce the last dimension of a numpy array by selecting the keepidx-th non-NaN value
+    along the last dimension for each index of the other dimensions.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array. Reduction is performed along the last dimension.
+    keepidx : int
+        Index to select among the non-NaN values along the last dimension.
+        -1 means the last non-NaN value (default).
+
+    Returns
+    -------
+    reduced : np.ndarray
+        Array with the last dimension reduced.
+    """
+    arr = np.asarray(arr)
+    # arr shape: (..., N)
+    # mask for non-NaN values
+    mask = ~np.isnan(arr)
+    # count valid values along last dimension
+    valid_count = mask.sum(axis=-1)
+    # indices of the last valid value along last dimension
+    if keepidx == -1:
+        # last valid
+        idx = np.flip(mask, axis=-1).argmax(axis=-1)
+        idx = arr.shape[-1] - 1 - idx
+    else:
+        # kth valid (from start)
+        # get indices of all valid values
+        valid_idx = np.where(mask)
+        # create an array of indices for the last dimension
+        last_dim_idx = np.arange(arr.shape[-1])
+        # broadcast to shape of arr
+        last_dim_idx = np.broadcast_to(last_dim_idx, arr.shape)
+        # for each position, get the indices of valid values
+        # then select the keepidx-th one
+        # This is tricky to vectorize for arbitrary keepidx, so fallback to slower method
+        # but only for non-default keepidx
+        reduced = np.full(arr.shape[:-1], np.nan)
+        it = np.nditer(valid_count, flags=['multi_index'])
+        for _ in it:
+            idxs = np.where(mask[it.multi_index])[0]
+            if idxs.size > 0 and abs(keepidx) < idxs.size:
+                reduced[it.multi_index] = arr[it.multi_index + (idxs[keepidx],)]
+        return reduced
+
+
+    # Use advanced indexing to select the value at idx for each position
+    # Build indices for all dimensions except last
+    grid = list(np.ogrid[tuple(map(slice, arr.shape[:-1]))])
+    # Add the last dimension indices
+    grid.append(idx)
+    reduced = arr[tuple(grid)]
+    # Set to nan where there are no valid values
+    reduced[valid_count == 0] = np.nan
+    return reduced
+   
+
+
+# def _reduce_last_dimension(arr, keepidx = -1):
+#     # Create an array to store the reduced values
+#     reduced = np.full(arr.shape[:-1], np.nan)
+#     for idx in np.ndindex(arr.shape[:-1]):
+#         # Extract the last non-NaN value along the last dimension
+#         valid_values = arr[idx].compressed() if isinstance(arr[idx], np.ma.MaskedArray) else arr[idx][~np.isnan(arr[idx])]
+#         if valid_values.size > 0:
+#             reduced[idx] = valid_values[keepidx] # -1: pick last (THus newest cycle)
+#     return reduced

@@ -60,15 +60,6 @@ class SensorData:
         origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
         timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
     ):
-        if not isinstance(stationname, str):
-            raise TypeError("stationname must be a string")
-        if not isinstance(datarecords, np.ndarray):
-            raise TypeError("datarecords must be a numpy array")
-        if not isinstance(timestamps, np.ndarray):
-            raise TypeError("timestamps must be a numpy array")
-        if not isinstance(obstype, Obstype):
-            raise TypeError("obstype must be an instance of Obstype")
-
         # Set data
         self._stationname = stationname
         self.obstype = obstype
@@ -346,10 +337,6 @@ class SensorData:
         """
         logger.debug("Entering _format_timestamp_index for %s", self)
 
-        if not isinstance(timestamps, np.ndarray):
-            raise TypeError("timestamps must be a numpy array")
-        if not isinstance(tz, (str, pd.Timedelta)):
-            raise TypeError("tz must be a string or pandas Timedelta")
         return pd.DatetimeIndex(data=timestamps, tz=tz)
 
     def _update_outliers(
@@ -384,17 +371,6 @@ class SensorData:
         logger.debug(
             "Entering _update_outliers for %s with check %s", self, qccheckname
         )
-
-        if not isinstance(qccheckname, str):
-            raise TypeError("qccheckname must be a string")
-        if not isinstance(outliertimestamps, pd.DatetimeIndex):
-            raise TypeError("outliertimestamps must be a pandas DatetimeIndex")
-        if not isinstance(check_kwargs, dict):
-            raise TypeError("check_kwargs must be a dictionary")
-        if not isinstance(extra_columns, dict):
-            raise TypeError("extra_columns must be a dictionary")
-        if not isinstance(overwrite, bool):
-            raise TypeError("overwrite must be a boolean")
 
         for applied_qc_info in self.outliers:
             if qccheckname == applied_qc_info.keys():
@@ -440,11 +416,6 @@ class SensorData:
             If input types are incorrect.
         """
         logger.debug("Entering _find_gaps for %s", self)
-
-        if not isinstance(missingrecords, pd.Series):
-            raise TypeError("missingrecords must be a pandas Series")
-        if not isinstance(target_freq, pd.Timedelta):
-            raise TypeError("target_freq must be a pandas Timedelta")
 
         missing = missingrecords.sort_index().to_frame()
         missing["diff"] = missing.index.to_series().diff()

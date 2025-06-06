@@ -26,7 +26,10 @@ from metobs_toolkit.geedatasetmanagers import (
     default_datasets as default_GEE_datasets,
 )
 
-from metobs_toolkit.nwp_collection.field_defenitions import default_SFX_fields
+from metobs_toolkit.nwp_collection.field_defenitions import (
+    default_SFX_fields,
+    default_AROME_fields,
+)
 
 # Special functions that can be directly called by te user
 from metobs_toolkit.dataset import import_dataset_from_pkl
@@ -44,7 +47,6 @@ from metobs_toolkit.backend_collection.loggingmodule import (
 # =============================================================================
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# sys.path.append(BASE_PATH)
 
 # demo files
 demo_datafile = os.path.join(
@@ -81,4 +83,4 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 # DO not change this manually!
-__version__ = "0.4.1a"
+__version__ = "0.4.1"
