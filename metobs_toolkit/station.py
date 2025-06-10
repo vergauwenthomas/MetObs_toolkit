@@ -68,6 +68,20 @@ class Station:
             and self._modeldata == other._modeldata
         )
 
+    def __add__(self, other:"Station") -> "Station":
+        #triage the metadata
+        self.site = self.site + other.site
+
+        #triage the sensordata
+
+
+        #triage the modeldata
+
+
+        
+
+        return self
+
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"Station instance of {self.name}"

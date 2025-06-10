@@ -95,6 +95,33 @@ class Dataset:
         if not isinstance(other, Dataset):
             return False
         return self.stations == other.stations
+    
+    def __add__(self, other:"Dataset") -> "Dataset":
+       
+        #Triage
+        present_names = [sta.name for sta in self.stations]
+        new_names = [sta.name for sta in other.stations]
+        new_id_stations = set(new_names) - set(present_names)
+        same_id_stations = set(present_names).intersection(new_names)
+
+        #Simply add stations that have other names
+        for new_sta in new_id_stations:
+            self.stations.append(other.get_station(new_sta))
+
+        #add on deeper level stations with the same ID
+        for sta in same_id_stations:
+            cursta = self.get_station(sta)
+            newsta = other.get_station(sta)
+            #maybe try cache ?
+            cursta = cursta + newsta #TODO check if this is a pointer !! if this returns to the self.stations attr
+
+
+
+
+
+        #add obstypes
+        self.obstypes = list(set(self.obstypes).union(set(other.obstypes)))
+        return self
 
     def __str__(self) -> str:
         """Return a string representation of the Dataset."""

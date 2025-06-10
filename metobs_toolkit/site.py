@@ -66,6 +66,19 @@ class Site:
             and self._geedata == other._geedata
             and self._gee_buffered_fractions == other._gee_buffered_fractions
         )
+    
+    def __add__(self, other:"Site") -> "Site":
+        #lat, lon and name must be the same! 
+        lat_equal = (self.lat == other.lat) or (
+            pd.isnull(self.lat) and pd.isnull(other.lat)
+        )
+        lon_equal = (self.lon == other.lon) or (
+            pd.isnull(self.lon) and pd.isnull(other.lon)
+        )
+
+        if not (self.name == other.name and lat_equal and lon_equal):
+            raise In
+
 
     @property
     def stationname(self) -> str:
