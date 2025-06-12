@@ -134,6 +134,8 @@ class ModelDataset:
         #Set grid
         self.grid = Grid(self.dataset[['lat', 'lon']])
 
+        self._tails_are_removed = False
+
     def __repr__(self):
         return f"Gridded output of {self.modelID}:\n {self.dataset}"
     
@@ -353,138 +355,80 @@ class ModelDataset:
         
 
 
-    def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h'), drop=False):
+    def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h')):
+        if self._tails_are_removed:
+            raise RuntimeError("trim_spinup_period must be applied before the tails are removed. Call trim_spinup_period before trim_tails_of_cycled_ds.")
+
         if isinstance(spinup_duration, str):
             #convert to pandas Timedelta
             spinup_duration = pd.Timedelta(spinup_duration)
-        
+
         self.dataset = self.dataset.where(  
                     self.dataset['validtime'] - self.dataset['reference_time'] >= spinup_duration,
-                    drop=drop)
+                    drop=True) #Drop must be true for the tail removal to work
+        
     
 
+    def add_leadtime_dimension(self):
+        #Create leadtime dimension
+        leadtime = (self.dataset['validtime'] - self.dataset['reference_time']).astype('timedelta64[s]')
+        self.dataset = self.dataset.assign_coords(leadtime=leadtime)
 
-    def trim_tails_of_cycled_ds(self, keep_smallest_lt=True,
+
+    def trim_tails_of_cycled_ds(self,
                                 validtimename='validtime',
                                 referecetimename='reference_time'):
         """ Drop the tails of data that are captured by a newer cycle for all variables. """
-        #WARNING! make shure that the leadtime is extracted before executing this function !! 
-        if keep_smallest_lt:
-            select_duplicate_idx = -1 #last from duplicates
-        else: 
-            select_duplicate_idx = 1 #first from duplicates
+        #TODO: remove spinup first !!! 
+        self._tails_are_removed = True
+        self.add_leadtime_dimension()
 
+        #ASSUMPTION: the time-related dimensions are the same for all variables !!!!
+        # this is typical true for FA files, which contains variables at the same validtime and refernce_time. 
+       
+        def get_no_tail_indices(da):
+            # Mask out negative leadtimes
+            masked = da.where(da['leadtime'] >= 0)
+            # If all values are NaN, return 0 or np.nan (choose what makes sense for your use case)
+            if masked.isnull().all():
+                # Option 1: return np.nan (will drop this group later)
+                # return np.nan
+                return xr.DataArray(np.nan)
+                # Exclude 'reference_time' from coords and dims
+                # Option 2: return 0 (will select the first, but may not be what you want)
+                # return xr.DataArray(0, coords=masked.coords, dims=[])
+            # Otherwise, return the index of the minimum
+            return masked.argmin(dim=referecetimename)
+        #Find no-tail indices on a single field (Speedup + memory saving)
+        dummy_field = self.variable_names[0]
+        no_tail_idices = self.dataset[dummy_field].groupby(validtimename).map(get_no_tail_indices)
 
-        #attempt
-        #reshape so that reference time is last dimension
-        self.dataset = self.dataset.transpose(..., validtimename, referecetimename)  # equivalent
-        #sort data by all dimensions
-        self.dataset = self.dataset.sortby([validtimename, referecetimename])
+        #Drop nans
+        no_tail_idices = no_tail_idices.dropna(validtimename)
 
+        if  hasattr(no_tail_idices, "compute"):
+            #issue is that isel() does not take chunked dask array as input, so they need
+            #to be computed 
+            no_tail_idices = no_tail_idices.compute()
 
-        for field in self.dataset.variables: 
-            if field == referecetimename:
-                continue #remove after all references in the fields are removed
+        self.dataset = self.dataset.isel({referecetimename: no_tail_idices})
+       
+        self._tails_are_removed = True #To be checked when calling remove spinup after tail removal
+        #Fix the leadtime  + refernce_tim coordinate
+        # for some reason it is strangled with x and y dimension, so unravel
+        # and make it dependant only on validtime 
+
+        new_lt = self.dataset['leadtime'].isel(x=1, y=1)
+        self.dataset = self.dataset.drop_vars(['leadtime', 'reference_time'])
+        #Construct leadtime coord (1D depending on validtime)
+        self.dataset = self.dataset.assign_coords(leadtime=("validtime", new_lt.data))
+        #Construct reference time coord (1D depending on validtime)  
+        self.dataset = self.dataset.assign_coords(reference_time=(
+            ("validtime",
+             (self.dataset.validtime - new_lt).data)
+        )) 
         
-            if referecetimename in self.dataset[field].dims:
-                #trgdims: the order of dimensions, referencetimename must be the last dimension !!! 
-                #reshape so that reference_time is last dimension
-                # trgdims = tuple(set(self.dataset[field].dims) - set([referecetimename]))+tuple([referecetimename])
-                # fieldds = self.dataset[field].transpose(*trgdims)
-            
-                #sort data by all dimensions
-                # fieldds = fieldds.sortby(variables = list(trgdims))
-
-                #reduce the data
-                # newdata = _reduce_last_dimension(arr=fieldds.data,
-                #                                 keepidx=select_duplicate_idx)
-                newdata = _reduce_last_dimension(arr=self.dataset[field].data,
-                                                keepidx=select_duplicate_idx)
-
-                #construct a dataarray
-                newcoords = {coord: self.dataset[field][coord] for coord in self.dataset[field].coords if coord != referecetimename}
-                newfieldds = xr.DataArray(
-                    data=newdata,
-                    coords=newcoords,
-                    dims=self.dataset[field].dims[:-1],  # drop the last dimension
-                    attrs=self.dataset[field].attrs
-                )  # the last dimension is resolved
-            
-                #overwrite the field
-                self.dataset[field] = newfieldds
         
-        # Drop the reference_time dimension from the dataset
-        self.dataset = self.dataset.drop_dims(referecetimename)
-
-# Reduce the last dimension by taking the last non-NaN element along that dimension
-def _reduce_last_dimension(arr, keepidx=-1):
-    """
-    Reduce the last dimension of a numpy array by selecting the keepidx-th non-NaN value
-    along the last dimension for each index of the other dimensions.
-
-    Parameters
-    ----------
-    arr : np.ndarray
-        Input array. Reduction is performed along the last dimension.
-    keepidx : int
-        Index to select among the non-NaN values along the last dimension.
-        -1 means the last non-NaN value (default).
-
-    Returns
-    -------
-    reduced : np.ndarray
-        Array with the last dimension reduced.
-    """
-    arr = np.asarray(arr)
-    # arr shape: (..., N)
-    # mask for non-NaN values
-    mask = ~np.isnan(arr)
-    # count valid values along last dimension
-    valid_count = mask.sum(axis=-1)
-    # indices of the last valid value along last dimension
-    if keepidx == -1:
-        # last valid
-        idx = np.flip(mask, axis=-1).argmax(axis=-1)
-        idx = arr.shape[-1] - 1 - idx
-    else:
-        # kth valid (from start)
-        # get indices of all valid values
-        valid_idx = np.where(mask)
-        # create an array of indices for the last dimension
-        last_dim_idx = np.arange(arr.shape[-1])
-        # broadcast to shape of arr
-        last_dim_idx = np.broadcast_to(last_dim_idx, arr.shape)
-        # for each position, get the indices of valid values
-        # then select the keepidx-th one
-        # This is tricky to vectorize for arbitrary keepidx, so fallback to slower method
-        # but only for non-default keepidx
-        reduced = np.full(arr.shape[:-1], np.nan)
-        it = np.nditer(valid_count, flags=['multi_index'])
-        for _ in it:
-            idxs = np.where(mask[it.multi_index])[0]
-            if idxs.size > 0 and abs(keepidx) < idxs.size:
-                reduced[it.multi_index] = arr[it.multi_index + (idxs[keepidx],)]
-        return reduced
 
 
-    # Use advanced indexing to select the value at idx for each position
-    # Build indices for all dimensions except last
-    grid = list(np.ogrid[tuple(map(slice, arr.shape[:-1]))])
-    # Add the last dimension indices
-    grid.append(idx)
-    reduced = arr[tuple(grid)]
-    # Set to nan where there are no valid values
-    reduced[valid_count == 0] = np.nan
-    return reduced
-   
-
-
-# def _reduce_last_dimension(arr, keepidx = -1):
-#     # Create an array to store the reduced values
-#     reduced = np.full(arr.shape[:-1], np.nan)
-#     for idx in np.ndindex(arr.shape[:-1]):
-#         # Extract the last non-NaN value along the last dimension
-#         valid_values = arr[idx].compressed() if isinstance(arr[idx], np.ma.MaskedArray) else arr[idx][~np.isnan(arr[idx])]
-#         if valid_values.size > 0:
-#             reduced[idx] = valid_values[keepidx] # -1: pick last (THus newest cycle)
-#     return reduced
+    
