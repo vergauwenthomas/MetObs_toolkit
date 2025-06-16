@@ -11,7 +11,7 @@ import cartopy
 import numpy as np
 from sklearn.neighbors import BallTree
 
-
+from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
 from metobs_toolkit.nwp_collection.error_classes import MetObsFieldNotFound
 from metobs_toolkit.nwp_collection.xr_helpers import variable_names, coord_names
@@ -352,81 +352,112 @@ class ModelDataset:
         
         self.dataset = self.dataset.where(maskraster.notnull(), drop=drop)
         
+    def trim_spinup_and_tails(self, spinup_duration=pd.Timedelta('4h'),
+                              cycle_freq:pd.Timestamp|None = None,
+                              validtimename='validtime',
+                              referecetimename='reference_time',
+                              drop=True):
+        #1. add leadtime
+        self.add_leadtime_dimension(validtimename=validtimename,
+                                    referecetimename=referecetimename)
+
+        # 2. construct limits of leadtime
+        if cycle_freq is None:
+            #estimate the cycle frequency
+            ref_time_freq = pd.infer_freq(pd.to_datetime(self.dataset[referecetimename]))
+        
+        #to timedeltas
+        ref_time_freq = to_timedelta(ref_time_freq)
+        spinup = to_timedelta(spinup_duration)
+
+        min_leadtime = spinup
+        max_leadtime = ref_time_freq + spinup
+
+        # 3. subset data
+        #NOTE: Make sure that always one of the bounds is included and the other
+        # is not! Else there will be multiple values for one validtime (based
+        # on referene time).
+        self.dataset = self.dataset.where(
+            (self.dataset['leadtime'] >= min_leadtime) & #leadtime included
+            (self.dataset['leadtime'] < max_leadtime), #Maxleadtime excluded !!! 
+            drop=drop)
         
 
 
-    def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h')):
-        if self._tails_are_removed:
-            raise RuntimeError("trim_spinup_period must be applied before the tails are removed. Call trim_spinup_period before trim_tails_of_cycled_ds.")
+    # def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h')):
+    #     if self._tails_are_removed:
+    #         raise RuntimeError("trim_spinup_period must be applied before the tails are removed. Call trim_spinup_period before trim_tails_of_cycled_ds.")
 
-        if isinstance(spinup_duration, str):
-            #convert to pandas Timedelta
-            spinup_duration = pd.Timedelta(spinup_duration)
+    #     if isinstance(spinup_duration, str):
+    #         #convert to pandas Timedelta
+    #         spinup_duration = pd.Timedelta(spinup_duration)
 
-        self.dataset = self.dataset.where(  
-                    self.dataset['validtime'] - self.dataset['reference_time'] >= spinup_duration,
-                    drop=True) #Drop must be true for the tail removal to work
+    #     self.dataset = self.dataset.where(  
+    #                 self.dataset['validtime'] - self.dataset['reference_time'] >= spinup_duration,
+    #                 drop=True) #Drop must be true for the tail removal to work
         
     
 
-    def add_leadtime_dimension(self):
+    def add_leadtime_dimension(self,
+                        validtimename='validtime',
+                        referecetimename='reference_time'):
         #Create leadtime dimension
         leadtime = (self.dataset['validtime'] - self.dataset['reference_time']).astype('timedelta64[s]')
         self.dataset = self.dataset.assign_coords(leadtime=leadtime)
 
 
-    def trim_tails_of_cycled_ds(self,
-                                validtimename='validtime',
-                                referecetimename='reference_time'):
-        """ Drop the tails of data that are captured by a newer cycle for all variables. """
-        #TODO: remove spinup first !!! 
-        self._tails_are_removed = True
-        self.add_leadtime_dimension()
+    # def trim_tails_of_cycled_ds(self,
+    #                             validtimename='validtime',
+    #                             referecetimename='reference_time'):
+    #     """ Drop the tails of data that are captured by a newer cycle for all variables. """
+    #     #TODO: remove spinup first !!! 
+    #     self._tails_are_removed = True
+    #     self.add_leadtime_dimension()
 
-        #ASSUMPTION: the time-related dimensions are the same for all variables !!!!
-        # this is typical true for FA files, which contains variables at the same validtime and refernce_time. 
+    #     #ASSUMPTION: the time-related dimensions are the same for all variables !!!!
+    #     # this is typical true for FA files, which contains variables at the same validtime and refernce_time. 
        
-        def get_no_tail_indices(da):
-            # Mask out negative leadtimes
-            masked = da.where(da['leadtime'] >= 0)
-            # If all values are NaN, return 0 or np.nan (choose what makes sense for your use case)
-            if masked.isnull().all():
-                # Option 1: return np.nan (will drop this group later)
-                # return np.nan
-                return xr.DataArray(np.nan)
-                # Exclude 'reference_time' from coords and dims
-                # Option 2: return 0 (will select the first, but may not be what you want)
-                # return xr.DataArray(0, coords=masked.coords, dims=[])
-            # Otherwise, return the index of the minimum
-            return masked.argmin(dim=referecetimename)
-        #Find no-tail indices on a single field (Speedup + memory saving)
-        dummy_field = self.variable_names[0]
-        no_tail_idices = self.dataset[dummy_field].groupby(validtimename).map(get_no_tail_indices)
+    #     def get_no_tail_indices(da):
+    #         # Mask out negative leadtimes
+    #         masked = da.where(da['leadtime'] >= 0)
+    #         # If all values are NaN, return 0 or np.nan (choose what makes sense for your use case)
+    #         if masked.isnull().all():
+    #             # Option 1: return np.nan (will drop this group later)
+    #             # return np.nan
+    #             return xr.DataArray(np.nan)
+    #             # Exclude 'reference_time' from coords and dims
+    #             # Option 2: return 0 (will select the first, but may not be what you want)
+    #             # return xr.DataArray(0, coords=masked.coords, dims=[])
+    #         # Otherwise, return the index of the minimum
+    #         return masked.argmin(dim=referecetimename)
+    #     #Find no-tail indices on a single field (Speedup + memory saving)
+    #     dummy_field = self.variable_names[0]
+    #     no_tail_idices = self.dataset[dummy_field].groupby(validtimename).map(get_no_tail_indices)
 
-        #Drop nans
-        no_tail_idices = no_tail_idices.dropna(validtimename)
+    #     #Drop nans
+    #     no_tail_idices = no_tail_idices.dropna(validtimename)
 
-        if  hasattr(no_tail_idices, "compute"):
-            #issue is that isel() does not take chunked dask array as input, so they need
-            #to be computed 
-            no_tail_idices = no_tail_idices.compute()
+    #     if  hasattr(no_tail_idices, "compute"):
+    #         #issue is that isel() does not take chunked dask array as input, so they need
+    #         #to be computed 
+    #         no_tail_idices = no_tail_idices.compute()
 
-        self.dataset = self.dataset.isel({referecetimename: no_tail_idices})
+    #     self.dataset = self.dataset.isel({referecetimename: no_tail_idices})
        
-        self._tails_are_removed = True #To be checked when calling remove spinup after tail removal
-        #Fix the leadtime  + refernce_tim coordinate
-        # for some reason it is strangled with x and y dimension, so unravel
-        # and make it dependant only on validtime 
+    #     self._tails_are_removed = True #To be checked when calling remove spinup after tail removal
+    #     #Fix the leadtime  + refernce_tim coordinate
+    #     # for some reason it is strangled with x and y dimension, so unravel
+    #     # and make it dependant only on validtime 
 
-        new_lt = self.dataset['leadtime'].isel(x=1, y=1)
-        self.dataset = self.dataset.drop_vars(['leadtime', 'reference_time'])
-        #Construct leadtime coord (1D depending on validtime)
-        self.dataset = self.dataset.assign_coords(leadtime=("validtime", new_lt.data))
-        #Construct reference time coord (1D depending on validtime)  
-        self.dataset = self.dataset.assign_coords(reference_time=(
-            ("validtime",
-             (self.dataset.validtime - new_lt).data)
-        )) 
+    #     new_lt = self.dataset['leadtime'].isel(x=1, y=1)
+    #     self.dataset = self.dataset.drop_vars(['leadtime', 'reference_time'])
+    #     #Construct leadtime coord (1D depending on validtime)
+    #     self.dataset = self.dataset.assign_coords(leadtime=("validtime", new_lt.data))
+    #     #Construct reference time coord (1D depending on validtime)  
+    #     self.dataset = self.dataset.assign_coords(reference_time=(
+    #         ("validtime",
+    #          (self.dataset.validtime - new_lt).data)
+    #     )) 
         
         
 

@@ -47,7 +47,7 @@ dependencies=[
   "xarray (>=2025.4.0,<2026.0.0)",
   "netcdf4 (>=1.7.2,<2.0.0)",
   "dask (>=2025.5.1,<2026.0.0)",
-  "regionmask (>=0.13.0,<0.14.0)"
+  "regionmask (>=0.13.0,<0.14.0)",
 ]
 
 [tool.poetry.group.dev.dependencies]
