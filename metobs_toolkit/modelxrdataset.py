@@ -295,6 +295,7 @@ class ModelDataset:
         #Construct Dataframe
         trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
         targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
+        targetdf = targetdf.reset_index().set_index(['name', 'validtime'])
         targetdf = targetdf[target_variables] #drop columns representing coordinates
         
         #add it as modeltimeseries to the stations
@@ -313,6 +314,9 @@ class ModelDataset:
                             modelID=self.modelID,
                             ),
                             force_update=force_update)
+            #Save memory
+            del stadf
+            targetdf = targetdf.drop(sta.name, level='name')
         
 
 
@@ -364,10 +368,11 @@ class ModelDataset:
         # 2. construct limits of leadtime
         if cycle_freq is None:
             #estimate the cycle frequency
-            ref_time_freq = pd.infer_freq(pd.to_datetime(self.dataset[referecetimename]))
+            cycle_freq = pd.infer_freq(pd.to_datetime(self.dataset[referecetimename]))
         
+            
         #to timedeltas
-        ref_time_freq = to_timedelta(ref_time_freq)
+        ref_time_freq = to_timedelta(cycle_freq)
         spinup = to_timedelta(spinup_duration)
 
         min_leadtime = spinup
