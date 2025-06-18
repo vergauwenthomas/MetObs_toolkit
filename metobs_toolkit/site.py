@@ -132,8 +132,9 @@ class Site:
                 "lat": self.lat,
                 "lon": self.lon,
                 **self._geedata,  # unfold all gee extracted data
-                **self.extradata,
-            },  # unfold all extra data
+                **self.extradata,# unfold all extra data
+                **self._grid_info,# unfold all grid related data
+            },  
             index=pd.Index(data=[self.stationname], name="name"),
         )
 
