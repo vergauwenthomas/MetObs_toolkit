@@ -274,7 +274,7 @@ class ModelDataset:
                 'x':[],
                 'y':[]}
 
-
+        logger.debug('finding nn gp for all stations')
         for sta in stationlist:
             #Get the nn gridpoint for the station
             sta.site._grid_info = self._get_nn_gridpoint(
@@ -285,46 +285,59 @@ class ModelDataset:
             stations_grid_info['x'].append(sta.site.get_gp_x_index())
             stations_grid_info['y'].append(sta.site.get_gp_y_index())
 
-
+        logger.debug('clipping nn from fc')
         # create xr dataset with station locations
         targetds = xr.Dataset(pd.DataFrame(data=stations_grid_info).set_index('name'))
 
         #clip the stations from the model
         targetds = self.dataset.sel(targetds)
 
-        #Construct Dataframe
-        trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
-        targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
-        targetdf = targetdf.reset_index().set_index(['name', 'validtime'])
-        targetdf = targetdf[target_variables] #drop columns representing coordinates
-        
-        #add it as modeltimeseries to the stations
+        #Memory is more limitting then computatio time, so favour memory efficient
+        i = 1
         for sta in stationlist:
-            stadf = targetdf.xs(sta.name, level='name')
-            #each column represents bandvalues
-            for colname in stadf.columns:
-
-                sta.add_to_modeldata(ModelTimeSeries(
+            logger.info(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
+            for var in target_variables:
+                 sta.add_to_modeldata(
+                     ModelTimeSeries(
                             site=sta.site,
-                            datarecords=stadf[colname].to_numpy(),
-                            timestamps=stadf.index.to_numpy(),
-                            modelobstype=self._modelobstype_from_variablename(colname),
+                            datarecords=targetds[var].sel(name=sta.name).to_numpy(),
+                            timestamps=targetds['validtime'].to_numpy(),
+                            modelobstype=self._modelobstype_from_variablename(var),
                             datadtype=np.float32,
                             timezone='UTC',
                             modelID=self.modelID,
                             ),
                             force_update=force_update)
-            #Save memory
-            del stadf
-            targetdf = targetdf.drop(sta.name, level='name')
+
+            i+=1
+        #Construct Dataframe
+        # trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
+        # targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
+        # targetdf = targetdf.reset_index().set_index(['name', 'validtime'])
+        # targetdf = targetdf[target_variables] #drop columns representing coordinates
+        
+        # #add it as modeltimeseries to the stations
+        # for sta in stationlist:
+        #     print(f'creating modeldata for {sta.name}')
+        #     stadf = targetdf.xs(sta.name, level='name')
+        #     #each column represents bandvalues
+        #     for colname in stadf.columns:
+
+        #         sta.add_to_modeldata(ModelTimeSeries(
+        #                     site=sta.site,
+        #                     datarecords=stadf[colname].to_numpy(),
+        #                     timestamps=stadf.index.to_numpy(),
+        #                     modelobstype=self._modelobstype_from_variablename(colname),
+        #                     datadtype=np.float32,
+        #                     timezone='UTC',
+        #                     modelID=self.modelID,
+        #                     ),
+        #                     force_update=force_update)
+        #     #Save memory
+        #     del stadf
+        #     targetdf = targetdf.drop(sta.name, level='name')
         
 
-
-   
-
-    # package_root=Path(__file__).parent
-    # #file with country shapes
-    # country_shp = os.path.join(package_root, 'data', 'world-administrative-boundaries.shp')
 
 
     def trim_to_box(self, minlat, maxlat, minlon, maxlon, drop=False):
@@ -387,7 +400,22 @@ class ModelDataset:
             (self.dataset['leadtime'] < max_leadtime), #Maxleadtime excluded !!! 
             drop=drop)
         
+        #4. Reconstruct the 1D time timensions
 
+        #Note the leadtime is collapsed with another method, since the non-physical
+        #elements on this coordinate are not Nan (but negative or in-spinup values)
+        self.dataset['leadtime1d'] = self.dataset['leadtime'].where(self.dataset['leadtime'] >=min_leadtime).min(dim='reference_time', skipna=True)
+        self.dataset = self.dataset.assign_coords(leadtime1d = self.dataset['leadtime1d'])
+        self.dataset = self.dataset.drop_vars('leadtime')
+        self.dataset = self.dataset.rename({'leadtime1d': 'leadtime'})
+
+        # Remove reference_time by collapsing it, the agg function is irrelevant if it skips nan's
+        self.dataset = self.dataset.ffill(dim='reference_time').isel(reference_time=-1)
+        
+        #recreate reference_time
+        self.dataset = self.dataset.drop_vars('reference_time')
+        self.dataset = self.dataset.assign_coords(reference_time=
+                    (self.dataset['validtime'] - self.dataset['leadtime']))
 
     # def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h')):
     #     if self._tails_are_removed:
