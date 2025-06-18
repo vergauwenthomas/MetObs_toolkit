@@ -265,6 +265,7 @@ class ModelDataset:
             self,
             stationlist: list,
             target_variables: list,
+            compute_before_assign=False,
             force_update: bool = False) -> None: 
         
 
@@ -291,6 +292,9 @@ class ModelDataset:
 
         #clip the stations from the model
         targetds = self.dataset.sel(targetds)
+
+        if compute_before_assign:
+            targetds = targetds.compute()
 
         #Memory is more limitting then computatio time, so favour memory efficient
         i = 1
