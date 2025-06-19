@@ -1387,7 +1387,7 @@ class Dataset:
         modeldataset: "ModelDataset", 
         target_variables: list | None = None,
         get_all_variables: bool = True,
-        compute_before_assign: bool = False,
+        chunk_n_stations_in_memory: int = 10,
         force_update: bool = False,
         ):
         logger.debug("Entering Dataset.get_NWP_timeseries_data")
@@ -1404,7 +1404,7 @@ class Dataset:
 
         modeldataset.insert_modeltimeseries(stationlist=target_stations,
                                             target_variables=target_variables,
-                                            compute_before_assign=compute_before_assign,
+                                            chunk_n_stations_in_memory=chunk_n_stations_in_memory,
                                             force_update=force_update)
         
 

@@ -265,7 +265,7 @@ class ModelDataset:
             self,
             stationlist: list,
             target_variables: list,
-            compute_before_assign=False,
+            chunk_n_stations_in_memory=10,
             force_update: bool = False) -> None: 
         
 
@@ -293,39 +293,57 @@ class ModelDataset:
         #clip the stations from the model
         targetds = self.dataset.sel(targetds)
 
-        def getmemsize(obj):
-            mem_bytes = obj.nbytes if hasattr(obj, 'nbytes') else obj.__sizeof__()
-            mem_gb = mem_bytes / (1024 ** 3)
-            return mem_gb
-        logger.debug(f"Memory size of targetds: {getmemsize(targetds)} GB")
+    
 
-        if compute_before_assign:
-            logger.debug('Computing the targetds, since compute_before_assign is true')
-            targetds = targetds.compute()
-            logger.debug(f"Memory size of targetds after compute: {getmemsize(targetds)} GB")
-
-
-        logger.debug(f"Memory size of self: {getmemsize(self)} GB")
-        #Memory is more limitting then computatio time, so favour memory efficient
+        # Create a list of chunks (each of size up to 10) from the 'name' coordinate
+        name_chunks = np.array_split(targetds['name'].to_numpy(), chunk_n_stations_in_memory)
         i = 1
-        for sta in stationlist:
-            logger.debug(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
-            logger.debug(f"Memory size of sta before modelfil: {getmemsize(sta)} GB")
-            for var in target_variables:
-                 sta.add_to_modeldata(
-                     ModelTimeSeries(
-                            site=sta.site,
-                            datarecords=targetds[var].sel(name=sta.name).to_numpy(),
-                            timestamps=targetds['validtime'].to_numpy(),
-                            modelobstype=self._modelobstype_from_variablename(var),
-                            datadtype=np.float32,
-                            timezone='UTC',
-                            modelID=self.modelID,
-                            ),
-                            force_update=force_update)
-            logger.debug(f"Memory size of sta after modelfil: {getmemsize(sta)} GB")
-            logger.debug(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self)} GB")                
+        for chunkstationlist in name_chunks:
+            
+            logger.info(f'In chunk {i}/{len(name_chunks)+1}')
+            targetds_chunk = targetds.sel(name=chunkstationlist).compute()
+
+            for staname in chunkstationlist:
+                logger.debug(f'creating modeldata for {staname} ')
+                sta = next(s for s in stationlist if s.name == staname)
+                logger.debug(f'creating modeldata for {sta} ')
+                for var in target_variables:
+                    sta.add_to_modeldata(
+                        ModelTimeSeries(
+                                site=sta.site,
+                                datarecords=targetds_chunk[var].sel(name=sta.name).to_numpy(),
+                                timestamps=targetds_chunk['validtime'].to_numpy(),
+                                modelobstype=self._modelobstype_from_variablename(var),
+                                datadtype=np.float32,
+                                timezone='UTC',
+                                modelID=self.modelID,
+                                ),
+                                force_update=force_update)
+            
+            del targetds_chunk
             i+=1
+
+        # logger.debug(f"Memory size of self: {getmemsize(self)} GB")
+        # #Memory is more limitting then computatio time, so favour memory efficient
+        # i = 1
+        # for sta in stationlist:
+        #     logger.debug(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
+        #     logger.debug(f"Memory size of sta before modelfil: {getmemsize(sta)} GB")
+        #     for var in target_variables:
+        #          sta.add_to_modeldata(
+        #              ModelTimeSeries(
+        #                     site=sta.site,
+        #                     datarecords=targetds[var].sel(name=sta.name).to_numpy(),
+        #                     timestamps=targetds['validtime'].to_numpy(),
+        #                     modelobstype=self._modelobstype_from_variablename(var),
+        #                     datadtype=np.float32,
+        #                     timezone='UTC',
+        #                     modelID=self.modelID,
+        #                     ),
+        #                     force_update=force_update)
+        #     logger.debug(f"Memory size of sta after modelfil: {getmemsize(sta)} GB")
+        #     logger.debug(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self)} GB")                
+        #     i+=1
         #Construct Dataframe
         # trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
         # targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
