@@ -268,6 +268,9 @@ class ModelDataset:
             chunk_n_stations_in_memory=10,
             force_update: bool = False) -> None: 
         
+        # dask.config.set(scheduler='single-threaded') 
+        #If single-treaded is off, dask will cache things and will
+        # cause a memory-leak. 
 
         #Update the stations sites
         stations_grid_info = {
@@ -301,7 +304,7 @@ class ModelDataset:
         for chunkstationlist in name_chunks:
             
             logger.info(f'In chunk {i}/{len(name_chunks)+1}')
-            targetds_chunk = targetds.sel(name=chunkstationlist).compute()
+            targetds_chunk = targetds.sel(name=chunkstationlist).load()
 
             for staname in chunkstationlist:
                 logger.debug(f'creating modeldata for {staname} ')
@@ -320,6 +323,7 @@ class ModelDataset:
                                 ),
                                 force_update=force_update)
             
+            targetds_chunk.close()
             del targetds_chunk
             i+=1
 
