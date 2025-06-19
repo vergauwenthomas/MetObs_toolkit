@@ -275,7 +275,7 @@ class ModelDataset:
                 'x':[],
                 'y':[]}
 
-        logger.debug('finding nn gp for all stations')
+        logger.info('finding nn gp for all stations')
         for sta in stationlist:
             #Get the nn gridpoint for the station
             sta.site._grid_info = self._get_nn_gridpoint(
@@ -286,20 +286,31 @@ class ModelDataset:
             stations_grid_info['x'].append(sta.site.get_gp_x_index())
             stations_grid_info['y'].append(sta.site.get_gp_y_index())
 
-        logger.debug('clipping nn from fc')
+        logger.info('clipping nn from fc')
         # create xr dataset with station locations
         targetds = xr.Dataset(pd.DataFrame(data=stations_grid_info).set_index('name'))
-
+        
         #clip the stations from the model
         targetds = self.dataset.sel(targetds)
 
-        if compute_before_assign:
-            targetds = targetds.compute()
+        def getmemsize(obj):
+            mem_bytes = obj.nbytes if hasattr(obj, 'nbytes') else obj.__sizeof__()
+            mem_gb = mem_bytes / (1024 ** 3)
+            return 
+        logger.info(f"Memory size of targetds: {getmemsize(targetds):.3f} GB")
 
+        if compute_before_assign:
+            logger.info('Computing the targetds, since compute_before_assign is true')
+            targetds = targetds.compute()
+            logger.info(f"Memory size of targetds after compute: {getmemsize(targetds):.3f} GB")
+
+
+        logger.info(f"Memory size of self: {getmemsize(self):.3f} GB")
         #Memory is more limitting then computatio time, so favour memory efficient
         i = 1
         for sta in stationlist:
             logger.info(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
+            logger.info(f"Memory size of sta before modelfil: {getmemsize(sta):.3f} GB")
             for var in target_variables:
                  sta.add_to_modeldata(
                      ModelTimeSeries(
@@ -312,7 +323,8 @@ class ModelDataset:
                             modelID=self.modelID,
                             ),
                             force_update=force_update)
-
+            logger.info(f"Memory size of sta after modelfil: {getmemsize(sta):.3f} GB")
+            logger.info(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self):.3f} GB")                
             i+=1
         #Construct Dataframe
         # trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
