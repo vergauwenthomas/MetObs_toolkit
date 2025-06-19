@@ -296,21 +296,21 @@ class ModelDataset:
         def getmemsize(obj):
             mem_bytes = obj.nbytes if hasattr(obj, 'nbytes') else obj.__sizeof__()
             mem_gb = mem_bytes / (1024 ** 3)
-            return 
-        logger.info(f"Memory size of targetds: {getmemsize(targetds)} GB")
+            return mem_gb
+        logger.debug(f"Memory size of targetds: {getmemsize(targetds)} GB")
 
         if compute_before_assign:
-            logger.info('Computing the targetds, since compute_before_assign is true')
+            logger.debug('Computing the targetds, since compute_before_assign is true')
             targetds = targetds.compute()
-            logger.info(f"Memory size of targetds after compute: {getmemsize(targetds)} GB")
+            logger.debug(f"Memory size of targetds after compute: {getmemsize(targetds)} GB")
 
 
-        logger.info(f"Memory size of self: {getmemsize(self)} GB")
+        logger.debug(f"Memory size of self: {getmemsize(self)} GB")
         #Memory is more limitting then computatio time, so favour memory efficient
         i = 1
         for sta in stationlist:
-            logger.info(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
-            logger.info(f"Memory size of sta before modelfil: {getmemsize(sta)} GB")
+            logger.debug(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
+            logger.debug(f"Memory size of sta before modelfil: {getmemsize(sta)} GB")
             for var in target_variables:
                  sta.add_to_modeldata(
                      ModelTimeSeries(
@@ -323,8 +323,8 @@ class ModelDataset:
                             modelID=self.modelID,
                             ),
                             force_update=force_update)
-            logger.info(f"Memory size of sta after modelfil: {getmemsize(sta)} GB")
-            logger.info(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self)} GB")                
+            logger.debug(f"Memory size of sta after modelfil: {getmemsize(sta)} GB")
+            logger.debug(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self)} GB")                
             i+=1
         #Construct Dataframe
         # trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
