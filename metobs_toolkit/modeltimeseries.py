@@ -66,6 +66,14 @@ class ModelTimeSeries:
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
+    def _id(self) -> str:
+        """ A physical unique id. 
+        
+        In the __add__ methods, if the id of two instances differs, adding is 
+        a regular concatenation. 
+        """
+        return f'{self.site._id()}{self.modelname}_{self.modelvariable}'
+
     def __eq__(self, other) -> bool:
         """Check equality with another ModelTimeSeries object."""
         if not isinstance(other, ModelTimeSeries):
@@ -77,6 +85,37 @@ class ModelTimeSeries:
             and self.modelname == other.modelname
             and self.modelvariable == other.modelvariable
         )
+
+    def __add__(self, other: "ModelTimeSeries") -> "ModelTimeSeries":
+        """
+        Combine two ModelTimeSeries objects for the same site and obstype.
+        The result contains all unique records, with preference to non-NaN values from 'other'.
+        """
+        if not isinstance(other, ModelTimeSeries):
+            raise TypeError("Can only add ModelTimeSeries to ModelTimeSeries.")
+        if self._id() != other._id():
+            raise ValueError(f"Cannot add ModelTimeSeries for different ID's ({self._id()} != {other._id()}).")
+        
+        # Align timezones if different
+        if self.tz != other.tz:
+            other_series = other.series.tz_convert(str(self.tz))
+        else:
+            other_series = other.series
+
+
+        # Combine the series, preferring non-NaN from 'other'
+        combined_series = self.series.combine_first(other_series)
+        combined = ModelTimeSeries(
+            site=self.site,
+            datarecords=combined_series.values,
+            timestamps=combined_series.index.values,
+            obstype=self.obstype + other.obstype,
+            datadtype=combined_series.dtype,
+            timezone=self.tz,
+            modelname=self.modelname,
+            modelvariable=self.modelvariable,
+        )
+        return combined
 
     @property
     def df(self) -> pd.DataFrame:

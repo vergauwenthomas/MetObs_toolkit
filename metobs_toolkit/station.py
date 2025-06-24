@@ -1,4 +1,5 @@
 import logging
+import copy
 import numpy as np
 import pandas as pd
 from typing import Literal, Union
@@ -9,6 +10,12 @@ from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
+)
+from metobs_toolkit.backend_collection.uniqueness import (
+    metobs_intersection,
+    metobs_A_not_in_B,
+    metobs_B_not_in_A,
+    get_by_id,
 )
 import metobs_toolkit.plot_collection as plotting
 
@@ -56,6 +63,14 @@ class Station:
 
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
+    
+    def _id(self) -> str:
+        """ A physical unique id. 
+        
+        In the __add__ methods, if the id of two instances differs, adding is 
+        a regular concatenation. 
+        """
+        return f'{self.name}'
 
     def __eq__(self, other):
         """Check equality with another Station object."""
@@ -68,19 +83,78 @@ class Station:
             and self._modeldata == other._modeldata
         )
 
-    def __add__(self, other:"Station") -> "Station":
-        #triage the metadata
-        self.site = self.site + other.site
-
-        #triage the sensordata
-
-
-        #triage the modeldata
-
-
+    def __add__(self, other: "Station") -> "Station":
+        """
+        Combine two Station objects with the same name.
+        SensorData and ModelTimeSeries are merged using their __add__ methods.
+        """
+        if not isinstance(other, Station):
+            raise TypeError("Can only add Station to Station.")
+        if self.name != other.name:
+            raise ValueError("Cannot add Station with different names.")
+        
         
 
-        return self
+        #  ----  Merge site ----
+        merged_site = self.site + other.site
+
+        # --- Merge sensordata ----
+        
+        same_id_sensors = metobs_intersection(
+                A=list(self.sensordata.values()),
+                B=list(other.sensordata.values()))
+        unchanged_sensors = metobs_A_not_in_B(
+                A=list(self.sensordata.values()),
+                B=list(other.sensordata.values()))
+        
+        new_sensors = metobs_B_not_in_A(
+                A=list(self.sensordata.values()),
+                B=list(other.sensordata.values()))
+
+        merged_sensorlist = []
+        merged_sensorlist.extend(unchanged_sensors) #no merging required
+        merged_sensorlist.extend(new_sensors) #no merging required
+        # Rely on the __add__ of sensordata when combining with the same id
+        for sens in same_id_sensors:
+            mergedsensor = sens + get_by_id(
+                    A=other.sensordata.values(),
+                    id=sens._id())
+           
+            merged_sensorlist.append(mergedsensor)
+        
+       
+        # --- Merge Modeldata ----
+        same_id_modeldata = metobs_intersection(
+                A=list(self.modeldata.values()),
+                B=list(other.modeldata.values()))
+        unchanged_modeldata = metobs_A_not_in_B(
+                A=list(self.modeldata.values()),
+                B=list(other.modeldata.values()))
+        
+        new_modeldata = metobs_B_not_in_A(
+                A=list(self.modeldata.values()),
+                B=list(other.modeldata.values()))
+
+        merged_modeldatalist = []
+        merged_modeldatalist.extend(unchanged_modeldata) #no merging required
+        merged_modeldatalist.extend(new_modeldata) #no merging required
+        # Rely on the __add__ of modeldatadata when combining with the same id
+        for moddata in same_id_modeldata:
+            mergedmoddata = moddata + get_by_id(
+                    A=other.modeldata.values(),
+                    id=moddata._id())
+           
+            merged_modeldatalist.append(mergedmoddata)
+        
+        #Construct a new station
+        #TODO: I think a copy is needed
+        new_sta = Station(stationname = self.name,
+                          site = merged_site,
+                         all_sensor_data=merged_sensorlist)
+        for moddata in merged_modeldatalist:
+            new_sta.add_to_modeldata(new_modeltimeseries=moddata)
+       
+        return new_sta
 
     def __repr__(self):
         """Return a string representation for debugging."""
@@ -1706,7 +1780,7 @@ class Station:
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperately).
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
         #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
         #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.

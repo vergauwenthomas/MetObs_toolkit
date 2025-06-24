@@ -74,6 +74,14 @@ class Obstype:
         self._original_name = None
         self._original_unit = None
 
+    def _id(self) -> str:
+        """ A physical unique id. 
+        
+        In the __add__ methods, if the id of two instances differs, adding is 
+        a regular concatenation. 
+        """
+        return f'{self.name}'
+    
     def __eq__(self, other) -> bool:
         """Check equality with another Obstype object."""
         if not isinstance(other, Obstype):

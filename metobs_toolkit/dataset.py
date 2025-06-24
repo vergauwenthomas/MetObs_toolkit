@@ -23,6 +23,12 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+from metobs_toolkit.backend_collection.uniqueness import (
+    metobs_intersection,
+    metobs_A_not_in_B,
+    metobs_B_not_in_A,
+    get_by_id,
+)
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -97,31 +103,50 @@ class Dataset:
         return self.stations == other.stations
     
     def __add__(self, other:"Dataset") -> "Dataset":
-       
-        #Triage
-        present_names = [sta.name for sta in self.stations]
-        new_names = [sta.name for sta in other.stations]
-        new_id_stations = set(new_names) - set(present_names)
-        same_id_stations = set(present_names).intersection(new_names)
+        """
+        Combine two Dataset objects, merging stations and obstypes.
+        Stations with the same name are merged using their __add__ method.
+        """
+        if not isinstance(other, Dataset):
+            raise TypeError("Can only add Dataset to Dataset.")
+        
+        # --- Merge stations ----
+        same_id_stations = metobs_intersection(
+                A=list(self.stations),
+                B=list(other.stations))
+        
+        unchanged_stations = metobs_A_not_in_B(
+                A=list(self.stations),
+                B=list(other.stations))
+        
+        new_stations = metobs_B_not_in_A(
+                A=list(self.stations),
+                B=list(other.stations))
+        
+        merged_stationslist = []
+        merged_stationslist.extend(unchanged_stations) #no merging required
+        merged_stationslist.extend(new_stations) #no merging required
 
-        #Simply add stations that have other names
-        for new_sta in new_id_stations:
-            self.stations.append(other.get_station(new_sta))
-
-        #add on deeper level stations with the same ID
+        # Rely on the __add__ of sensordata when combining with the same id
         for sta in same_id_stations:
-            cursta = self.get_station(sta)
-            newsta = other.get_station(sta)
-            #maybe try cache ?
-            cursta = cursta + newsta #TODO check if this is a pointer !! if this returns to the self.stations attr
+            mergedstation = sta + get_by_id(
+                        A=other.stations,
+                        id=sta._id())
+           
+            merged_stationslist.append(mergedstation)
+        
+        #  ---- Merge obstypes ----
+
+        #TODO: proper handling of merging obstypes
+        merged_obstypes = copy.copy(self.obstypes)
+        merged_obstypes.update(other.obstypes)
+        #Construct a new Dataset
+        new_dataset = Dataset()
+        new_dataset.stations = merged_stationslist
+        new_dataset.obstypes = merged_obstypes
 
 
-
-
-
-        #add obstypes
-        self.obstypes = list(set(self.obstypes).union(set(other.obstypes)))
-        return self
+        return new_dataset
 
     def __str__(self) -> str:
         """Return a string representation of the Dataset."""
@@ -1808,7 +1833,7 @@ class Dataset:
         same LCZ as the reference station, and with a maximum distance of
         `max_LCZ_buddy_dist`. If a `max_alt_diff` is specified, a altitude-difference
         filtering is applied on these buddies aswell.  If a test is sucsesfull, that
-        is if the z-value is smaller than the `safetynet_z_threshold`, then the
+        is if the z-value is smaller than the `safetynet_z_threshold`, the
         outlier is saved. It will be removed from the outliers, and will pass to the
         next iteration or the end of this function.
 
