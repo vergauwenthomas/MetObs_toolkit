@@ -2079,13 +2079,16 @@ class Dataset:
 
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False
+        self, target_obstype: str, overwrite_fill: bool = False,
+        kwargs_specify_model:dict = {},
     ) -> None:
         logger.debug("Entering Dataset.fill_gaps_with_raw_modeldata")
 
         for sta in self.stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype, overwrite_fill=overwrite_fill
+                target_obstype=target_obstype,
+                overwrite_fill=overwrite_fill,
+                kwargs_specify_model=kwargs_specify_model,
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
@@ -2097,6 +2100,7 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
+        kwargs_specify_model:dict = {},
     ) -> None:
         logger.debug("Entering Dataset.fill_gaps_with_debiased_modeldata")
 
@@ -2111,6 +2115,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
+                kwargs_specify_model=kwargs_specify_model,
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
@@ -2121,6 +2126,7 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
+        kwargs_specify_model:dict = {},
     ) -> None:
         logger.debug("Entering Dataset.fill_gaps_with_diurnal_debiased_modeldata")
 
@@ -2134,6 +2140,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                kwargs_specify_model=kwargs_specify_model,
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
@@ -2145,6 +2152,7 @@ class Dataset:
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
+        kwargs_specify_model:dict = {},
     ) -> None:
         logger.debug(
             "Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata"
@@ -2161,6 +2169,7 @@ class Dataset:
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                kwargs_specify_model=kwargs_specify_model,
             )
 
 
