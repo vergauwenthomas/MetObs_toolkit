@@ -8,6 +8,9 @@ import geopandas as gpd
 
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
+from metobs_toolkit.backend_collection.errorclasses import (
+     MetObsAdditionError,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
@@ -90,7 +93,7 @@ class Site:
         )
 
         if not (self._id() == other._id() and lat_equal and lon_equal):
-            raise ValueError(f'Could not sum {self} and {other}, since the name or coordinates are not equal.')
+            raise MetObsAdditionError(f'Could not sum {self} and {other}, since the name or coordinates are not equal.')
         
         #Update metadata (dict-style)
         new_extradata = copy.copy(self.extradata)

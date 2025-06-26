@@ -12,7 +12,10 @@ from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
-from metobs_toolkit.backend_collection.errorclasses import MetObsQualityControlError
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsQualityControlError,
+    MetObsAdditionError,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -54,13 +57,8 @@ class SensorData:
         obstype: Obstype,
         datadtype: type = np.float32,
         timezone: Union[str, pd.Timedelta] = "UTC",
-        freq_estimation_method: Literal["highest", "median"] = "median",
-        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta(
-            "1min"
-        ),
-        origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
-        timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
-    ):
+        **setupkwargs):
+    
         # Set data
         self._stationname = stationname
         self.obstype = obstype
@@ -80,16 +78,7 @@ class SensorData:
         self.gaps = []  # list of Gap's
 
         # Setup the SensorData --> apply qc control on import, find gaps, unit conversions etc
-        self._setup(
-            freq_estimation_method=freq_estimation_method,
-            freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
-            origin_simplify_tolerance=origin_simplify_tolerance,
-            timestamp_tolerance=timestamp_tolerance,
-            apply_invalid_check=True,
-            apply_dupl_check=True,
-            apply_unit_conv=True,
-        )
-
+        self._setup(**setupkwargs)
         logger.info("SensorData initialized successfully.")
 
     def _id(self) -> str:
@@ -121,13 +110,16 @@ class SensorData:
     def __add__(self, other: "SensorData") -> "SensorData":
         """
         Combine two SensorData objects for the same station and obstype.
-        The result contains all unique records, with preference to non-NaN values from 'other'.
+        
+
+        !!! The result contains all unique records, with preference to non-NaN values from 'other'.
+        This makes the addition not strict associative.
         Outliers and gaps are concatenated.
         """
         if not isinstance(other, SensorData):
-            raise TypeError("Can only add SensorData to SensorData.")
+            raise MetObsAdditionError("Can only add SensorData to SensorData.")
         if self._id() != other._id():
-            raise ValueError(f"Cannot add SensorData for different IDs ({self._id()} != {other._id()}).")
+            raise MetObsAdditionError(f"Cannot add SensorData for different IDs ({self._id()} != {other._id()}).")
         
         # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
         # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!! 
@@ -172,9 +164,10 @@ class SensorData:
             stationname=self.stationname,
             datarecords=combined_series.values,
             timestamps=combined_series.index.values,
-            obstype=self.obstype,
+            obstype=self.obstype + other.obstype,
             datadtype=combined_series.dtype,
             timezone=self.tz,
+            apply_unit_conv=False,
         )
 
         return combined
@@ -282,10 +275,10 @@ class SensorData:
 
     def _setup(
         self,
-        freq_estimation_method: str,
-        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
-        origin_simplify_tolerance: Union[pd.Timedelta, str],
-        timestamp_tolerance: Union[pd.Timedelta, str],
+        freq_estimation_method: Literal["highest", "median"] = "median",
+        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
+        origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
+        timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
         apply_invalid_check: bool = True,
         apply_dupl_check: bool = True,
         apply_unit_conv: bool = True,

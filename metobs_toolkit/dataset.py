@@ -23,12 +23,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
-from metobs_toolkit.backend_collection.uniqueness import (
-    metobs_intersection,
-    metobs_A_not_in_B,
-    metobs_B_not_in_A,
-    get_by_id,
-)
+from metobs_toolkit.backend_collection.uniqueness import join_collections
+
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -110,42 +106,28 @@ class Dataset:
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
         
+        #TODO: is there a deep copy needed?
         # --- Merge stations ----
-        same_id_stations = metobs_intersection(
-                A=list(self.stations),
-                B=list(other.stations))
-        
-        unchanged_stations = metobs_A_not_in_B(
-                A=list(self.stations),
-                B=list(other.stations))
-        
-        new_stations = metobs_B_not_in_A(
-                A=list(self.stations),
-                B=list(other.stations))
-        
-        merged_stationslist = []
-        merged_stationslist.extend(unchanged_stations) #no merging required
-        merged_stationslist.extend(new_stations) #no merging required
-
-        # Rely on the __add__ of sensordata when combining with the same id
-        for sta in same_id_stations:
-            mergedstation = sta + get_by_id(
-                        A=other.stations,
-                        id=sta._id())
-           
-            merged_stationslist.append(mergedstation)
+        merged_stationslist = join_collections(
+            col_A=self.stations,
+            col_B=other.stations
+            )
+    
         
         #  ---- Merge obstypes ----
-
-        #TODO: proper handling of merging obstypes
-        merged_obstypes = copy.copy(self.obstypes)
-        merged_obstypes.update(other.obstypes)
+        #TODO: is there a deep copy needed?
+        merged_obstypes = join_collections(
+            col_A=self.obstypes.values(),
+            col_B=other.obstypes.values()
+            )
+        
+    
         #Construct a new Dataset
         new_dataset = Dataset()
         new_dataset.stations = merged_stationslist
-        new_dataset.obstypes = merged_obstypes
+        new_dataset._obstypes = {obst.name: obst for obst in merged_obstypes}
 
-
+        #TODO: is there a deep copy needed?
         return new_dataset
 
     def __str__(self) -> str:
@@ -208,7 +190,7 @@ class Dataset:
         """
         Set the list of stations.
         """
-
+        #TODO: Test unique ID's
         self._stations = stationlist
 
     @obstypes.setter
@@ -217,6 +199,7 @@ class Dataset:
         Set the obstypes.
 
         """
+        #TODO: Test unique ID's
 
         self._obstypes = obstypesdict
 

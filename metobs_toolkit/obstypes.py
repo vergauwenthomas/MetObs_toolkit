@@ -9,6 +9,7 @@ import pint
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsUnitsIncompatible,
     MetObsUnitUnknown,
+    MetObsAdditionError,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 
@@ -80,17 +81,63 @@ class Obstype:
         In the __add__ methods, if the id of two instances differs, adding is 
         a regular concatenation. 
         """
-        return f'{self.name}'
+        return f'{self.name}_{self.std_unit}'
     
+    def __add__(self, other: 'Obstype') -> 'Obstype':
+        #This function is called when other instances, 
+        #that hold Obstype 's are joined. 
+        def _join_str_attr(a:str, b:str) -> str:
+            if a != b:
+                return f'{a} +++ {b}'
+            else: 
+                return a
+
+        if self._id() == other._id():
+            #combine is valid
+            trg_description = _join_str_attr(self.description, other.description)
+            trg_orig_name = _join_str_attr(self.original_name, other.original_name)
+            
+            #Since trg_orig_unit must be convertible, to pint unit a string join
+            #is not applicable. We use the orig_unit from self (it is not used
+            #after raw data import, so when __add__ is called, we are passed
+            #that stage. )
+            if self.original_unit != other.original_unit:
+                #If better solution can be made, go ahead.
+                trg_orig_unit = self.original_unit
+            else: 
+                trg_orig_unit = self.original_unit
+
+
+            trg_obs = Obstype(
+                obsname=self.name,
+                std_unit=self.std_unit,
+                description=trg_description)
+            
+            trg_obs.original_name = trg_orig_name
+            trg_obs.original_unit = trg_orig_unit
+            
+        else:
+            raise MetObsAdditionError(f'{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})')
+     
+        return trg_obs
+        
     def __eq__(self, other) -> bool:
         """Check equality with another Obstype object."""
         if not isinstance(other, Obstype):
             return False
         return (
             self._name == other._name
-            and self._std_unit == other._std_unit
+            and str(self._std_unit) == str(other._std_unit)
             and self._description == other._description
         )
+    
+    def __repr__(self):
+        """Instance representation."""
+        return f"{type(self).__name__} instance of {self.name}"
+
+    def __str__(self):
+        """Text representation."""
+        return f"{type(self).__name__} instance of {self.name}"
 
     @property
     def name(self) -> str:
@@ -106,21 +153,44 @@ class Obstype:
     def description(self) -> str:
         """Return the description of the observation type."""
         return str(self._description)
+    
+    @property
+    def original_name(self):
+        """Return the original name of the observation type."""
+        return str(self._original_name)
 
+    @property
+    def original_unit(self) -> str:
+        """Return the original unit as string."""
+        return fmt_unit_to_str(self._original_unit)
+    
     @description.setter
     def description(self, value: str):
         """Set the description of the observation type."""
         self._description = str(value)
 
-    @property
-    def orginal_name(self):
-        """Return the original name of the observation type."""
-        return str(self._original_name)
-
-    @orginal_name.setter
+    @original_name.setter
     def original_name(self, value):
         """Set the original name of the observation type."""
         self._original_name = str(value)
+    
+    @original_unit.setter
+    def original_unit(self, value):
+        """Set the original unit and check compatibility with standard unit."""
+
+        #If a tempalate is used, with more mapped columns then present in the 
+        #imported raw data, then these obstypes (without data), have original_unit 
+        #set to None. This is a valid value
+        if ((value is None) | (str(value) == 'None')):
+            self._original_unit = None
+            return
+
+        self._original_unit = _fmtunit(value)
+        # test if it is a compatible unit wrt the standard unit
+        if not self._original_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitsIncompatible(
+                f"{self._original_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
+            )
 
     def get_compatible_units(self) -> list:
         """
@@ -156,28 +226,9 @@ class Obstype:
         logger.debug(f"{self.__class__.__name__}.is_compatible_with called for {self}")
         return self._std_unit.is_compatible_with(other._std_unit)
 
-    @property
-    def original_unit(self) -> str:
-        """Return the original unit as string."""
-        return fmt_unit_to_str(self._original_unit)
-
-    @original_unit.setter
-    def original_unit(self, value):
-        """Set the original unit and check compatibility with standard unit."""
-        self._original_unit = _fmtunit(value)
-        # test if it is a compatible unit wrt the standard unit
-        if not self._original_unit.is_compatible_with(self._std_unit):
-            raise MetObsUnitsIncompatible(
-                f"{self._original_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
-            )
-
-    def __repr__(self):
-        """Instance representation."""
-        return f"{type(self).__name__} instance of {self.name}"
-
-    def __str__(self):
-        """Text representation."""
-        return f"{type(self).__name__} instance of {self.name}"
+    def _get_plot_y_label(self) -> str:
+        """Return a string to represent the vertical axes of a plot."""
+        return f"{self.name} ({self.std_unit})"
 
     def _get_info_core(self) -> str:
         infostr = ""
@@ -209,10 +260,7 @@ class Obstype:
         else:
             return infostr
 
-    def _get_plot_y_label(self) -> str:
-        """Return a string to represent the vertical axes of a plot."""
-        return f"{self.name} ({self.std_unit})"
-
+    
     def convert_to_standard_units(self, input_data, input_unit):
         """
         Convert input data to the standard unit.

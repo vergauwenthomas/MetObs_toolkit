@@ -11,12 +11,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
 )
-from metobs_toolkit.backend_collection.uniqueness import (
-    metobs_intersection,
-    metobs_A_not_in_B,
-    metobs_B_not_in_A,
-    get_by_id,
-)
+from metobs_toolkit.backend_collection.uniqueness import join_collections
+
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import (
@@ -25,6 +21,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsModelDataError,
     MetObsSensorDataNotFound,
     MetObsObstypeNotFound,
+    MetObsAdditionError,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
@@ -89,9 +86,9 @@ class Station:
         SensorData and ModelTimeSeries are merged using their __add__ methods.
         """
         if not isinstance(other, Station):
-            raise TypeError("Can only add Station to Station.")
+            raise MetObsAdditionError("Can only add Station to Station.")
         if self.name != other.name:
-            raise ValueError("Cannot add Station with different names.")
+            raise MetObsAdditionError("Cannot add Station with different names.")
         
         
 
@@ -99,58 +96,26 @@ class Station:
         merged_site = self.site + other.site
 
         # --- Merge sensordata ----
-        
-        same_id_sensors = metobs_intersection(
-                A=list(self.sensordata.values()),
-                B=list(other.sensordata.values()))
-        unchanged_sensors = metobs_A_not_in_B(
-                A=list(self.sensordata.values()),
-                B=list(other.sensordata.values()))
-        
-        new_sensors = metobs_B_not_in_A(
-                A=list(self.sensordata.values()),
-                B=list(other.sensordata.values()))
 
-        merged_sensorlist = []
-        merged_sensorlist.extend(unchanged_sensors) #no merging required
-        merged_sensorlist.extend(new_sensors) #no merging required
-        # Rely on the __add__ of sensordata when combining with the same id
-        for sens in same_id_sensors:
-            mergedsensor = sens + get_by_id(
-                    A=other.sensordata.values(),
-                    id=sens._id())
-           
-            merged_sensorlist.append(mergedsensor)
+        # use collection merge
+        merged_sensorlist = join_collections(
+            col_A=self.sensordata.values(),
+            col_B=other.sensordata.values()
+        )
         
        
         # --- Merge Modeldata ----
-        same_id_modeldata = metobs_intersection(
-                A=list(self.modeldata.values()),
-                B=list(other.modeldata.values()))
-        unchanged_modeldata = metobs_A_not_in_B(
-                A=list(self.modeldata.values()),
-                B=list(other.modeldata.values()))
-        
-        new_modeldata = metobs_B_not_in_A(
-                A=list(self.modeldata.values()),
-                B=list(other.modeldata.values()))
+        merged_modeldatalist = join_collections(
+            col_A=self.modeldata.values(),
+            col_B=other.modeldata.values(),
+        )
 
-        merged_modeldatalist = []
-        merged_modeldatalist.extend(unchanged_modeldata) #no merging required
-        merged_modeldatalist.extend(new_modeldata) #no merging required
-        # Rely on the __add__ of modeldatadata when combining with the same id
-        for moddata in same_id_modeldata:
-            mergedmoddata = moddata + get_by_id(
-                    A=other.modeldata.values(),
-                    id=moddata._id())
-           
-            merged_modeldatalist.append(mergedmoddata)
-        
         #Construct a new station
         #TODO: I think a copy is needed
         new_sta = Station(stationname = self.name,
                           site = merged_site,
-                         all_sensor_data=merged_sensorlist)
+                          all_sensor_data=merged_sensorlist)
+        
         for moddata in merged_modeldatalist:
             new_sta.add_to_modeldata(new_modeltimeseries=moddata)
        
