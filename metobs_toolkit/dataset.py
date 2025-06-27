@@ -41,6 +41,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsObstypeNotFound,
     MetObsMissingArgument,
     MetObsMetadataNotFound,
+    MetObsNonUniqueIDs,
 )
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
@@ -186,7 +187,11 @@ class Dataset:
         """
         Set the list of stations.
         """
-        # TODO: Test unique ID's
+        ids = [sta._id() for sta in stationlist]
+        if len(stationlist) != len(set(ids)):
+            raise MetObsNonUniqueIDs(
+                "The _id() of the stations are not unique in the list."
+            )
         self._stations = stationlist
 
     @obstypes.setter
@@ -195,7 +200,11 @@ class Dataset:
         Set the obstypes.
 
         """
-        # TODO: Test unique ID's
+        ids = [obs._id() for obs in obstypesdict.values()]
+        if len(obstypesdict) != len(set(ids)):
+            raise MetObsNonUniqueIDs(
+                "The _id() of the obstypes are not unique in the obstypedict."
+            )
 
         self._obstypes = obstypesdict
 

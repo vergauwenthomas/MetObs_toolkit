@@ -162,3 +162,10 @@ class MetObsAdditionError(Exception):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+    
+class MetObsNonUniqueIDs(Exception):
+    """Raised when non-unique ID's are expected, but duplicates are found"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+

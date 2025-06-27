@@ -1,5 +1,4 @@
 import logging
-import copy
 import numpy as np
 import pandas as pd
 from typing import Literal, Union
@@ -107,7 +106,6 @@ class Station:
         )
 
         # Construct a new station
-        # TODO: I think a copy is needed
         new_sta = Station(
             stationname=self.name, site=merged_site, all_sensor_data=merged_sensorlist
         )
