@@ -49,6 +49,13 @@ def fmt_unit_to_str(unit) -> str:
             return str(unit)
     return str(unit)
 
+def _join_str_attr(a:str, b:str) -> str:
+            if a != b:
+                return f'{a} +++ {b}'
+            else: 
+                return a
+
+
 
 class Obstype:
     """
@@ -86,12 +93,7 @@ class Obstype:
     def __add__(self, other: 'Obstype') -> 'Obstype':
         #This function is called when other instances, 
         #that hold Obstype 's are joined. 
-        def _join_str_attr(a:str, b:str) -> str:
-            if a != b:
-                return f'{a} +++ {b}'
-            else: 
-                return a
-
+        
         if self._id() == other._id():
             #combine is valid
             trg_description = _join_str_attr(self.description, other.description)
@@ -127,8 +129,8 @@ class Obstype:
             return False
         return (
             self._name == other._name
-            and str(self._std_unit) == str(other._std_unit)
-            and self._description == other._description
+            and self.std_unit == other.std_unit
+            and self.description == other.description
         )
     
     def __repr__(self):
@@ -326,10 +328,45 @@ class ModelObstype(Obstype):
         # Set modelband
         self._model_band = str(model_band)
 
+    def _id(self) -> str:
+        """ A physical unique id. 
+        
+        In the __add__ methods, if the id of two instances differs, adding is 
+        a regular concatenation. 
+        """
+        return f'{super()._id()}_{self.model_band}'
+
+    def __add__(self, other: 'ModelObstype') -> 'ModelObstype':
+        if self._id() != other._id():
+            raise MetObsAdditionError(f'{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})')
+        
+        # Use the super().__add__ to combine the base Obstype attributes
+        combined_obstype = super().__add__(other)
+        
+        #Since model_unit must be convertible, to pint unit a string join
+        #is not applicable. We use the model_unit from self (it is not used
+        #after import, so when __add__ is called, we are passed
+        #that stage. )
+        if self.model_unit != other.model_unit:
+            #Note: this statement is highly unlikely, the same band of a model
+            #will not change units! 
+            #If better solution can be made, go ahead.
+            trg_model_unit = self.model_unit
+        else: 
+            trg_model_unit = self.model_unit
+
+        # Create new ModelObstype with combined attributes
+        combined = ModelObstype(
+            obstype=combined_obstype,
+            model_unit=trg_model_unit,
+            model_band=self.model_band, #this is part of the id, so self and other are the same
+        )
+        return combined
+
     @property
     def model_unit(self) -> str:
         """Return the model unit as string."""
-        return str(self._model_unit)
+        return fmt_unit_to_str(self._model_unit)
 
     @property
     def model_band(self) -> str:
@@ -415,10 +452,48 @@ class ModelObstype_Vectorfield(Obstype):
         self._amp_obs_name = str(amplitude_obstype_name)
         self._dir_obs_name = str(direction_obstype_name)
 
+    def _id(self) -> str:
+        """ A physical unique id. 
+        
+        In the __add__ methods, if the id of two instances differs, adding is 
+        a regular concatenation. 
+        """
+        return f'{super()._id()}_{self.model_band_u}_{self.model_band_v}'
+
+    def __add__(self, other: 'ModelObstype_Vectorfield') -> 'ModelObstype_Vectorfield':
+        if self._id() != other._id():
+            raise MetObsAdditionError(f'{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})')
+        
+        # Use the super().__add__ to combine the base Obstype attributes
+        combined_obstype = super().__add__(other)
+        
+        #Since model_unit must be convertible, to pint unit a string join
+        #is not applicable. We use the model_unit from self (it is not used
+        #after import, so when __add__ is called, we are passed
+        #that stage. )
+        if self.model_unit != other.model_unit:
+            #Note: this statement is highly unlikely, the same band of a model
+            #will not change units! 
+            #If better solution can be made, go ahead.
+            trg_model_unit = self.model_unit
+        else: 
+            trg_model_unit = self.model_unit
+
+        # Create new ModelObstype with combined attributes
+        combined = ModelObstype_Vectorfield(
+            obstype=combined_obstype,
+            model_unit= trg_model_unit,
+            model_band_u= self.model_band_u, #in ID
+            model_band_v= self._model_band_v, #in ID
+            amplitude_obstype_name= self.amplitude_obstype_name, #This seems oke
+            direction_obstype_name= self.direction_obstype_name, #This seems oke
+        )
+        return combined
+
     @property
     def model_unit(self) -> str:
         """Return the model unit as string."""
-        return str(self._model_unit)
+        return fmt_unit_to_str(self._model_unit)
 
     @property
     def model_band_u(self) -> str:
