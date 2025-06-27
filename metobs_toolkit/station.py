@@ -117,7 +117,7 @@ class Station:
                           all_sensor_data=merged_sensorlist)
         
         for moddata in merged_modeldatalist:
-            new_sta.add_to_modeldata(new_modeltimeseries=moddata)
+            new_sta.add_to_modeldata(new_modeltimeseries=moddata, force_update=True)
        
         return new_sta
 
@@ -287,6 +287,23 @@ class Station:
         combdf = combdf[["value", "details"]]
         combdf.sort_index(inplace=True)
         return combdf
+
+    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+        """Get the ModelTimeSeries instance for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to retrieve.
+
+        Returns
+        -------
+        ModelTimeSeries
+            The ModelTimeSeries instance for the specified observation type.
+        """
+        self._obstype_has_modeldata_check(obstype)
+        return self.modeldata[obstype]
+
 
     @property
     def start_datetime(self) -> pd.Timestamp:
@@ -1306,10 +1323,10 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{self.modeldata[obstype].modelname}:{self.modeldata[obstype].modelvariable}@",
+            legend_prefix=f"{self.get_modeltimeseries(obstype).modelname}:{self.get_modeltimeseries(obstype).modelvariable}@",
         )
         # Styling
-        obstypeinstance = self.modeldata[obstype].obstype
+        obstypeinstance = self.get_modeltimeseries(obstype).obstype
 
         # Set title:
         if title is None:
@@ -1518,7 +1535,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1592,7 +1609,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1679,7 +1696,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1776,7 +1793,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(

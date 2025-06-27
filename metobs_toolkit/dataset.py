@@ -929,9 +929,10 @@ class Dataset:
 
         for sta in self.stations:
             if obstype in sta.modeldata.keys():
-                modelobstype = sta.modeldata[obstype].obstype
-                modelname = sta.modeldata[obstype].modelname
-                modelvar = sta.modeldata[obstype].modelname
+                modeltimeseries = sta.get_modeltimeseries(obstype)
+                modelobstype = modeltimeseries.obstype
+                modelname = modeltimeseries.modelname
+                modelvar = modeltimeseries.modelname
                 break
 
         if ax is None:
