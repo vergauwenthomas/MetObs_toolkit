@@ -9,6 +9,9 @@ import metobs_toolkit
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
+file_with_era5_data = libfolder / 'toolkit_tests' / 'testdata' / 'ERA5-land_timeseries_data_of_full_dataset_28_stations.csv'
+
+
 
 def get_demo_dataset():
     dataset = metobs_toolkit.Dataset()
@@ -17,7 +20,19 @@ def get_demo_dataset():
         input_metadata_file=metobs_toolkit.demo_metadatafile,
         input_data_file=metobs_toolkit.demo_datafile,
     )
+    dataset.resample(target_freq="15min")
     return dataset
+
+def get_demo_dataset_with_modeldata():
+    dataset = get_demo_dataset()
+    
+    era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+    dataset.import_gee_data_from_file(
+        filepath=file_with_era5_data,
+        geedynamicdatasetmanager=era5_manager)
+
+    return dataset
+
 
 class TestAddMethods:
     def test_add_sensordata(self):
@@ -186,27 +201,99 @@ class TestAddMethods:
         
     def test_add_dataset(self):
         ds_orig = get_demo_dataset()
+        #1. Combine identical
         ds1 = copy.deepcopy(ds_orig)
         ds2 = copy.deepcopy(ds_orig)
-
-        dscomb = ds1+ds2
-        for obs in dscomb.obstypes.values():
-            trgobs = ds1.obstypes[obs.name]
-            print(f'obs in comb: {obs} --> {type(obs)}')
-            print(f'obs in ds1: {trgobs} --> {type(trgobs)}')
-            # print(obs.get_info())
-            print(trgobs.get_info())
-            print(obs == trgobs)
-
-        # assert_equality(to_check=ds1+ds2, solution=ds_orig)
+        assert_equality(to_check=ds1+ds2, solution=ds_orig)
 
         #1 Split in two sets by station
-        # ds1.stations = ds1.stations[:16] 
-        # ds2.stations = ds2.stations[16:]
-        # assert_equality(to_check=ds1+ds2, solution=ds_orig)
+        ds1.stations = ds1.stations[:16] 
+        ds2.stations = ds2.stations[16:]
+        assert_equality(to_check=ds1+ds2, solution=ds_orig)
 
 
         #2 merge metadata only (with metata) and with data
+
+        dataset_metaonly = metobs_toolkit.Dataset()
+        dataset_metaonly.import_data_from_file(
+                template_file=metobs_toolkit.demo_template,
+                input_metadata_file=metobs_toolkit.demo_metadatafile,
+                # input_data_file=metobs_toolkit.demo_datafile,
+            )
+
+        dataset_metaonly.get_altitude()
+
+        combds = ds_orig + dataset_metaonly
+        assert_equality(combds.df, ds_orig.df)
+        assert 'altitude' in combds.metadf
+
+
+    def test_modeldata_addition(self):
+
+        ds_orig = get_demo_dataset_with_modeldata()
+        ds1 = copy.deepcopy(ds_orig)
+        
+        #crop modeldata of a singel station
+        ds2 = copy.deepcopy(ds_orig)
+        ds2.stations[3]._modeldata['temp'].series = ds2.stations[3]._modeldata['temp'].series[:4]
+        assert ds2.modeldatadf.shape[0] == ds1.modeldatadf.shape[0]-4
+        assert_equality(ds1 + ds2, ds_orig)
+
+
+        #Additional band
+        fake_obs = metobs_toolkit.Obstype(
+           obsname = 'dummy',
+           std_unit='km/h', 
+           description='blabla'
+        ) 
+        fake_modelobs = metobs_toolkit.ModelObstype(
+            obstype=fake_obs,
+            model_band='this_is_a_band',
+            model_unit='m/s',
+        )
+        trgsta = ds1.stations[7]
+        from metobs_toolkit.modeltimeseries import ModelTimeSeries
+        fake_modeltimesries = ModelTimeSeries(
+            site = trgsta.site,
+            datarecords=trgsta.get_modeltimeseries('temp').series.to_numpy() + 264,
+            timestamps=trgsta.get_modeltimeseries('temp').series.index.to_numpy(),
+            obstype=fake_modelobs)
+
+
+        trgsta.add_to_modeldata(fake_modeltimesries)
+
+        comb = ds1 + copy.deepcopy(ds_orig)
+        assert 'dummy' in comb.modeldatadf.index.get_level_values('obstype').unique()
+
+
+
+
+
+
+    def test_avoid_pointers(self):
+        ds_orig = get_demo_dataset_with_modeldata()
+        #1. Combine identical
+        ds1 = copy.deepcopy(ds_orig)
+        ds2 = copy.deepcopy(ds_orig)
+        combds = ds1+ds2
+        assert_equality(to_check=combds, solution=ds_orig)
+
+        #if ds1 or ds2 changes, this should not have inpakt on combds!
+        #A data change
+        ds1.stations[0].obsdata['temp'].series = ds1.stations[0].obsdata['temp'].series + 150.2
+        #B site change
+        ds1.stations[6].site._lat = ds1.stations[6].site.lat + 3.16
+        #C Modelobs change
+        # extracting modeldata
+        ds2.stations[3]._modeldata['temp'].series = ds2.stations[3]._modeldata['temp'].series + 982.1
+
+        #D obstype change
+        ds2.obstypes['temp'].description = "fake description"
+
+        assert_equality(to_check=combds, solution=ds_orig)
+
+
+
 
 
 
@@ -218,4 +305,6 @@ if __name__ == "__main__":
     # t.test_add_station()
     # t.test_add_site()
     # t.test_add_modeltimeseries()
-    t.test_add_dataset()
+    # t.test_add_dataset()
+    # t.test_avoid_pointers()
+    t.test_modeldata_addition()
