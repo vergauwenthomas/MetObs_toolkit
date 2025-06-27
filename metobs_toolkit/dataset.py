@@ -97,37 +97,33 @@ class Dataset:
         if not isinstance(other, Dataset):
             return False
         return self.stations == other.stations
-    
-    def __add__(self, other:"Dataset") -> "Dataset":
+
+    def __add__(self, other: "Dataset") -> "Dataset":
         """
         Combine two Dataset objects, merging stations and obstypes.
         Stations with the same name are merged using their __add__ method.
         """
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
-        
-        #TODO: is there a deep copy needed?
+
+        # TODO: is there a deep copy needed?
         # --- Merge stations ----
         merged_stationslist = join_collections(
-            col_A=self.stations,
-            col_B=other.stations
-            )
-    
-        
+            col_A=self.stations, col_B=other.stations
+        )
+
         #  ---- Merge obstypes ----
-        #TODO: is there a deep copy needed?
+        # TODO: is there a deep copy needed?
         merged_obstypes = join_collections(
-            col_A=self.obstypes.values(),
-            col_B=other.obstypes.values()
-            )
-        
-    
-        #Construct a new Dataset
+            col_A=self.obstypes.values(), col_B=other.obstypes.values()
+        )
+
+        # Construct a new Dataset
         new_dataset = Dataset()
         new_dataset.stations = merged_stationslist
         new_dataset._obstypes = {obst.name: obst for obst in merged_obstypes}
 
-        #TODO: is there a deep copy needed?
+        # TODO: is there a deep copy needed?
         return new_dataset
 
     def __str__(self) -> str:
@@ -190,7 +186,7 @@ class Dataset:
         """
         Set the list of stations.
         """
-        #TODO: Test unique ID's
+        # TODO: Test unique ID's
         self._stations = stationlist
 
     @obstypes.setter
@@ -199,7 +195,7 @@ class Dataset:
         Set the obstypes.
 
         """
-        #TODO: Test unique ID's
+        # TODO: Test unique ID's
 
         self._obstypes = obstypesdict
 

@@ -60,14 +60,14 @@ class Station:
 
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
-    
+
     def _id(self) -> str:
-        """ A physical unique id. 
-        
-        In the __add__ methods, if the id of two instances differs, adding is 
-        a regular concatenation. 
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
         """
-        return f'{self.name}'
+        return f"{self.name}"
 
     def __eq__(self, other):
         """Check equality with another Station object."""
@@ -89,8 +89,6 @@ class Station:
             raise MetObsAdditionError("Can only add Station to Station.")
         if self.name != other.name:
             raise MetObsAdditionError("Cannot add Station with different names.")
-        
-        
 
         #  ----  Merge site ----
         merged_site = self.site + other.site
@@ -99,26 +97,24 @@ class Station:
 
         # use collection merge
         merged_sensorlist = join_collections(
-            col_A=self.sensordata.values(),
-            col_B=other.sensordata.values()
+            col_A=self.sensordata.values(), col_B=other.sensordata.values()
         )
-        
-       
+
         # --- Merge Modeldata ----
         merged_modeldatalist = join_collections(
             col_A=self.modeldata.values(),
             col_B=other.modeldata.values(),
         )
 
-        #Construct a new station
-        #TODO: I think a copy is needed
-        new_sta = Station(stationname = self.name,
-                          site = merged_site,
-                          all_sensor_data=merged_sensorlist)
-        
+        # Construct a new station
+        # TODO: I think a copy is needed
+        new_sta = Station(
+            stationname=self.name, site=merged_site, all_sensor_data=merged_sensorlist
+        )
+
         for moddata in merged_modeldatalist:
             new_sta.add_to_modeldata(new_modeltimeseries=moddata, force_update=True)
-       
+
         return new_sta
 
     def __repr__(self):
@@ -304,7 +300,6 @@ class Station:
         self._obstype_has_modeldata_check(obstype)
         return self.modeldata[obstype]
 
-
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -316,9 +311,11 @@ class Station:
             The earliest start datetime among all sensor data.
         """
         if bool(self.sensordata):
-            mindt = min([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = min(
+                [sensdata.start_datetime for sensdata in self.sensordata.values()]
+            )
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 
@@ -334,9 +331,11 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = max(
+                [sensdata.start_datetime for sensdata in self.sensordata.values()]
+            )
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 

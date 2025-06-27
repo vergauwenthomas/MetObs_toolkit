@@ -57,8 +57,8 @@ class SensorData:
         obstype: Obstype,
         datadtype: type = np.float32,
         timezone: Union[str, pd.Timedelta] = "UTC",
-        **setupkwargs):
-    
+        **setupkwargs,
+    ):
         # Set data
         self._stationname = stationname
         self.obstype = obstype
@@ -82,13 +82,13 @@ class SensorData:
         logger.info("SensorData initialized successfully.")
 
     def _id(self) -> str:
-        """ A physical unique id. 
-        
-        In the __add__ methods, if the id of two instances differs, adding is 
-        a regular concatenation. 
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
         """
-        return f'{self.stationname}_{self.obstype._id()}'
-    
+        return f"{self.stationname}_{self.obstype._id()}"
+
     def __eq__(self, other):
         """Check equality with another SensorData object."""
         if not isinstance(other, SensorData):
@@ -110,7 +110,7 @@ class SensorData:
     def __add__(self, other: "SensorData") -> "SensorData":
         """
         Combine two SensorData objects for the same station and obstype.
-        
+
 
         !!! The result contains all unique records, with preference to non-NaN values from 'other'.
         This makes the addition not strict associative.
@@ -119,45 +119,53 @@ class SensorData:
         if not isinstance(other, SensorData):
             raise MetObsAdditionError("Can only add SensorData to SensorData.")
         if self._id() != other._id():
-            raise MetObsAdditionError(f"Cannot add SensorData for different IDs ({self._id()} != {other._id()}).")
-        
+            raise MetObsAdditionError(
+                f"Cannot add SensorData for different IDs ({self._id()} != {other._id()})."
+            )
+
         # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
-        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!! 
-       
-        #Think of what will happen if you merge two sensordata series, where
-        # The first is QC'ed and at a hourly resolution. The second overlaps the 
-        # first but at a resolution of 5 minutes. This messes up the outliers and 
+        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+
+        # Think of what will happen if you merge two sensordata series, where
+        # The first is QC'ed and at a hourly resolution. The second overlaps the
+        # first but at a resolution of 5 minutes. This messes up the outliers and
         # gaps.
         if not self.outliersdf.empty:
-            #rolback the outliervalues
-            selfrecords = self.series.combine_first(self.outliersdf['value'])
+            # rolback the outliervalues
+            selfrecords = self.series.combine_first(self.outliersdf["value"])
         else:
             selfrecords = self.series
-        
+
         if not other.outliersdf.empty:
-            #rolback the outliervalues
-            otherrecords = other.series.combine_first(other.outliersdf['value'])
+            # rolback the outliervalues
+            otherrecords = other.series.combine_first(other.outliersdf["value"])
         else:
             otherrecords = other.series
 
         # Align timezones if different
         if self.tz != other.tz:
             otherrecords = otherrecords.tz_convert(str(self.tz))
-     
+
         # Combine the series, preferring non-NaN from 'other'
         combined_series = selfrecords.combine_first(otherrecords)
 
         # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
-        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!! 
-       
-        #Think of what will happen if you merge two sensordata series, where
-        # The first is QC'ed and at a hourly resolution. The second overlaps the 
-        # first but at a resolution of 5 minutes. This messes up the outliers and 
+        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+
+        # Think of what will happen if you merge two sensordata series, where
+        # The first is QC'ed and at a hourly resolution. The second overlaps the
+        # first but at a resolution of 5 minutes. This messes up the outliers and
         # gaps.
 
-        if (bool(self.gaps) | bool(self.outliers) | bool(other.gaps) | bool(other.outliers)):
-            warnings.warn(f'All stored outliers and gap info of {self} will not be present in the combined.')
-
+        if (
+            bool(self.gaps)
+            | bool(self.outliers)
+            | bool(other.gaps)
+            | bool(other.outliers)
+        ):
+            warnings.warn(
+                f"All stored outliers and gap info of {self} will not be present in the combined."
+            )
 
         # Create new SensorData instance
         combined = SensorData(
@@ -276,7 +284,9 @@ class SensorData:
     def _setup(
         self,
         freq_estimation_method: Literal["highest", "median"] = "median",
-        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
+        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta(
+            "1min"
+        ),
         origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
         timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
         apply_invalid_check: bool = True,

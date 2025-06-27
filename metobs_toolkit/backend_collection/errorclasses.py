@@ -156,7 +156,9 @@ class MetObsInconsistentStationName(Exception):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+
 class MetObsAdditionError(Exception):
     """Raised when addition failed (often different _id())"""
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

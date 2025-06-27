@@ -355,7 +355,11 @@ class TestDemoDataset:
         # testing the dataset (with modeldata)
         _ = dataset.get_station("vlinder02").get_info(printout=False)
         _ = dataset.get_info(printout=False)
-        _ = dataset.get_station("vlinder02").get_modeltimeseries("temp").get_info(printout=False)
+        _ = (
+            dataset.get_station("vlinder02")
+            .get_modeltimeseries("temp")
+            .get_info(printout=False)
+        )
 
         assert dataset.modeldatadf.shape == (532, 2)
         assert dataset.get_station("vlinder02").modeldatadf.shape == (19, 2)
