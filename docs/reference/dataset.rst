@@ -123,3 +123,38 @@ Dataset related functions
    :toctree: api/
 
    import_dataset_from_pkl
+
+
+
+Special methods
+------------------
+
+The `Dataset` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two Dataset objects, merging stations and obstypes. 
+
+- ``__eq__``: Test equality between two Dataset objects (compares stations).
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.
+
+- ``copy``: Create a (deep) copy of the Dataset.
+
+**Example usage:**
+
+.. code-block:: python
+
+   from metobs_toolkit.dataset import Dataset
+
+   # Assume ds1 and ds2 are Dataset instances
+   ds3 = ds1 + ds2  # Merge datasets
+
+   # Equality check
+   if ds1 == ds2:
+       print("Datasets are equal")
+
+   # Copying
+   ds4 = ds1.copy(deep=True)
+
+   # String representation
+   print(str(ds1))
+
