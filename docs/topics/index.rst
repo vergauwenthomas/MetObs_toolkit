@@ -11,6 +11,6 @@ Here is a collection of topics to address common issues or questions.
   Templates <template_doc.ipynb>
   GEE authentication <gee_authentication>
   Metadata only <metadata_only.ipynb>
-  Combine datasets <ccombine_datasets>
+  Combine datasets <combine_datasets>
   logging <log_example.ipynb>
   GUI <gui>
