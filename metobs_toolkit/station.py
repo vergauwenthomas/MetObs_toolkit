@@ -1,4 +1,5 @@
 import logging
+import copy
 import numpy as np
 import pandas as pd
 from typing import Literal, Union
@@ -118,6 +119,26 @@ class Station:
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"Station instance of {self.name}"
+
+    def copy(self, deep: bool = True) -> "Station":
+        """
+        Return a copy of the Station.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        Station
+            The copied station.
+        """
+        logger.debug("Entering Station.copy")
+
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
 
     @property
     def name(self) -> str:
