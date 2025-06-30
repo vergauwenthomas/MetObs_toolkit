@@ -264,7 +264,7 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = max([sensdata.end_datetime for sensdata in self.sensordata.values()])
         else:
             #no sensordata, metadata only station
             mindt = pd.NaT
