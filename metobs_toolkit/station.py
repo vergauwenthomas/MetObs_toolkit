@@ -1,4 +1,5 @@
 import logging
+import copy
 import numpy as np
 import pandas as pd
 from typing import Literal, Union
@@ -10,6 +11,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
 )
+from metobs_toolkit.backend_collection.uniqueness import join_collections
+
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import (
@@ -18,6 +21,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsModelDataError,
     MetObsSensorDataNotFound,
     MetObsObstypeNotFound,
+    MetObsAdditionError,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
@@ -57,6 +61,14 @@ class Station:
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
 
+    def _id(self) -> str:
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
+        """
+        return f"{self.name}"
+
     def __eq__(self, other):
         """Check equality with another Station object."""
         if not isinstance(other, Station):
@@ -68,9 +80,65 @@ class Station:
             and self._modeldata == other._modeldata
         )
 
+    def __add__(self, other: "Station") -> "Station":
+        """
+        Combine two Station objects with the same name.
+        SensorData and ModelTimeSeries are merged using their __add__ methods.
+        """
+        if not isinstance(other, Station):
+            raise MetObsAdditionError("Can only add Station to Station.")
+        if self.name != other.name:
+            raise MetObsAdditionError("Cannot add Station with different names.")
+
+        #  ----  Merge site ----
+        merged_site = self.site + other.site
+
+        # --- Merge sensordata ----
+
+        # use collection merge
+        merged_sensorlist = join_collections(
+            col_A=self.sensordata.values(), col_B=other.sensordata.values()
+        )
+
+        # --- Merge Modeldata ----
+        merged_modeldatalist = join_collections(
+            col_A=self.modeldata.values(),
+            col_B=other.modeldata.values(),
+        )
+
+        # Construct a new station
+        new_sta = Station(
+            stationname=self.name, site=merged_site, all_sensor_data=merged_sensorlist
+        )
+
+        for moddata in merged_modeldatalist:
+            new_sta.add_to_modeldata(new_modeltimeseries=moddata, force_update=True)
+
+        return new_sta
+
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"Station instance of {self.name}"
+
+    def copy(self, deep: bool = True) -> "Station":
+        """
+        Return a copy of the Station.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        Station
+            The copied station.
+        """
+        logger.debug("Entering Station.copy")
+
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
 
     @property
     def name(self) -> str:
@@ -235,6 +303,22 @@ class Station:
         combdf.sort_index(inplace=True)
         return combdf
 
+    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+        """Get the ModelTimeSeries instance for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to retrieve.
+
+        Returns
+        -------
+        ModelTimeSeries
+            The ModelTimeSeries instance for the specified observation type.
+        """
+        self._obstype_has_modeldata_check(obstype)
+        return self.modeldata[obstype]
+
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -246,9 +330,11 @@ class Station:
             The earliest start datetime among all sensor data.
         """
         if bool(self.sensordata):
-            mindt = min([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = min(
+                [sensdata.start_datetime for sensdata in self.sensordata.values()]
+            )
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 
@@ -266,7 +352,7 @@ class Station:
         if bool(self.sensordata):
             mindt = max([sensdata.end_datetime for sensdata in self.sensordata.values()])
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 
@@ -1253,10 +1339,10 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{self.modeldata[obstype].modelname}:{self.modeldata[obstype].modelvariable}@",
+            legend_prefix=f"{self.get_modeltimeseries(obstype).modelname}:{self.get_modeltimeseries(obstype).modelvariable}@",
         )
         # Styling
-        obstypeinstance = self.modeldata[obstype].obstype
+        obstypeinstance = self.get_modeltimeseries(obstype).obstype
 
         # Set title:
         if title is None:
@@ -1465,7 +1551,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1539,7 +1625,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1626,7 +1712,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1692,7 +1778,7 @@ class Station:
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperately).
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
         #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
         #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
@@ -1723,7 +1809,7 @@ class Station:
                 f"No Modeldata found for {target_obstype} in {self}"
             )
 
-        modeltimeseries = self.modeldata[target_obstype]
+        modeltimeseries = self.get_modeltimeseries(target_obstype)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(

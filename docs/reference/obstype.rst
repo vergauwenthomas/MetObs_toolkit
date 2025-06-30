@@ -41,3 +41,16 @@ A summary of all methods in the Obstype class.
    Obstype.is_compatible_with
    Obstype.get_info
    Obstype.convert_to_standard_units
+
+   
+Special methods
+------------------
+
+The `Obstype` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two Obstypes objects, by joing the string-attributes. 
+
+- ``__eq__``: Test equality between two obstype objects (by name, std_unit and description).
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.
+

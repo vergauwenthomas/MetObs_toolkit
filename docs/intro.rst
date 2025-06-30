@@ -123,7 +123,7 @@ Regular users do not interact directly with ``ModelTimeSeries`` objects. Instead
 .. code-block:: python
 
    # Access modelled temperature timeseries for a station
-   temp_modeldata = your_station.modeldata['temp']
+   temp_modeldata = your_station.get_modeltimeseries('temp')
 
    # View the timeseries DataFrame
    print(temp_modeldata.df)
