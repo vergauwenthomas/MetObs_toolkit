@@ -1172,7 +1172,7 @@ class Station:
 
             fig = plotting.qc_overview_pies(df=plotdf)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Station level: {self.stationname}."
+                f"QC frequency statistics of {target_obstype} on Station level: {self.name}."
             )
             return fig
         else:
