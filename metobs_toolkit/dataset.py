@@ -135,15 +135,14 @@ class Dataset:
         
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
-
-        # TODO: is there a deep copy needed?
+        
         # --- Merge stations ----
         merged_stationslist = join_collections(
             col_A=self.stations, col_B=other.stations
         )
 
         #  ---- Merge obstypes ----
-        # TODO: is there a deep copy needed?
+
         merged_obstypes = join_collections(
             col_A=self.obstypes.values(), col_B=other.obstypes.values()
         )
@@ -153,7 +152,6 @@ class Dataset:
         new_dataset.stations = merged_stationslist
         new_dataset._obstypes = {obst.name: obst for obst in merged_obstypes}
 
-        # TODO: is there a deep copy needed?
         return new_dataset
 
     def __str__(self) -> str:
