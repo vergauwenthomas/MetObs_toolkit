@@ -151,17 +151,19 @@ class _GEEDatasetManager:
             raise MetObsModelDataError(
                 'All values of the "lon" column in the metadf are Nan.'
             )
-        
-        #at this point, it can happen that some stations do not have
-        #a coordinate and others does. Drop these rows in the metadf,
-        #since a call to Nan coordinates results in an error.
+
+        # at this point, it can happen that some stations do not have
+        # a coordinate and others does. Drop these rows in the metadf,
+        # since a call to Nan coordinates results in an error.
 
         if metadf[["lat", "lon"]].isnull().any(axis=1).any():
-            missing_coords = metadf[metadf[["lat", "lon"]].isnull().any(axis=1)].index.tolist()
+            missing_coords = metadf[
+                metadf[["lat", "lon"]].isnull().any(axis=1)
+            ].index.tolist()
             logger.warning(
                 f"The following stations have missing coordinates, no data will be extracted: {missing_coords}"
             )
-        metadf = metadf.dropna(subset=['lat', 'lon'])
+        metadf = metadf.dropna(subset=["lat", "lon"])
         return metadf
 
     def _get_all_gee_bandnames(self) -> list:

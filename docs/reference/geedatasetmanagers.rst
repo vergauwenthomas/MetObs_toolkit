@@ -47,3 +47,11 @@ A summary of all methods in the GEEDynamicDatasetManager class.
    GEEDynamicDatasetManager.add_modelobstype
    GEEDynamicDatasetManager.extract_timeseries_data
    GEEDynamicDatasetManager.make_gee_plot
+
+
+Special methods
+------------------
+
+The DatasetManager classes implements several Python special methods for convenience:
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.

@@ -1,4 +1,5 @@
 import logging
+import copy
 from typing import Union
 
 import numpy as np
@@ -7,6 +8,9 @@ import geopandas as gpd
 
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsAdditionError,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
@@ -46,6 +50,14 @@ class Site:
             {}
         )  # example: {100: {pervious: 0.8, impervious: 0.2}}
 
+    def _id(self) -> str:
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
+        """
+        return f"{self.stationname}"
+
     def __eq__(self, other):
         """Check equality with another Site object."""
         if not isinstance(other, Site):
@@ -66,6 +78,43 @@ class Site:
             and self._geedata == other._geedata
             and self._gee_buffered_fractions == other._gee_buffered_fractions
         )
+
+    def __add__(self, other: "Site") -> "Site":
+        # We assume an outside merge on the same name, and same coordinates
+
+        # lat, lon and name must be the same!
+        lat_equal = (self.lat == other.lat) or (
+            pd.isnull(self.lat) and pd.isnull(other.lat)
+        )
+        lon_equal = (self.lon == other.lon) or (
+            pd.isnull(self.lon) and pd.isnull(other.lon)
+        )
+
+        if not (self._id() == other._id() and lat_equal and lon_equal):
+            raise MetObsAdditionError(
+                f"Could not sum {self} and {other}, since the name or coordinates are not equal."
+            )
+
+        # Update metadata (dict-style)
+        new_extradata = copy.copy(self.extradata)
+        new_extradata.update(other.extradata)  # dictupdate
+
+        new_geedata = copy.copy(self._geedata)
+        new_geedata.update(other._geedata)
+
+        new_gee_buffered = copy.copy(self._gee_buffered_fractions)
+        new_gee_buffered.update(other._gee_buffered_fractions)
+
+        # Create a new site
+        newsite = Site(
+            stationname=self.stationname,
+            latitude=self.lat,
+            longitude=self.lon,
+            extradata=new_extradata,
+        )
+        newsite._geedata = new_geedata
+        newsite._gee_buffered_fractions = new_gee_buffered
+        return newsite
 
     @property
     def stationname(self) -> str:
