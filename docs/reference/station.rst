@@ -43,6 +43,7 @@ General methods and attributes
    :toctree: api/
 
    Station.get_sensor
+   Station.get_modeltimeseries
    Station.get_info
    Station.resample
 
