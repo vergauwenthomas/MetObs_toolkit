@@ -264,7 +264,7 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = max([sensdata.end_datetime for sensdata in self.sensordata.values()])
         else:
             #no sensordata, metadata only station
             mindt = pd.NaT
@@ -1172,7 +1172,7 @@ class Station:
 
             fig = plotting.qc_overview_pies(df=plotdf)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Station level: {self.stationname}."
+                f"QC frequency statistics of {target_obstype} on Station level: {self.name}."
             )
             return fig
         else:
