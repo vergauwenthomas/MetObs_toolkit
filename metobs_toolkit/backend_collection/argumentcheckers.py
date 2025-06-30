@@ -21,7 +21,7 @@ def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
     elif isinstance(timedeltaarg, pd.Timedelta):
         dt = dt
     else:
-        MetObsArgumentError(
+        raise MetObsArgumentError(
             f"{timedeltaarg} could not be interpreted as a Timedelta, \
 convert it to a pd.Timedelta()."
         )
