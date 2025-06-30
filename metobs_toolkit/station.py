@@ -82,8 +82,36 @@ class Station:
 
     def __add__(self, other: "Station") -> "Station":
         """
-        Combine two Station objects with the same name.
-        SensorData and ModelTimeSeries are merged using their __add__ methods.
+        Combine two Station instances with the same _id.
+
+        Joining takes the _id() of underlying metobs objects into account. When
+        a combination of two objects with the same _id is encountered, the
+        addition is handled by the __add__ method of that class.
+
+        Parameters
+        ----------
+        other : Station
+            The Station instance to add to the current Station.
+
+        Returns
+        -------
+        Station
+            A new Station instance containing merged Sensordata, Site and ModelDataTimeseries.
+
+        Warning
+        -------
+        All progress on outliers and gaps will be lost! Outliers and gaps are reset.
+        This is necessary to be able to join SensorData with other time resolutions.
+
+        Warning
+        -------
+        When two Stations are joined with an overlap in sensortype, and
+        timestamps, the values (if not-NaN in other) are taken from *other*.
+
+        Examples
+        --------
+        >>> # Assume sta1_A and sta1_B Stations, representing the same station.
+        >>> sta1 = sta1_A + sta1_B
         """
         if not isinstance(other, Station):
             raise MetObsAdditionError("Can only add Station to Station.")
