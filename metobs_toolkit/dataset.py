@@ -101,9 +101,38 @@ class Dataset:
 
     def __add__(self, other: "Dataset") -> "Dataset":
         """
-        Combine two Dataset objects, merging stations and obstypes.
-        Stations with the same name are merged using their __add__ method.
+        Combine two Dataset instances by merging their stations and observation types.
+
+        Joining takes the _id() of underlying metobs objects into account. When
+        a combination of two objects with the same _id is encountered, the
+        addition is handled by the __add__ method of that class.
+
+        Parameters
+        ----------
+        other : Dataset
+            The Dataset instance to add to the current Dataset.
+
+        Returns
+        -------
+        Dataset
+            A new Dataset instance containing merged stations and observation types from both datasets.
+
+        Warning
+        -------
+        All progress on outliers and gaps will be lost! Outliers and gaps are reset.
+        This is necessary to be able to join SensorData with other time resolutions.
+
+        Warning
+        -------
+        When two Datasets are joined with an overlap in Station, sensortype, and
+        timestamps, the values (if not-NaN in other) are taken from *other*.
+
+        Examples
+        --------
+        >>> # Assume ds1 and ds2 to be Datasets.
+        >>> ds3 = ds1 + ds2
         """
+        
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
 
