@@ -20,6 +20,9 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEDynamicDatasetManager,
 )
 
+from metobs_toolkit.sensordata import SensorData #give user acces
+from metobs_toolkit.modeltimeseries import ModelTimeSeries #give user acces
+
 from metobs_toolkit.geedatasetmanagers import (
     default_datasets as default_GEE_datasets,
 )
