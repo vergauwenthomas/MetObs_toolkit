@@ -442,12 +442,49 @@ class TestDataWithGaps:
             sta, solutionobj_A.get_station("vlinder01")
         )  # station comparison
 
+
+    def test_add_modeldata_to_station(self):
+        #   get_startpoint data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+        sta = dataset.get_station('vlinder02')
+
+        #create a fake new modeltimesries
+        orig_modeltimeseries = sta.get_modeltimeseries('temp')
+        fake_data = (orig_modeltimeseries.series +16.2)/3.1
+
+        
+        fake_modeltimeseries = metobs_toolkit.ModelTimeSeries(
+            site=sta.site,
+            datarecords=fake_data.to_numpy(),
+            timestamps=fake_data.index.to_numpy(),
+            obstype=orig_modeltimeseries.obstype,
+            modelname=orig_modeltimeseries.modelname,
+            modelvariable=orig_modeltimeseries.modelvariable,
+
+        )
+        from metobs_toolkit.backend_collection.errorclasses import MetObsDataAlreadyPresent
+        with pytest.raises(MetObsDataAlreadyPresent):
+            sta.add_to_modeldata(fake_modeltimeseries)
+
+        fake_modeltimeseries.modelname = 'fake_model'
+        with pytest.raises(MetObsDataAlreadyPresent):
+            #Duplicate keys error
+            sta.add_to_modeldata(fake_modeltimeseries)
+
+        fake_modeltimeseries.obstype.name = 'fake name'
+        sta.add_to_modeldata(fake_modeltimeseries)
+        
+        assert len(set(sta.modeldata)) == 2
+        
+
     # ------------------------------------------
     #    Plotting tests are present in the test_plotting.py
     # ------------------------------------------
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" :
     print(
         "To Overwrite the solutions, run: \n pytest test_plotting.py  --mpl --mpl-generate-path=baseline"
     )
