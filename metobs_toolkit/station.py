@@ -31,6 +31,7 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEDynamicDatasetManager,
 )
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
+from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -54,9 +55,9 @@ class Station:
         # dimension attributes
         self._name = str(stationname)
         self._site = site
-        self.obsdata = self._set_stationdata(
-            all_sensor_data
-        )  # obstypename : SensorData
+        self.obsdata = {
+            sensor_data.obstype.name: sensor_data for sensor_data in all_sensor_data
+        }
 
         # Extra extracted data
         self._modeldata = {}  # dict of ModelTimeSeries
@@ -409,11 +410,47 @@ class Station:
         """
         return sorted(list(self.sensordata.keys()))
 
+    def add_to_sensordata(
+        self, new_sensordata: SensorData, force_update: bool = False
+    ) -> None:
+        """
+        Add a new SensorData to the Station. This can only be done when
+        the new_sensordata is not already present in self based on its id,
+        or if force_update is true.
+
+        Parameters
+        ----------
+        new_sensordata : SensorData
+            The new sensor data to be added. Must be an instance of `SensorData`.
+        force_update : bool, optional
+            If True, overwrite existing sensor data for the same id. Default is False.
+
+        Returns
+        -------
+        None
+        """
+        logger.debug("Entering add_to_modeldata for %s", self)
+        # Validate argument types
+        if not isinstance(new_sensordata, SensorData):
+            raise TypeError(
+                "new_sensordata must be an instance of SensorData."
+            )
+        present_sensordata_ids=[sensordat._id() for sensordat in self.sensordata.values()]
+        # Test if there is already sensordata for the same id available
+        if (new_sensordata._id() in present_sensordata_ids) & (not force_update):
+            raise MetObsDataAlreadyPresent(
+                f"There is already a SensorData instance with id {new_sensordata._id()}, and force_update is False."
+            )
+
+        self.obsdata.update({new_sensordata.obstype.name: new_sensordata})
+
     def add_to_modeldata(
         self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
     ) -> None:
         """
-        Add a new ModelTimeSeries to the Station.
+        Add a new ModelTimeSeries to the Station. This can only be done when
+        the new_modeltieseries is not already present in self based on its id,
+        or if force_update is true.
 
         Parameters
         ----------
@@ -432,14 +469,24 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        if not isinstance(force_update, bool):
-            raise TypeError("force_update must be a boolean.")
-
+        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata.values()]
         # Test if there is already model data for the same obstype available
-        if (new_modeltimeseries.obstype.name in self.sensordata) & (not force_update):
+        if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
             raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance representing {new_modeltimeseries.obstype.name}, and force_update is False."
+                f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
             )
+
+        #NOTE: At the moment, the obstypename is used for keys in the station collection
+        # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
+        # must be different aswell! 
+        present_keys = list(self.modeldata.keys())
+        target_key = new_modeltimeseries.obstype.name
+
+        if target_key in present_keys:
+            raise MetObsDataAlreadyPresent(
+                f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
+            )
+
 
         self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
 
@@ -1292,15 +1339,6 @@ class Station:
         else:
             return qc_df
 
-    def _set_stationdata(self, all_sensor_data: list) -> dict:
-        """Set the station's sensor data dictionary."""
-        return {
-            sensor_data.obstype.name: sensor_data for sensor_data in all_sensor_data
-        }
-
-    def _set_tz(self, current_tz):
-        """Set the timezone (not implemented)."""
-        pass
 
     def make_plot_of_modeldata(
         self,
