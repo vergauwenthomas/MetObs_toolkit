@@ -62,3 +62,5 @@ The `SensorData` class implements several Python special methods for convenience
 - ``__eq__``: Test equality between two SensorData objects.
 
 - ``__str__`` and ``__repr__``: String representations for printing and debugging.
+
+- ``copy``: Create a (deep) copy of the Sensordata.
