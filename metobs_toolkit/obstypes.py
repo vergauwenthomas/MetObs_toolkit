@@ -166,6 +166,11 @@ class Obstype:
         """Return the original unit as string."""
         return fmt_unit_to_str(self._original_unit)
 
+    @name.setter
+    def name(self, value: str):
+        """Set the name of the observation type."""
+        self._name = str(value)
+
     @description.setter
     def description(self, value: str):
         """Set the description of the observation type."""
