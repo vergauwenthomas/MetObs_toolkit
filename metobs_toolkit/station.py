@@ -429,7 +429,7 @@ class Station:
         -------
         None
         """
-        logger.debug("Entering add_to_modeldata for %s", self)
+        logger.debug("Entering add_to_sensordata for %s", self)
         # Validate argument types
         if not isinstance(new_sensordata, SensorData):
             raise TypeError(
