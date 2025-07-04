@@ -2,6 +2,7 @@ import logging
 from typing import Literal, Union
 import warnings
 
+import copy
 import numpy as np
 import pandas as pd
 
@@ -179,6 +180,26 @@ class SensorData:
         )
 
         return combined
+
+    def copy(self, deep: bool = True) -> "SensorData":
+        """
+        Return a copy of the sensordata.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        SensorData
+            The copied Sensordata.
+        """
+        logger.debug("Entering SensorData.copy")
+
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
 
     @property
     def df(self) -> pd.DataFrame:

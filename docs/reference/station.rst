@@ -43,7 +43,9 @@ General methods and attributes
    :toctree: api/
 
    Station.get_sensor
+   Station.add_to_sensordata
    Station.get_modeltimeseries
+   Station.add_to_modeldata
    Station.get_info
    Station.resample
 
@@ -113,7 +115,7 @@ The `Station` class implements several Python special methods for convenience:
 
 - ``__str__`` and ``__repr__``: String representations for printing and debugging.
 
-- ``copy``: Create a (deep) copy of the Dataset.
+- ``copy``: Create a (deep) copy of the Station.
 
 **Example usage:**
 
