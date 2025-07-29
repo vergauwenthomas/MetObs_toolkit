@@ -4,6 +4,7 @@ from pathlib import Path
 
 # import metobs_toolkit
 import pandas as pd
+import numpy as np
 
 
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
@@ -378,6 +379,35 @@ class TestWideSingleStationData:
 
         # 5. Construct the equlity tests
         assert_equality(data_to_test, solutionobj)  # dataset comparison
+
+
+class TestStationAddMethods:
+    def test_station_add_sensordata_and_modeldata(self):
+        # Get a dataset and a station
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+        station = dataset.get_station("vlinder01")
+
+        # --- Test add_to_sensordata ---
+        orig_sensor = station.get_sensor('humidity')
+        new_sensor = orig_sensor.copy(deep=True)
+        # Change obstype name to avoid collision
+        new_sensor.obstype.name = "new_obstype"
+        # Change values to distinguish
+        new_sensor.series = new_sensor.series + 100
+        # Add new SensorData
+        station.add_to_sensordata(new_sensor)
+        assert "new_obstype" in station.sensordata
+
+        # Try to add again without force_update, should raise
+        import metobs_toolkit.backend_collection.errorclasses as err
+        with pytest.raises(err.MetObsDataAlreadyPresent):
+            station.add_to_sensordata(new_sensor)
+
+        # Add with force_update, should succeed
+        station.add_to_sensordata(new_sensor, force_update=True)
+  
 
 
 if __name__ == "__main__":

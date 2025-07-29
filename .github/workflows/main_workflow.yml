@@ -298,6 +298,7 @@ jobs:
             - toolkit_tests/test_importing.py
             - toolkit_tests/test_plotting.py
             - toolkit_tests/test_gee.py
+            - toolkit_tests/test_add.py
 
         continue-on-error: true
         steps:

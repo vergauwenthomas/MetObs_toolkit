@@ -1,4 +1,5 @@
 import logging
+import copy
 import numpy as np
 import pandas as pd
 from typing import Literal, Union
@@ -10,6 +11,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
 )
+from metobs_toolkit.backend_collection.uniqueness import join_collections
+
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.backend_collection.errorclasses import (
@@ -18,6 +21,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsModelDataError,
     MetObsSensorDataNotFound,
     MetObsObstypeNotFound,
+    MetObsAdditionError,
     MetObsNoUniqueSelection,
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
@@ -28,6 +32,7 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEDynamicDatasetManager,
 )
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
+from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -51,12 +56,28 @@ class Station:
         # dimension attributes
         self._name = str(stationname)
         self._site = site
-        self.obsdata = self._set_stationdata(
-            all_sensor_data
-        )  # obstypename : SensorData
+        self.obsdata = {
+            sensor_data.obstype.name: sensor_data for sensor_data in all_sensor_data
+        }
 
         # Extra extracted data
-        self._modeldata = []  # list of ModelTimeSeries
+        self._modeldata = [] # list of ModelTimeSeries
+
+    def _id(self) -> str:
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
+        """
+        return f"{self.name}"
+
+    def _id(self) -> str:
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
+        """
+        return f"{self.name}"
 
     def __eq__(self, other):
         """Check equality with another Station object."""
@@ -69,9 +90,93 @@ class Station:
             and self._modeldata == other._modeldata
         )
 
+    def __add__(self, other: "Station") -> "Station":
+        """
+        Combine two Station instances with the same _id.
+
+        Joining takes the _id() of underlying metobs objects into account. When
+        a combination of two objects with the same _id is encountered, the
+        addition is handled by the __add__ method of that class.
+
+        Parameters
+        ----------
+        other : Station
+            The Station instance to add to the current Station.
+
+        Returns
+        -------
+        Station
+            A new Station instance containing merged Sensordata, Site and ModelDataTimeseries.
+
+        Warning
+        -------
+        All progress on outliers and gaps will be lost! Outliers and gaps are reset.
+        This is necessary to be able to join SensorData with other time resolutions.
+
+        Warning
+        -------
+        When two Stations are joined with an overlap in sensortype, and
+        timestamps, the values (if not-NaN in other) are taken from *other*.
+
+        Examples
+        --------
+        >>> # Assume sta1_A and sta1_B Stations, representing the same station.
+        >>> sta1 = sta1_A + sta1_B
+        """
+        if not isinstance(other, Station):
+            raise MetObsAdditionError("Can only add Station to Station.")
+        if self.name != other.name:
+            raise MetObsAdditionError("Cannot add Station with different names.")
+
+        #  ----  Merge site ----
+        merged_site = self.site + other.site
+
+        # --- Merge sensordata ----
+
+        # use collection merge
+        merged_sensorlist = join_collections(
+            col_A=self.sensordata.values(), col_B=other.sensordata.values()
+        )
+
+        # --- Merge Modeldata ----
+        merged_modeldatalist = join_collections(
+            col_A=self.modeldata.values(),
+            col_B=other.modeldata.values(),
+        )
+
+        # Construct a new station
+        new_sta = Station(
+            stationname=self.name, site=merged_site, all_sensor_data=merged_sensorlist
+        )
+
+        for moddata in merged_modeldatalist:
+            new_sta.add_to_modeldata(new_modeltimeseries=moddata, force_update=True)
+
+        return new_sta
+
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"Station instance of {self.name}"
+
+    def copy(self, deep: bool = True) -> "Station":
+        """
+        Return a copy of the Station.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        Station
+            The copied station.
+        """
+        logger.debug("Entering Station.copy")
+
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
 
     @property
     def name(self) -> str:
@@ -244,6 +349,22 @@ class Station:
         combdf.sort_index(inplace=True)
         return combdf
 
+    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+        """Get the ModelTimeSeries instance for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to retrieve.
+
+        Returns
+        -------
+        ModelTimeSeries
+            The ModelTimeSeries instance for the specified observation type.
+        """
+        self._obstype_has_modeldata_check(obstype)
+        return self.modeldata[obstype]
+
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -255,9 +376,11 @@ class Station:
             The earliest start datetime among all sensor data.
         """
         if bool(self.sensordata):
-            mindt = min([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = min(
+                [sensdata.start_datetime for sensdata in self.sensordata.values()]
+            )
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 
@@ -273,9 +396,9 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max([sensdata.start_datetime for sensdata in self.sensordata.values()])
+            mindt = max([sensdata.end_datetime for sensdata in self.sensordata.values()])
         else:
-            #no sensordata, metadata only station
+            # no sensordata, metadata only station
             mindt = pd.NaT
         return mindt
 
@@ -302,6 +425,40 @@ class Station:
             A list of all the present observations in the station.
         """
         return sorted(list(self.sensordata.keys()))
+
+    def add_to_sensordata(
+        self, new_sensordata: SensorData, force_update: bool = False
+    ) -> None:
+        """
+        Add a new SensorData to the Station. This can only be done when
+        the new_sensordata is not already present in self based on its id,
+        or if force_update is true.
+
+        Parameters
+        ----------
+        new_sensordata : SensorData
+            The new sensor data to be added. Must be an instance of `SensorData`.
+        force_update : bool, optional
+            If True, overwrite existing sensor data for the same id. Default is False.
+
+        Returns
+        -------
+        None
+        """
+        logger.debug("Entering add_to_sensordata for %s", self)
+        # Validate argument types
+        if not isinstance(new_sensordata, SensorData):
+            raise TypeError(
+                "new_sensordata must be an instance of SensorData."
+            )
+        present_sensordata_ids=[sensordat._id() for sensordat in self.sensordata.values()]
+        # Test if there is already sensordata for the same id available
+        if (new_sensordata._id() in present_sensordata_ids) & (not force_update):
+            raise MetObsDataAlreadyPresent(
+                f"There is already a SensorData instance with id {new_sensordata._id()}, and force_update is False."
+            )
+
+        self.obsdata.update({new_sensordata.obstype.name: new_sensordata})
 
     def add_to_modeldata(
         self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
@@ -332,17 +489,27 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        
-        #Test if there is already a modeltimesiers present with the same ID
-        if (new_modeltimeseries.ID in [modeltimeseries.ID for modeltimeseries in self.modeldata]):
-            if not force_update:
-                raise MetObsDataAlreadyPresent(
-                    f"There is already an modeltimeseries instance with the same ID: {new_modeltimeseries.ID} present for {self}"
-                )
-        
-        #add to the list
-        self._modeldata.append(new_modeltimeseries)
-       
+        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata.values()]
+        # Test if there is already model data for the same obstype available
+        if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
+            raise MetObsDataAlreadyPresent(
+                f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
+            )
+
+        #NOTE: At the moment, the obstypename is used for keys in the station collection
+        # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
+        # must be different aswell! 
+        present_keys = list(self.modeldata.keys())
+        target_key = new_modeltimeseries.obstype.name
+
+        if target_key in present_keys:
+            raise MetObsDataAlreadyPresent(
+                f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
+            )
+
+
+        self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
+
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print detailed information about the station.
@@ -1207,7 +1374,7 @@ class Station:
 
             fig = plotting.qc_overview_pies(df=plotdf)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Station level: {self.stationname}."
+                f"QC frequency statistics of {target_obstype} on Station level: {self.name}."
             )
             return fig
         else:
@@ -1221,10 +1388,9 @@ class Station:
 
     def _set_tz(self, current_tz):
         """Set the timezone (not implemented)."""
+        #TODO
         pass
 
-
-    
     def make_plot_of_modeldata(
         self,
         trg_obstype: str = "temp",
@@ -1297,10 +1463,10 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{trg_modeltimeseries.ID}@",
+            legend_prefix=f"{self.get_modeltimeseries(obstype).modelname}:{self.get_modeltimeseries(obstype).modelvariable}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.modelobstype
+        obstypeinstance = self.get_modeltimeseries(obstype).obstype
 
         # Set title:
         if title is None:
@@ -1756,7 +1922,7 @@ class Station:
         #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
         #. Iterate over the gaps of the target_obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperatly).
+        #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperately).
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
         #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
         #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.

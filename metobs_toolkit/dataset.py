@@ -23,6 +23,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+from metobs_toolkit.backend_collection.uniqueness import join_collections
+
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -39,6 +41,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsObstypeNotFound,
     MetObsMissingArgument,
     MetObsMetadataNotFound,
+    MetObsNonUniqueIDs,
 )
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
@@ -95,6 +98,61 @@ class Dataset:
         if not isinstance(other, Dataset):
             return False
         return self.stations == other.stations
+
+    def __add__(self, other: "Dataset") -> "Dataset":
+        """
+        Combine two Dataset instances by merging their stations and observation types.
+
+        Joining takes the _id() of underlying metobs objects into account. When
+        a combination of two objects with the same _id is encountered, the
+        addition is handled by the __add__ method of that class.
+
+        Parameters
+        ----------
+        other : Dataset
+            The Dataset instance to add to the current Dataset.
+
+        Returns
+        -------
+        Dataset
+            A new Dataset instance containing merged stations and observation types from both datasets.
+
+        Warning
+        -------
+        All progress on outliers and gaps will be lost! Outliers and gaps are reset.
+        This is necessary to be able to join SensorData with other time resolutions.
+
+        Warning
+        -------
+        When two Datasets are joined with an overlap in Station, sensortype, and
+        timestamps, the values (if not-NaN in other) are taken from *other*.
+
+        Examples
+        --------
+        >>> # Assume ds1 and ds2 to be Datasets.
+        >>> ds3 = ds1 + ds2
+        """
+        
+        if not isinstance(other, Dataset):
+            raise TypeError("Can only add Dataset to Dataset.")
+        
+        # --- Merge stations ----
+        merged_stationslist = join_collections(
+            col_A=self.stations, col_B=other.stations
+        )
+
+        #  ---- Merge obstypes ----
+
+        merged_obstypes = join_collections(
+            col_A=self.obstypes.values(), col_B=other.obstypes.values()
+        )
+
+        # Construct a new Dataset
+        new_dataset = Dataset()
+        new_dataset.stations = merged_stationslist
+        new_dataset._obstypes = {obst.name: obst for obst in merged_obstypes}
+
+        return new_dataset
 
     def __str__(self) -> str:
         """Return a string representation of the Dataset."""
@@ -156,7 +214,11 @@ class Dataset:
         """
         Set the list of stations.
         """
-
+        ids = [sta._id() for sta in stationlist]
+        if len(stationlist) != len(set(ids)):
+            raise MetObsNonUniqueIDs(
+                "The _id() of the stations are not unique in the list."
+            )
         self._stations = stationlist
 
     @obstypes.setter
@@ -165,6 +227,11 @@ class Dataset:
         Set the obstypes.
 
         """
+        ids = [obs._id() for obs in obstypesdict.values()]
+        if len(obstypesdict) != len(set(ids)):
+            raise MetObsNonUniqueIDs(
+                "The _id() of the obstypes are not unique in the obstypedict."
+            )
 
         self._obstypes = obstypesdict
 
@@ -891,9 +958,10 @@ class Dataset:
 
         for sta in self.stations:
             if obstype in sta.modeldata.keys():
-                modelobstype = sta.modeldata[obstype].obstype
-                modelname = sta.modeldata[obstype].modelname
-                modelvar = sta.modeldata[obstype].modelname
+                modeltimeseries = sta.get_modeltimeseries(obstype)
+                modelobstype = modeltimeseries.obstype
+                modelname = modeltimeseries.modelname
+                modelvar = modeltimeseries.modelname
                 break
 
         if ax is None:
@@ -1805,7 +1873,7 @@ class Dataset:
         same LCZ as the reference station, and with a maximum distance of
         `max_LCZ_buddy_dist`. If a `max_alt_diff` is specified, a altitude-difference
         filtering is applied on these buddies aswell.  If a test is sucsesfull, that
-        is if the z-value is smaller than the `safetynet_z_threshold`, then the
+        is if the z-value is smaller than the `safetynet_z_threshold`, the
         outlier is saved. It will be removed from the outliers, and will pass to the
         next iteration or the end of this function.
 

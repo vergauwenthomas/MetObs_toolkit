@@ -1,6 +1,8 @@
 import logging
 from typing import Literal, Union
+import warnings
 
+import copy
 import numpy as np
 import pandas as pd
 
@@ -11,7 +13,10 @@ from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.gap import Gap
 import metobs_toolkit.qc_collection as qc
-from metobs_toolkit.backend_collection.errorclasses import MetObsQualityControlError
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsQualityControlError,
+    MetObsAdditionError,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -53,12 +58,7 @@ class SensorData:
         obstype: Obstype,
         datadtype: type = np.float32,
         timezone: Union[str, pd.Timedelta] = "UTC",
-        freq_estimation_method: Literal["highest", "median"] = "median",
-        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta(
-            "1min"
-        ),
-        origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
-        timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
+        **setupkwargs,
     ):
         # Set data
         self._stationname = stationname
@@ -79,17 +79,16 @@ class SensorData:
         self.gaps = []  # list of Gap's
 
         # Setup the SensorData --> apply qc control on import, find gaps, unit conversions etc
-        self._setup(
-            freq_estimation_method=freq_estimation_method,
-            freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
-            origin_simplify_tolerance=origin_simplify_tolerance,
-            timestamp_tolerance=timestamp_tolerance,
-            apply_invalid_check=True,
-            apply_dupl_check=True,
-            apply_unit_conv=True,
-        )
-
+        self._setup(**setupkwargs)
         logger.info("SensorData initialized successfully.")
+
+    def _id(self) -> str:
+        """A physical unique id.
+
+        In the __add__ methods, if the id of two instances differs, adding is
+        a regular concatenation.
+        """
+        return f"{self.stationname}_{self.obstype._id()}"
 
     def __eq__(self, other):
         """Check equality with another SensorData object."""
@@ -108,6 +107,99 @@ class SensorData:
     def __str__(self) -> str:
         """Return a string representation of the SensorData object."""
         return f"{self.obstype.name} data of station {self.stationname}."
+
+    def __add__(self, other: "SensorData") -> "SensorData":
+        """
+        Combine two SensorData objects for the same station and obstype.
+
+
+        !!! The result contains all unique records, with preference to non-NaN values from 'other'.
+        This makes the addition not strict associative.
+        Outliers and gaps are concatenated.
+        """
+        if not isinstance(other, SensorData):
+            raise MetObsAdditionError("Can only add SensorData to SensorData.")
+        if self._id() != other._id():
+            raise MetObsAdditionError(
+                f"Cannot add SensorData for different IDs ({self._id()} != {other._id()})."
+            )
+
+        # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
+        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+
+        # Think of what will happen if you merge two sensordata series, where
+        # The first is QC'ed and at a hourly resolution. The second overlaps the
+        # first but at a resolution of 5 minutes. This messes up the outliers and
+        # gaps.
+        if not self.outliersdf.empty:
+            # rolback the outliervalues
+            selfrecords = self.series.combine_first(self.outliersdf["value"])
+        else:
+            selfrecords = self.series
+
+        if not other.outliersdf.empty:
+            # rolback the outliervalues
+            otherrecords = other.series.combine_first(other.outliersdf["value"])
+        else:
+            otherrecords = other.series
+
+        # Align timezones if different
+        if self.tz != other.tz:
+            otherrecords = otherrecords.tz_convert(str(self.tz))
+
+        # Combine the series, preferring non-NaN from 'other'
+        combined_series = selfrecords.combine_first(otherrecords)
+
+        # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
+        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+
+        # Think of what will happen if you merge two sensordata series, where
+        # The first is QC'ed and at a hourly resolution. The second overlaps the
+        # first but at a resolution of 5 minutes. This messes up the outliers and
+        # gaps.
+
+        if (
+            bool(self.gaps)
+            | bool(self.outliers)
+            | bool(other.gaps)
+            | bool(other.outliers)
+        ):
+            warnings.warn(
+                f"All stored outliers and gap info of {self} will not be present in the combined."
+            )
+
+        # Create new SensorData instance
+        combined = SensorData(
+            stationname=self.stationname,
+            datarecords=combined_series.values,
+            timestamps=combined_series.index.values,
+            obstype=self.obstype + other.obstype,
+            datadtype=combined_series.dtype,
+            timezone=self.tz,
+            apply_unit_conv=False,
+        )
+
+        return combined
+
+    def copy(self, deep: bool = True) -> "SensorData":
+        """
+        Return a copy of the sensordata.
+
+        Parameters
+        ----------
+        deep : bool, optional
+            If True, perform a deep copy. Default is True.
+
+        Returns
+        -------
+        SensorData
+            The copied Sensordata.
+        """
+        logger.debug("Entering SensorData.copy")
+
+        if deep:
+            return copy.deepcopy(self)
+        return copy.copy(self)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -212,10 +304,12 @@ class SensorData:
 
     def _setup(
         self,
-        freq_estimation_method: str,
-        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str],
-        origin_simplify_tolerance: Union[pd.Timedelta, str],
-        timestamp_tolerance: Union[pd.Timedelta, str],
+        freq_estimation_method: Literal["highest", "median"] = "median",
+        freq_estimation_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta(
+            "1min"
+        ),
+        origin_simplify_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("1min"),
+        timestamp_tolerance: Union[pd.Timedelta, str] = pd.Timedelta("4min"),
         apply_invalid_check: bool = True,
         apply_dupl_check: bool = True,
         apply_unit_conv: bool = True,

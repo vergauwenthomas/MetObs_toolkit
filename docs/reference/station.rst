@@ -43,6 +43,9 @@ General methods and attributes
    :toctree: api/
 
    Station.get_sensor
+   Station.add_to_sensordata
+   Station.get_modeltimeseries
+   Station.add_to_modeldata
    Station.get_info
    Station.resample
 
@@ -99,3 +102,36 @@ Visualisations
 
    Station.make_plot_of_modeldata
    Station.make_plot
+
+
+Special methods
+------------------
+
+The `Station` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two Station objects, merging sensordata, site and modeltimeseries. 
+
+- ``__eq__``: Test equality between two Station objects.
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.
+
+- ``copy``: Create a (deep) copy of the Station.
+
+**Example usage:**
+
+.. code-block:: python
+
+   from metobs_toolkit.dataset import Dataset
+
+   # Assume sta1 and sta2 are Station instances
+   sta_extend = sta1 + sta2  # Merge Stations
+
+   # Equality check
+   if sta1 == sta2:
+       print("Stations are equal")
+
+   # Copying
+   copy_of_1 = sta1.copy(deep=True)
+
+   # String representation
+   print(str(sta1))

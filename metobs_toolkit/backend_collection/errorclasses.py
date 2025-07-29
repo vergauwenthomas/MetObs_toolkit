@@ -152,7 +152,7 @@ class MetObsTemplateError(Exception):
 
 
 class MetObsArgumentError(Exception):
-    """Raise when an argument could not be converted to a target type."""
+    """Raised when an argument could not be converted to a target type."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -160,6 +160,20 @@ class MetObsArgumentError(Exception):
 
 class MetObsInconsistentStationName(Exception):
     """Special case only --> mismatch in data-metadata stationnames"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+
+class MetObsAdditionError(Exception):
+    """Raised when addition failed (often different _id())"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+
+class MetObsNonUniqueIDs(Exception):
+    """Raised when non-unique ID's are expected, but duplicates are found"""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
