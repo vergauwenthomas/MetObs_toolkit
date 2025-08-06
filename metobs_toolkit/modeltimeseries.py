@@ -50,14 +50,12 @@ class ModelTimeSeries:
         self.modelobstype = modelobstype
         self.modelID = modelID #to construct the id
 
-        #a unique ID
-        self.ID = f'{self.modelID}:{self.modelobstype.name}:{self.modelobstype.model_band}' 
 
         # Data
         data = pd.Series(
             data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
-            name=self.ID,
+            name=self._id(),
         )
         self.series = data
 
@@ -71,7 +69,7 @@ class ModelTimeSeries:
         In the __add__ methods, if the id of two instances differs, adding is
         a regular concatenation.
         """
-        return f"{self.site._id()}{self.modelname}_{self.modelvariable}"
+        return f"{self.site._id()}_{self.modelID}_{self.modelobstype.model_band}"
 
     def __eq__(self, other) -> bool:
         """Check equality with another ModelTimeSeries object."""
@@ -86,7 +84,7 @@ class ModelTimeSeries:
         )
 
     def __str__(self):
-        return f"ModelTimeseries of {self.ID} at {self.site.stationname}"
+        return f"ModelTimeseries of {self._id()} at {self.site.stationname}"
 
     def __add__(self, other: "ModelTimeSeries") -> "ModelTimeSeries":
         """
@@ -126,7 +124,7 @@ class ModelTimeSeries:
         # get all records
         df = (
             self.series.to_frame()
-            .rename(columns={self.ID: "value"})
+            .rename(columns={self._id(): "value"})
         )
         return df
 
@@ -211,7 +209,7 @@ class ModelTimeSeries:
         infostr = ""
         infostr += printing.print_fmt_title("General info of ModelTimeSeries")
         infostr += printing.print_fmt_line(
-            f"{self.ID} data at location of {self.stationname}"
+            f"{self.id()} data at location of {self.stationname}"
         )
         infostr += self._get_info_core(nident_root=1)
         if printout:

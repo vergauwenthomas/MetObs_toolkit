@@ -140,8 +140,8 @@ class Station:
 
         # --- Merge Modeldata ----
         merged_modeldatalist = join_collections(
-            col_A=self.modeldata.values(),
-            col_B=other.modeldata.values(),
+            col_A=self.modeldata,
+            col_B=other.modeldata,
         )
 
         # Construct a new station
@@ -328,7 +328,7 @@ class Station:
                 .assign(obstype=modeldata.modelobstype.name)
                 .assign(bandname=modeldata.bandname)
                 .assign(
-                    details=f"{modeldata.ID} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
+                    details=f"{modeldata._id()} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
                 )
                 .reset_index()
                 .set_index(["datetime", "modelID", "obstype", "bandname"])
@@ -349,7 +349,7 @@ class Station:
         combdf.sort_index(inplace=True)
         return combdf
 
-    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    def get_modeltimeseries(self, obstype: str) -> ModelTimeSeries: 
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
@@ -362,8 +362,19 @@ class Station:
         ModelTimeSeries
             The ModelTimeSeries instance for the specified observation type.
         """
-        self._obstype_has_modeldata_check(obstype)
-        return self.modeldata[obstype]
+
+        if not bool(self.modeldata):
+            raise MetObsModelDataError(f'There is no modeldata present for {self}')
+        
+        modeldatadict = {mod.modelobstype.name: mod for mod in self.modeldata}
+        if obstype not in modeldatadict:
+            raise MetObsObstypeNotFound(
+                f"There is no {obstype} - modeldata present for {self}"
+            )
+        return modeldatadict[obstype]
+
+
+
 
     @property
     def start_datetime(self) -> pd.Timestamp:
@@ -489,26 +500,14 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata.values()]
+        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata]
         # Test if there is already model data for the same obstype available
         if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
             raise MetObsDataAlreadyPresent(
                 f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
             )
-
-        #NOTE: At the moment, the obstypename is used for keys in the station collection
-        # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
-        # must be different aswell! 
-        present_keys = list(self.modeldata.keys())
-        target_key = new_modeltimeseries.obstype.name
-
-        if target_key in present_keys:
-            raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
-            )
-
-
-        self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
+        #add it to the modeldata
+        self._modeldata.append(new_modeltimeseries)
 
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
@@ -1463,10 +1462,10 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{self.get_modeltimeseries(obstype).modelname}:{self.get_modeltimeseries(obstype).modelvariable}@",
+            legend_prefix=f"{self.get_modeltimeseries(trg_obstype)._id()}@",
         )
         # Styling
-        obstypeinstance = self.get_modeltimeseries(obstype).obstype
+        obstypeinstance = self.get_modeltimeseries(trg_obstype).modelobstype
 
         # Set title:
         if title is None:
@@ -1683,7 +1682,7 @@ class Station:
         # Get modeltimeseries
         argsdict = kwargs_specify_model
         argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modeltimeseries(**argsdict)
+        modeltimeseries = self.find_modletimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -2147,11 +2146,4 @@ class Station:
         return potential_candidates[0]
 
 
-    # def _obstype_has_modeldata_check(self, obstype: str) -> None:
-    #     """Raise error if obstype is not present in modeldata."""
-
-
-    #     if obstype not in self.modeldata.keys():
-    #         raise MetObsObstypeNotFound(
-    #             f"There is no {obstype} - modeldata present for {self}"
-    #         )
+   

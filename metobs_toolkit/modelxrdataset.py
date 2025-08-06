@@ -1,4 +1,5 @@
 import logging
+from typing import Literal, Union
 
 import pandas as pd
 import geopandas as gpd
@@ -22,6 +23,9 @@ from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 # Use logger with name "<metobs_toolkit>"
 logger = logging.getLogger("<metobs_toolkit>")
+
+
+REQUIRED_COORDS = ['lat', 'lon', 'validtime', 'reference_time']
 
 class Grid:
     def __init__(self, gridds):
@@ -96,8 +100,6 @@ class Grid:
                 "gridpoint_y": int(nn_y)}
         
     
-
-
 class ModelDataset:
     """
     Wrapper for an xarray.Dataset representing a model dataset.
@@ -105,7 +107,7 @@ class ModelDataset:
     Ensures that the dataset contains 'latitude', 'longitude', and 'validtime' coordinates.
     """
 
-    REQUIRED_COORDS = ['lat', 'lon', 'validtime', 'reference_time']
+    
 
     def __init__(self, modelID:str, dataset: xr.Dataset, field_defenitions: list):
         """
@@ -123,75 +125,57 @@ class ModelDataset:
         """
 
         self.modelID = modelID
-        self.dataset = dataset
-        self.field_defs = field_defenitions
+        
 
         #Test and format the datset
-        self._check_required_coords()
-        self._subset_to_mapped_fields()
-        self._too_standard_units()
+        dataset = _check_required_coords(ds=dataset)
+        dataset = _subset_to_mapped_fields(ds=dataset,
+                                      field_defs=field_defenitions)
+        dataset = _too_standard_units(ds=dataset,
+                                      field_defs=field_defenitions)
+
+        self.field_defs = field_defenitions
+        self._dataset = dataset
 
         #Set grid
-        self.grid = Grid(self.dataset[['lat', 'lon']])
+        self.grid = Grid(self.xrdataset[['lat', 'lon']])
 
         self._tails_are_removed = False
 
     def __repr__(self):
-        return f"Gridded output of {self.modelID}:\n {self.dataset}"
+        return f"Gridded output of {self.modelID}:\n {self.xrdataset}"
     
+    def _id(self) -> str:
+        return str(self.modelID)
+    
+    def get_info(self, printout: bool = True) -> Union[str, None]:
+        #TODO
+        pass
+
+    @property
+    def xrdataset(self) -> xr.Dataset:
+        return self._dataset
+
     @property
     def variable_names(self):
-        return variable_names(self.dataset)
+        return variable_names(self.xrdataset)
    
-    def _subset_to_mapped_fields(self):
+   
 
-        in_dataset = self.variable_names
-        
-        in_defs = [modlobs.model_band for modlobs in self.field_defs]
-
-        #log unmapped
-        droped_vars = list(set(in_dataset) - set(in_defs))
-        if bool(droped_vars):
-            logger.warning(f'The following variables are unmapped and are removed from the modeldataset: {droped_vars}')
-
-        #Do not drop the coordinates
-        target_subset = set(in_dataset).intersection(set(in_defs))
-        self.dataset = self.dataset[list(target_subset) + list(coord_names(self.dataset))]
-        return
+    # def _cleanup_coordinates(self):
+    #     ### when subsetting to the variables, only the coordinates
+    #     # used by the variables are kept
+    #     self.dataset = self.dataset[self.variable_names]
+    #     return
     
-    def _too_standard_units(self):
-        for field in self.variable_names:
-            print(field)
-            modelobs = self._modelobstype_from_variablename(field)
-            self.dataset[field].data = modelobs.convert_to_standard_units(
-                                        input_data = self.dataset[field].data,
-                                        input_unit = modelobs.model_unit
-                                         )
-
-    def _cleanup_coordinates(self):
-        ### when subsetting to the variables, only the coordinates
-        # used by the variables are kept
-        self.dataset = self.dataset[self.variable_names]
-        return
     
-    def _check_required_coords(self):
-        missing = [coord for coord in self.REQUIRED_COORDS if coord not in self.dataset.coords]
-        if missing:
-            raise ValueError(f"Missing required coordinates: {missing}")
-        
-        # Ensure 'validtime' is a dimension
-        if 'validtime' not in self.dataset.dims:
-            self.dataset = self.dataset.expand_dims('validtime')
-
-        # Ensure 'validtime' is an index
-        # Needed for the .sel() method on validtime
-        if 'validtime' not in self.dataset.indexes:
-            self.dataset = self.dataset.set_index({'validtime': 'validtime'})
 
     def spatial_plot(self,
                     target_fieldname: str | None=None, 
                     validtime: pd.Timestamp | None = None,
-                    **kwargs,
+                    show_stations: list  = [], #list of stations
+                    pcolormesh_kwargs={},
+                    scatter_kwargs={}
                     ):
         
         #Set fieldname
@@ -205,16 +189,16 @@ class ModelDataset:
         #Set validtime
         if validtime is None:
             #Pick the first present validtime
-            validtime = self.dataset['validtime'].data[0]
+            validtime = self.xrdataset['validtime'].data[0]
         else: 
             #test if validtime is in the dataset
             if not isinstance(validtime, pd.Timestamp):
                 raise TypeError("validtime must be a pandas.Timestamp")
-            if validtime not in self.dataset['validtime'].values:
+            if validtime not in self.xrdataset['validtime'].values:
                 raise ValueError(f"validtime {validtime} not found in dataset validtime dimension")
 
         #Construct Xr array (2D repr)
-        to_plot = self.dataset[target_fieldname].sel({'validtime': validtime})
+        to_plot = self.xrdataset.sel({'validtime': validtime})[target_fieldname]
 
         # Set up a standard map for latlon data.
         fig, geo_axes= plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
@@ -226,10 +210,11 @@ class ModelDataset:
                 cbar_kwargs={"orientation": "horizontal", "shrink": 0.8, "aspect": 40},                                                     
                 robust=True,
                 ax=geo_axes,
-                **kwargs,
+                **pcolormesh_kwargs,
                 )    
         
-        trgmodelobstype = self._modelobstype_from_variablename(target_fieldname)
+        trgmodelobstype = _modelobstype_from_variablename(target_fieldname,
+                                                          field_defs=self.field_defs)
 
 
         geo_axes.set_title(f'{trgmodelobstype} at validate {validtime}')
@@ -237,11 +222,25 @@ class ModelDataset:
         geo_axes.coastlines()
         geo_axes.add_feature(cartopy.feature.BORDERS)
 
+
+        for sta in show_stations:
+            scatter_settings = {'marker': 'o',
+                                'color': 'black',
+                                'markersize': 6}
+            scatter_settings.update(scatter_kwargs)
+
+            geo_axes.plot(sta.site.lon,
+                          sta.site.lat,
+                        #   marker='o',
+                        #   color='black',
+                        #   markersize=6,
+                          transform=ccrs.PlateCarree(),
+                          **scatter_settings)
+
+
         #scaling    
         geo_axes.autoscale_view()
         return geo_axes
-
-
 
 
     def _get_nn_gridpoint(self, trg_lat, trg_lon):
@@ -249,12 +248,7 @@ class ModelDataset:
         return self.grid.get_nearest_gp(trg_lat=trg_lat, trg_lon=trg_lon)
         
 
-    def _modelobstype_from_variablename(self, variabelname):
-        trgmodelobscandiates = [modelobs for modelobs in self.field_defs if modelobs.model_band == variabelname]
-        if not bool(trgmodelobscandiates):
-            raise MetObsFieldNotFound(f'{variabelname} is not known field.')
-        
-        return trgmodelobscandiates[0]
+    
     
     def _check_fieldname_is_known(self, fieldname):
         if fieldname not in self.variable_names:
@@ -294,7 +288,7 @@ class ModelDataset:
         targetds = xr.Dataset(pd.DataFrame(data=stations_grid_info).set_index('name'))
         
         #clip the stations from the model
-        targetds = self.dataset.sel(targetds)
+        targetds = self.xrdataset.sel(targetds)
 
     
 
@@ -316,7 +310,8 @@ class ModelDataset:
                                 site=sta.site,
                                 datarecords=targetds_chunk[var].sel(name=sta.name).to_numpy(),
                                 timestamps=targetds_chunk['validtime'].to_numpy(),
-                                modelobstype=self._modelobstype_from_variablename(var),
+                                modelobstype=_modelobstype_from_variablename(var,
+                                                                             field_defs=self.field_defs),
                                 datadtype=np.float32,
                                 timezone='UTC',
                                 modelID=self.modelID,
@@ -327,133 +322,85 @@ class ModelDataset:
             del targetds_chunk
             i+=1
 
-        # logger.debug(f"Memory size of self: {getmemsize(self)} GB")
-        # #Memory is more limitting then computatio time, so favour memory efficient
-        # i = 1
-        # for sta in stationlist:
-        #     logger.debug(f'creating modeldata for {sta.name} ({i}/{len(stationlist)+1}) ')
-        #     logger.debug(f"Memory size of sta before modelfil: {getmemsize(sta)} GB")
-        #     for var in target_variables:
-        #          sta.add_to_modeldata(
-        #              ModelTimeSeries(
-        #                     site=sta.site,
-        #                     datarecords=targetds[var].sel(name=sta.name).to_numpy(),
-        #                     timestamps=targetds['validtime'].to_numpy(),
-        #                     modelobstype=self._modelobstype_from_variablename(var),
-        #                     datadtype=np.float32,
-        #                     timezone='UTC',
-        #                     modelID=self.modelID,
-        #                     ),
-        #                     force_update=force_update)
-        #     logger.debug(f"Memory size of sta after modelfil: {getmemsize(sta)} GB")
-        #     logger.debug(f"Memory size of self after modelfil of {sta.name}: {getmemsize(self)} GB")                
-        #     i+=1
-        #Construct Dataframe
-        # trg_index = ['name', 'validtime'] #TODO add other dimensions for cycle applications
-        # targetdf = targetds[trg_index + target_variables].compute().to_dataframe()
-        # targetdf = targetdf.reset_index().set_index(['name', 'validtime'])
-        # targetdf = targetdf[target_variables] #drop columns representing coordinates
-        
-        # #add it as modeltimeseries to the stations
-        # for sta in stationlist:
-        #     print(f'creating modeldata for {sta.name}')
-        #     stadf = targetdf.xs(sta.name, level='name')
-        #     #each column represents bandvalues
-        #     for colname in stadf.columns:
-
-        #         sta.add_to_modeldata(ModelTimeSeries(
-        #                     site=sta.site,
-        #                     datarecords=stadf[colname].to_numpy(),
-        #                     timestamps=stadf.index.to_numpy(),
-        #                     modelobstype=self._modelobstype_from_variablename(colname),
-        #                     datadtype=np.float32,
-        #                     timezone='UTC',
-        #                     modelID=self.modelID,
-        #                     ),
-        #                     force_update=force_update)
-        #     #Save memory
-        #     del stadf
-        #     targetdf = targetdf.drop(sta.name, level='name')
-        
 
 
 
-    def trim_to_box(self, minlat, maxlat, minlon, maxlon, drop=False):
-        self.dataset = self.dataset.where(
-                    ((self.dataset['lat'] <= maxlat) &
-                        (self.dataset['lat'] >= minlat) &
-                        (self.dataset['lon'] <= maxlon) &
-                        (self.dataset['lon'] >= minlon)),
-                    drop=drop)
+    # def trim_to_box(self, minlat, maxlat, minlon, maxlon, drop=False):
+    #     self._dataset = self._dataset.where(
+    #                 ((self._dataset['lat'] <= maxlat) &
+    #                     (self._dataset['lat'] >= minlat) &
+    #                     (self._dataset['lon'] <= maxlon) &
+    #                     (self._dataset['lon'] >= minlon)),
+    #                 drop=drop)
         
 
-    def trim_to_country(self, country_shp_file,
-                        country='Belgium',
-                        drop=False):
+    # def trim_to_country(self, country_shp_file,
+    #                     country='Belgium',
+    #                     drop=False):
         
-        #read the shape file
-        shpfile = gpd.read_file(country_shp_file)
+    #     #read the shape file
+    #     shpfile = gpd.read_file(country_shp_file)
 
-        #subset one country
-        trg_shp = shpfile.loc[shpfile['name'] == country]
+    #     #subset one country
+    #     trg_shp = shpfile.loc[shpfile['name'] == country]
         
-        #convert trg_shp to  regionmask
-        trg_region = regionmask.from_geopandas(trg_shp) #to region
+    #     #convert trg_shp to  regionmask
+    #     trg_region = regionmask.from_geopandas(trg_shp) #to region
         
-        #rasterize (convert to a dataset with nan's out of the trg region)
-        maskraster = trg_region.mask(self.dataset,
-                                        lon_name = 'lon',
-                                        lat_name='lat')
+    #     #rasterize (convert to a dataset with nan's out of the trg region)
+    #     maskraster = trg_region.mask(self._dataset,
+    #                                     lon_name = 'lon',
+    #                                     lat_name='lat')
         
-        self.dataset = self.dataset.where(maskraster.notnull(), drop=drop)
+    #     self._dataset = self._dataset.where(maskraster.notnull(), drop=drop)
         
-    def trim_spinup_and_tails(self, spinup_duration=pd.Timedelta('4h'),
-                              cycle_freq:pd.Timestamp|None = None,
-                              validtimename='validtime',
-                              referecetimename='reference_time',
-                              drop=True):
-        #1. add leadtime
-        self.add_leadtime_dimension(validtimename=validtimename,
-                                    referecetimename=referecetimename)
+    # def trim_spinup_and_tails(self, spinup_duration=pd.Timedelta('4h'),
+    #                           cycle_freq:pd.Timestamp|None = None,
+    #                           validtimename='validtime',
+    #                           referecetimename='reference_time',
+    #                           drop=True):
+    #     #1. add leadtime
+    #     self.add_leadtime_dimension(validtimename=validtimename,
+    #                                 referecetimename=referecetimename)
 
-        # 2. construct limits of leadtime
-        if cycle_freq is None:
-            #estimate the cycle frequency
-            cycle_freq = pd.infer_freq(pd.to_datetime(self.dataset[referecetimename]))
+    #     # 2. construct limits of leadtime
+    #     if cycle_freq is None:
+    #         #estimate the cycle frequency
+    #         cycle_freq = pd.infer_freq(pd.to_datetime(self.dataset[referecetimename]))
         
             
-        #to timedeltas
-        ref_time_freq = to_timedelta(cycle_freq)
-        spinup = to_timedelta(spinup_duration)
+    #     #to timedeltas
+    #     ref_time_freq = to_timedelta(cycle_freq)
+    #     spinup = to_timedelta(spinup_duration)
 
-        min_leadtime = spinup
-        max_leadtime = ref_time_freq + spinup
+    #     min_leadtime = spinup
+    #     max_leadtime = ref_time_freq + spinup
 
-        # 3. subset data
-        #NOTE: Make sure that always one of the bounds is included and the other
-        # is not! Else there will be multiple values for one validtime (based
-        # on referene time).
-        self.dataset = self.dataset.where(
-            (self.dataset['leadtime'] >= min_leadtime) & #leadtime included
-            (self.dataset['leadtime'] < max_leadtime), #Maxleadtime excluded !!! 
-            drop=drop)
+    #     # 3. subset data
+    #     #NOTE: Make sure that always one of the bounds is included and the other
+    #     # is not! Else there will be multiple values for one validtime (based
+    #     # on referene time).
+    #     self.dataset = self.dataset.where(
+    #         (self.dataset['leadtime'] >= min_leadtime) & #leadtime included
+    #         (self.dataset['leadtime'] < max_leadtime), #Maxleadtime excluded !!! 
+    #         drop=drop)
         
-        #4. Reconstruct the 1D time timensions
+    #     #4. Reconstruct the 1D time timensions
 
-        #Note the leadtime is collapsed with another method, since the non-physical
-        #elements on this coordinate are not Nan (but negative or in-spinup values)
-        self.dataset['leadtime1d'] = self.dataset['leadtime'].where(self.dataset['leadtime'] >=min_leadtime).min(dim='reference_time', skipna=True)
-        self.dataset = self.dataset.assign_coords(leadtime1d = self.dataset['leadtime1d'])
-        self.dataset = self.dataset.drop_vars('leadtime')
-        self.dataset = self.dataset.rename({'leadtime1d': 'leadtime'})
+    #     #Note the leadtime is collapsed with another method, since the non-physical
+    #     #elements on this coordinate are not Nan (but negative or in-spinup values)
+    #     self.dataset['leadtime1d'] = self.dataset['leadtime'].where(self.dataset['leadtime'] >=min_leadtime).min(dim='reference_time', skipna=True)
+    #     self.dataset = self.dataset.assign_coords(leadtime1d = self.dataset['leadtime1d'])
+    #     self.dataset = self.dataset.drop_vars('leadtime')
+    #     self.dataset = self.dataset.rename({'leadtime1d': 'leadtime'})
 
-        # Remove reference_time by collapsing it, the agg function is irrelevant if it skips nan's
-        self.dataset = self.dataset.ffill(dim='reference_time').isel(reference_time=-1)
+    #     # Remove reference_time by collapsing it, the agg function is irrelevant if it skips nan's
+    #     self.dataset = self.dataset.ffill(dim='reference_time').isel(reference_time=-1)
         
-        #recreate reference_time
-        self.dataset = self.dataset.drop_vars('reference_time')
-        self.dataset = self.dataset.assign_coords(reference_time=
-                    (self.dataset['validtime'] - self.dataset['leadtime']))
+    #     #recreate reference_time
+    #     self.dataset = self.dataset.drop_vars('reference_time')
+    #     self.dataset = self.dataset.assign_coords(reference_time=
+    #                 (self.dataset['validtime'] - self.dataset['leadtime']))
 
     # def trim_spinup_period(self, spinup_duration=pd.Timedelta('4h')):
     #     if self._tails_are_removed:
@@ -469,68 +416,70 @@ class ModelDataset:
         
     
 
-    def add_leadtime_dimension(self,
-                        validtimename='validtime',
-                        referecetimename='reference_time'):
-        #Create leadtime dimension
-        leadtime = (self.dataset['validtime'] - self.dataset['reference_time']).astype('timedelta64[s]')
-        self.dataset = self.dataset.assign_coords(leadtime=leadtime)
+    # def add_leadtime_dimension(self,
+    #                     validtimename='validtime',
+    #                     referecetimename='reference_time'):
+    #     #Create leadtime dimension
+    #     leadtime = (self.dataset['validtime'] - self.dataset['reference_time']).astype('timedelta64[s]')
+    #     self.dataset = self.dataset.assign_coords(leadtime=leadtime)
 
 
-    # def trim_tails_of_cycled_ds(self,
-    #                             validtimename='validtime',
-    #                             referecetimename='reference_time'):
-    #     """ Drop the tails of data that are captured by a newer cycle for all variables. """
-    #     #TODO: remove spinup first !!! 
-    #     self._tails_are_removed = True
-    #     self.add_leadtime_dimension()
 
-    #     #ASSUMPTION: the time-related dimensions are the same for all variables !!!!
-    #     # this is typical true for FA files, which contains variables at the same validtime and refernce_time. 
-       
-    #     def get_no_tail_indices(da):
-    #         # Mask out negative leadtimes
-    #         masked = da.where(da['leadtime'] >= 0)
-    #         # If all values are NaN, return 0 or np.nan (choose what makes sense for your use case)
-    #         if masked.isnull().all():
-    #             # Option 1: return np.nan (will drop this group later)
-    #             # return np.nan
-    #             return xr.DataArray(np.nan)
-    #             # Exclude 'reference_time' from coords and dims
-    #             # Option 2: return 0 (will select the first, but may not be what you want)
-    #             # return xr.DataArray(0, coords=masked.coords, dims=[])
-    #         # Otherwise, return the index of the minimum
-    #         return masked.argmin(dim=referecetimename)
-    #     #Find no-tail indices on a single field (Speedup + memory saving)
-    #     dummy_field = self.variable_names[0]
-    #     no_tail_idices = self.dataset[dummy_field].groupby(validtimename).map(get_no_tail_indices)
-
-    #     #Drop nans
-    #     no_tail_idices = no_tail_idices.dropna(validtimename)
-
-    #     if  hasattr(no_tail_idices, "compute"):
-    #         #issue is that isel() does not take chunked dask array as input, so they need
-    #         #to be computed 
-    #         no_tail_idices = no_tail_idices.compute()
-
-    #     self.dataset = self.dataset.isel({referecetimename: no_tail_idices})
-       
-    #     self._tails_are_removed = True #To be checked when calling remove spinup after tail removal
-    #     #Fix the leadtime  + refernce_tim coordinate
-    #     # for some reason it is strangled with x and y dimension, so unravel
-    #     # and make it dependant only on validtime 
-
-    #     new_lt = self.dataset['leadtime'].isel(x=1, y=1)
-    #     self.dataset = self.dataset.drop_vars(['leadtime', 'reference_time'])
-    #     #Construct leadtime coord (1D depending on validtime)
-    #     self.dataset = self.dataset.assign_coords(leadtime=("validtime", new_lt.data))
-    #     #Construct reference time coord (1D depending on validtime)  
-    #     self.dataset = self.dataset.assign_coords(reference_time=(
-    #         ("validtime",
-    #          (self.dataset.validtime - new_lt).data)
-    #     )) 
-        
-        
-
-
+# ------------------------------------------
+#    Helpers
+# ------------------------------------------
+def _check_required_coords(ds):
+    missing = [coord for coord in REQUIRED_COORDS if coord not in ds.coords]
+    if missing:
+        raise ValueError(f"Missing required coordinates: {missing}")
     
+    # Ensure 'validtime' is a dimension
+    if 'validtime' not in ds.dims:
+        ds = ds.expand_dims('validtime')
+
+    # Ensure 'validtime' is an index
+    # Needed for the .sel() method on validtime
+    if 'validtime' not in ds.indexes:
+        ds = ds.set_index({'validtime': 'validtime'})
+
+    return ds
+
+
+def _subset_to_mapped_fields(
+        ds,
+        field_defs):
+
+    in_dataset = variable_names(ds)
+    
+    in_defs = [modlobs.model_band for modlobs in field_defs]
+
+    #log unmapped
+    droped_vars = list(set(in_dataset) - set(in_defs))
+    if bool(droped_vars):
+        logger.warning(f'The following variables are unmapped and are removed from the modeldataset: {droped_vars}')
+
+    #Do not drop the coordinates
+    target_subset = set(in_dataset).intersection(set(in_defs))
+    ds = ds[list(target_subset) + list(coord_names(ds))]
+
+    return ds
+    
+def _too_standard_units(ds, field_defs):
+    for field in variable_names(ds):
+        modelobs = _modelobstype_from_variablename(
+            variabelname=field,
+            field_defs=field_defs)
+        
+        ds[field].data = modelobs.convert_to_standard_units(
+                                    input_data = ds[field].data,
+                                    input_unit = modelobs.model_unit
+                                        )
+    return ds
+        
+def _modelobstype_from_variablename(variabelname, field_defs):
+
+    trgmodelobscandiates = [modelobs for modelobs in field_defs if modelobs.model_band == variabelname]
+    if not bool(trgmodelobscandiates):
+        raise MetObsFieldNotFound(f'{variabelname} is not known field.')
+
+    return trgmodelobscandiates[0]

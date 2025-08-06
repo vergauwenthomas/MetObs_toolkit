@@ -1467,9 +1467,13 @@ class Dataset:
             else:
                 target_stations.append(sta)
 
+        if not target_stations:
+            raise ValueError("No stations with valid coordinates found for NWP timeseries extraction.")
+
         if get_all_variables:
             target_variables = modeldataset.variable_names
 
+        
         modeldataset.insert_modeltimeseries(stationlist=target_stations,
                                             target_variables=target_variables,
                                             chunk_n_stations_in_memory=chunk_n_stations_in_memory,
