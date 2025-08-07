@@ -24,6 +24,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
 )
 from metobs_toolkit.backend_collection.uniqueness import join_collections
+from metobs_toolkit.xrconversions import dataset_to_xr
 
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
@@ -365,6 +366,11 @@ class Dataset:
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
+
+    def to_xr(self, obstype:str | None = None) -> "xr.Dataset":
+        return dataset_to_xr(self, obstype)
+
+
     def subset_by_stations(
         self, stationnames: list, deepcopy: bool = False
     ) -> "Dataset":

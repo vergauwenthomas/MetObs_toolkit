@@ -7,8 +7,10 @@ import numpy as np
 import pandas as pd
 
 
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
 from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.gap import Gap
@@ -235,7 +237,11 @@ class SensorData:
             .set_index(["datetime", "obstype"])
         )
         return df
-
+    
+    @copy_doc(sensordata_to_xr)
+    def to_xr(self) -> "xr.DataArray":
+        return sensordata_to_xr(self)
+        
     @property
     def outliersdf(self) -> pd.DataFrame:
         """Return a DataFrame of the outlier records."""

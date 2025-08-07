@@ -12,9 +12,9 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
 )
 from metobs_toolkit.backend_collection.uniqueness import join_collections
-
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 import metobs_toolkit.plot_collection as plotting
-
+from metobs_toolkit.xrconversions import station_to_xr
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsDataAlreadyPresent,
     MetObsMetadataNotFound,
@@ -199,6 +199,10 @@ class Station:
         """
         self._obstype_is_known_check(obstype)
         return self.obsdata[obstype]
+    
+    @copy_doc(station_to_xr)
+    def to_xr(self, obstype: str|None=None) -> "xr.Dataset":
+        return station_to_xr(self, obstype)
 
     @property
     def df(self) -> pd.DataFrame:
