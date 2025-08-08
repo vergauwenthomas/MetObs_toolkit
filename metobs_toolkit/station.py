@@ -201,8 +201,8 @@ class Station:
         return self.obsdata[obstype]
     
     @copy_doc(station_to_xr)
-    def to_xr(self, obstype: str|None=None) -> "xr.Dataset":
-        return station_to_xr(self, obstype)
+    def to_xr(self) -> "xarray.Dataset":
+        return station_to_xr(self)
 
     @property
     def df(self) -> pd.DataFrame:

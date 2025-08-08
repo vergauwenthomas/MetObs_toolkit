@@ -9,6 +9,17 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
     """
     Convert a model time series object to an xarray Dataset.
 
+    The returned Dataset contains a single variable named after the
+    observation type (e.g. 'temperature'). Its DataArray has three
+    dimensions:
+      - kind: distinguishes the nature of the stacked data. For model
+              time series this contains a single value: 'model'.
+      - models: the model name (length 1 here, prepared for concatenation).
+      - datetime: timestamps of the model output.
+
+    Attributes on the variable describe the observation type and model
+    metadata.
+
     Parameters
     ----------
     modeltimeseries : ModelTimeseries
@@ -17,30 +28,44 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
     Returns
     -------
     xarray.Dataset
-        Dataset with one variable '<obstype>_modeltimeseries' indexed by
-        'models' and 'datetime', including observation and model metadata.
+        Dataset with dimensions ('kind', 'models', 'datetime') where
+        kind = ['model'].
     """
     ar = xr.DataArray(
-                data=[modeltimeseries.series.values],
+                data=[[modeltimeseries.series.values]],
                 coords={'datetime': modeltimeseries.series.index.get_level_values('datetime'),
-                        'models': [modeltimeseries.modelname]},
-                dims=['models', 'datetime'], 
+                        'models': [modeltimeseries.modelname],
+                        'kind': ['model']},
+                dims=['kind', 'models', 'datetime'], 
                 attrs={
-                    'obstype_name': modeltimeseries.obstype.name,
-                    'obstype_desc': modeltimeseries.obstype.description,
-                    'obstype_unit': modeltimeseries.obstype.std_unit,
-                    'modelname': modeltimeseries.modelname,
-                    'modelvariable':modeltimeseries.modelvariable,
+                    modeltimeseries.modelname: {
+                        'obstype_name': modeltimeseries.obstype.name,
+                        'obstype_desc': modeltimeseries.obstype.description,
+                        'obstype_unit': modeltimeseries.obstype.std_unit,
+                        'modelname': modeltimeseries.modelname,
+                        'modelvariable':modeltimeseries.modelvariable,
+                    }
                     }
                 )
-    xr_comb = xr.Dataset(data_vars={f'{modeltimeseries.obstype.name}_modeltimeseries': ar})
-    return xr_comb
+
+    return xr.Dataset({modeltimeseries.obstype.name: ar})
 
 
 
 def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
     """
     Convert sensor observations (including labels) to an xarray Dataset.
+
+    The returned Dataset contains one variable named after the observation
+    type (e.g. 'temperature'). Its DataArray has:
+      - kind dimension with two entries:
+          'obs'   -> the measured (and possibly processed) numerical values
+          'label' -> the associated integer / categorical QC or gap labels
+      - datetime dimension with the observation timestamps.
+
+    The 'obs' slice holds the physical observation values. The 'label'
+    slice holds the label codes; QC and gap-fill method metadata are stored
+    as attributes on that slice (accessible via the DataArray attributes).
 
     Parameters
     ----------
@@ -51,74 +76,87 @@ def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
     Returns
     -------
     xarray.Dataset
-        Dataset with two variables: '<obstype>' (values) and
-        '<obstype>_labels' (label codes) along the 'datetime' dimension.
+        Dataset with variable <obstype> and dimensions ('kind', 'datetime'),
+        where kind = ['obs', 'label'].
     """
     df = sensordata.df #contains obs, outliers and gaps
+    varname = sensordata.obstype.name
 
-    dict_container={}
+   
+
     #Values
     xr_value = xr.DataArray(
-            data=df['value'].values,
-            coords={'datetime': df.index.get_level_values('datetime')},
-            dims=['datetime'], 
-            attrs={
+            data=[df['value'].values],
+            coords={'datetime': df.index.get_level_values('datetime'),
+                    'kind': ['obs']},
+            dims=['kind', 'datetime'], 
+            attrs={}
+            )
+    
+    
+   
+
+    xr_labels = xr.DataArray(
+            data=[df['label'].values],
+            coords={'datetime': df.index.get_level_values('datetime'),
+                     'kind': ['label']},
+            dims=['kind', 'datetime'], 
+            attrs={},
+            )
+    
+    # Attributes
+    sensor_attrs = {
                 'obstype_name': sensordata.obstype.name,
                 'obstype_desc': sensordata.obstype.description,
                 'obstype_unit': sensordata.obstype.std_unit,
                 }
-            )
-    varname = sensordata.obstype.name
-    dict_container[varname] = xr_value
-    # labels
-    label_attrs = {
-        'QC': get_QC_info_in_dict(sensordata),
-        'GF': get_GF_info_in_dict(sensordata) }
+      # Labels
+    sensor_attrs['QC'] = get_QC_info_in_dict(sensordata)
+    sensor_attrs['GF'] = get_GF_info_in_dict(sensordata)
+
    
-
-    xr_labels = xr.DataArray(
-            data=df['label'].values,
-            coords={'datetime': df.index.get_level_values('datetime')},
-            dims=['datetime'], 
-            attrs=label_attrs,
-            )
-    varname_labels = f"{varname}_labels"
-    dict_container[varname_labels] = xr_labels
-    
-    xr_comb = xr.Dataset(data_vars=dict_container)
-    
-    return xr_comb
+    #Combine along the type dimension
+    xr_comb = xr.concat([xr_value, xr_labels], dim='kind')
+    xr_comb.attrs = sensor_attrs
+    return xr.Dataset({varname: xr_comb})
 
 
 
-def station_to_xr(station: "Station", obstype: Optional[str] = None) -> xr.Dataset:
+def station_to_xr(station: "Station") -> xr.Dataset:
     """
     Merge all sensor and model data of a station into a single Dataset.
+
+    Each variable (per observation type) preserves its internal 'kind'
+    dimension, which may include:
+      - 'obs'   : sensor values
+      - 'label' : sensor labels
+      - 'model' : model time series (if present for that type)
+
+    Datetimes from all contributing sources (sensors and model series) are
+    unioned to build a common 'datetime' coordinate; individual variables
+    are reindexed onto this union (introducing NaNs where data are absent).
+
+    Station metadata (lat, lon, altitude, LCZ, and any extra data) are added
+    as coordinates.
 
     Parameters
     ----------
     station : Station
         Station object containing sensor and model data.
-    obstype : str, optional
-        If provided, only include the specified observation type.
-
+    
     Returns
     -------
     xarray.Dataset
-        Dataset with unified 'datetime' axis, a 'name' dimension (station),
-        and station metadata as coordinates.
+        Dataset with (potential) dimensions ('kind', 'datetime') per
+        variable; station metadata as scalar coordinates.
     """
-    #NOTE: LIMITATION: only usefull for synchronized data
+
 
     # --- Create variables per sensor---- 
 
 
     #Construct target sensors        
-    target_sensors = []
-    if obstype is None:
-        target_sensors = list(station.sensordata.values())
-    else:
-        target_sensors.append(station.get_sensor(obstype))
+    target_sensors = list(station.sensordata.values())
     
     #Create xrdataarrays 
     station_vars = [sens.to_xr() for sens in target_sensors]
@@ -146,43 +184,47 @@ def station_to_xr(station: "Station", obstype: Optional[str] = None) -> xr.Datas
         del subds
 
     #Create a xr Dataset of all variables
-    ds = xr.merge(all_reindexed)
+    ds = xr.merge(all_reindexed, combine_attrs='no_conflicts')
  
-    #add the name dimension
-    ds = ds.expand_dims('name').assign_coords({'name': [station.name]})
-
-    #Add metadata as coordinates
+   
     #Station related coordinates
-    sta_coords = {"lat": ("name", [station.site.lat]),
-                "lon": ("name", [station.site.lon]),
-                "altitude": ("name", [station.site.altitude]),
-                "LCZ": ("name", [station.site.LCZ])}
-    extra_data_coords = {key: ('name', [val]) for key, val in station.site.extradata.items()}
+    sta_coords = {"lat": station.site.lat,
+                "lon": station.site.lon,
+                "altitude": station.site.altitude,
+                "LCZ": station.site.LCZ}
+    extra_data_coords = {key: val for key, val in station.site.extradata.items()}
     sta_coords.update(extra_data_coords)
+    
     ds = ds.assign_coords(sta_coords)
     return ds
 
 
-def dataset_to_xr(dataset: "Dataset", obstype: Optional[str] = None) -> xr.Dataset:
+def dataset_to_xr(dataset: "Dataset") -> xr.Dataset:
     """
-    Concatenate multiple station Datasets into one along the 'name' dimension.
+    Concatenate multiple station Datasets into one along a new 'name'
+    dimension.
+
+    All per-station variables retain their internal 'kind' dimension
+    (e.g. combinations of 'obs', 'label', 'model'). Only variables common
+    across stations will align cleanly (xarray merge semantics apply).
 
     Parameters
     ----------
     dataset : Dataset
         Collection of Station objects.
-    obstype : str, optional
-        Not currently used (reserved for future filtering).
 
     Returns
     -------
     xarray.Dataset
-        Multi-station Dataset with shared variables and coordinates.
+        Multi-station Dataset with a 'name' dimension plus any variable
+        dimensions such as ('kind', 'datetime').
     """
-    sta_xrlist = [sta.to_xr() for sta in dataset.stations]
-    ds = xr.concat(sta_xrlist, dim='name')
+    sta_xrdict = {sta.name: sta.to_xr() for sta in dataset.stations}
+    ds = xr.concat(objs=sta_xrdict.values(),
+                   dim='name')
+    ds = ds.assign_coords({'name': list(sta_xrdict.keys())})
     return ds
-
+    
 
 # ------------------------------------------
 #    Helper
