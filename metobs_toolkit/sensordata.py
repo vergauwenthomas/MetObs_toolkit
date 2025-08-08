@@ -237,11 +237,11 @@ class SensorData:
             .set_index(["datetime", "obstype"])
         )
         return df
-    
+
     @copy_doc(sensordata_to_xr)
-    def to_xr(self) -> "xr.DataArray":
+    def to_xr(self) -> "xarray.Dataset":
         return sensordata_to_xr(self)
-        
+
     @property
     def outliersdf(self) -> pd.DataFrame:
         """Return a DataFrame of the outlier records."""

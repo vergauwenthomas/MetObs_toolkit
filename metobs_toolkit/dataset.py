@@ -133,10 +133,10 @@ class Dataset:
         >>> # Assume ds1 and ds2 to be Datasets.
         >>> ds3 = ds1 + ds2
         """
-        
+
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
-        
+
         # --- Merge stations ----
         merged_stationslist = join_collections(
             col_A=self.stations, col_B=other.stations
@@ -369,7 +369,6 @@ class Dataset:
     @copy_doc(dataset_to_xr)
     def to_xr(self) -> "xarray.Dataset":
         return dataset_to_xr(self)
-
 
     def subset_by_stations(
         self, stationnames: list, deepcopy: bool = False

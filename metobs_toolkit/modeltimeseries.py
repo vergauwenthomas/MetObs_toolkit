@@ -161,7 +161,7 @@ class ModelTimeSeries:
         return to_timedelta(freq)
 
     @copy_doc(modeltimeseries_to_xr)
-    def to_xr(self) -> "xarray.DataArray":
+    def to_xr(self) -> "xarray.Dataset":
         return modeltimeseries_to_xr(self)
 
     def _get_info_core(self, nident_root=1) -> dict:

@@ -32,24 +32,25 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
         kind = ['model'].
     """
     ar = xr.DataArray(
-                data=[[modeltimeseries.series.values]],
-                coords={'datetime': modeltimeseries.series.index.get_level_values('datetime'),
-                        'models': [modeltimeseries.modelname],
-                        'kind': ['model']},
-                dims=['kind', 'models', 'datetime'], 
-                attrs={
-                    modeltimeseries.modelname: {
-                        'obstype_name': modeltimeseries.obstype.name,
-                        'obstype_desc': modeltimeseries.obstype.description,
-                        'obstype_unit': modeltimeseries.obstype.std_unit,
-                        'modelname': modeltimeseries.modelname,
-                        'modelvariable':modeltimeseries.modelvariable,
-                    }
-                    }
-                )
+        data=[[modeltimeseries.series.values]],
+        coords={
+            "datetime": modeltimeseries.series.index.get_level_values("datetime"),
+            "models": [modeltimeseries.modelname],
+            "kind": ["model"],
+        },
+        dims=["kind", "models", "datetime"],
+        attrs={
+            modeltimeseries.modelname: {
+                "obstype_name": modeltimeseries.obstype.name,
+                "obstype_desc": modeltimeseries.obstype.description,
+                "obstype_unit": modeltimeseries.obstype.std_unit,
+                "modelname": modeltimeseries.modelname,
+                "modelvariable": modeltimeseries.modelvariable,
+            }
+        },
+    )
 
     return xr.Dataset({modeltimeseries.obstype.name: ar})
-
 
 
 def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
@@ -79,47 +80,38 @@ def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
         Dataset with variable <obstype> and dimensions ('kind', 'datetime'),
         where kind = ['obs', 'label'].
     """
-    df = sensordata.df #contains obs, outliers and gaps
+    df = sensordata.df  # contains obs, outliers and gaps
     varname = sensordata.obstype.name
 
-   
-
-    #Values
+    # Values
     xr_value = xr.DataArray(
-            data=[df['value'].values],
-            coords={'datetime': df.index.get_level_values('datetime'),
-                    'kind': ['obs']},
-            dims=['kind', 'datetime'], 
-            attrs={}
-            )
-    
-    
-   
+        data=[df["value"].values],
+        coords={"datetime": df.index.get_level_values("datetime"), "kind": ["obs"]},
+        dims=["kind", "datetime"],
+        attrs={},
+    )
 
     xr_labels = xr.DataArray(
-            data=[df['label'].values],
-            coords={'datetime': df.index.get_level_values('datetime'),
-                     'kind': ['label']},
-            dims=['kind', 'datetime'], 
-            attrs={},
-            )
-    
+        data=[df["label"].values],
+        coords={"datetime": df.index.get_level_values("datetime"), "kind": ["label"]},
+        dims=["kind", "datetime"],
+        attrs={},
+    )
+
     # Attributes
     sensor_attrs = {
-                'obstype_name': sensordata.obstype.name,
-                'obstype_desc': sensordata.obstype.description,
-                'obstype_unit': sensordata.obstype.std_unit,
-                }
-      # Labels
-    sensor_attrs['QC'] = get_QC_info_in_dict(sensordata)
-    sensor_attrs['GF'] = get_GF_info_in_dict(sensordata)
+        "obstype_name": sensordata.obstype.name,
+        "obstype_desc": sensordata.obstype.description,
+        "obstype_unit": sensordata.obstype.std_unit,
+    }
+    # Labels
+    sensor_attrs["QC"] = get_QC_info_in_dict(sensordata)
+    sensor_attrs["GF"] = get_GF_info_in_dict(sensordata)
 
-   
-    #Combine along the type dimension
-    xr_comb = xr.concat([xr_value, xr_labels], dim='kind')
+    # Combine along the type dimension
+    xr_comb = xr.concat([xr_value, xr_labels], dim="kind")
     xr_comb.attrs = sensor_attrs
     return xr.Dataset({varname: xr_comb})
-
 
 
 def station_to_xr(station: "Station") -> xr.Dataset:
@@ -143,7 +135,7 @@ def station_to_xr(station: "Station") -> xr.Dataset:
     ----------
     station : Station
         Station object containing sensor and model data.
-    
+
     Returns
     -------
     xarray.Dataset
@@ -151,50 +143,51 @@ def station_to_xr(station: "Station") -> xr.Dataset:
         variable; station metadata as scalar coordinates.
     """
 
+    # --- Create variables per sensor----
 
-    # --- Create variables per sensor---- 
-
-
-    #Construct target sensors        
+    # Construct target sensors
     target_sensors = list(station.sensordata.values())
-    
-    #Create xrdataarrays 
+
+    # Create xrdataarrays
     station_vars = [sens.to_xr() for sens in target_sensors]
-   
-    #Construct modeldata xr
-    modelobs_vars = [modeltimeseries.to_xr() for modeltimeseries in station.modeldata.values()]
-    
-    #The 'datetime' coordinate of the observations is not (persee) the
-    #same as in the modelobs datasets. This leads to un-mergable dataset. To resolve
-    #this we must construct a new datetime (union of all datetimes) and broadcast
-    #all datasets to that coordiante
-    
+
+    # Construct modeldata xr
+    modelobs_vars = [
+        modeltimeseries.to_xr() for modeltimeseries in station.modeldata.values()
+    ]
+
+    # The 'datetime' coordinate of the observations is not (persee) the
+    # same as in the modelobs datasets. This leads to un-mergable dataset. To resolve
+    # this we must construct a new datetime (union of all datetimes) and broadcast
+    # all datasets to that coordiante
+
     all_to_join = [*station_vars, *modelobs_vars]
     # Get the union of all datetimes
     all_datetimes = np.unique(
-        np.concatenate([pd.to_datetime(ds['datetime'].values) for ds in all_to_join])
+        np.concatenate([pd.to_datetime(ds["datetime"].values) for ds in all_to_join])
     )
-    #to datetimes again
-    all_datetimes = pd.to_datetime(all_datetimes).tz_localize('UTC')
-    
-    #Broadcast
+    # to datetimes again
+    all_datetimes = pd.to_datetime(all_datetimes).tz_localize("UTC")
+
+    # Broadcast
     all_reindexed = []
     for subds in all_to_join:
         all_reindexed.append(subds.reindex(datetime=all_datetimes))
         del subds
 
-    #Create a xr Dataset of all variables
-    ds = xr.merge(all_reindexed, combine_attrs='no_conflicts')
- 
-   
-    #Station related coordinates
-    sta_coords = {"lat": station.site.lat,
-                "lon": station.site.lon,
-                "altitude": station.site.altitude,
-                "LCZ": station.site.LCZ}
+    # Create a xr Dataset of all variables
+    ds = xr.merge(all_reindexed, combine_attrs="no_conflicts")
+
+    # Station related coordinates
+    sta_coords = {
+        "lat": station.site.lat,
+        "lon": station.site.lon,
+        "altitude": station.site.altitude,
+        "LCZ": station.site.LCZ,
+    }
     extra_data_coords = {key: val for key, val in station.site.extradata.items()}
     sta_coords.update(extra_data_coords)
-    
+
     ds = ds.assign_coords(sta_coords)
     return ds
 
@@ -220,22 +213,20 @@ def dataset_to_xr(dataset: "Dataset") -> xr.Dataset:
         dimensions such as ('kind', 'datetime').
     """
     sta_xrdict = {sta.name: sta.to_xr() for sta in dataset.stations}
-    ds = xr.concat(objs=sta_xrdict.values(),
-                   dim='name')
-    ds = ds.assign_coords({'name': list(sta_xrdict.keys())})
+    ds = xr.concat(objs=sta_xrdict.values(), dim="name")
+    ds = ds.assign_coords({"name": list(sta_xrdict.keys())})
     return ds
-    
+
 
 # ------------------------------------------
 #    Helper
 # ------------------------------------------
 
 
-
-
 # ------------------------------------------
 #    Attribute formatters and helpers
 # ------------------------------------------
+
 
 def get_QC_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
     """
@@ -253,7 +244,7 @@ def get_QC_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
     """
     returndict = {}
     for qcdict in sensordata.outliers:
-        returndict[qcdict['checkname']] = {'settings': qcdict['settings']}
+        returndict[qcdict["checkname"]] = {"settings": qcdict["settings"]}
     return returndict
 
 
@@ -272,15 +263,15 @@ def get_GF_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
         Mapping of gap-fill method names to the settings used.
     """
     returndict = {}
-    #NOTE:iteration is done over all the gaps, this is a bit overkill?
+    # NOTE:iteration is done over all the gaps, this is a bit overkill?
 
     for gap in sensordata.gaps:
-        if 'applied_gapfill_method' in gap.fillsettings:
-            method = gap.fillsettings['applied_gapfill_method']
+        if "applied_gapfill_method" in gap.fillsettings:
+            method = gap.fillsettings["applied_gapfill_method"]
             gapsettings = gap.fillsettings
-            del gapsettings['applied_gapfill_method'] #delete key, so update works
-            #create infodict
+            del gapsettings["applied_gapfill_method"]  # delete key, so update works
+            # create infodict
             gapinfo = {method: gapsettings}
-            #UPdate
+            # UPdate
             returndict.update(gapinfo)
     return returndict
