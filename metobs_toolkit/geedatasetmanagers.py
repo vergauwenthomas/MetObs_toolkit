@@ -46,7 +46,6 @@ from metobs_toolkit.obstypes import (
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
 # =============================================================================
 # Class Model data (collection of external model data)
 # =============================================================================
@@ -555,7 +554,9 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                     )
                 except FileNotFoundError:
                     # Fallback if geemap template is missing (Python 3.12+ / packaging issue)
-                    logger.warning("geemap legend template not found, using fallback legend")
+                    logger.warning(
+                        "geemap legend template not found, using fallback legend"
+                    )
                     _add_fallback_legend(
                         MAP,
                         title="NLCD Land Cover Classification",
@@ -1305,15 +1306,17 @@ Dataset.import_gee_data_from_file() method."
             )
 
             return
-        
+
+
 # =============================================================================
 # Helper functions
 # =============================================================================
 
+
 def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
     """
     Fallback legend implementation when geemap's add_legend template is missing.
-    
+
     Parameters
     ----------
     Map : geemap.foliumap.Map
@@ -1324,7 +1327,7 @@ def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
         Mapping of numeric values to class labels.
     col_scheme : dict
         Mapping of numeric values to color codes.
-        
+
     Returns
     -------
     geemap.foliumap.Map
@@ -1333,7 +1336,7 @@ def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
     if MacroElement is None or Template is None:
         logger.warning("Cannot create fallback legend: branca not available")
         return Map
-        
+
     rows = ""
     for key, label in class_map.items():
         color = col_scheme.get(key, "#FFFFFF")
@@ -1344,7 +1347,7 @@ def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
           </td>
           <td style="padding-left:4px;">{label}</td>
         </tr>"""
-    
+
     html = f"""
     <div id="metobs-toolkit-legend" style="position: fixed;
          bottom: 20px; left: 20px; z-index: 9999;
@@ -1354,14 +1357,12 @@ def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
       <table style="border:none; margin-top:4px;">{rows}</table>
     </div>
     """
-    
+
     tpl = Template(html)
     macro = MacroElement()
     macro._template = tpl
     Map.get_root().add_child(macro)
     return Map
-
-
 
 
 # =============================================================================
