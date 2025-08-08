@@ -366,7 +366,7 @@ class Dataset:
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
-
+    @copy_doc(to_xr)
     def to_xr(self, obstype:str | None = None) -> "xr.Dataset":
         return dataset_to_xr(self, obstype)
 
