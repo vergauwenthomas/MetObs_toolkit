@@ -1,10 +1,25 @@
+from typing import Optional, Dict, Any
 import logging
 import xarray as xr
 import numpy as np
 import pandas as pd
 
 
-def modeltimeseries_to_xr(modeltimeseries) -> xr.Dataset:
+def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
+    """
+    Convert a model time series object to an xarray Dataset.
+
+    Parameters
+    ----------
+    modeltimeseries : ModelTimeseries
+        Object holding a time-indexed pandas Series and related metadata.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with one variable '<obstype>_modeltimeseries' indexed by
+        'models' and 'datetime', including observation and model metadata.
+    """
     ar = xr.DataArray(
                 data=[modeltimeseries.series.values],
                 coords={'datetime': modeltimeseries.series.index.get_level_values('datetime'),
@@ -23,8 +38,22 @@ def modeltimeseries_to_xr(modeltimeseries) -> xr.Dataset:
 
 
 
-def sensordata_to_xr(sensordata: "Sensordata"):
+def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
+    """
+    Convert sensor observations (including labels) to an xarray Dataset.
 
+    Parameters
+    ----------
+    sensordata : Sensordata
+        Sensor data object containing a DataFrame with 'value' and 'label'
+        plus metadata (QC, gap-fill info).
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with two variables: '<obstype>' (values) and
+        '<obstype>_labels' (label codes) along the 'datetime' dimension.
+    """
     df = sensordata.df #contains obs, outliers and gaps
 
     dict_container={}
@@ -62,7 +91,23 @@ def sensordata_to_xr(sensordata: "Sensordata"):
 
 
 
-def station_to_xr(station: "Station", obstype: str|None = None) -> xr.Dataset:
+def station_to_xr(station: "Station", obstype: Optional[str] = None) -> xr.Dataset:
+    """
+    Merge all sensor and model data of a station into a single Dataset.
+
+    Parameters
+    ----------
+    station : Station
+        Station object containing sensor and model data.
+    obstype : str, optional
+        If provided, only include the specified observation type.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with unified 'datetime' axis, a 'name' dimension (station),
+        and station metadata as coordinates.
+    """
     #NOTE: LIMITATION: only usefull for synchronized data
 
     # --- Create variables per sensor---- 
@@ -118,7 +163,22 @@ def station_to_xr(station: "Station", obstype: str|None = None) -> xr.Dataset:
     return ds
 
 
-def dataset_to_xr(dataset:"Dataset", obstype: str|None = None) -> xr.Dataset:
+def dataset_to_xr(dataset: "Dataset", obstype: Optional[str] = None) -> xr.Dataset:
+    """
+    Concatenate multiple station Datasets into one along the 'name' dimension.
+
+    Parameters
+    ----------
+    dataset : Dataset
+        Collection of Station objects.
+    obstype : str, optional
+        Not currently used (reserved for future filtering).
+
+    Returns
+    -------
+    xarray.Dataset
+        Multi-station Dataset with shared variables and coordinates.
+    """
     sta_xrlist = [sta.to_xr() for sta in dataset.stations]
     ds = xr.concat(sta_xrlist, dim='name')
     return ds
@@ -135,14 +195,40 @@ def dataset_to_xr(dataset:"Dataset", obstype: str|None = None) -> xr.Dataset:
 #    Attribute formatters and helpers
 # ------------------------------------------
 
-def get_QC_info_in_dict(sensordata: "Sensordata") -> dict:
+def get_QC_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
+    """
+    Collect QC check settings applied to a sensor dataset.
+
+    Parameters
+    ----------
+    sensordata : Sensordata
+        Sensor data with recorded QC outlier checks.
+
+    Returns
+    -------
+    dict
+        Mapping of check name to its settings.
+    """
     returndict = {}
     for qcdict in sensordata.outliers:
         returndict[qcdict['checkname']] = {'settings': qcdict['settings']}
     return returndict
 
 
-def get_GF_info_in_dict(sensordata: "Sensordata") -> dict:
+def get_GF_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
+    """
+    Extract applied gap-fill methods and their settings.
+
+    Parameters
+    ----------
+    sensordata : Sensordata
+        Sensor data containing gap objects with fill settings.
+
+    Returns
+    -------
+    dict
+        Mapping of gap-fill method names to the settings used.
+    """
     returndict = {}
     #NOTE:iteration is done over all the gaps, this is a bit overkill?
 
