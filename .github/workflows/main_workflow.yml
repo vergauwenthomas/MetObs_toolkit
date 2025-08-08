@@ -144,6 +144,7 @@ jobs:
             - docs/topics/log_example.ipynb
             - docs/topics/metadata_only.ipynb
             - docs/topics/template_doc.ipynb
+            - docs/topics/to_xarray.ipynb
 
 
 
@@ -299,6 +300,7 @@ jobs:
             - toolkit_tests/test_plotting.py
             - toolkit_tests/test_gee.py
             - toolkit_tests/test_add.py
+            - toolkit_tests/test_to_xr.py
 
         continue-on-error: true
         steps:
