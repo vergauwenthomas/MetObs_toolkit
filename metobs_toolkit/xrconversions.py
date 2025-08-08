@@ -1,5 +1,26 @@
 import logging
 import xarray as xr
+import numpy as np
+import pandas as pd
+
+
+def modeltimeseries_to_xr(modeltimeseries) -> xr.Dataset:
+    ar = xr.DataArray(
+                data=[modeltimeseries.series.values],
+                coords={'datetime': modeltimeseries.series.index.get_level_values('datetime'),
+                        'models': [modeltimeseries.modelname]},
+                dims=['models', 'datetime'], 
+                attrs={
+                    'obstype_name': modeltimeseries.obstype.name,
+                    'obstype_desc': modeltimeseries.obstype.description,
+                    'obstype_unit': modeltimeseries.obstype.std_unit,
+                    'modelname': modeltimeseries.modelname,
+                    'modelvariable':modeltimeseries.modelvariable,
+                    }
+                )
+    xr_comb = xr.Dataset(data_vars={f'{modeltimeseries.obstype.name}_modeltimeseries': ar})
+    return xr_comb
+
 
 
 def sensordata_to_xr(sensordata: "Sensordata"):
@@ -45,8 +66,7 @@ def station_to_xr(station: "Station", obstype: str|None = None) -> xr.Dataset:
     #NOTE: LIMITATION: only usefull for synchronized data
 
     # --- Create variables per sensor---- 
-    def sensor_xr(sensor):
-        return 
+
 
     #Construct target sensors        
     target_sensors = []
@@ -56,14 +76,33 @@ def station_to_xr(station: "Station", obstype: str|None = None) -> xr.Dataset:
         target_sensors.append(station.get_sensor(obstype))
     
     #Create xrdataarrays 
-    station_vars = [sens.to_xr()
-                # .expand_dims('name')
-                # .assign_coords({'name': [station.name]})
-                    for sens in target_sensors]
+    station_vars = [sens.to_xr() for sens in target_sensors]
    
+    #Construct modeldata xr
+    modelobs_vars = [modeltimeseries.to_xr() for modeltimeseries in station.modeldata.values()]
     
+    #The 'datetime' coordinate of the observations is not (persee) the
+    #same as in the modelobs datasets. This leads to un-mergable dataset. To resolve
+    #this we must construct a new datetime (union of all datetimes) and broadcast
+    #all datasets to that coordiante
+    
+    all_to_join = [*station_vars, *modelobs_vars]
+    # Get the union of all datetimes
+    all_datetimes = np.unique(
+        np.concatenate([pd.to_datetime(ds['datetime'].values) for ds in all_to_join])
+    )
+    #to datetimes again
+    all_datetimes = pd.to_datetime(all_datetimes).tz_localize('UTC')
+    
+    #Broadcast
+    all_reindexed = []
+    for subds in all_to_join:
+        all_reindexed.append(subds.reindex(datetime=all_datetimes))
+        del subds
+
     #Create a xr Dataset of all variables
-    ds = xr.merge(station_vars)
+    ds = xr.merge(all_reindexed)
+ 
     #add the name dimension
     ds = ds.expand_dims('name').assign_coords({'name': [station.name]})
 
@@ -85,9 +124,16 @@ def dataset_to_xr(dataset:"Dataset", obstype: str|None = None) -> xr.Dataset:
     return ds
 
 
-    # ------------------------------------------
-    #    Attribute formatters and helpers
-    # ------------------------------------------
+# ------------------------------------------
+#    Helper
+# ------------------------------------------
+
+
+
+
+# ------------------------------------------
+#    Attribute formatters and helpers
+# ------------------------------------------
 
 def get_QC_info_in_dict(sensordata: "Sensordata") -> dict:
     returndict = {}
