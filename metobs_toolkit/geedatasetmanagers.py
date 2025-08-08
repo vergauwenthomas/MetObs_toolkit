@@ -29,6 +29,13 @@ from metobs_toolkit.plot_collection import (
     add_title_to_folium_map,
     add_stations_to_folium_map,
 )
+
+# Fallback legend imports
+try:
+    from branca.element import MacroElement, Template
+except ImportError:
+    MacroElement = None
+    Template = None
 from metobs_toolkit.gee_api import connect_to_gee
 
 from metobs_toolkit.obstypes import (
@@ -37,6 +44,8 @@ from metobs_toolkit.obstypes import (
 )
 
 logger = logging.getLogger("<metobs_toolkit>")
+
+
 
 # =============================================================================
 # Class Model data (collection of external model data)
@@ -536,13 +545,23 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                     "palette": list(self.col_scheme.values()),
                 }
 
-                MAP.add_legend(
-                    title="NLCD Land Cover Classification",
-                    legend_dict={
-                        self.class_map[numval]: self.col_scheme[numval]
-                        for numval in self.class_map.keys()
-                    },
-                )
+                try:
+                    MAP.add_legend(
+                        title="NLCD Land Cover Classification",
+                        legend_dict={
+                            self.class_map[numval]: self.col_scheme[numval]
+                            for numval in self.class_map.keys()
+                        },
+                    )
+                except FileNotFoundError:
+                    # Fallback if geemap template is missing (Python 3.12+ / packaging issue)
+                    logger.warning("geemap legend template not found, using fallback legend")
+                    _add_fallback_legend(
+                        MAP,
+                        title="NLCD Land Cover Classification",
+                        class_map=self.class_map,
+                        col_scheme=self.col_scheme,
+                    )
 
             else:
                 var_visualization = {
@@ -1286,6 +1305,63 @@ Dataset.import_gee_data_from_file() method."
             )
 
             return
+        
+# =============================================================================
+# Helper functions
+# =============================================================================
+
+def _add_fallback_legend(Map, title: str, class_map: dict, col_scheme: dict):
+    """
+    Fallback legend implementation when geemap's add_legend template is missing.
+    
+    Parameters
+    ----------
+    Map : geemap.foliumap.Map
+        The map object to add the legend to.
+    title : str
+        The title for the legend.
+    class_map : dict
+        Mapping of numeric values to class labels.
+    col_scheme : dict
+        Mapping of numeric values to color codes.
+        
+    Returns
+    -------
+    geemap.foliumap.Map
+        The map with the added legend.
+    """
+    if MacroElement is None or Template is None:
+        logger.warning("Cannot create fallback legend: branca not available")
+        return Map
+        
+    rows = ""
+    for key, label in class_map.items():
+        color = col_scheme.get(key, "#FFFFFF")
+        rows += f"""
+        <tr>
+          <td style="text-align:left;">
+            <i style="background:{color};opacity:0.85;border:1px solid #555;display:inline-block;width:18px;height:18px;"></i>
+          </td>
+          <td style="padding-left:4px;">{label}</td>
+        </tr>"""
+    
+    html = f"""
+    <div id="metobs-toolkit-legend" style="position: fixed;
+         bottom: 20px; left: 20px; z-index: 9999;
+         background: white; padding: 10px 12px; border:2px solid #444;
+         font-size: 12px; font-family: Arial, sans-serif; max-height:300px; overflow:auto;">
+      <b>{title}</b>
+      <table style="border:none; margin-top:4px;">{rows}</table>
+    </div>
+    """
+    
+    tpl = Template(html)
+    macro = MacroElement()
+    macro._template = tpl
+    Map.get_root().add_child(macro)
+    return Map
+
+
 
 
 # =============================================================================
