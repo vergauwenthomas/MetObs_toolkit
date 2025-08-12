@@ -53,6 +53,7 @@ General methods and attributes
    Dataset.add_new_observationtype
    Dataset.save_dataset_to_pkl
    Dataset.import_data_from_file
+   Dataset.to_xr
 
 
 GEE related methods

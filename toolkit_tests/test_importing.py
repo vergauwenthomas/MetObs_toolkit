@@ -369,7 +369,7 @@ class TestStationAddMethods:
         station = dataset.get_station("vlinder01")
 
         # --- Test add_to_sensordata ---
-        orig_sensor = station.get_sensor('humidity')
+        orig_sensor = station.get_sensor("humidity")
         new_sensor = orig_sensor.copy(deep=True)
         # Change obstype name to avoid collision
         new_sensor.obstype.name = "new_obstype"
@@ -381,12 +381,12 @@ class TestStationAddMethods:
 
         # Try to add again without force_update, should raise
         import metobs_toolkit.backend_collection.errorclasses as err
+
         with pytest.raises(err.MetObsDataAlreadyPresent):
             station.add_to_sensordata(new_sensor)
 
         # Add with force_update, should succeed
         station.add_to_sensordata(new_sensor, force_update=True)
-  
 
 
 if __name__ == "__main__":

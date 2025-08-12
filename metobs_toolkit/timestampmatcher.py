@@ -178,9 +178,9 @@ class TimestampMatcher:
         )
 
         rawdf = self.orig_records.to_frame()
-        rawdf[
-            "datetimedummy"
-        ] = rawdf.index  # To keep track of the original raw timestamps
+        rawdf["datetimedummy"] = (
+            rawdf.index
+        )  # To keep track of the original raw timestamps
 
         targetdf = pd.DataFrame(
             data={"datetimedummy": target_dtrange}, index=target_dtrange

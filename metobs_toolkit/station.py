@@ -12,9 +12,9 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
 )
 from metobs_toolkit.backend_collection.uniqueness import join_collections
-
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 import metobs_toolkit.plot_collection as plotting
-
+from metobs_toolkit.xrconversions import station_to_xr
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsDataAlreadyPresent,
     MetObsMetadataNotFound,
@@ -200,6 +200,10 @@ class Station:
         self._obstype_is_known_check(obstype)
         return self.obsdata[obstype]
 
+    @copy_doc(station_to_xr)
+    def to_xr(self) -> "xarray.Dataset":
+        return station_to_xr(self)
+
     @property
     def df(self) -> pd.DataFrame:
         """
@@ -379,7 +383,9 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max([sensdata.end_datetime for sensdata in self.sensordata.values()])
+            mindt = max(
+                [sensdata.end_datetime for sensdata in self.sensordata.values()]
+            )
         else:
             # no sensordata, metadata only station
             mindt = pd.NaT
@@ -432,10 +438,10 @@ class Station:
         logger.debug("Entering add_to_sensordata for %s", self)
         # Validate argument types
         if not isinstance(new_sensordata, SensorData):
-            raise TypeError(
-                "new_sensordata must be an instance of SensorData."
-            )
-        present_sensordata_ids=[sensordat._id() for sensordat in self.sensordata.values()]
+            raise TypeError("new_sensordata must be an instance of SensorData.")
+        present_sensordata_ids = [
+            sensordat._id() for sensordat in self.sensordata.values()
+        ]
         # Test if there is already sensordata for the same id available
         if (new_sensordata._id() in present_sensordata_ids) & (not force_update):
             raise MetObsDataAlreadyPresent(
@@ -469,16 +475,16 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata.values()]
+        present_modeldata_ids = [modeldat._id() for modeldat in self.modeldata.values()]
         # Test if there is already model data for the same obstype available
         if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
             raise MetObsDataAlreadyPresent(
                 f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
             )
 
-        #NOTE: At the moment, the obstypename is used for keys in the station collection
+        # NOTE: At the moment, the obstypename is used for keys in the station collection
         # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
-        # must be different aswell! 
+        # must be different aswell!
         present_keys = list(self.modeldata.keys())
         target_key = new_modeltimeseries.obstype.name
 
@@ -486,7 +492,6 @@ class Station:
             raise MetObsDataAlreadyPresent(
                 f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
             )
-
 
         self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
 
@@ -1338,7 +1343,6 @@ class Station:
             return fig
         else:
             return qc_df
-
 
     def make_plot_of_modeldata(
         self,

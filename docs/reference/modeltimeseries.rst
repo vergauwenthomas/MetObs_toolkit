@@ -40,6 +40,7 @@ A summary of all methods in the ModelTimeSeries class.
 
    ModelTimeSeries.get_info
    ModelTimeSeries.make_plot
+   ModelTimeSeries.to_xr
 
 
 Special methods
