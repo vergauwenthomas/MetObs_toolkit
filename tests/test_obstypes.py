@@ -19,7 +19,7 @@ import metobs_toolkit
 solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 import shutil
-import pytest
+
 
 
 class TestObstype:

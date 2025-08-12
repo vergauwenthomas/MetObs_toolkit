@@ -16,7 +16,6 @@ import metobs_toolkit
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 
-import pytest
 
 
 class TestDataWithGaps:
