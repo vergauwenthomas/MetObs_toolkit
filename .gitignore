@@ -35,15 +35,9 @@ docs/reference/api
 !docs/_static
 
 
-
-
-
 #logs
 *log
-#exclude data
-fairness_demo_exercises/*.csv
-fairness_demo_exercises/testdata.csv
-tests/test_data/testdata_testday
+
 # exclued logs
 *log
 

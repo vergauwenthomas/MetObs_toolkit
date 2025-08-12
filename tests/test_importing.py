@@ -14,7 +14,7 @@ libfolder = Path(str(Path(__file__).resolve())).parent.parent
 import metobs_toolkit
 
 # solutionfolder
-solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
+solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 import shutil
 import pytest
@@ -26,6 +26,13 @@ class TestDemoData:
     solutionfixer = SolutionFixer(solutiondir=solutionsdir)
 
     def test_version(self):
+        #check if the local version is used
+        initpath = libfolder.joinpath('src', 'metobs_toolkit', '__init__.py')
+        with open(initpath, 'r') as f:
+            content = f.read()
+        version_line = [line for line in content.splitlines() if "__version__" in line][0]
+        local_version = version_line.split("=")[1].strip().strip('"').strip("'").strip()
+        assert metobs_toolkit.__version__ == local_version
         assert isinstance(metobs_toolkit.__version__, str)
 
     def test_import_demo_data(self, overwrite_solution=False):

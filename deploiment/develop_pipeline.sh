@@ -39,7 +39,7 @@ echo "Running testing framework on the tests"
 TEST_LOG=${DEPLOY_DIR}/pytest_tests_log.log
 rm -f ${TEST_LOG} #clean start
 touch ${TEST_LOG}
-cd ${REPODIR}/toolkit_tests
+cd ${REPODIR}/tests
 poetry run pytest . --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
 
 #4. Run notebook example as tests
