@@ -1,9 +1,11 @@
 import pandas as pd
 
+# Rearranged imports: standard libraries, dependencies, local modules
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 # ------------------------------------------
 #    Sensor
 # ------------------------------------------
