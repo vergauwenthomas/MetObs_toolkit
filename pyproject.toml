@@ -24,7 +24,7 @@ classifiers = [
 ]
 documentation = "https://metobs-toolkit.readthedocs.io/en/latest/index.html"
 keywords = ["meteorology", "observations", "urban climate"]
-packages = [{include = "src/metobs_toolkit"}]
+packages = [{include = "metobs_toolkit"}]
 requires-python = ">=3.10,<4.0"
 
 
