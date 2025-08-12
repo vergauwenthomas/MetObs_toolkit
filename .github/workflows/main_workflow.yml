@@ -272,7 +272,7 @@ jobs:
           - name: get_version
             id: 'version_info'
             run: |
-              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' src/metobs_toolkit/__init__.py)"
               echo "current version (init) = ${CURRENT_VERSION}"
               echo "::set-output name=current_version::$CURRENT_VERSION"
               PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
