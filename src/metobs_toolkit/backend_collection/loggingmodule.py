@@ -16,6 +16,12 @@ from datetime import datetime
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+def log_entry(func):
+    def wrapper(*args, **kwargs):
+        logger.debug(f"Entering {func.__name__}() in {func.__code__.co_filename}")
+        return func(*args, **kwargs)
+    return wrapper
+
 
 def add_FileHandler(
     trglogfile: str,

@@ -6,7 +6,13 @@ import copy
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.backend_collection.df_constructors import (
+    sensor_construct_df,
+    sensor_construct_outliersdf,
+    sensor_construct_gapsdf,
+    sensor_construct_modeldatadf,
 
+)
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
 from metobs_toolkit.settings_collection import label_def
@@ -84,6 +90,10 @@ class SensorData:
         self._setup(**setupkwargs)
         logger.info("SensorData initialized successfully.")
 
+    # ------------------------------------------
+    #    specials
+    # ------------------------------------------
+    
     def _id(self) -> str:
         """A physical unique id.
 
@@ -203,83 +213,10 @@ class SensorData:
             return copy.deepcopy(self)
         return copy.copy(self)
 
-    @property
-    def df(self) -> pd.DataFrame:
-        """Return a DataFrame of the sensor records."""
-        logger.debug(
-            "Creating DataFrame from SensorData series for %s", self.stationname
-        )
-        # get all records
-        df = (
-            self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(label=label_def["goodrecord"]["label"])
-        )
-
-        outliersdf = self.outliersdf[["value", "label"]]
-
-        gapsdf = self.gapsdf[["value", "label"]]
-
-        # concat all together (do not change order)
-        to_concat = [df]
-        if not outliersdf.empty:
-            to_concat.append(outliersdf)
-        if not gapsdf.empty:
-            to_concat.append(gapsdf)
-        df = save_concat((to_concat))
-        # remove duplicates
-        df = df[~df.index.duplicated(keep="last")].sort_index()
-
-        # add 'obstype' as index
-        df = (
-            df.assign(obstype=self.obstype.name)
-            .reset_index()
-            .set_index(["datetime", "obstype"])
-        )
-        return df
-
-    @copy_doc(sensordata_to_xr)
-    def to_xr(self) -> "xarray.Dataset":
-        return sensordata_to_xr(self)
-
-    @property
-    def outliersdf(self) -> pd.DataFrame:
-        """Return a DataFrame of the outlier records."""
-        logger.debug("Creating outliers DataFrame for %s", self.stationname)
-        to_concat = []
-        for outlierinfo in self.outliers:
-            checkname = outlierinfo["checkname"]
-            checkdf = outlierinfo["df"]
-            checkdf["label"] = label_def[checkname]["label"]
-            to_concat.append(checkdf)
-
-        totaldf = save_concat(to_concat)
-
-        if totaldf.empty:
-            # return empty dataframe
-            totaldf = pd.DataFrame(
-                columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
-            )
-        else:
-            totaldf.sort_index(inplace=True)
-
-        logger.debug("Outliers DataFrame created successfully for %s", self.stationname)
-        return totaldf
-
-    @property
-    def gapsdf(self) -> pd.DataFrame:
-        """Return a DataFrame of the gap records."""
-        to_concat = []
-        if bool(self.gaps):
-            for gap in self.gaps:
-                to_concat.append(gap.df)
-            return save_concat((to_concat)).sort_index()
-        else:
-            return pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.DatetimeIndex([], name="datetime"),
-            )
-
+    
+    # ------------------------------------------
+    #    Attribute getters and setters
+    # ------------------------------------------
     @property
     def stationname(self) -> str:
         """Return the name of the station this SensorData belongs to."""
@@ -307,6 +244,39 @@ class SensorData:
         if freq is None:
             raise ValueError("Frequency could not be computed.")
         return to_timedelta(freq)
+    
+    # ------------------------------------------
+    #   Dataframe attributes
+    # ------------------------------------------
+    
+    @copy_doc(sensor_construct_df)
+    @property
+    def df(self) -> pd.DataFrame:
+        return sensor_construct_df(self)
+    
+    @copy_doc(sensor_construct_outliersdf)
+    @property
+    def outliersdf(self) -> pd.DataFrame:
+        return sensor_construct_outliersdf(self)
+        
+
+    @copy_doc(sensor_construct_gapsdf)
+    @property
+    def gapsdf(self) -> pd.DataFrame:
+        return sensor_construct_gapsdf(self)
+
+    # ------------------------------------------
+    #    Xarray conversions
+    # ------------------------------------------
+    @copy_doc(sensordata_to_xr)
+    def to_xr(self) -> "xarray.Dataset":
+        return sensordata_to_xr(self)
+    
+
+    # ------------------------------------------
+    #    Functionality
+    # ------------------------------------------
+    
 
     def _setup(
         self,

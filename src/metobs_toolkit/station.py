@@ -11,6 +11,14 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
 )
+
+from metobs_toolkit.backend_collection.df_constructors import (
+    station_construct_df,
+    station_construct_outliersdf,
+    station_construct_gapsdf,
+    station_construct_modeldatadf,
+    station_construct_metadf
+)
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 import metobs_toolkit.plot_collection as plotting
@@ -61,7 +69,12 @@ class Station:
         }
 
         # Extra extracted data
-        self._modeldata = [] # list of ModelTimeSeries
+        self._modeldata = {}  # dict of ModelTimeSeries
+
+
+    # ------------------------------------------
+    #    specials
+    # ------------------------------------------
 
     def _id(self) -> str:
         """A physical unique id.
@@ -171,6 +184,11 @@ class Station:
             return copy.deepcopy(self)
         return copy.copy(self)
 
+    
+    # ------------------------------------------
+    #    Attribute getters and setters
+    # ------------------------------------------
+    
     @property
     def name(self) -> str:
         """The name of the station."""
@@ -201,178 +219,7 @@ class Station:
         """
         self._obstype_is_known_check(obstype)
         return self.obsdata[obstype]
-
-    @copy_doc(station_to_xr)
-    def to_xr(self) -> "xarray.Dataset":
-        return station_to_xr(self)
-
-    @property
-    def df(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of the observations.
-
-        Returns
-        -------
-        pd.DataFrame
-            A pandas DataFrame with a single column 'value'.
-        """
-
-        # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
-        concatdf = save_concat(([sensor.df for sensor in self.sensordata.values()]))
-
-        # sort by datetime
-        concatdf.sort_index(inplace=True)
-        return concatdf
-
-    @property
-    def outliersdf(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of all the outliers.
-
-        Outliers are the observations that are flagged by the performed quality control.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with two columns ['value', 'label'], representing
-            the value and details of the flagged observation.
-        """
-
-        concatlist = []
-        for sensordata in self.sensordata.values():
-            stadf = sensordata.outliersdf[["value", "label"]].reset_index()
-            stadf["obstype"] = sensordata.obstype.name
-            concatlist.append(stadf.set_index(["datetime", "obstype"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label"],
-                index=pd.MultiIndex(
-                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
-                ),
-            )
-        return combdf
-
-    @property
-    def gapsdf(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of all the gaps.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with columns ['value', 'label', 'details'], representing
-            the value, the gap label, and details of the gap record.
-        """
-        concatlist = []
-        for sensordata in self.sensordata.values():
-            stadf = sensordata.gapsdf.reset_index()
-            stadf["obstype"] = sensordata.obstype.name
-            concatlist.append(stadf.set_index(["datetime", "obstype"]))
-
-        combdf = save_concat(concatlist)
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
-                ),
-            )
-
-        return combdf
-
-    @property
-    def metadf(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of metadata.
-
-        Metadata is the information related to the sensors, that does not change over time.
-        The metadata is extracted from the site instance.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with the station names as index, and the metadata as columns.
-        """
-
-        return self.site.metadf
-
-    @property
-    def modeldatadf(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of all the present model data.
-
-        Model data is stored as `ModelTimeSeries` instances, and is set as an attribute of
-        a `Station`.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with columns ['value', 'details'], representing
-            the value, and details of the corresponding modeldata.
-            The index is a multiIndex with the following levels: 
-            ["datetime", "modelID", "obstype", "bandname"]
-
-        """
-        concatlist = []
-        for modeldata in self.modeldata:
-            df = (
-                modeldata.df
-                .assign(modelID=modeldata.modelID)
-                .assign(obstype=modeldata.modelobstype.name)
-                .assign(bandname=modeldata.bandname)
-                .assign(
-                    details=f"{modeldata._id()} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
-                )
-                .reset_index()
-                .set_index(["datetime", "modelID", "obstype", "bandname"])
-            )
-            concatlist.append(df)
-        combdf = save_concat(concatlist)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], [], []],
-                    codes=[[], [], [], []],
-                    names=["datetime", "modelID", "obstype", "bandname"]
-                ),
-            )
-        # formatting
-        combdf = combdf[["value", "details"]]
-        combdf.sort_index(inplace=True)
-        return combdf
-
-    def get_modeltimeseries(self, obstype: str) -> ModelTimeSeries: 
-        """Get the ModelTimeSeries instance for a specific observation type.
-
-        Parameters
-        ----------
-        obstype : str
-            The observation type to retrieve.
-
-        Returns
-        -------
-        ModelTimeSeries
-            The ModelTimeSeries instance for the specified observation type.
-        """
-
-        if not bool(self.modeldata):
-            raise MetObsModelDataError(f'There is no modeldata present for {self}')
-        
-        modeldatadict = {mod.modelobstype.name: mod for mod in self.modeldata}
-        if obstype not in modeldatadict:
-            raise MetObsObstypeNotFound(
-                f"There is no {obstype} - modeldata present for {self}"
-            )
-        return modeldatadict[obstype]
-
-
-
-
+    
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -435,6 +282,65 @@ class Station:
             A list of all the present observations in the station.
         """
         return sorted(list(self.sensordata.keys()))
+
+    # ------------------------------------------
+    #   Dataframe attributes
+    # ------------------------------------------
+    
+    @copy_doc(station_construct_df)
+    @property
+    def df(self) -> pd.DataFrame:
+        return station_construct_df(self)
+       
+    @copy_doc(station_construct_outliersdf)
+    @property
+    def outliersdf(self) -> pd.DataFrame:
+        return station_construct_outliersdf(self)
+       
+    @copy_doc(station_construct_gapsdf)
+    @property
+    def gapsdf(self) -> pd.DataFrame:
+        return station_construct_gapsdf(self)
+    
+    @copy_doc(station_construct_metadf)
+    @property
+    def metadf(self) -> pd.DataFrame:
+        return station_construct_metadf(self)
+
+    @copy_doc(station_construct_modeldatadf)
+    @property
+    def modeldatadf(self) -> pd.DataFrame:
+        return station_construct_modeldatadf(self) 
+   
+
+    # ------------------------------------------
+    #    Xarray conversions
+    # ------------------------------------------
+    
+    @copy_doc(station_to_xr)
+    def to_xr(self) -> "xarray.Dataset":
+        return station_to_xr(self)
+    
+    # ------------------------------------------
+    #    Functionality
+    # ------------------------------------------
+    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+        """Get the ModelTimeSeries instance for a specific observation type.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to retrieve.
+
+        Returns
+        -------
+        ModelTimeSeries
+            The ModelTimeSeries instance for the specified observation type.
+        """
+        self._obstype_has_modeldata_check(obstype)
+        return self.modeldata[obstype]
+
+   
 
     def add_to_sensordata(
         self, new_sensordata: SensorData, force_update: bool = False
