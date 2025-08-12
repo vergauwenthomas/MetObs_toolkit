@@ -83,7 +83,7 @@ class Verification:
             bandnames = fcdf.index.get_level_values('bandname').unique()
             if len(bandnames) != 1:
                 raise ValueError(f"Multiple bandnames values found: {bandnames}. Please specify trg_bandname.")
-            trg_modelID = model_ids[0]
+            trg_bandname = bandnames[0]
 
         fcdf = fcdf.xs(trg_bandname, level='bandname', drop_level=True)
 

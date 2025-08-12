@@ -79,10 +79,9 @@ class ModelTimeSeries:
             return False
         return (
             self.site == other.site
-            and self.obstype == other.obstype
+            and self.modelobstype == other.modelobstype
             and self.series.equals(other.series)
-            and self.modelID == other.modelID
-            and self.modelvariable == other.modelvariable
+            and self._id() == other._id()
         )
 
     def __str__(self):
@@ -215,7 +214,7 @@ class ModelTimeSeries:
         infostr = ""
         infostr += printing.print_fmt_title("General info of ModelTimeSeries")
         infostr += printing.print_fmt_line(
-            f"{self.id()} data at location of {self.stationname}"
+            f"{self._id()} data at location of {self.stationname}"
         )
         infostr += self._get_info_core(nident_root=1)
         if printout:
@@ -261,7 +260,7 @@ class ModelTimeSeries:
         else:
             color = linecolor
 
-        legendname = f"{self.modelID}:{self.modelvariable}@{self.stationname}"
+        legendname = f"{self._id()}"
 
         ax = plotting.add_lines_to_axes(
             ax=ax,

@@ -71,13 +71,6 @@ class Station:
         """
         return f"{self.name}"
 
-    def _id(self) -> str:
-        """A physical unique id.
-
-        In the __add__ methods, if the id of two instances differs, adding is
-        a regular concatenation.
-        """
-        return f"{self.name}"
 
     def __eq__(self, other):
         """Check equality with another Station object."""
@@ -1699,7 +1692,7 @@ class Station:
         # Get modeltimeseries
         argsdict = kwargs_specify_model
         argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modletimeseries(**argsdict)
+        modeltimeseries = self.find_modeltimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(

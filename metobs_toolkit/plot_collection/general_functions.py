@@ -313,7 +313,7 @@ def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict
         Dictionary mapping each category to a hex color string.
     """
     logger.debug("Entering create_categorical_color_map function.")
-    unique_elements = unique_elements = [elem for elem in set(catlist) if pd.notna(elem)]
+    unique_elements = [elem for elem in set(catlist) if pd.notna(elem)]
     unique_elements = sorted(
         unique_elements
     )  # sort alphabetically, so color scheme is equal in workflow
