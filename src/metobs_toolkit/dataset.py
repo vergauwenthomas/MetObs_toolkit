@@ -25,7 +25,13 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 )
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
-
+from metobs_toolkit.backend_collection.df_constructors import (
+    dataset_construct_df,
+    dataset_construct_outliersdf,
+    dataset_construct_gapsdf,
+    dataset_construct_modeldatadf,
+    dataset_construct_metadf
+)
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -186,6 +192,9 @@ class Dataset:
             return copy.deepcopy(self)
         return copy.copy(self)
 
+    # ------------------------------------------
+    #    Attribute getters and setters
+    # ------------------------------------------
     @property
     def stations(self) -> list:
         """
@@ -236,108 +245,6 @@ class Dataset:
 
         self._obstypes = obstypesdict
 
-    @copy_doc(Station.df)
-    @property
-    def df(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.df.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
-                ),
-            )
-        return combdf
-
-    @copy_doc(Station.outliersdf)
-    @property
-    def outliersdf(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.outliersdf.reset_index()
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
-                ),
-            )
-        return combdf
-
-    @copy_doc(Station.gapsdf)
-    @property
-    def gapsdf(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.gapsdf.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
-                ),
-            )
-        return combdf
-
-    @copy_doc(Station.modeldatadf)
-    @property
-    def modeldatadf(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.modeldatadf.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
-                ),
-            )
-        return combdf
-
-    @copy_doc(Station.metadf)
-    @property
-    def metadf(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            concatlist.append(sta.metadf)
-        return save_concat((concatlist)).sort_index()
-
     @copy_doc(Station.start_datetime)
     @property
     def start_datetime(self) -> pd.Timestamp:
@@ -362,13 +269,52 @@ class Dataset:
         for sta in self.stations:
             allobs.update(sta.present_observations)
         return sorted(list(allobs))
-
+    
     # ------------------------------------------
-    #   Extracting data
+    #   Dataframe attributes
+    # ------------------------------------------
+    
+    @copy_doc(dataset_construct_df)
+    @property
+    def df(self) -> pd.DataFrame:
+        return dataset_construct_df(self)
+
+    @copy_doc(dataset_construct_outliersdf)
+    @property
+    def outliersdf(self) -> pd.DataFrame:
+        return dataset_construct_outliersdf(self)
+
+    @copy_doc(dataset_construct_gapsdf)
+    @property
+    def gapsdf(self) -> pd.DataFrame:
+        return dataset_construct_gapsdf(self)
+
+    @copy_doc(dataset_construct_modeldatadf)
+    @property
+    def modeldatadf(self) -> pd.DataFrame:
+        return dataset_construct_modeldatadf(self)
+
+    @copy_doc(dataset_construct_metadf)
+    @property
+    def metadf(self) -> pd.DataFrame:
+        return dataset_construct_metadf(self)
+    
+    # ------------------------------------------
+    #    Xarray conversions
     # ------------------------------------------
     @copy_doc(dataset_to_xr)
     def to_xr(self) -> "xarray.Dataset":
         return dataset_to_xr(self)
+    
+
+    # ------------------------------------------
+    #    Functionality
+    # ------------------------------------------
+
+    # ------------------------------------------
+    #   Extracting data
+    # ------------------------------------------
+    
 
     def subset_by_stations(
         self, stationnames: list, deepcopy: bool = False
