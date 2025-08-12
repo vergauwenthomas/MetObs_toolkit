@@ -24,6 +24,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
 )
 from metobs_toolkit.backend_collection.uniqueness import join_collections
+from metobs_toolkit.xrconversions import dataset_to_xr
 
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
@@ -132,10 +133,10 @@ class Dataset:
         >>> # Assume ds1 and ds2 to be Datasets.
         >>> ds3 = ds1 + ds2
         """
-        
+
         if not isinstance(other, Dataset):
             raise TypeError("Can only add Dataset to Dataset.")
-        
+
         # --- Merge stations ----
         merged_stationslist = join_collections(
             col_A=self.stations, col_B=other.stations
@@ -365,6 +366,10 @@ class Dataset:
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
+    @copy_doc(dataset_to_xr)
+    def to_xr(self) -> "xarray.Dataset":
+        return dataset_to_xr(self)
+
     def subset_by_stations(
         self, stationnames: list, deepcopy: bool = False
     ) -> "Dataset":

@@ -25,7 +25,7 @@ classifiers = [
 documentation = "https://metobs-toolkit.readthedocs.io/en/latest/index.html"
 keywords = ["meteorology", "observations", "urban climate"]
 packages = [{include = "metobs_toolkit"}]
-requires-python = ">=3.10,<4.0" #>=3.10 required for xarray
+requires-python = ">=3.10,<4.0"
 
 
 dependencies=[
@@ -41,7 +41,6 @@ dependencies=[
   "numpy>=1",
   "pandas>=2",
   "pint>=0.24.4",
-  # "python>=3.9",
   "setuptools>=78.1.0",
   "shapely>=2.0.6",
   "xarray (>=2024.0.0,<2026.0.0)",
@@ -65,6 +64,7 @@ pytest = "^8.3.5"
 pytest-mpl = "^0.17.0"
 pytest-cov = "^6.1.1"
 nbval = "^0.11.0"
+black = "^25.1.0"
 
 [tool.poetry.group.documentation.dependencies]
 ipykernel = "^6.29.5"

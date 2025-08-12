@@ -50,6 +50,7 @@ A summary of all methods in the SensorData class.
    SensorData.repetitions_check
    SensorData.step_check
    SensorData.window_variation_check
+   SensorData.to_xr
 
 
 Special methods
