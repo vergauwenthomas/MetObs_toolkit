@@ -14,10 +14,9 @@ libfolder = Path(str(Path(__file__).resolve())).parent.parent
 import metobs_toolkit
 
 # solutionfolder
-solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
+solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 import shutil
-import pytest
 
 
 class TestDemoData:
@@ -26,6 +25,15 @@ class TestDemoData:
     solutionfixer = SolutionFixer(solutiondir=solutionsdir)
 
     def test_version(self):
+        # check if the local version is used
+        initpath = libfolder.joinpath("src", "metobs_toolkit", "__init__.py")
+        with open(initpath, "r") as f:
+            content = f.read()
+        version_line = [line for line in content.splitlines() if "__version__" in line][
+            0
+        ]
+        local_version = version_line.split("=")[1].strip().strip('"').strip("'").strip()
+        assert metobs_toolkit.__version__ == local_version
         assert isinstance(metobs_toolkit.__version__, str)
 
     def test_import_demo_data(self, overwrite_solution=False):
@@ -285,7 +293,7 @@ class TestWideData:
         # 5. Construct the equlity tests
         assert_equality(data_to_test, solutionobj)  # dataset comparison
 
-    def test_sync_wide_records(self, overwrite_solution=True):
+    def test_sync_wide_records(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 

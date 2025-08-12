@@ -15,10 +15,9 @@ libfolder = Path(str(Path(__file__).resolve())).parent.parent
 import metobs_toolkit
 
 # solutionfolder
-solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
+solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 import shutil
-import pytest
 
 
 print(

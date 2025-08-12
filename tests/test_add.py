@@ -7,13 +7,13 @@ import pandas as pd
 import metobs_toolkit
 
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
-solutionsdir = libfolder.joinpath("toolkit_tests").joinpath("pkled_solutions")
+solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 
 file_with_era5_data = (
     libfolder
-    / "toolkit_tests"
-    / "testdata"
+    / "tests"
+    / "data"
     / "ERA5-land_timeseries_data_of_full_dataset_28_stations.csv"
 )
 
