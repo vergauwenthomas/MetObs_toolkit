@@ -37,7 +37,7 @@ from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
 
 import metobs_toolkit.plot_collection as plotting
-import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.getinfo_functions import dataset_get_info
 
 from metobs_toolkit.qc_collection import toolkit_buddy_check
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -383,110 +383,9 @@ class Dataset:
 
         return station
 
-    @copy_doc(Station.get_info)
+    @copy_doc(dataset_get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        logger.debug("Entering Dataset.get_info")
-
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of Dataset")
-
-        # --- Observational info ---
-        infostr += printing.print_fmt_section("Observational info")
-        df = self.df
-        if df.empty:
-            infostr += printing.print_fmt_line(
-                "Dataset instance without observation records."
-            )
-        else:
-            present_obstypes = list(df.index.get_level_values("obstype").unique())
-
-            infostr += printing.print_fmt_line("Dataset instance with:", 0)
-            infostr += printing.print_fmt_line(
-                f"{len(self.stations)} number of stations"
-            )
-            infostr += printing.print_fmt_line(f"{len(df.index)} number of records")
-            infostr += printing.print_fmt_line(
-                f"{len(present_obstypes)} types of sensor data are present."
-            )
-            infostr += printing.print_fmt_line(
-                f"Observations from {self.start_datetime} -> {self.end_datetime}"
-            )
-
-            # -- outlier info --
-            outldf = self.outliersdf
-            infostr += printing.print_fmt_line("Outlier info:")
-            if outldf.empty:
-                infostr += printing.print_fmt_line("No QC outliers present.", 2)
-            else:
-                infostr += printing.print_fmt_line(
-                    "A total of {outldf.shape[0]} outliers are present.", 2
-                )
-                infostr += printing.print_fmt_line("label counts:", 3)
-                infostr += printing.print_fmt_dict(
-                    outldf["label"].value_counts().to_dict(), identlvl=4
-                )
-                infostr += printing.print_fmt_line(
-                    f"For these obstyes: {list(outldf.index.get_level_values('obstype').unique())}",
-                    2,
-                )
-                unique_stations = list(outldf.index.get_level_values("name").unique())
-                infostr += printing.print_fmt_line(
-                    f"For {len(unique_stations)} stations: {unique_stations}", 2
-                )
-
-            # -- gap info --
-            gapsdf = self.gapsdf
-            infostr += printing.print_fmt_line("Gaps info:")
-            if gapsdf.empty:
-                infostr += printing.print_fmt_line("No gaps present.", 2)
-            else:
-                infostr += printing.print_fmt_line(
-                    f"A total of {gapsdf.shape[0]} gaps are present.", 2
-                )
-                infostr += printing.print_fmt_line("label counts: ", 3)
-                infostr += printing.print_fmt_dict(
-                    gapsdf["label"].value_counts().to_dict(), identlvl=4
-                )
-                infostr += printing.print_fmt_line(
-                    f"For these obstyes: {list(gapsdf.index.get_level_values('obstype').unique())}",
-                    2,
-                )
-                unique_stations = list(gapsdf.index.get_level_values("name").unique())
-                infostr += printing.print_fmt_line(
-                    f"For {len(unique_stations)} stations: {unique_stations}", 2
-                )
-
-        # Meta data info
-        infostr += printing.print_fmt_section("Metadata info")
-
-        metadf = self.metadf
-        if metadf.empty:
-            infostr += printing.print_fmt_line("Dataset instance without metadata.")
-        else:
-            infostr += printing.print_fmt_line(
-                f"{len(metadf.index)} number of stations"
-            )
-            infostr += printing.print_fmt_line(
-                f"The following metadata is present: {list(metadf.columns)}"
-            )
-
-        # Modeldata info
-        modeldf = self.modeldatadf
-        infostr += printing.print_fmt_section("Modeldata info")
-        if modeldf.empty:
-            infostr += printing.print_fmt_line("Dataset instance without modeldata.")
-        else:
-            infostr += printing.print_fmt_line(
-                f"Modeldata is present for {list(modeldf.index.get_level_values('obstype').unique())}"
-            )
-            infostr += printing.print_fmt_line(
-                f"For period {modeldf.index.get_level_values('datetime').min()} -> {modeldf.index.get_level_values('datetime').max()}"
-            )
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
+        return dataset_get_info(self, printout)
 
     def sync_records(
         self,

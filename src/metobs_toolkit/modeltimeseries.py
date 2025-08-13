@@ -7,6 +7,7 @@ from matplotlib.pyplot import Axes
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
+from metobs_toolkit.backend_collection.getinfo_functions import modeltimeseries_get_info
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import Obstype
@@ -119,18 +120,10 @@ class ModelTimeSeries:
             modelvariable=self.modelvariable,
         )
         return combined
-
-    @property
-    def df(self) -> pd.DataFrame:
-        """Return all records as a DataFrame."""
-        # get all records
-        df = (
-            self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(model=self.modelname)
-        )
-        return df
-
+    # ------------------------------------------
+    #    Getters and properties
+    # ------------------------------------------
+    
     @property
     def stationname(self) -> str:
         """Return the name of the station this SensorData belongs to."""
@@ -159,59 +152,36 @@ class ModelTimeSeries:
             raise ValueError("Frequency could not be computed.")
         # note: sometimes 'h' is returned, and this gives issues, so add a 1 in front
         return to_timedelta(freq)
-
+    
+    # ------------------------------------------
+    #    DataFrame representation
+    # ------------------------------------------
+    @property
+    def df(self) -> pd.DataFrame:
+        """Return all records as a DataFrame."""
+        # get all records
+        df = (
+            self.series.to_frame()
+            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
+            .assign(model=self.modelname)
+        )
+        return df
+    
+    # ------------------------------------------
+    #    Xarray representation
+    # ------------------------------------------
     @copy_doc(modeltimeseries_to_xr)
     def to_xr(self) -> "xarray.Dataset":
         return modeltimeseries_to_xr(self)
-
-    def _get_info_core(self, nident_root=1) -> dict:
-        infostr = ""
-        infostr += printing.print_fmt_line(
-            f"Origin {self.modelname} -> variable/band: {self.modelvariable}",
-            nident_root,
-        )
-        infostr += printing.print_fmt_line(
-            f"From {self.start_datetime} --> {self.end_datetime}", nident_root
-        )
-        infostr += printing.print_fmt_line(
-            f"Assumed frequency: {self.freq}", nident_root
-        )
-        infostr += printing.print_fmt_line(
-            f"Number of records: {self.series.shape[0]}", nident_root
-        )
-        infostr += printing.print_fmt_line(
-            f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}",
-            nident_root,
-        )
-
-        return infostr
-
+    
+    # ------------------------------------------
+    #    functionality
+    # ------------------------------------------
+    
+    @copy_doc(modeltimeseries_get_info)
     def get_info(self, printout: bool = True) -> Union[None, str]:
-        """
-        Print or return information about the ModelTimeSeries.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, print the information. If False, return as string. Default is True.
-
-        Returns
-        -------
-        None or str
-            None if printout is True, otherwise the information string.
-        """
-        logger.debug(f"{self.__class__.__name__}.get_info called for {self}")
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of ModelTimeSeries")
-        infostr += printing.print_fmt_line(
-            f"{self.obstype.name} model data at location of {self.stationname}"
-        )
-        infostr += self._get_info_core(nident_root=1)
-        if printout:
-            print(infostr)
-        else:
-            return infostr
-
+        return modeltimeseries_get_info(self, printout=printout)
+    
     def make_plot(
         self,
         linecolor: str = None,

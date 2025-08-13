@@ -14,7 +14,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
 )
-import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.getinfo_functions import analysis_get_info
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 import metobs_toolkit.plot_collection as plotting
 
 from metobs_toolkit.dataset import Dataset
@@ -134,44 +135,12 @@ but a {type(Dataholder)}"
             return False
         return self.df.equals(other.df) and self.metadf.equals(other.metadf)
 
-    def get_info(self, printout: bool = True) -> Union[None, str]:
-        """
-        Provides information about the Analysis instance, including the number
-        of records, observation types, metadata columns, station names, and
-        known time derivatives.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, prints the information to the console. If False, returns
-            the information as a string. Default is True.
-
-        Returns
-        -------
-        None or str
-            Returns None if `printout` is True. Returns the information string
-            if `printout` is False.
-        """
-        logger.debug(f"Entering {self.__class__.__name__}.get_info")
-
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of Analysis")
-        infostr += printing.print_fmt_line(f"Number of records: {len(self.df)}")
-        infostr += printing.print_fmt_line(f"Observation types: {list(self._df_cols)}")
-        infostr += printing.print_fmt_line(
-            f"Available metadata columns: {self.metadf.columns.tolist()}"
-        )
-        infostr += printing.print_fmt_line(
-            f"Stations: {self.fulldf['name'].unique().tolist()}"
-        )
-        infostr += printing.print_fmt_line(
-            f"All known time-derivatives: {possible_time_aggregates}"
-        )
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
+    @copy_doc(analysis_get_info)
+    def get_info(self, printout: bool = True,
+                  possible_time_aggregates: list = []) -> Union[None, str]:
+        return analysis_get_info(self,
+                                 printout=printout,
+                                 possible_time_aggregates=possible_time_aggregates)
 
     def get_tz(self) -> str:
         """

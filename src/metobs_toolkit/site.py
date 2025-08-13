@@ -6,12 +6,13 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsAdditionError,
 )
-import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.getinfo_functions import site_get_info
 
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -50,6 +51,9 @@ class Site:
             {}
         )  # example: {100: {pervious: 0.8, impervious: 0.2}}
 
+    # ------------------------------------------
+    #    specials
+    # ------------------------------------------
     def _id(self) -> str:
         """A physical unique id.
 
@@ -115,7 +119,10 @@ class Site:
         newsite._geedata = new_geedata
         newsite._gee_buffered_fractions = new_gee_buffered
         return newsite
-
+    
+    # ------------------------------------------
+    #    attribute getters
+    # ------------------------------------------
     @property
     def stationname(self) -> str:
         """Return the station name."""
@@ -164,37 +171,11 @@ class Site:
     def extradata(self):
         """Return the extra metadata dictionary."""
         return self._extradata
-
-    @property
-    def metadf(self) -> pd.DataFrame:
-        """Return a DataFrame with all metadata and geometry."""
-        metadf = pd.DataFrame(
-            data={
-                "lat": self.lat,
-                "lon": self.lon,
-                **self._geedata,  # unfold all gee extracted data
-                **self.extradata,
-            },  # unfold all extra data
-            index=pd.Index(data=[self.stationname], name="name"),
-        )
-
-        # add buffered fractions
-        for bufradius, fracdict in self._gee_buffered_fractions.items():
-            for covername, fraction in fracdict.items():
-                metadf[f"{covername}_frac_{bufradius}m"] = fraction
-
-        # Create geometry column (geopandasdataframe)
-        metadf = gpd.GeoDataFrame(
-            metadf, geometry=gpd.points_from_xy(metadf["lon"], metadf["lat"])
-        )
-        # add CRS
-        metadf = metadf.set_crs("WGS84")
-        return metadf
-
+    
     # ------------------------------------------
-    #   Setters
+    #    Attribute setters
     # ------------------------------------------
-
+    
     def set_geedata(self, dataname: str, value: Union[str, float]) -> None:
         """
         Set a value in the geedata dictionary.
@@ -225,26 +206,38 @@ class Site:
         data = {k: (0 if pd.isna(v) else v) for k, v in data.items()}
         self._gee_buffered_fractions.update({buffer: data})
 
-    def add_metadata(self, metadata: dict) -> None:
-        """
-        Add metadata to the site.
+    
+    
+    # ------------------------------------------
+    #    dataframe attributes
+    # ------------------------------------------
+    
+    @property
+    def metadf(self) -> pd.DataFrame:
+        """Return a DataFrame with all metadata and geometry."""
+        metadf = pd.DataFrame(
+            data={
+                "lat": self.lat,
+                "lon": self.lon,
+                **self._geedata,  # unfold all gee extracted data
+                **self.extradata,
+            },  # unfold all extra data
+            index=pd.Index(data=[self.stationname], name="name"),
+        )
 
-        Parameters
-        ----------
-        metadata : dict
-            Dictionary of metadata to add.
+        # add buffered fractions
+        for bufradius, fracdict in self._gee_buffered_fractions.items():
+            for covername, fraction in fracdict.items():
+                metadf[f"{covername}_frac_{bufradius}m"] = fraction
 
-        Raises
-        ------
-        ValueError
-            If metadata is not a dictionary.
-        """
-        logger.debug("Entering add_metadata for %s", self)
-        if not isinstance(metadata, dict):
-            raise ValueError(f"metadata should be a dictionary, not {type(metadata)}")
-        logger.debug(f"Adding metadata: {metadata}")
-        self._extradata.update(dict(metadata))
-        logger.info(f"Updated metadata: {self.extradata}")
+        # Create geometry column (geopandasdataframe)
+        metadf = gpd.GeoDataFrame(
+            metadf, geometry=gpd.points_from_xy(metadf["lon"], metadf["lat"])
+        )
+        # add CRS
+        metadf = metadf.set_crs("WGS84")
+        return metadf
+    
 
     # ------------------------------------------
     #    Flaggers
@@ -322,9 +315,32 @@ class Site:
         logger.debug("Entering flag_has_coordinates for %s", self)
         return (not pd.isnull(self.lat)) and (not pd.isnull(self.lon))
 
+
     # ------------------------------------------
-    #    Methods
+    #    functionality
     # ------------------------------------------
+    
+    def add_metadata(self, metadata: dict) -> None:
+        """
+        Add metadata to the site.
+
+        Parameters
+        ----------
+        metadata : dict
+            Dictionary of metadata to add.
+
+        Raises
+        ------
+        ValueError
+            If metadata is not a dictionary.
+        """
+        logger.debug("Entering add_metadata for %s", self)
+        if not isinstance(metadata, dict):
+            raise ValueError(f"metadata should be a dictionary, not {type(metadata)}")
+        logger.debug(f"Adding metadata: {metadata}")
+        self._extradata.update(dict(metadata))
+        logger.info(f"Updated metadata: {self.extradata}")
+
 
     def get_gee_point_metadata(
         self, geestaticdataset: GEEStaticDatasetManager, initialize_gee: bool = True
@@ -427,101 +443,6 @@ class Site:
             bufferdict.update(fracdict)
         return bufferdict
 
-    def _get_info_core(self, nident_root=1) -> str:
-        """
-        Generate a formatted string containing metadata information for parent objects.
-        This method compiles various metadata details such as coordinates, altitude,
-        land cover zone (LCZ), land cover fractions, and extra metadata into a formatted
-        string. It is primarily used by the `get_info` methods of parent objects.
-        Parameters
-        ----------
-        nident_root : int, optional
-            The base indentation level for the formatted output, by default 1.
-        Returns
-        -------
-        str
-            A formatted string containing the metadata information.
-        """
-
-        infostr = ""
-        # Coordinates
-        if self.flag_has_coordinates():
-            infostr += printing.print_fmt_line(
-                f"Coordinates ({self.lat}, {self.lon}) (latitude, longitude)",
-                nident_root,
-            )
-        else:
-            infostr += printing.print_fmt_line("Coordinates are unknown", nident_root)
-
-        # Altitude
-        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):
-            infostr += printing.print_fmt_line(
-                f"Altitude: {self.altitude} (m) (from metadata file)", nident_root
-            )
-        elif self.flag_has_altitude() & (self.flag_altitude_from_gee()):
-            infostr += printing.print_fmt_line(
-                f"Altitude: {self.altitude} (m) (from GEE extraction)", nident_root
-            )
-        else:
-            infostr += printing.print_fmt_line("Altitude is unknown", nident_root)
-
-        # LCZ
-        if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
-            infostr += printing.print_fmt_line(
-                f"LCZ: {self.LCZ} (from GEE extraction)", nident_root
-            )
-        elif self.flag_has_LCZ():
-            infostr += printing.print_fmt_line(
-                f"LCZ: {self.LCZ} (from metadata file)", nident_root
-            )
-        else:
-            infostr += printing.print_fmt_line("LCZ is unknown", nident_root)
-
-        # Buffered fractions
-        if self.flag_has_landcoverfractions():
-            infostr += printing.print_fmt_line(
-                "Land cover fractions are available", nident_root
-            )
-        else:
-            infostr += printing.print_fmt_line(
-                "Land cover fractions are unknown", nident_root
-            )
-
-        # Extra metadata
-        if bool(self):
-            infostr += printing.print_fmt_line(
-                "Extra metadata from the metadata file:", nident_root
-            )
-            for key, value in self.extradata.items():
-                infostr += printing.print_fmt_line(f"{key}: {value}", nident_root + 1)
-        else:
-            infostr += printing.print_fmt_line(
-                "No extra metadata available", nident_root
-            )
-
-        return infostr
-
+    @copy_doc(site_get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        """
-        Retrieve and optionally print basic information about the site.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, print the information. If False, return as string.
-
-        Returns
-        -------
-        str or None
-            Information string if printout is False, else None.
-        """
-        logger.debug("Entering get_info for %s", self)
-        infostr = ""
-        infostr += printing.print_fmt_title("General Info of Site")
-        infostr += printing.print_fmt_line(f"Site of {self.stationname}:", 0)
-        infostr += self._get_info_core(nident_root=1)
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
+        return site_get_info(self, printout)

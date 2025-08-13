@@ -9,7 +9,8 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
 )
 
-import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.getinfo_functions import gap_get_info
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.settings_collection import label_def
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
 from metobs_toolkit.gf_collection.debias_gapfill import fill_regular_debias
@@ -57,7 +58,13 @@ class Gap:
         self._fillkwargs = {}
         self._obstype = obstype
         self._stationname = stationname
-
+    # ------------------------------------------
+    #    Specials
+    # ------------------------------------------
+    
+    # ------------------------------------------
+    #    Getters/setters
+    # ------------------------------------------
     @property
     def records(self) -> pd.Series:
         """Return the records of the gap."""
@@ -123,17 +130,19 @@ class Gap:
         """Return the end datetime of the gap."""
         return max(self.records.index)
 
+    
+    # ------------------------------------------
+    #    Dataframe representation
+    # ------------------------------------------
     @property
     def df(self) -> pd.DataFrame:
         """Return a DataFrame representation of the gap."""
         return pd.DataFrame(
             {"value": self.records, "label": self._labels, "details": self._extra_info}
         )
-
     # ------------------------------------------
-    #    Get info methods
+    #    flagging methods
     # ------------------------------------------
-
     def flag_can_be_filled(self, overwrite: bool = False) -> bool:
         """
         Determine if the gap can be filled.
@@ -163,46 +172,15 @@ class Gap:
             return False
         else:
             return True
+        
+        
+    # ------------------------------------------
+    #    funtionality
+    # ------------------------------------------
 
+    @copy_doc(gap_get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        """
-        Print or return detailed information about the Gap.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, prints the information. If False, returns the information as a string. Default is True.
-
-        Returns
-        -------
-        str or None
-            The gap information as a string if printout is False, otherwise None.
-        """
-        logger.debug(f"Entering get_info for {self} with printout={printout}")
-
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of Gap")
-        infostr += printing.print_fmt_section("Gap details")
-
-        infostr += printing.print_fmt_line(
-            f"Gap of {self.obstype.name} for station: {self.stationname}", 0
-        )
-        infostr += printing.print_fmt_line(
-            f"From {self.start_datetime} -> {self.end_datetime}", 1
-        )
-        infostr += printing.print_fmt_line(
-            f"Duration gap: {self.end_datetime - self.start_datetime}", 1
-        )
-
-        infostr += printing.print_fmt_section("Gap filling details")
-        infostr += printing.print_fmt_line(f"Gap status: {self.fillstatus}")
-        infostr += printing.print_fmt_line("Gapfill settings used:")
-        infostr += printing.print_fmt_dict(d=self.fillsettings, identlvl=2)
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
+        return gap_get_info(self, printout)
 
     def debiased_model_gapfill(
         self,

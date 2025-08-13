@@ -10,9 +10,9 @@ from metobs_toolkit.backend_collection.df_constructors import (
     sensor_construct_df,
     sensor_construct_outliersdf,
     sensor_construct_gapsdf,
-    sensor_construct_modeldatadf,
-
 )
+from metobs_toolkit.backend_collection.getinfo_functions import sensordata_get_info
+
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
 from metobs_toolkit.settings_collection import label_def
@@ -25,7 +25,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
 )
-import metobs_toolkit.backend_collection.printing_collection as printing
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -642,77 +642,9 @@ class SensorData:
             missingrecords=all_missing,
             target_freq=pd.to_timedelta(timestampmatcher.target_freq),
         )
-
+    @copy_doc(sensordata_get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        """
-        Retrieve and optionally print basic information about the sensor data.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, the information will be printed to the console. If False,
-            the information will be returned as a string. Default is True.
-
-        Returns
-        -------
-        str or None
-            If `printout` is False, returns a string containing the information
-            about the sensor data. If `printout` is True, returns None.
-
-        """
-        logger.debug("Entering get_info for %s", self)
-
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of SensorData")
-        infostr += printing.print_fmt_line(
-            f"{self.obstype.name} records of {self.stationname}:", 0
-        )
-        infostr += self._get_info_core(nident_root=1)
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
-
-    def _get_info_core(self, nident_root=1) -> str:
-        infostr = ""
-        infostr += printing.print_fmt_line(
-            f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root
-        )
-        infostr += printing.print_fmt_line(
-            f" from {self.start_datetime} -> {self.end_datetime}", nident_root
-        )
-        infostr += printing.print_fmt_line(
-            f" At a resolution of {self.freq}", nident_root
-        )
-
-        # outliers info:
-        if self.outliersdf.empty:
-            infostr += printing.print_fmt_line("No outliers present.", nident_root)
-        else:
-            infostr += printing.print_fmt_line(
-                f"A total of {self.outliersdf.shape[0]} flagged observations (QC outliers).",
-                nident_root,
-            )
-            infostr += printing.print_fmt_line("label counts: ", nident_root + 1)
-            infostr += printing.print_fmt_dict(
-                self.outliersdf["label"].value_counts().to_dict(), nident_root + 2
-            )
-
-        # gaps info:
-        if not self.gaps:
-            infostr += printing.print_fmt_line("No gaps present.", nident_root)
-        else:
-            infostr += printing.print_fmt_line(
-                f"{len(self.gaps)} gaps present, a total of {self.gapsdf.shape[0]} missing timestamps.",
-                nident_root,
-            )
-            infostr += printing.print_fmt_line("label counts: ", nident_root + 1)
-            infostr += printing.print_fmt_dict(
-                self.gapsdf["label"].value_counts().to_dict(), nident_root + 2
-            )
-
-        return infostr
+        return sensordata_get_info(self, printout=printout)
 
     # ------------------------------------------
     #    Specials

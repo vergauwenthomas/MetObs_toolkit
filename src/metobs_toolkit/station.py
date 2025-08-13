@@ -31,8 +31,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsObstypeNotFound,
     MetObsAdditionError,
 )
-import metobs_toolkit.backend_collection.printing_collection as printing
-from metobs_toolkit.backend_collection.df_helpers import save_concat
+from metobs_toolkit.backend_collection.getinfo_functions import station_get_info
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
@@ -420,59 +419,9 @@ class Station:
 
         self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
 
+    @copy_doc(station_get_info)
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        """
-        Retrieve and optionally print detailed information about the station.
-
-        Parameters
-        ----------
-        printout : bool, optional
-            If True, prints the information to the console. If False, returns
-            the information as a string. Default is True.
-
-        Returns
-        -------
-        str or None
-            A string containing the station information if `printout` is False.
-            Otherwise, returns None.
-        """
-        logger.debug("Entering get_info for %s", self)
-
-        infostr = ""
-        infostr += printing.print_fmt_title("General info of Station")
-
-        # --- Observational info ---
-        infostr += printing.print_fmt_section("Observational info")
-        df = self.df
-        if df.empty:
-            infostr += printing.print_fmt_line(
-                "Station instance without observation records."
-            )
-        else:
-            present_obstypes = list(df.index.get_level_values("obstype").unique())
-
-            infostr += printing.print_fmt_line("Station instance with:", 0)
-            for obstype in present_obstypes:
-                infostr += printing.print_fmt_line(f"{obstype}:", 1)
-                infostr += self.get_sensor(obstype)._get_info_core(nident_root=2)
-
-        # Meta data info
-        infostr += printing.print_fmt_section("Metadata info")
-        infostr += self.site._get_info_core(nident_root=1)
-
-        # Model data info
-        infostr += printing.print_fmt_section("Modeldata info")
-        if not bool(self.modeldata):
-            infostr += printing.print_fmt_line("Station instance without model data.")
-        else:
-            for obstype, modeldata in self.modeldata.items():
-                infostr += printing.print_fmt_line(f"{obstype}:", 1)
-                infostr += modeldata._get_info_core(nident_root=2)
-
-        if printout:
-            print(infostr)
-        else:
-            return infostr
+        return station_get_info(self, printout)
 
     def resample(
         self,

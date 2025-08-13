@@ -1,3 +1,6 @@
+""" This module is a collection of functions to convert and join
+    Metobs classes to pandas DataFrames."""
+
 import pandas as pd
 
 # Rearranged imports: standard libraries, dependencies, local modules
