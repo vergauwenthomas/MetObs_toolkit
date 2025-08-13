@@ -9,7 +9,7 @@ from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
-from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstypes import ModelObstype
 import metobs_toolkit.plot_collection.timeseries_plotting as plotting
 
 
@@ -42,7 +42,7 @@ class ModelTimeSeries:
         site,
         datarecords: np.ndarray,
         timestamps: np.ndarray,
-        modelobstype: Obstype,
+        modelobstype: ModelObstype,
         datadtype: type = np.float32,
         timezone: str = "UTC",
         modelID: str = None,
