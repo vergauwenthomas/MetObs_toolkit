@@ -177,14 +177,18 @@ def station_construct_modeldatadf(station):
         the value, and details of the corresponding model data.
     """
     concatlist = []
-    for modeldata in station.modeldata.values():
+    #NOte: what makes a value of modeldata unique is : datetime, obstype, bandname and modelID
+    
+    for modeldata in station.modeldata:
         df = (
-            modeldata.df.assign(obstype=modeldata.obstype.name)
+            modeldata.df.assign(obstype=modeldata.modelobstype.name)
             .assign(
-                details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.obstype.model_unit} -> {modeldata.obstype.std_unit}"
+                details=f"{modeldata.modelID} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
             )
+            .assign(modelID=modeldata.modelID)
+            .assign(bandname=modeldata.modelobstype.model_band)
             .reset_index()
-            .set_index(["datetime", "obstype"])
+            .set_index(["datetime", "obstype", "bandname", "modelID"])
         )
         concatlist.append(df)
     combdf = save_concat(concatlist)
@@ -192,7 +196,7 @@ def station_construct_modeldatadf(station):
         combdf = pd.DataFrame(
             columns=["value", "details"],
             index=pd.MultiIndex(
-                levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
+                levels=[[], [], [], []], codes=[[], [], [], []], names=["datetime", "obstype", "bandname", "modelID"]
             ),
         )
     # formatting
@@ -300,7 +304,7 @@ def dataset_construct_modeldatadf(dataset):
         if stadf.empty:
             continue
         stadf["name"] = sta.name
-        concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
+        concatlist.append(stadf.set_index(["datetime", "obstype", "bandname", "modelID", "name"]))
 
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
@@ -308,9 +312,9 @@ def dataset_construct_modeldatadf(dataset):
         combdf = pd.DataFrame(
             columns=["value", "details"],
             index=pd.MultiIndex(
-                levels=[[], [], []],
-                codes=[[], [], []],
-                names=["datetime", "obstype", "name"],
+                levels=[[], [], [], [], []],
+                codes=[[], [], [], [], []],
+                names=["datetime", "obstype", "bandname", "modelID", "name"],
             ),
         )
     return combdf
