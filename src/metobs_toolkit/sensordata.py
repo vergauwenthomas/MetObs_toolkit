@@ -10,8 +10,6 @@ from metobs_toolkit.backend_collection.df_constructors import (
     sensor_construct_df,
     sensor_construct_outliersdf,
     sensor_construct_gapsdf,
-    sensor_construct_modeldatadf,
-
 )
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta

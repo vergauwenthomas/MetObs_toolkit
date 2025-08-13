@@ -216,8 +216,8 @@ class Verification:
             for sta in self.obj.stations:
                 is_found=False
                 try:
-                    fc_obstype = sta.find_modeltimeseries(
-                                        trg_obstype=trg_obstype,
+                    fc_obstype = sta.get_modeltimeseries(
+                                        obstype=trg_obstype,
                                         trg_modelID=trg_modelID,
                                         trg_bandname=trg_bandname).modelobstype
                 except (MetObsModelDataError, MetObsObstypeNotFound):
@@ -231,8 +231,8 @@ class Verification:
         else:  
             # obj is a station
             obs_obstype = self.obj.get_sensor(trg_obstype).obstype
-            fc_obstype = self.obj.find_modeltimeseries(
-                                    trg_obstype=trg_obstype,
+            fc_obstype = self.obj.get_modeltimeseries(
+                                    obstype=trg_obstype,
                                     trg_modelID=trg_modelID,
                                     trg_bandname=trg_bandname).modelobstype
 

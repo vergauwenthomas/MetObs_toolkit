@@ -69,7 +69,7 @@ class Station:
         }
 
         # Extra extracted data
-        self._modeldata = {}  # dict of ModelTimeSeries
+        self._modeldata: list = []  # Changed from dict to list
 
 
     # ------------------------------------------
@@ -324,7 +324,10 @@ class Station:
     # ------------------------------------------
     #    Functionality
     # ------------------------------------------
-    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    def get_modeltimeseries(self, obstype: str,
+                            trg_modelID: str | None = None,
+                            trg_bandname: str | None = None,
+                            ) -> "ModelTimeSeries":  # type: ignore #noqa: F821
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
@@ -337,8 +340,11 @@ class Station:
         ModelTimeSeries
             The ModelTimeSeries instance for the specified observation type.
         """
-        self._obstype_has_modeldata_check(obstype)
-        return self.modeldata[obstype]
+        return find_modeltimeseries(
+                station=self,
+                trg_obstype=obstype,
+                trg_bandname=trg_bandname,
+                trg_modelID=trg_modelID)
 
    
 
@@ -405,25 +411,22 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        present_modeldata_ids=[modeldat._id() for modeldat in self.modeldata]
-        # Test if there is already model data for the same obstype available
-        if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
+        present_modeldata_ids = [modeldat._id() for modeldat in self._modeldata]
+        # Test if there is already model data for the same ID available
+        if (new_modeltimeseries._id() in present_modeldata_ids) and not force_update:
             raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
+                f"There is already a ModelTimeSeries instance with id {new_modeltimeseries._id()}, and force_update is False."
             )
 
-        # NOTE: At the moment, the obstypename is used for keys in the station collection
-        # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
-        # must be different aswell!
-        present_keys = list(self.modeldata.keys())
-        target_key = new_modeltimeseries.obstype.name
+        # Remove existing model data with the same ID if force_update is True
+        if force_update:
+            self._modeldata = [
+                modeldat
+                for modeldat in self._modeldata
+                if modeldat._id() != new_modeltimeseries._id()
+            ]
 
-        if target_key in present_keys:
-            raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
-            )
-
-        self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
+        self._modeldata.append(new_modeltimeseries)
 
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
@@ -1343,8 +1346,8 @@ class Station:
         #TODO: update docstring
         logger.debug("Entering make_plot_of_modeldata for %s", self)
 
-        trg_modeltimeseries = self.find_modeltimeseries(
-                                    trg_obstype=trg_obstype,
+        trg_modeltimeseries = self.get_modeltimeseries(
+                                    obstype=trg_obstype,
                                     trg_modelID=trg_modelID,
                                     trg_bandname=trg_bandname
                                     )
@@ -1597,8 +1600,8 @@ class Station:
 
         # Get modeltimeseries
         argsdict = kwargs_specify_model
-        argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modeltimeseries(**argsdict)
+        argsdict['obstype'] = target_obstype
+        modeltimeseries = self.get_modeltimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1674,8 +1677,8 @@ class Station:
 
         # Get modeltimeseries
         argsdict = kwargs_specify_model
-        argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modeltimeseries(**argsdict)
+        argsdict['obstype'] = target_obstype
+        modeltimeseries = self.get_modeltimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1764,8 +1767,8 @@ class Station:
 
         # Get modeltimeseries
         argsdict = kwargs_specify_model
-        argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modeltimeseries(**argsdict)
+        argsdict['obstype'] = target_obstype
+        modeltimeseries = self.get_modeltimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1864,8 +1867,8 @@ class Station:
 
         # Get modeltimeseries
         argsdict = kwargs_specify_model
-        argsdict['trg_obstype'] = target_obstype
-        modeltimeseries = self.find_modeltimeseries(**argsdict)
+        argsdict['obstype'] = target_obstype
+        modeltimeseries = self.get_modeltimeseries(**argsdict)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1984,82 +1987,81 @@ class Station:
                 f"{self} does not hold {obstype} sensordata. The present sensordata is: {list(self.obsdata.keys())}"
             )
 
-    def find_modeltimeseries( 
-            self,
-            trg_obstype: str,
-            trg_modelID: str | None = None,
-            trg_bandname: str | None = None,    
-            ):
-        """
-        Find and return a unique ModelTimeSeries object matching the specified criteria.
+def find_modeltimeseries( 
+        station: Station,
+        trg_obstype: str,
+        trg_modelID: str | None = None,
+        trg_bandname: str | None = None,    
+        ) -> ModelTimeSeries:
+    """
+    Find and return a unique ModelTimeSeries object matching the specified criteria.
 
-        This method searches the `modeldata` attribute for a ModelTimeSeries object that matches
-        the given observation type (`trg_obstype`), and optionally filters further by model ID
-        (`trg_modelID`) and band name (`trg_bandname`). If multiple or no matches are found at any
-        filtering stage, appropriate exceptions are raised.
-        
-        Parameters
-        ----------
-        trg_obstype : str
-            The target observation type to search for in the model data.
-        trg_modelID : str or None, optional
-            The target model ID to further filter the candidates. If None, uniqueness is required.
-        trg_bandname : str or None, optional
-            The target band name to further filter the candidates. If None, uniqueness is required.
-        
-        Returns
-        -------
-        ModelTimeSeries
-            The unique ModelTimeSeries object matching the specified criteria.
-        
-        """
+    This method searches the `modeldata` attribute for a ModelTimeSeries object that matches
+    the given observation type (`trg_obstype`), and optionally filters further by model ID
+    (`trg_modelID`) and band name (`trg_bandname`). If multiple or no matches are found at any
+    filtering stage, appropriate exceptions are raised.
 
-        #test if there is modeldata
-        if not bool(self.modeldata):
-            raise MetObsModelDataError(f'There is no ModelTimeSeries data present for {self}')
+    Parameters
+    ----------
+    trg_obstype : str
+        The target observation type to search for in the model data.
+    trg_modelID : str or None, optional
+        The target model ID to further filter the candidates. If None, uniqueness is required.
+    trg_bandname : str or None, optional
+        The target band name to further filter the candidates. If None, uniqueness is required.
 
-        #test if target obstype is resent
-        potential_candidates = [mod for mod in self.modeldata if mod.modelobstype.name == trg_obstype]
-        if not bool(potential_candidates):
-             raise MetObsObstypeNotFound(
-                f"There is no {trg_obstype} - modeldata present for {self}"
-            )
+    Returns
+    -------
+    ModelTimeSeries
+        The unique ModelTimeSeries object matching the specified criteria.
+    
+    """
+
+    #test if there is modeldata
+    if not bool(station.modeldata):
+        raise MetObsModelDataError(f'There is no ModelTimeSeries data present for {station}')
+
+    #test if target obstype is resent
+    potential_candidates = [mod for mod in station.modeldata if mod.modelobstype.name == trg_obstype]
+    if not bool(potential_candidates):
+            raise MetObsObstypeNotFound(
+            f"There is no {trg_obstype} - modeldata present for {station}"
+        )
+    
+    # subset based on modelID
+    present_modelIDs = set([mod.modelID for mod in potential_candidates])
+    if trg_modelID is None:
+        #check for uniqueness
         
-        # subset based on modelID
-        present_modelIDs = set([mod.modelID for mod in potential_candidates])
-        if trg_modelID is None:
-            #check for uniqueness
-            
-            if len(present_modelIDs) > 1:
-                raise MetObsNoUniqueSelection(f'Multiple candidates for modelID: {present_modelIDs}, for {trg_obstype}, but no trg_modelID set.')
+        if len(present_modelIDs) > 1:
+            raise MetObsNoUniqueSelection(f'Multiple candidates for modelID: {present_modelIDs}, for {trg_obstype}, but no trg_modelID set.')
 
-            potential_candidates = potential_candidates #No further subsetting
+        potential_candidates = potential_candidates #No further subsetting
+    else:
+        #check if present
+        if trg_modelID not in present_modelIDs:
+            raise ValueError(f'{trg_modelID} is not a present modelID (for {trg_obstype} selection), these are present: {present_modelIDs}')
         else:
-            #check if present
-            if trg_modelID not in present_modelIDs:
-                raise ValueError(f'{trg_modelID} is not a present modelID (for {trg_obstype} selection), these are present: {present_modelIDs}')
-            else:
-                potential_candidates = [mod for mod in potential_candidates if mod.modelID == trg_modelID]
+            potential_candidates = [mod for mod in potential_candidates if mod.modelID == trg_modelID]
 
-        # subset based on bandname
-        present_bandnames = set([mod.bandname for mod in potential_candidates])
-        if trg_bandname is None:
-            #check for uniqueness
-            if len(present_bandnames) > 1:
-                raise MetObsNoUniqueSelection(f'Multiple candidates for bandnames: {present_bandnames}, for {trg_obstype}, but no trg_bandname set.')
-            potential_candidates = potential_candidates #No further subsetting
+    # subset based on bandname
+    present_bandnames = set([mod.bandname for mod in potential_candidates])
+    if trg_bandname is None:
+        #check for uniqueness
+        if len(present_bandnames) > 1:
+            raise MetObsNoUniqueSelection(f'Multiple candidates for bandnames: {present_bandnames}, for {trg_obstype}, but no trg_bandname set.')
+        potential_candidates = potential_candidates #No further subsetting
+    else:
+        #check if present
+        if trg_bandname not in present_bandnames:
+            raise ValueError(f'{trg_bandname} is not a present bandname (for {trg_obstype} selection), these are present: {present_bandnames}')
         else:
-            #check if present
-            if trg_bandname not in present_bandnames:
-                raise ValueError(f'{trg_bandname} is not a present bandname (for {trg_obstype} selection), these are present: {present_bandnames}')
-            else:
-                potential_candidates = [mod for mod in potential_candidates if mod.bandname == trg_bandname]
+            potential_candidates = [mod for mod in potential_candidates if mod.bandname == trg_bandname]
 
-        #Normally, the filterin should be unique
-        if len(potential_candidates) != 1:
-            raise AssertionError(f'Unforseen non unique candidates: {potential_candidates}')
-        
-        return potential_candidates[0]
-
+    #Normally, the filtering should be unique
+    if len(potential_candidates) != 1:
+        raise AssertionError(f'Unforseen non unique candidates: {potential_candidates}')
+    
+    return potential_candidates[0]
 
    
