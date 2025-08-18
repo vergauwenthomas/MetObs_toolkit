@@ -21,7 +21,7 @@ Some specific choices to consider:
 - If a docstring is already present, check for grammar and spelling errors.
 - Check for typos whenever a new variable is declared, add #TYPO at the end of that line when a typo is detected in the name of the variable.
 - Check if type hinting is defined for all methods and functions. Add it if it is missing or wrong.
-- The `log_entry(func)` decorator (in from metobs_toolkit.backend_collection.loggingmodule) must be added to all functions and methods, add it if it is not present.
+- The `log_entry(func)` decorator (in from metobs_toolkit.backend_collection.loggingmodule) must be added to all functions and methods, add it if it is not present. If @property is present, make sure that it is applied before the @log_entry decorator.
 - Fix the identation of the code if needed.
 - Rearrange the imports to start with python default packages, then dependency packages and lastly  local modules
 - Check the spelling of inline comments, but do not remove them.

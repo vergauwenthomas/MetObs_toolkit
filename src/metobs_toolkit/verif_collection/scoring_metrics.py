@@ -2,14 +2,14 @@ import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
-def rmse_func(obs, model) -> float:
+def rmse(obs, model) -> float:
     """Calculate the Root Mean Square Error (RMSE) between observed and model values."""
     return np.sqrt(mean_squared_error(obs, model))
 
-def mae_func(obs, model) -> float:
+def mae(obs, model) -> float:
     return mean_absolute_error(obs, model)
 
-def bias_func(obs, model) -> float:
+def bias(obs, model) -> float:
     """Calculate the bias between observed and model values."""
     return np.mean(model - obs)
 

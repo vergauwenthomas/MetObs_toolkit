@@ -60,9 +60,8 @@ class Verification:
     # ------------------------------------------
     #    DF construction
     # ------------------------------------------
-
-    @log_entry
     @property
+    @log_entry
     def verifdf(self) -> pd.DataFrame:
         """Return the verification dataframe."""
         return self._verifdf
@@ -286,13 +285,25 @@ class Verification:
             filterby=filterby,
             needed_columns=needed_columns
         )
-
+        
+        #create color column
+        colormap = create_categorical_color_map(df[colorby])
+        df['color'] = df[colorby].map(colormap)
+        
+            
         # get obstype
         trg_obstype = self._get_obstype_from_df(df)
 
         # Create plot
         ax = create_axes(figsize=figsize)
-        ax.scatter(x=df['value_obs'], y=df['value_model'], c=df[colorby], **kwargs)
+
+        # main scatter
+        ax.scatter(x=df['value_obs'], y=df['value_model'], c=df['color'], **kwargs)
+
+        # add legend entries for each category in `colorby`
+        # use empty plots so set_legend() can pick them up
+        for cat in pd.unique(df[colorby]):
+            ax.plot([], [], marker='o', linestyle='None', color=colormap[cat], label=str(cat))
 
         if bissectrice:
             ax.plot(
@@ -305,6 +316,9 @@ class Verification:
         ax = set_xlabel(ax=ax, xlabel=f'Observed Value of {trg_obstype} in {trg_obstype.std_unit}')
         ax = set_ylabel(ax=ax, ylabel=f'Model Value of {trg_obstype}')
         ax = set_title(ax=ax, titlestr='Scatter Plot of Observed vs Model Values')
+        
+        ax = set_legend(ax=ax)
+        
         return ax
 
     @log_entry
@@ -498,18 +512,7 @@ class Verification:
                     raise ValueError(f"Obstype '{target_obstype_str}' not found in the verification.Obstypes.")
         else:
             raise ValueError("Column 'obstype' not found in the verification dataframe.")
-            obstype = df['obstype'].unique()
-            if len(obstype) > 1:
-                raise ValueError("Cannot extract a single obstype from multiple values.")
-            else:
-                target_obstype_str = obstype[0]
-                if target_obstype_str in self.obstypes:
-                    return self.obstypes[target_obstype_str]
-                else:
-                    raise ValueError(f"Obstype '{target_obstype_str}' not found in the verification.Obstypes.")
-        else:
-            raise ValueError("Column 'obstype' not found in the verification dataframe.")
-
+            
 
 
 
