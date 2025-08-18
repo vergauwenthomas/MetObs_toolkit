@@ -1,6 +1,6 @@
+from typing import Any, List
 import pandas as pd
 
-# Rearranged imports: standard libraries, dependencies, local modules
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -11,22 +11,18 @@ from metobs_toolkit.backend_collection.loggingmodule import log_entry
 # ------------------------------------------
 
 @log_entry
-def sensor_construct_df(sensordata):
+def sensor_construct_df(sensordata: Any) -> pd.DataFrame:
     """Return a DataFrame of the sensor records."""
-   
     # get all records
     df = (
         sensordata.series.to_frame()
         .rename(columns={sensordata.obstype.name: "value", sensordata.stationname: "value"})
         .assign(label=label_def["goodrecord"]["label"])
     )
-
     outliersdf = sensordata.outliersdf[["value", "label"]]
-
     gapsdf = sensordata.gapsdf[["value", "label"]]
-
     # concat all together (do not change order)
-    to_concat = [df]
+    to_concat: List[pd.DataFrame] = [df]
     if not outliersdf.empty:
         to_concat.append(outliersdf)
     if not gapsdf.empty:
@@ -34,7 +30,6 @@ def sensor_construct_df(sensordata):
     df = save_concat((to_concat))
     # remove duplicates
     df = df[~df.index.duplicated(keep="last")].sort_index()
-
     # add 'obstype' as index
     df = (
         df.assign(obstype=sensordata.obstype.name)
@@ -44,18 +39,15 @@ def sensor_construct_df(sensordata):
     return df
 
 @log_entry
-def sensor_construct_outliersdf(sensordata):
+def sensor_construct_outliersdf(sensordata: Any) -> pd.DataFrame:
     """Return a DataFrame of the outlier records."""
-        
-    to_concat = []
+    to_concat: List[pd.DataFrame] = []
     for outlierinfo in sensordata.outliers:
         checkname = outlierinfo["checkname"]
         checkdf = outlierinfo["df"]
         checkdf["label"] = label_def[checkname]["label"]
         to_concat.append(checkdf)
-
     totaldf = save_concat(to_concat)
-
     if totaldf.empty:
         # return empty dataframe
         totaldf = pd.DataFrame(
@@ -63,13 +55,12 @@ def sensor_construct_outliersdf(sensordata):
         )
     else:
         totaldf.sort_index(inplace=True)
-
     return totaldf
 
-@log_entry  
-def sensor_construct_gapsdf(sensordata):
+@log_entry
+def sensor_construct_gapsdf(sensordata: Any) -> pd.DataFrame:
     """Return a DataFrame of the gap records."""
-    to_concat = []
+    to_concat: List[pd.DataFrame] = []
     if bool(sensordata.gaps):
         for gap in sensordata.gaps:
             to_concat.append(gap.df)
@@ -80,12 +71,12 @@ def sensor_construct_gapsdf(sensordata):
             index=pd.DatetimeIndex([], name="datetime"),
         )
 
-
 # ------------------------------------------
 #    Station
 # ------------------------------------------
+
 @log_entry
-def station_construct_df(station):
+def station_construct_df(station: Any) -> pd.DataFrame:
     """
     Construct a DataFrame representation of the observations.
 
@@ -94,16 +85,14 @@ def station_construct_df(station):
     pd.DataFrame
         A pandas DataFrame with a single column 'value'.
     """
-
     # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
     concatdf = save_concat(([sensor.df for sensor in station.sensordata.values()]))
-
     # sort by datetime
     concatdf.sort_index(inplace=True)
     return concatdf
 
 @log_entry
-def station_construct_outliersdf(station):
+def station_construct_outliersdf(station: Any) -> pd.DataFrame:
     """
     Construct a DataFrame representation of all the outliers.
 
@@ -115,13 +104,11 @@ def station_construct_outliersdf(station):
         A DataFrame with two columns ['value', 'label'], representing
         the value and details of the flagged observation.
     """
-
-    concatlist = []
+    concatlist: List[pd.DataFrame] = []
     for sensordata in station.sensordata.values():
         stadf = sensordata.outliersdf[["value", "label"]].reset_index()
         stadf["obstype"] = sensordata.obstype.name
         concatlist.append(stadf.set_index(["datetime", "obstype"]))
-
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -134,7 +121,7 @@ def station_construct_outliersdf(station):
     return combdf
 
 @log_entry
-def station_construct_gapsdf(station):
+def station_construct_gapsdf(station: Any) -> pd.DataFrame:
     """
     Construct a DataFrame representation of all the gaps.
 
@@ -144,12 +131,11 @@ def station_construct_gapsdf(station):
         A DataFrame with columns ['value', 'label', 'details'], representing
         the value, the gap label, and details of the gap record.
     """
-    concatlist = []
+    concatlist: List[pd.DataFrame] = []
     for sensordata in station.sensordata.values():
         stadf = sensordata.gapsdf.reset_index()
         stadf["obstype"] = sensordata.obstype.name
         concatlist.append(stadf.set_index(["datetime", "obstype"]))
-
     combdf = save_concat(concatlist)
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -159,11 +145,10 @@ def station_construct_gapsdf(station):
                 levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
             ),
         )
-
     return combdf
 
 @log_entry
-def station_construct_modeldatadf(station):
+def station_construct_modeldatadf(station: Any) -> pd.DataFrame:
     """
     Construct a DataFrame representation of all the present model data.
 
@@ -176,9 +161,8 @@ def station_construct_modeldatadf(station):
         A DataFrame with columns ['value', 'details'], representing
         the value, and details of the corresponding model data.
     """
-    concatlist = []
-    #NOte: what makes a value of modeldata unique is : datetime, obstype, bandname and modelID
-    
+    concatlist: List[pd.DataFrame] = []
+    # Note: what makes a value of modeldata unique is : datetime, obstype, bandname and modelID
     for modeldata in station.modeldata:
         df = (
             modeldata.df.assign(obstype=modeldata.modelobstype.name)
@@ -205,7 +189,7 @@ def station_construct_modeldatadf(station):
     return combdf
 
 @log_entry
-def station_construct_metadf(station):
+def station_construct_metadf(station: Any) -> pd.DataFrame:
     """
     Construct a DataFrame representation of metadata.
 
@@ -217,25 +201,22 @@ def station_construct_metadf(station):
     pandas.DataFrame
         A DataFrame with the station names as index, and the metadata as columns.
     """
-
     return station.site.metadf
-
-
 
 # ------------------------------------------
 #    Dataset
 # ------------------------------------------
+
 @copy_doc(station_construct_df)
 @log_entry
-def dataset_construct_df(dataset):
-    concatlist = []
+def dataset_construct_df(dataset: Any) -> pd.DataFrame:
+    concatlist: List[pd.DataFrame] = []
     for sta in dataset.stations:
         stadf = sta.df.reset_index()
         if stadf.empty:
             continue
         stadf["name"] = sta.name
         concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -251,13 +232,12 @@ def dataset_construct_df(dataset):
 
 @copy_doc(station_construct_outliersdf)
 @log_entry
-def dataset_construct_outliersdf(dataset):
-    concatlist = []
+def dataset_construct_outliersdf(dataset: Any) -> pd.DataFrame:
+    concatlist: List[pd.DataFrame] = []
     for sta in dataset.stations:
         stadf = sta.outliersdf.reset_index()
         stadf["name"] = sta.name
         concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -273,15 +253,14 @@ def dataset_construct_outliersdf(dataset):
 
 @copy_doc(station_construct_gapsdf)
 @log_entry
-def dataset_construct_gapsdf(dataset):
-    concatlist = []
+def dataset_construct_gapsdf(dataset: Any) -> pd.DataFrame:
+    concatlist: List[pd.DataFrame] = []
     for sta in dataset.stations:
         stadf = sta.gapsdf.reset_index()
         if stadf.empty:
             continue
         stadf["name"] = sta.name
         concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -297,15 +276,14 @@ def dataset_construct_gapsdf(dataset):
 
 @copy_doc(station_construct_modeldatadf)
 @log_entry
-def dataset_construct_modeldatadf(dataset):
-    concatlist = []
+def dataset_construct_modeldatadf(dataset: Any) -> pd.DataFrame:
+    concatlist: List[pd.DataFrame] = []
     for sta in dataset.stations:
         stadf = sta.modeldatadf.reset_index()
         if stadf.empty:
             continue
         stadf["name"] = sta.name
         concatlist.append(stadf.set_index(["datetime", "obstype", "bandname", "modelID", "name"]))
-
     combdf = save_concat((concatlist))
     combdf.sort_index(inplace=True)
     if combdf.empty:
@@ -321,9 +299,8 @@ def dataset_construct_modeldatadf(dataset):
 
 @copy_doc(station_construct_metadf)
 @log_entry
-def dataset_construct_metadf(dataset):
-
-    concatlist = []
+def dataset_construct_metadf(dataset: Any) -> pd.DataFrame:
+    concatlist: List[pd.DataFrame] = []
     for sta in dataset.stations:
         concatlist.append(sta.metadf)
     return save_concat((concatlist)).sort_index()

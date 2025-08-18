@@ -40,4 +40,8 @@ def match_obs_and_model(obsdf, modeldatadf, tolerance=pd.Timedelta('5min')):
 
     merged_df = merged_df.set_index(['datetime', 'obstype', 'name'])
     
+    #make sure values are numeric
+    merged_df['value_obs'] =merged_df['value_obs'].astype(float)
+    merged_df['value_model'] = merged_df['value_model'].astype(float)
+    
     return merged_df
