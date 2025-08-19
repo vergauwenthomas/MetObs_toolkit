@@ -1,6 +1,7 @@
 import logging
 import copy
 from typing import Union
+from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -380,6 +381,10 @@ class Site:
             connect_to_gee()
 
         geedf = geestaticdataset.extract_static_point_data(self.metadf)
+        if geedf.empty:
+            warn(f'No data returned by GEE when point extraction on {self} for {geestaticdataset.name}')
+            return np.nan
+
         return geedf[geestaticdataset.name].iloc[0]
 
     def get_gee_point_buffer_fractions(

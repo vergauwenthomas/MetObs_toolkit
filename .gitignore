@@ -11,7 +11,7 @@ poetry.lock
 .keys
 
 #Exclude deploy scripts
-deploiment/logs/*
+deployment/logs/*
 
 #Exclude local package builds (are build on github)
 dist/*

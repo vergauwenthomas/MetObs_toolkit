@@ -26,7 +26,7 @@ dataset.import_data_from_file(
 ```
 
 ### Development Pipeline
-Use `deploiment/develop_pipeline.sh` for full development workflow:
+Use `deployment/develop_pipeline.sh` for full development workflow:
 - Poetry dependency management and building
 - Black code formatting (config in pyproject.toml)
 - pytest with matplotlib image comparisons (`--mpl`)
