@@ -45,3 +45,38 @@ default_plot_settings["cycle_plot"] = {
     "cmap_categorical": "tab20",
     "legend_n_columns": 5,
 }
+
+
+# ------------------------------------------
+#    Default colormaps
+# ------------------------------------------
+
+default_colormaps = {
+    'lcz': {
+        "Compact highrise": "#8c0000",
+        "Compact midrise": "#d10000",
+        "Compact lowrise": "#ff0000",
+        "Open highrise": "#bf4d00",
+        "Open midrise": "#ff6600",
+        "Open lowrise": "#ff9955",
+        "Lightweight lowrise": "#faee05",
+        "Large lowrise": "#bcbcbc",
+        "Sparsely built": "#ffccaa",
+        "Heavy industry": "#555555",
+        "Dense Trees (LCZ A)": "#006a00",
+        "Scattered Trees (LCZ B)": "#00aa00",
+        "Bush, scrub (LCZ C)": "#648525",
+        "Low plants (LCZ D)": "#b9db79",
+        "Bare rock or paved (LCZ E)": "#000000",
+        "Bare soil or sand (LCZ F)": "#fbf7ae",
+        "Water (LCZ G)": "#6a6aff"},
+    
+    #SCORES
+    "scores": {
+        "RMSE": "#1f77b4",
+        "MAE": "#ff7f0e",
+        "MSE": "#2ca02c",
+        "R2": "#d62728",
+        "N": "#42027e",
+        "modelbias": "#9467bd"}
+    }

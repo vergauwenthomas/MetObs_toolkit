@@ -4,11 +4,7 @@ import matplotlib.pyplot as plt
 
 
 from metobs_toolkit.verif_collection.match_data import match_obs_and_model
-from metobs_toolkit.verif_collection.plotting_helpers import (
-    get_color,
-    create_linestyle_map,
-    default_colorscheme,
-)
+
 import metobs_toolkit.verif_collection.dataframe_func as df_func
 import metobs_toolkit.verif_collection.scoring_metrics as metrics
 import metobs_toolkit.verif_collection.agg_func as agg_mod
@@ -19,6 +15,7 @@ from metobs_toolkit.plot_collection.general_functions import (
     set_xlabel,
     set_ylabel,
     create_categorical_color_map,
+    create_linestyle_map,
     format_datetime_axes,
 )
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -288,7 +285,8 @@ class Verification:
         
         #create color column
         colormap = create_categorical_color_map(df[colorby])
-        df['color'] = df[colorby].map(colormap)
+        mapped = df[colorby].map(colormap)
+        df['color'] = mapped.where(mapped.notna(), None) #Nan to None
         
             
         # get obstype
@@ -431,21 +429,27 @@ class Verification:
         plt.Axes
             The matplotlib axes for the score plot.
         """
-        # Merge default and custom colorscheme safely (avoid mutating defaults)
-        colorscheme = {**default_colorscheme, **(custom_colorscheme or {})}
+    
 
         ax = create_axes(figsize=figsize)
         
+        
         cols_to_plot = [col for col in scoresdf.columns if col != 'N_samples']
         index_levels = scoresdf.index.nlevels
+        
+        colormap = create_categorical_color_map(
+                catlist=cols_to_plot,
+                user_color_defs=custom_colorscheme or {}
+            )
 
         # Prepare x-axis and grouping
         if (index_levels == 1) or (index_levels > 2):
             for col in cols_to_plot:
                 ax.plot(scoresdf.index, scoresdf[col],
                         label=col,
-                        color=get_color(col),
+                        color=colormap(col),
                         linestyle='-')
+                
         elif index_levels == 2:
             # create linestyle map
             linestyle_map = create_linestyle_map(scoresdf.index.get_level_values(1))
@@ -455,8 +459,10 @@ class Verification:
                 for second_level in plotdf.columns:
                     ax.plot(x, plotdf[second_level],
                             label=f"{col}@({second_level})",
-                            color=get_color(col),
+                            color=colormap(col),
                             linestyle=linestyle_map[second_level])
+        else:
+            raise ValueError("scoresdf must have at least one index level.")
 
         if add_samplesize and ('N_samples' in scoresdf.columns):
             # Plot 'N_samples' below with shared x-axis

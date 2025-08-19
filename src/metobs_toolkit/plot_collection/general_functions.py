@@ -1,10 +1,12 @@
 import logging
 import locale
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
+
+from metobs_toolkit.plot_collection.default_style import default_colormaps
 
 # Set up logging
 logger = logging.getLogger("<metobs_toolkit>")
@@ -295,8 +297,8 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
 #    Coloring
 # ------------------------------------------
 
-
-def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict:
+def create_categorical_color_map(catlist: list, cmapname: str = "tab20",
+                                 user_color_defs: dict = {}) -> dict:
     """
     Create a categorical color map for a list of categories.
 
@@ -318,6 +320,18 @@ def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict
         unique_elements
     )  # sort alphabetically, so color scheme is equal in workflow
     num_unique_elements = len(unique_elements)
+    
+    for _key, default_map in default_colormaps.items():
+        mapvals = list(default_map.keys())
+        if set(unique_elements).issubset(set(mapvals)):
+            # If all unique elements are in the default map, use it
+            logger.debug(f"Using default color map for {cmapname}.")
+            color_map = {elem: default_map[elem] for elem in unique_elements}
+            
+            # Force the user defs
+            color_map.update(user_color_defs)
+            return color_map
+    
 
     cmap = plt.get_cmap(cmapname)
     colors = [cmap(i / num_unique_elements) for i in range(num_unique_elements)]
@@ -329,4 +343,41 @@ def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict
         for i, element in enumerate(unique_elements)
     }
 
+    #Force the user defs
+    color_map.update(user_color_defs)
     return color_map
+
+
+# ------------------------------------------
+#    Linestyles
+# ------------------------------------------
+def create_linestyle_map(
+    linestyle_list: list = ['-', '--', '-.', ':'],
+    user_linestyle_defs: dict = {}
+) -> dict:
+    """
+    Create a linestyle map for a list of linestyles.
+
+    Parameters
+    ----------
+    linestyle_list : list
+        List of linestyles to assign.
+    linestyle_map : dict, optional
+        Dictionary to update with the new linestyles, by default None.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each linestyle to its corresponding style.
+    """
+
+    unique_elements = [elem for elem in set(linestyle_list) if pd.notna(elem)]
+    unique_elements = sorted(
+        unique_elements
+    )  # sort alphabetically, so color scheme is equal in workflow
+    linestyle_map = {val: linestyle_list[i % len(linestyle_list)] for i, val in enumerate(unique_elements)}
+
+    # Force the user defs
+    linestyle_map.update(user_linestyle_defs)
+    
+    return linestyle_map
