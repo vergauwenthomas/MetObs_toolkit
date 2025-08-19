@@ -1290,7 +1290,10 @@ class Dataset:
         return geedf
 
     def get_LCZ(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self,
+        overwrite: bool = True,
+        initialize_gee: bool = True,
+        seamask_fix: bool = True,
     ) -> pd.DataFrame:
         """
         Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
@@ -1301,6 +1304,8 @@ class Dataset:
             If True, overwrite existing LCZ data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
+        seamask_fix : bool, optional
+            If True, convert NaN values (typically from stations on seamask/water) to "Water (LCZ G)". Default is True.
 
         Returns
         -------
@@ -1309,11 +1314,26 @@ class Dataset:
         """
         logger.debug("Entering Dataset.get_LCZ")
 
-        return self.get_static_gee_point_data(
+        result = self.get_static_gee_point_data(
             default_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
+
+        # Handle seamask fix: convert NaN to "Water (LCZ G)"
+        if seamask_fix and "LCZ" in result.columns:
+            mask = pd.isna(result["LCZ"])
+            if mask.any():
+                result.loc[mask, "LCZ"] = "Water (LCZ G)"
+                # Also update the stored values in individual stations if overwrite was True
+                if overwrite:
+                    for station_name in result.index[mask]:
+                        if station_name in self.stations:
+                            self.stations[station_name].site.set_geedata(
+                                "LCZ", "Water (LCZ G)"
+                            )
+
+        return result
 
     def get_altitude(
         self, overwrite: bool = True, initialize_gee: bool = True

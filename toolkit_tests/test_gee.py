@@ -95,6 +95,31 @@ class TestDemoDataset:
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
         assert isinstance(dataset.get_station("vlinder18").site.LCZ, str)
 
+    def test_LCZ_seamask_fix_parameter(self):
+        """Test that the seamask_fix parameter is properly accepted."""
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
+        )
+        
+        # Test that the seamask_fix parameter can be passed to both methods
+        # This tests the parameter exists without needing live GEE data
+        try:
+            # Test Dataset method accepts seamask_fix parameter
+            # Just test parameter acceptance, not actual functionality since we can't mock GEE easily
+            import inspect
+            sig = inspect.signature(dataset.get_LCZ)
+            assert 'seamask_fix' in sig.parameters
+            assert sig.parameters['seamask_fix'].default is True
+            
+            # Test Station method accepts seamask_fix parameter  
+            station = dataset.get_station("vlinder18")
+            sig = inspect.signature(station.get_LCZ)
+            assert 'seamask_fix' in sig.parameters
+            assert sig.parameters['seamask_fix'].default is True
+            
+        except Exception as e:
+            pytest.fail(f"seamask_fix parameter test failed: {e}")
+
     def test_altitude_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
