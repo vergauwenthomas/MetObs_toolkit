@@ -766,7 +766,7 @@ class Station:
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
-        if (apply_seamask_fix) & (np.isnan(lcz)):
+        if apply_seamask_fix and np.isnan(lcz):
             lcz = default_gee_datasets["LCZ"].class_map[17] #LCZ-G water
             if overwrite:
                 self.site.set_geedata(default_gee_datasets["LCZ"].name, lcz)
