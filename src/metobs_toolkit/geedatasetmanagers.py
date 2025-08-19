@@ -354,6 +354,11 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         df = df.rename(columns={self.band_of_use: self.name})
         df = df.set_index(["name"])
+        
+        # Make sure all the index elements form metadf are in the df
+        #Note: if gee does not return a value, that station is not present in the 
+        #df. So add them as Nan's
+        df = df.reindex(metadf.index)
 
         return df
 

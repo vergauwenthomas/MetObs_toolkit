@@ -1363,7 +1363,10 @@ class Dataset:
         return geedf
 
     def get_LCZ(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self,
+        overwrite: bool = True,
+        initialize_gee: bool = True,
+        apply_seamask_fix: bool = True
     ) -> pd.DataFrame:
         """
         Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
@@ -1374,7 +1377,10 @@ class Dataset:
             If True, overwrite existing LCZ data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
-
+        apply_seamask_fix: bool, optional
+            The LCZ map is only defined over land, and thus locations in sea
+            will have a LCZ of Nan. If this argument is set to True, Nan values
+            return by the GEE call are converted to the LCZ-G (water) category.
         Returns
         -------
         pandas.DataFrame
@@ -1382,11 +1388,23 @@ class Dataset:
         """
         logger.debug("Entering Dataset.get_LCZ")
 
-        return self.get_static_gee_point_data(
+        lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
-        )
+        ) 
+
+        if (apply_seamask_fix):
+            lcz_water = default_datasets["LCZ"].class_map[17] #LCZ-G water
+            #overwrite the site attribute
+            if overwrite:
+                seastations = lcz_df[lcz_df['LCZ'].isna()]
+                for station in seastations.index:
+                    self.get_station(station).site.set_geedata(default_datasets["LCZ"].name, lcz_water)
+            #replace the lcz in the return df
+            lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
+        
+        return lcz_df
 
     def get_altitude(
         self, overwrite: bool = True, initialize_gee: bool = True

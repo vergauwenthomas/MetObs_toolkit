@@ -6,6 +6,7 @@ from pathlib import Path
 
 # import metobs_toolkit
 import pandas as pd
+import numpy as np
 import folium
 import geemap.foliumap as geemap
 
@@ -92,6 +93,33 @@ class TestDemoDataset:
         # calling printoutlc
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
         assert isinstance(dataset.get_station("vlinder18").site.LCZ, str)
+
+    def test_lcz_seamask_fix(self):
+        # 1. get_startpoint data
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
+        )
+    
+        seastation = dataset.get_station('vlinder15')
+        seastation.site._lat = 51.361852
+        seastation.site._lon = 3.009151
+        #with mask fix
+        lcz_return = seastation.get_LCZ(apply_seamask_fix=True, overwrite=True)
+        assert lcz_return == "Water (LCZ G)"
+        assert seastation.site.LCZ == "Water (LCZ G)"  # LCZ-G is the water LCZ class    
+    
+        # without mask
+        lcz_return = seastation.get_LCZ(apply_seamask_fix=False, overwrite=True)
+        assert np.isnan(lcz_return) 
+        
+        #Now on dataset level
+        dataset.stations[5].site._lat = 51.361852
+        dataset.stations[5].site._lon = 3.009151
+
+        lczdf = dataset.get_LCZ(apply_seamask_fix=True, overwrite=True)
+        assert lczdf["LCZ"].notna().all()
+        assert lczdf["LCZ"].eq("Water (LCZ G)").any()
+        assert dataset.stations[5].site.LCZ == "Water (LCZ G)"
 
     def test_altitude_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
