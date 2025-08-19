@@ -1394,7 +1394,7 @@ class Dataset:
             initialize_gee=initialize_gee,
         ) 
 
-        if (apply_seamask_fix):
+        if apply_seamask_fix:
             lcz_water = default_datasets["LCZ"].class_map[17] #LCZ-G water
             #overwrite the site attribute
             if overwrite:
