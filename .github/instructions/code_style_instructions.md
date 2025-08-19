@@ -23,7 +23,7 @@ Format the code, and apply the following principles:
 
 - If a new class method is added, that does not start with underscore, check if it is included in the API documentation. This is done by adding it in the correct file in the docs/reference/api_reference/ folder. (ignore the docs/reference/api folder.)
 
-- if a new class method is added, that does not start with underscore, check if a specific test for that method is present. Tests are located in the tests/ folder, using pytest framework. If not present, add it to a suitable present test, or create a new one of that class is not already tested in one of the test files. 
+- if a new class method is added, that does not start with underscore, check if a specific test for that method is present. Tests are located in the tests/ folder, using pytest framework. If not present, add it to a suitable present test, or create a new one if that class is not already tested in one of the test files. 
 
 - apply linting 
 
