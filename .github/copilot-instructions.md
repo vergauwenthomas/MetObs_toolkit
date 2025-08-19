@@ -79,8 +79,6 @@ Code organized in `*_collection/` subdirectories by functionality:
 
 ## Key Integrations
 
-### xarray/Dask for Model Data
-`ModelDataset` class wraps xarray.Dataset with required coordinates: `['lat', 'lon', 'validtime', 'reference_time']`. Field definitions in `nwp_collection/field_defenitions.py` map model variables to standard names/units.
 
 ### Property-Based DataFrames
 Main data access through computed properties that construct DataFrames on-demand:
