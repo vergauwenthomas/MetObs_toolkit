@@ -10,7 +10,16 @@ from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import Obstype
-import metobs_toolkit.plot_collection.timeseries_plotting as plotting
+from metobs_toolkit.plot_collection.general_functions import (
+    create_axes,
+    set_legend,
+    set_xlabel,
+    set_ylabel,
+    set_title,
+    create_categorical_color_map
+)
+from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
+
 
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -241,18 +250,18 @@ class ModelTimeSeries:
         logger.debug(f"{self.__class__.__name__}.make_plot called for {self}")
         # define figure
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            ax = create_axes(**figkwargs)
 
         # Define a color
         if linecolor is None:
             # create a new color
-            color = plotting.create_categorical_color_map(["dummy"])["dummy"]
+            color = create_categorical_color_map(["dummy"])["dummy"]
         else:
             color = linecolor
 
         legendname = f"{self.modelname}:{self.modelvariable}@{self.stationname}"
 
-        ax = plotting.add_lines_to_axes(
+        ax = add_lines_to_axes(
             ax=ax,
             series=self.series,
             legend_label=legendname,
@@ -263,18 +272,18 @@ class ModelTimeSeries:
         # Add Styling attributes
         # Set title:
         if title is None:
-            plotting.set_title(
+            set_title(
                 ax, f"{self.obstype.name} data for station {self.stationname}"
             )
         else:
-            plotting.set_title(ax, title)
+            set_title(ax, title)
         # Set ylabel
-        plotting.set_ylabel(ax, self.obstype._get_plot_y_label())
+        set_ylabel(ax, self.obstype._get_plot_y_label())
 
         # Set xlabel
-        plotting.set_xlabel(ax, f"Timestamps (in {self.tz})")
+        set_xlabel(ax, f"Timestamps (in {self.tz})")
 
         # Add legend
-        plotting.set_legend(ax)
+        set_legend(ax)
 
         return ax
