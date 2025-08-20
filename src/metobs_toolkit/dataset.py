@@ -908,7 +908,7 @@ class Dataset:
             raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
 
         for sta in self.stations:
-            if obstype in sta.modeldata.keys():
+            if obstype in sta.modeldata:
                 modeltimeseries = sta.get_modeltimeseries(obstype)
                 modelobstype = modeltimeseries.obstype
                 modelname = modeltimeseries.modelname

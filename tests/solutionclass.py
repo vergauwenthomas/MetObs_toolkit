@@ -164,6 +164,10 @@ def assert_equality(to_check, solution):
     elif to_check.__class__.__name__ == "Analysis":
         compare_df_attr(to_check, solution, "metadf")
         compare_df_attr(to_check, solution, "df")
+        
+    elif to_check.__class__.__name__ == "Verification":
+        compare_df_attr(to_check, solution, "verifdf")
+        compare_df_attr(to_check, solution, "metadf")
 
     # Else
     else:

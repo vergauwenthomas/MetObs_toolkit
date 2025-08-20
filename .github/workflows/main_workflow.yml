@@ -301,6 +301,7 @@ jobs:
             - tests/test_gee.py
             - tests/test_add.py
             - tests/test_to_xr.py
+            - tests/test_verification.py
 
         continue-on-error: true
         steps:

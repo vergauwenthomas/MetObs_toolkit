@@ -1,10 +1,12 @@
 from typing import Union, List, Dict, Callable, Literal, Optional
 import pandas as pd
 import matplotlib.pyplot as plt
+import pickle
+from pathlib import Path
 
 
 from metobs_toolkit.verif_collection.match_data import match_obs_and_model
-
+from metobs_toolkit.io_collection.filereaders import PickleFileReader
 import metobs_toolkit.verif_collection.dataframe_func as df_func
 import metobs_toolkit.verif_collection.scoring_metrics as metrics
 import metobs_toolkit.verif_collection.agg_func as agg_mod
@@ -19,7 +21,6 @@ from metobs_toolkit.plot_collection.general_functions import (
     format_datetime_axes,
 )
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
-
 
 
 
@@ -518,8 +519,73 @@ class Verification:
                     raise ValueError(f"Obstype '{target_obstype_str}' not found in the verification.Obstypes.")
         else:
             raise ValueError("Column 'obstype' not found in the verification dataframe.")
+    
+    # ------------------------------------------
+    #    File I/O methods
+    # ------------------------------------------
+    @log_entry
+    def save_verification_to_pkl(
+        self,
+        target_folder: Union[str, Path],
+        filename: str = "saved_verification.pkl",
+        overwrite: bool = False,
+    ) -> None:
+        """
+        Save the verification instance to a pickle (.pkl) file.
+
+        Parameters
+        ----------
+        target_folder : str or Path
+            The folder where the pickle file will be saved. Must be an existing directory.
+        filename : str, optional
+            The name of the pickle file. Defaults to "saved_verification.pkl". If the provided
+            filename does not have a ".pkl" extension, it will be automatically appended.
+        overwrite : bool, optional
+            Whether to overwrite the file if it already exists. Defaults to False.
+
+        Returns
+        -------
+        None
+        """
+        
+        if not Path(target_folder).is_dir():
+            raise FileNotFoundError(f"{target_folder} does not exist")
+
+        if not filename.endswith(".pkl"):
+            filename += ".pkl"
+
+        target_path = Path(target_folder).joinpath(filename)
+        if target_path.exists():
+            if overwrite:
+                target_path.unlink()
+            else:
+                raise FileExistsError(
+                    f"The file {target_path} already exists. Remove it or set overwrite=True"
+                )
+
+        with open(target_path, "wb") as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
             
 
+@log_entry
+def import_verification_from_pkl(target_path: Union[str, Path]) -> "Verification":
+    """
+    Import a Verification instance from a pickle file.
+
+    Parameters
+    ----------
+    target_path : str or Path
+        The path to the pickle file.
+
+    Returns
+    -------
+    Verification
+        The Verification instance.
+    """
+   
+
+    picklereader = PickleFileReader(file_path=target_path)
+    return picklereader.read_as_local_file()
 
 
 
