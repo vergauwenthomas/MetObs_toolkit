@@ -104,26 +104,6 @@ class TestModelDataImport:
         assert modeltimeseries.obstype.model_unit == 'kelvin'
 
         
-    
-
-
-class TestModelDataVisualization:
-    """Test plotting and visualization with model data."""
-    
-    # to pass to the solutionfixer
-    solkwargs = {"testfile": Path(__file__).name, "classname": "testmodeldatavisualization"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
-
-    @pytest.mark.mpl_image_compare
-    def test_modeldatatimeseries_plot(self):
-        # 1. Create basic dataset with demo data
-        dataset = create_dataset_with_modeldata()
-        station = dataset.get_station('vlinder04')
-        obstype = 'temp'
-        modeltimeseries = station.get_modeltimeseries(obstype)
-
-        modeltimeseries.make_plot()
-        return plt.gcf()
 
 class TestModelDataManagers:
     """Test GEE dataset managers and model data configurations."""
