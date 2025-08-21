@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+# Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
-
-# point to current version of the toolkit
-# sys.path.insert(1, str(libfolder))
+sys.path.insert(0, str(libfolder / "src"))
 import metobs_toolkit
 
 # solutionfolder
