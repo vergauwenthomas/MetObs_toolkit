@@ -1,12 +1,16 @@
 import pytest
 import copy
+import sys
 from pathlib import Path
+
+# Add the local source directory to Python path for development
+libfolder = Path(str(Path(__file__).resolve())).parent.parent
+sys.path.insert(0, str(libfolder / "src"))
 
 import pandas as pd
 
 import metobs_toolkit
 
-libfolder = Path(str(Path(__file__).resolve())).parent.parent
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer, assert_equality, datadir
 

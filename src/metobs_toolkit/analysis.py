@@ -16,21 +16,19 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 import metobs_toolkit.plot_collection as plotting
+from metobs_toolkit.backend_collection.datetime_agg_collection import (
+    possible_time_aggregates,
+    get_time_derivates,
+)
 
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
-logger = logging.getLogger("<metobs_toolkit>")
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.dataframe_constructors import analysis_df
 
-possible_time_aggregates = [  # TYPO
-    "year",
-    "month",
-    "hour",
-    "minute",
-    "second",
-    "day_of_year",
-    "season",
-]
+logger = logging.getLogger("<metobs_toolkit>")
 
 
 class Analysis:
@@ -84,7 +82,7 @@ but a {type(Dataholder)}"
         self._df_cols = widedf.columns  # to reconstruct the df from fulldf
 
         # add time derivatives
-        timederivdf = _get_time_derivates(
+        timederivdf = get_time_derivates(
             datetimes=widedf.index.get_level_values("datetime").unique()
         )
         # combine both on 'datetime'
@@ -101,19 +99,10 @@ but a {type(Dataholder)}"
         # extra data
         self._obstypes = obstypes  # for displaying units in plots
 
+    @copy_doc(analysis_df)
     @property
     def df(self) -> pd.DataFrame:
-        """
-        Returns the full DataFrame without the time derivatives.
-
-        Returns
-        -------
-        pd.DataFrame
-            DataFrame indexed by ['datetime', 'name'] and containing
-            observation columns.
-        """
-        logger.debug(f"Entering {self.__class__.__name__}.df property")
-        return self.fulldf.set_index(["datetime", "name"])[self._df_cols]
+        return analysis_df(self)
 
     def __eq__(self, other: object) -> bool:
         """
@@ -129,11 +118,11 @@ but a {type(Dataholder)}"
         bool
             True if both the data and metadata are equal, False otherwise.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.__eq__")
         if not isinstance(other, Analysis):
             return False
         return self.df.equals(other.df) and self.metadf.equals(other.metadf)
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Provides information about the Analysis instance, including the number
@@ -152,7 +141,6 @@ but a {type(Dataholder)}"
             Returns None if `printout` is True. Returns the information string
             if `printout` is False.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.get_info")
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Analysis")
@@ -173,6 +161,7 @@ but a {type(Dataholder)}"
         else:
             return infostr
 
+    @log_entry
     def get_tz(self) -> str:
         """
         Retrieve the timezone information of the 'datetime' index.
@@ -182,9 +171,9 @@ but a {type(Dataholder)}"
         str
             The timezone of the 'datetime' index.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.get_tz")
         return self.df.index.get_level_values("datetime").tz
 
+    @log_entry
     def apply_filter_on_metadata(self, filter_string: str) -> "Analysis":
         """
         Apply a filter expression to the metadata and update the records
@@ -209,7 +198,6 @@ but a {type(Dataholder)}"
         is not put in quotation marks.
 
         """
-        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
 
         # Apply the filter string
         try:
@@ -226,6 +214,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after applying the filter."
             )
 
+    @log_entry
     def apply_filter_on_records(self, filter_string: str) -> "Analysis":
         """
         Apply a filter expression to the records.
@@ -249,7 +238,6 @@ but a {type(Dataholder)}"
         is not put in quotation marks.
 
         """
-        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_records")
         # Apply the filter string
         try:
             self.fulldf.query(filter_string, inplace=True)
@@ -262,6 +250,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after applying the filter."
             )
 
+    @log_entry
     def subset_period(
         self,
         startdt: Union[pd.Timestamp, datetypeclass, str],
@@ -288,7 +277,6 @@ but a {type(Dataholder)}"
         This function modifies the data in place, so filtered-out data will
         be lost.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.subset_period")
         startdt = fmt_datetime_arg(startdt)
         enddt = fmt_datetime_arg(enddt)
 
@@ -301,6 +289,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after subsetting the period."
             )
 
+    @log_entry
     def aggregate_df(
         self,
         trgobstype: str = "temp",
@@ -327,7 +316,6 @@ but a {type(Dataholder)}"
             A DataFrame with aggregated values, indexed by the specified
             grouping columns.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
 
         if not callable(method):
             raise TypeError("method must be callable.")
@@ -366,6 +354,7 @@ These are all the possible agg categories: \
         agg_df = agg_df.set_index(agg)
         return agg_df
 
+    @log_entry
     def plot_diurnal_cycle(
         self,
         trgobstype: str = "temp",
@@ -413,7 +402,6 @@ These are all the possible agg categories: \
             The plot axes. If `return_data` is True, returns a tuple of the
             plot axes and the aggregated DataFrame.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -499,6 +487,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
             return ax, aggdf
         return ax
 
+    @log_entry
     def plot_diurnal_cycle_with_reference_station(
         self,
         ref_station: str,
@@ -682,7 +671,6 @@ with {ref_station} as reference, grouped per {colorby}."
         MetObsObstypeNotFound
             If the observation type is not present.
         """
-        logger.debug(f"Entering {self.__class__.__name__}._obstype_is_known")
         if trgobstype in self.df.columns:
             return
         raise MetObsObstypeNotFound(f"{trgobstype} is not present in {self}.")
@@ -702,104 +690,3 @@ possible_agg_categories"
         )
         metacategories = list(self.metadf.reset_index().columns)
         return list(set(metacategories + possible_time_aggregates))
-
-
-# ------------------------------------------
-#    Helping methods
-# ------------------------------------------
-def _get_time_derivates(datetimes) -> pd.DataFrame:
-    """
-    Construct a dataframe where all columns are time derivatives,
-    and the index is the datetimeindex of self.df.
-
-    Parameters
-    ----------
-    datetimes : pandas.DatetimeIndex
-        The datetime index to derive time features from.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with time derivative columns.
-    """
-    logger.debug("Entering _get_time_derivates function.")
-    timesdf = pd.DataFrame(index=datetimes)
-    for deriv in possible_time_aggregates:
-        if deriv == "season":
-            # custom method
-            timesdf[deriv] = get_season(timesdf.index)
-        else:
-            timesdf[deriv] = getattr(timesdf.index, deriv)
-    return timesdf
-
-
-def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
-    """
-    Assign a season label to each date in a DatetimeIndex.
-
-    Parameters
-    ----------
-    datetimeindex : pandas.DatetimeIndex
-        The datetime index to assign seasons to.
-
-    Returns
-    -------
-    pandas.Series
-        Series of season labels indexed by datetimeindex.
-
-    Raises
-    ------
-    TypeError
-        If datetimeindex is not a pandas.DatetimeIndex.
-    """
-    logger.debug("Entering get_season function.")
-
-    summer_start = pd.Timestamp("2020-06-01")
-    autumn_start = pd.Timestamp("2020-09-01")
-    winter_start = pd.Timestamp("2020-12-01")
-    spring_start = pd.Timestamp("2020-03-01")
-
-    summer_end = autumn_start
-    autumn_end = winter_start
-    winter_end = spring_start
-    spring_end = summer_start
-
-    def _bin_season(startday, endday, seasonname):
-        if endday > startday:
-            return {(startday, endday): seasonname}
-        else:
-            # split in two bins
-            return {(startday, 366): seasonname, (0, endday): seasonname}
-
-    bindict = {}
-    bindict.update(
-        _bin_season(summer_start.day_of_year, summer_end.day_of_year, "summer")
-    )
-    bindict.update(
-        _bin_season(autumn_start.day_of_year, autumn_end.day_of_year, "autumn")
-    )
-    bindict.update(
-        _bin_season(winter_start.day_of_year, winter_end.day_of_year, "winter")
-    )
-    bindict.update(
-        _bin_season(spring_start.day_of_year, spring_end.day_of_year, "spring")
-    )
-
-    seasonbins = pd.IntervalIndex.from_tuples(list(bindict.keys()))
-    binlabels = list(bindict.values())
-
-    seasons = pd.cut(
-        x=datetimeindex.day_of_year,
-        bins=seasonbins,
-        right=False,
-        include_lowest=True,
-        # labels=binlabels, #ignored when bins is intervalindex
-        retbins=False,
-    ).map(
-        dict(zip(seasonbins, binlabels)),
-        na_action=None,
-    )  # convert categories to seasonstrings
-    # convert to series
-    seasons = pd.Series(index=datetimeindex, data=seasons, name="season")
-
-    return seasons

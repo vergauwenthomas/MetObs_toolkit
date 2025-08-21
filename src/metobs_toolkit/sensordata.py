@@ -21,6 +21,9 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_df
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -183,6 +186,7 @@ class SensorData:
 
         return combined
 
+    @log_entry
     def copy(self, deep: bool = True) -> "SensorData":
         """
         Return a copy of the sensordata.
@@ -197,48 +201,18 @@ class SensorData:
         SensorData
             The copied Sensordata.
         """
-        logger.debug("Entering SensorData.copy")
 
         if deep:
             return copy.deepcopy(self)
         return copy.copy(self)
 
+    @copy_doc(sensordata_df)
     @property
     def df(self) -> pd.DataFrame:
-        """Return a DataFrame of the sensor records."""
-        logger.debug(
-            "Creating DataFrame from SensorData series for %s", self.stationname
-        )
-        # get all records
-        df = (
-            self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(label=label_def["goodrecord"]["label"])
-        )
-
-        outliersdf = self.outliersdf[["value", "label"]]
-
-        gapsdf = self.gapsdf[["value", "label"]]
-
-        # concat all together (do not change order)
-        to_concat = [df]
-        if not outliersdf.empty:
-            to_concat.append(outliersdf)
-        if not gapsdf.empty:
-            to_concat.append(gapsdf)
-        df = save_concat((to_concat))
-        # remove duplicates
-        df = df[~df.index.duplicated(keep="last")].sort_index()
-
-        # add 'obstype' as index
-        df = (
-            df.assign(obstype=self.obstype.name)
-            .reset_index()
-            .set_index(["datetime", "obstype"])
-        )
-        return df
+        return sensordata_df(self)
 
     @copy_doc(sensordata_to_xr)
+    @log_entry
     def to_xr(self) -> "xarray.Dataset":
         return sensordata_to_xr(self)
 
@@ -359,7 +333,6 @@ class SensorData:
         force_closing : optional
             Force closing parameter.
         """
-        logger.debug("Entering _setup for %s", self)
 
         if apply_dupl_check:
             # remove duplicated timestamps
@@ -435,7 +408,6 @@ class SensorData:
         pd.DatetimeIndex
             Formatted timestamp index.
         """
-        logger.debug("Entering _format_timestamp_index for %s", self)
 
         return pd.DatetimeIndex(data=timestamps, tz=tz)
 
@@ -515,7 +487,6 @@ class SensorData:
         TypeError
             If input types are incorrect.
         """
-        logger.debug("Entering _find_gaps for %s", self)
 
         missing = missingrecords.sort_index().to_frame()
         missing["diff"] = missing.index.to_series().diff()
@@ -540,6 +511,7 @@ class SensorData:
         for gap in self.gaps:
             gap.name = str(trgname)
 
+    @log_entry
     def convert_outliers_to_gaps(self) -> None:
         """
         Convert all outliers to gaps.
@@ -555,7 +527,6 @@ class SensorData:
         All progress on present gaps is erased, since new gaps are constructed.
         Information on the value and QC flag of the outliers will be lost.
         """
-        logger.debug("Entering convert_outliers_to_gaps for %s", self)
 
         cur_freq = self.freq
         # Create holes for all the outliers timestamps
@@ -576,6 +547,7 @@ class SensorData:
             target_freq=cur_freq,
         )
 
+    @log_entry
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
@@ -615,7 +587,6 @@ class SensorData:
         It is technically possible to increase the time resolution. This will
         not result in an information increase; more gaps are created instead.
         """
-        logger.debug("Entering resample for %s", self)
 
         target_freq = pd.to_timedelta(target_freq)
         # Create a timestampmatcher
@@ -673,6 +644,7 @@ class SensorData:
             target_freq=pd.to_timedelta(timestampmatcher.target_freq),
         )
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print basic information about the sensor data.
@@ -690,7 +662,6 @@ class SensorData:
             about the sensor data. If `printout` is True, returns None.
 
         """
-        logger.debug("Entering get_info for %s", self)
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of SensorData")
@@ -748,11 +719,11 @@ class SensorData:
     #    Specials
     # ------------------------------------------
 
+    @log_entry
     def convert_to_standard_units(self) -> None:
         """
         Convert the data records to the standard units defined in the observation type.
         """
-        logger.debug("Entering convert_to_standard_units for %s", self)
 
         self.series = self.obstype.convert_to_standard_units(
             input_data=self.series, input_unit=self.obstype.original_unit
@@ -768,6 +739,7 @@ class SensorData:
     #    Quality Control (technical qc + value-based qc)
     # ------------------------------------------
 
+    @log_entry
     def invalid_value_check(self, skip_records: pd.DatetimeIndex) -> None:
         """
         Check for invalid values in the series.
@@ -784,7 +756,6 @@ class SensorData:
         MetobsQualityControlError
             If the check is already applied.
         """
-        logger.debug("Entering invalid_value_check for %s", self)
 
         skipped_data = self.series.loc[skip_records]
         targets = self.series.drop(skip_records)
@@ -812,6 +783,7 @@ class SensorData:
         # add the skipped records back
         self.series = pd.concat([self.series, skipped_data]).sort_index()
 
+    @log_entry
     def duplicated_timestamp_check(self) -> None:
         """
         Check for duplicated timestamps in the series.
@@ -821,7 +793,6 @@ class SensorData:
         MetobsQualityControlError
             If the check is already applied.
         """
-        logger.debug("Entering duplicated_timestamp_check for %s", self)
 
         duplicates = pd.Series(
             data=self.series.index.duplicated(keep=False), index=self.series.index
@@ -839,6 +810,7 @@ class SensorData:
 
         self.series = self.series[~self.series.index.duplicated(keep="first")]
 
+    @log_entry
     def gross_value_check(self, **qckwargs) -> None:
         """
         Perform a gross value check on the series.
@@ -848,7 +820,6 @@ class SensorData:
         **qckwargs : dict
             Additional keyword arguments for the check.
         """
-        logger.debug("Entering gross_value_check for %s", self)
 
         outlier_timestamps = qc.gross_value_check(records=self.series, **qckwargs)
         self._update_outliers(
@@ -859,6 +830,7 @@ class SensorData:
             overwrite=False,
         )
 
+    @log_entry
     def persistence_check(self, **qckwargs) -> None:
         """
         Perform a persistence check on the series.
@@ -868,7 +840,6 @@ class SensorData:
         **qckwargs : dict
             Additional keyword arguments for the check.
         """
-        logger.debug("Entering persistence_check for %s", self)
 
         outlier_timestamps = qc.persistence_check(records=self.series, **qckwargs)
 
@@ -880,6 +851,7 @@ class SensorData:
             overwrite=False,
         )
 
+    @log_entry
     def repetitions_check(self, **qckwargs) -> None:
         """
         Perform a repetitions check on the series.
@@ -889,7 +861,6 @@ class SensorData:
         **qckwargs : dict
             Additional keyword arguments for the check.
         """
-        logger.debug("Entering repetitions_check for %s", self)
 
         outlier_timestamps = qc.repetitions_check(records=self.series, **qckwargs)
 
@@ -901,6 +872,7 @@ class SensorData:
             overwrite=False,
         )
 
+    @log_entry
     def step_check(self, **qckwargs) -> None:
         """
         Perform a step check on the series.
@@ -910,7 +882,6 @@ class SensorData:
         **qckwargs : dict
             Additional keyword arguments for the check.
         """
-        logger.debug("Entering step_check for %s", self)
 
         outlier_timestamps = qc.step_check(records=self.series, **qckwargs)
 
@@ -922,6 +893,7 @@ class SensorData:
             overwrite=False,
         )
 
+    @log_entry
     def window_variation_check(self, **qckwargs) -> None:
         """
         Perform a window variation check on the series.
@@ -931,7 +903,6 @@ class SensorData:
         **qckwargs : dict
             Additional keyword arguments for the check.
         """
-        logger.debug("Entering window_variation_check for %s", self)
 
         outlier_timestamps = qc.window_variation_check(records=self.series, **qckwargs)
 
@@ -943,6 +914,7 @@ class SensorData:
             overwrite=False,
         )
 
+    @log_entry
     def get_qc_freq_statistics(self) -> pd.DataFrame:
         """
         Generate quality control (QC) frequency statistics.
@@ -966,7 +938,6 @@ class SensorData:
               excluded from the check due to previous QC checks.
 
         """
-        logger.debug("Entering get_qc_freq_statistics for %s", self)
 
         infodict = {}  # checkname : details
         ntotal = self.series.shape[0]  # gaps included !!
@@ -1008,6 +979,7 @@ class SensorData:
     # ------------------------------------------
     #    Gaps related
     # ------------------------------------------
+    @log_entry
     def fill_gap_with_modeldata(
         self,
         modeltimeseries: "ModelTimeSeries",  # type: ignore #noqa: F821
@@ -1036,7 +1008,6 @@ class SensorData:
         NotImplementedError
             If the specified method is not implemented.
         """
-        logger.debug("Entering fill_gap_with_modeldata for %s", self)
 
         for gap in self.gaps:
             if not gap.flag_can_be_filled(
@@ -1077,6 +1048,7 @@ class SensorData:
                     f"Model data gapfill method: {method} is not implemented!"
                 )
 
+    @log_entry
     def interpolate_gaps(
         self,
         method: str = "time",
@@ -1111,7 +1083,6 @@ class SensorData:
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
         """
-        logger.debug("Entering interpolate_gaps for %s", self)
 
         for gap in self.gaps:
             if not gap.flag_can_be_filled(overwrite_fill):

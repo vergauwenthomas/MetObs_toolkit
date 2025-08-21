@@ -10,11 +10,14 @@ from metobs_toolkit.plot_collection import (  # Local modules
 )
 
 # Set up logging
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 default_cycle_settings = default_plot_settings["cycle_plot"]
 
 
+@log_entry
 def make_diurnal_plot(
     plotdf: pd.DataFrame,
     ax: "matplotlib.axes.Axes",
@@ -48,7 +51,6 @@ def make_diurnal_plot(
     ValueError
         If not all present labels are in the colormap.
     """
-    logger.debug("Entering make_diurnal_plot function.")
     # Create and check colordict
     if colordict is None:
         logger.debug("Creating default colormap.")

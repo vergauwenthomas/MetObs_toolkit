@@ -16,11 +16,13 @@ from metobs_toolkit.plot_collection.general_functions import (
     set_xlabel,
     set_ylabel,
     set_title,
-    create_categorical_color_map
+    create_categorical_color_map,
 )
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -129,16 +131,10 @@ class ModelTimeSeries:
         )
         return combined
 
+    @copy_doc(modeltimeseries_df)
     @property
     def df(self) -> pd.DataFrame:
-        """Return all records as a DataFrame."""
-        # get all records
-        df = (
-            self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(model=self.modelname)
-        )
-        return df
+        return modeltimeseries_df(self)
 
     @property
     def stationname(self) -> str:
@@ -170,6 +166,7 @@ class ModelTimeSeries:
         return to_timedelta(freq)
 
     @copy_doc(modeltimeseries_to_xr)
+    @log_entry
     def to_xr(self) -> "xarray.Dataset":
         return modeltimeseries_to_xr(self)
 
@@ -195,6 +192,7 @@ class ModelTimeSeries:
 
         return infostr
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return information about the ModelTimeSeries.
@@ -221,6 +219,7 @@ class ModelTimeSeries:
         else:
             return infostr
 
+    @log_entry
     def make_plot(
         self,
         linecolor: str = None,
@@ -272,9 +271,7 @@ class ModelTimeSeries:
         # Add Styling attributes
         # Set title:
         if title is None:
-            set_title(
-                ax, f"{self.obstype.name} data for station {self.stationname}"
-            )
+            set_title(ax, f"{self.obstype.name} data for station {self.stationname}")
         else:
             set_title(ax, title)
         # Set ylabel

@@ -14,9 +14,12 @@ from shapely.geometry import box
 
 # import geopandas as gpd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def gpd_to_extent_box(geodf: Any) -> box:
     """
     Convert a GeoDataFrame to a shapely box with coordinates of the bounds.
@@ -31,10 +34,10 @@ def gpd_to_extent_box(geodf: Any) -> box:
     shapely.geometry.box
         A shapely box representing the bounds of the GeoDataFrame.
     """
-    logger.debug("Entering gpd_to_extent_box function.")
     return box(*geodf.total_bounds)
 
 
+@log_entry
 def extent_list_to_box(extentlist: List[float]) -> box:
     """
     Convert a list of coordinates to a shapely box.
@@ -49,10 +52,10 @@ def extent_list_to_box(extentlist: List[float]) -> box:
     shapely.geometry.box
         A shapely box defined by the given coordinates.
     """
-    logger.debug("Entering extent_list_to_box function.")
     return box(*extentlist)
 
 
+@log_entry
 def box_to_extent_list(bbox: box) -> List[float]:
     """
     Convert a shapely box to a list of its bound coordinates.
@@ -67,13 +70,13 @@ def box_to_extent_list(bbox: box) -> List[float]:
     list of float
         List of coordinates [minx, miny, maxx, maxy] representing the box bounds.
     """
-    logger.debug("Entering box_to_extent_list function.")
     return list(bbox.bounds)
 
 
+@log_entry
 def find_extent_of_geodf(
     geodf: Any, lat_size: float = 1.0, lon_size: float = 1.0
-) -> box:  # TYPO
+) -> box:
     """
     Construct a bounding box for the plot based on the GeoDataFrame.
 
@@ -96,7 +99,6 @@ def find_extent_of_geodf(
     shapely.geometry.box
         A shapely box representing the bounding box for the plot.
     """
-    logger.debug("Entering find_extent_of_geodf function.")
     geodf_extent_box = gpd_to_extent_box(geodf)
 
     if geodf_extent_box.area != 0.0:
@@ -114,6 +116,7 @@ def find_extent_of_geodf(
     )
 
 
+@log_entry
 def find_plot_extent(
     geodf: Any, user_bounds: List[float], default_extentlist: List[float]
 ) -> List[float]:
@@ -138,7 +141,6 @@ def find_plot_extent(
     list of float
         A list of bounds for the spatial plot.
     """
-    logger.debug("Entering find_plot_extent function.")
     # Test if user_bounds is valid and can be used
     if bool(user_bounds):
         user_bounds = [float(x) for x in user_bounds]

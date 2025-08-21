@@ -6,6 +6,8 @@ from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template
 from metobs_toolkit.backend_collection.errorclasses import MetObsInconsistentStationName
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -32,6 +34,7 @@ class MetaDataParser:
         # datadf with 'name' as index
         self.datadf = pd.DataFrame()  # metadata in formatted DataFrame style
 
+    @log_entry
     def parse(self, **readkwargs) -> None:
         """
         Parse the metadata file and format it according to the template.
@@ -48,7 +51,6 @@ class MetaDataParser:
         -------
         None
         """
-        logger.debug(f"Entering parse() of {self.__class__.__name__}")
         # Read in the raw metadata
         raw_metadata = self.filereader.read(**readkwargs)
         self.template._metadata_template_compatibility_test(raw_metadata.columns)
@@ -82,7 +84,6 @@ class MetaDataParser:
         pd.DataFrame
             DataFrame with columns renamed according to the blacklist.
         """
-        logger.debug(f"Entering _rename_blacklabels() of {self.__class__.__name__}")
         blacklist_mapper = self.template._apply_blacklist(
             columns=rawdf.columns, on_data=False
         )
@@ -106,7 +107,6 @@ class MetaDataParser:
         pd.DataFrame
             DataFrame with 'name' as the index.
         """
-        logger.debug(f"Entering _set_name() of {self.__class__.__name__}")
         if (self.template._is_data_single_station()) & (
             self.template.metadata_namemap["name"] is None
         ):
@@ -144,7 +144,6 @@ class MetaDataParser:
         pd.DataFrame
             DataFrame with columns renamed to standard names.
         """
-        logger.debug(f"Entering _rename_raw_columns() of {self.__class__.__name__}")
         metacolmap = self.template._get_metadata_column_map()
         rawdf.rename(columns=metacolmap, inplace=True)
         return rawdf
@@ -173,6 +172,7 @@ class MetaDataParser:
         relev_columns = [col for col in relev_columns if col != "name"]
         return rawdf[relev_columns]
 
+    @log_entry
     def get_station_lon(self, stationname: str) -> float:
         """
         Get the longitude of a station from the metadata.
@@ -187,7 +187,6 @@ class MetaDataParser:
         float
             Longitude of the station, or np.nan if not found.
         """
-        logger.debug(f"Entering get_station_lon() of {self.__class__.__name__}")
         if self._check_stationname_is_known(stationname=stationname):
             if "lon" in self.datadf.columns:
                 return float(self.datadf.loc[stationname, "lon"])
@@ -200,6 +199,7 @@ class MetaDataParser:
             # station not in metadata
             return np.nan
 
+    @log_entry
     def get_station_lat(self, stationname: str) -> float:
         """
         Get the latitude of a station from the metadata.
@@ -214,7 +214,6 @@ class MetaDataParser:
         float
             Latitude of the station, or np.nan if not found.
         """
-        logger.debug(f"Entering get_station_lat() of {self.__class__.__name__}")
         if self._check_stationname_is_known(stationname=stationname):
             if "lat" in self.datadf.columns:
                 return float(self.datadf.loc[stationname, "lat"])
@@ -227,6 +226,7 @@ class MetaDataParser:
             # station not in metadata
             return np.nan
 
+    @log_entry
     def get_station_extra_metadata(self, stationname: str) -> dict:
         """
         Get extra metadata for a station, excluding latitude and longitude.
@@ -305,7 +305,6 @@ class MetaDataParser:
         MetObsInconsistentStationName
             If multiple stations are present and the target name is not found.
         """
-        logger.debug(f"Entering _overwrite_name() of {self.__class__.__name__}")
         # 1. target_single_name is included in the metadata
         if target_single_name in self.datadf.index:
             return
@@ -333,6 +332,7 @@ class MetaDataParser:
     #    Getters
     # ------------------------------------------
 
+    @log_entry
     def get_df(self) -> pd.DataFrame:
         """Return the parsed metadata DataFrame."""
         return self.datadf

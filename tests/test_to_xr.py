@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import sys
 
 # import metobs_toolkit
 import pandas as pd
@@ -7,9 +8,9 @@ import numpy as np
 import xarray as xr
 
 
+# Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
-
-
+sys.path.insert(0, str(libfolder / "src"))
 import metobs_toolkit
 
 # solutionfolder

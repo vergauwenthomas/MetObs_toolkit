@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -31,6 +33,7 @@ class FileReader(ABC):
         self.is_url = is_url
 
     @abstractmethod
+    @log_entry
     def read(self, **kwargs):
         """
         Read the file and return its contents.
@@ -43,6 +46,7 @@ class FileReader(ABC):
         pass
 
     @abstractmethod
+    @log_entry
     def read_as_local_file(self, **kwargs):
         """
         Read the file as a local file.
@@ -55,6 +59,7 @@ class FileReader(ABC):
         pass
 
     @abstractmethod
+    @log_entry
     def read_as_remote_file(self, **kwargs):
         """
         Read the file as a remote file (e.g., from a URL).
@@ -66,6 +71,7 @@ class FileReader(ABC):
         """
         pass
 
+    @log_entry
     def file_exist(self) -> bool:
         """
         Check if the file exists.
@@ -75,7 +81,6 @@ class FileReader(ABC):
         bool
             True if the file exists, False otherwise.
         """
-        logger.debug(f"Entering FileReader.file_exist with self={self}")
         return self.file_path.exists()
 
 
@@ -95,6 +100,7 @@ class CsvFileReader(FileReader):
         """Initialize CsvFileReader."""
         super().__init__(file_path, is_url=is_url)
 
+    @log_entry
     def read(self, **readkwargs) -> pd.DataFrame:
         """
         Read the CSV file and return its contents as a DataFrame.
@@ -109,13 +115,13 @@ class CsvFileReader(FileReader):
         pandas.DataFrame
             DataFrame containing the CSV data.
         """
-        logger.debug(f"Entering CsvFileReader.read with self={self}")
         if self.is_url:
             data = self.read_as_remote_file(**readkwargs)
         else:
             data = self.read_as_local_file(**readkwargs)
         return data
 
+    @log_entry
     def read_as_local_file(self, **readkwargs) -> pd.DataFrame:
         """
         Read the CSV file as a local file.
@@ -135,11 +141,11 @@ class CsvFileReader(FileReader):
         FileNotFoundError
             If the file does not exist.
         """
-        logger.debug(f"Entering CsvFileReader.read_as_local_file with self={self}")
         if not self.file_exist():
             raise FileNotFoundError(f"{self.file_path} is not a file.")
         return read_csv(filepath=self.file_path, **readkwargs)
 
+    @log_entry
     def read_as_remote_file(self, **readkwargs) -> pd.DataFrame:
         """
         Read the CSV file as a remote file (URL).
@@ -154,7 +160,6 @@ class CsvFileReader(FileReader):
         pandas.DataFrame
             DataFrame containing the CSV data.
         """
-        logger.debug(f"Entering CsvFileReader.read_as_remote_file with self={self}")
         # Pandas can read online files with the same syntax
         return self.read_as_local_file(**readkwargs)
 
@@ -175,6 +180,7 @@ class JsonFileReader(FileReader):
         """Initialize JsonFileReader."""
         super().__init__(file_path, is_url=is_url)
 
+    @log_entry
     def read(self, **readkwargs) -> dict:
         """
         Read the JSON file and return its contents as a dictionary.
@@ -189,13 +195,13 @@ class JsonFileReader(FileReader):
         dict
             Dictionary containing the JSON data.
         """
-        logger.debug(f"Entering JsonFileReader.read with self={self}")
         if self.is_url:
             self.data = self.read_as_remote_file(**readkwargs)
         else:
             self.data = self.read_as_local_file(**readkwargs)
         self.is_already_read = True
 
+    @log_entry
     def read_as_local_file(self, **readkwargs) -> dict:
         """
         Read the JSON file as a local file.
@@ -217,7 +223,6 @@ class JsonFileReader(FileReader):
         FileNotFoundError
             If the file does not exist.
         """
-        logger.debug(f"Entering JsonFileReader.read_as_local_file with self={self}")
         if not str(self.file_path).endswith(".json"):
             raise ImportError(f"The file {self.file_path} is not a JSON file.")
         if not self.file_exist():
@@ -227,6 +232,7 @@ class JsonFileReader(FileReader):
             data = json.load(file, **readkwargs)
         return data
 
+    @log_entry
     def read_as_remote_file(self, **readkwargs) -> dict:
         """
         Read the JSON file as a remote file (URL).
@@ -241,7 +247,6 @@ class JsonFileReader(FileReader):
         dict
             Dictionary containing the JSON data.
         """
-        logger.debug(f"Entering JsonFileReader.read_as_remote_file with self={self}")
         r = requests.get(self.file_path, **readkwargs)
         data = r.json()
         return data
@@ -263,6 +268,7 @@ class PickleFileReader(FileReader):
         """Initialize PickleFileReader."""
         super().__init__(file_path, is_url=is_url)
 
+    @log_entry
     def read(self, **readkwargs):
         """
         Read the pickle file and return its contents.
@@ -277,13 +283,13 @@ class PickleFileReader(FileReader):
         object
             The object loaded from the pickle file.
         """
-        logger.debug(f"Entering PickleFileReader.read with self={self}")
         if self.is_url:
             self.data = self.read_as_remote_file(**readkwargs)
         else:
             self.data = self.read_as_local_file(**readkwargs)
         self.is_already_read = True
 
+    @log_entry
     def read_as_local_file(self, **readkwargs):
         """
         Read the pickle file as a local file.
@@ -303,7 +309,6 @@ class PickleFileReader(FileReader):
         FileNotFoundError
             If the file does not exist.
         """
-        logger.debug(f"Entering PickleFileReader.read_as_local_file with self={self}")
         if not self.file_exist():
             raise FileNotFoundError(f"{self.file_path} is not a file.")
 
@@ -312,6 +317,7 @@ class PickleFileReader(FileReader):
 
         return obj
 
+    @log_entry
     def read_as_remote_file(self, **readkwargs):
         """
         Not implemented. Raises ReferenceError.
@@ -321,12 +327,12 @@ class PickleFileReader(FileReader):
         ReferenceError
             Always raised, as remote pickle reading is not implemented.
         """
-        logger.debug(f"Entering PickleFileReader.read_as_remote_file with self={self}")
         raise ReferenceError(
             "No remote pickle reader implemented. Please make an issue if you want this functionality."
         )
 
 
+@log_entry
 def read_csv(filepath: str, **kwargs) -> pd.DataFrame:
     """
     Read a CSV file into a DataFrame.
@@ -348,7 +354,6 @@ def read_csv(filepath: str, **kwargs) -> pd.DataFrame:
     EncodingWarning
         If the file is read as an empty DataFrame.
     """
-    logger.debug(f"Entering read_csv with filepath={filepath}")
     if "sep" not in kwargs:
         df = read_csv_with_flexible_seperator(filepath, **kwargs)
     else:
@@ -362,6 +367,7 @@ def read_csv(filepath: str, **kwargs) -> pd.DataFrame:
     return df
 
 
+@log_entry
 def read_csv_with_flexible_seperator(filepath: str, **kwargs) -> pd.DataFrame:
     """
     Read a CSV file into a DataFrame, trying to infer the separator.
@@ -383,7 +389,6 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs) -> pd.DataFrame:
     ValueError
         If the separator could not be determined.
     """
-    logger.debug(f"Entering read_csv_with_flexible_seperator with filepath={filepath}")
     separators = [",", ";", "\t", "|", " "]
 
     for sep in separators:

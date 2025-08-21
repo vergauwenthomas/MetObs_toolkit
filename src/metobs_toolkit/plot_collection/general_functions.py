@@ -6,6 +6,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 # Set up logging
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 # ------------------------------------------
@@ -13,6 +15,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 # ------------------------------------------
 
 
+@log_entry
 def create_axes(figsize: Tuple[int, int] = (15, 5), **kwargs) -> plt.Axes:
     """
     Create a matplotlib Axes object with a specified figure size.
@@ -29,7 +32,6 @@ def create_axes(figsize: Tuple[int, int] = (15, 5), **kwargs) -> plt.Axes:
     matplotlib.axes.Axes
         The created Axes object.
     """
-    logger.debug("Entering create_axes function.")
     _fig, ax = plt.subplots(figsize=figsize, **kwargs)
     return ax
 
@@ -39,6 +41,7 @@ def create_axes(figsize: Tuple[int, int] = (15, 5), **kwargs) -> plt.Axes:
 # ------------------------------------------
 # These functions seem trivial, but by defining them in one place,
 # it is easier to fix styling issues on all levels (sensor, station, dataset)
+@log_entry
 def set_title(ax: plt.Axes, titlestr: str) -> plt.Axes:
     """
     Set the title of the axes.
@@ -55,11 +58,11 @@ def set_title(ax: plt.Axes, titlestr: str) -> plt.Axes:
     matplotlib.axes.Axes
         The axes with the title set.
     """
-    logger.debug("Entering set_title function.")
     ax.set_title(titlestr)
     return ax
 
 
+@log_entry
 def set_ylabel(ax: plt.Axes, ylabel: str) -> plt.Axes:
     """
     Set the y-axis label of the axes.
@@ -76,11 +79,11 @@ def set_ylabel(ax: plt.Axes, ylabel: str) -> plt.Axes:
     matplotlib.axes.Axes
         The axes with the y-label set.
     """
-    logger.debug("Entering set_ylabel function.")
     ax.set_ylabel(ylabel)
     return ax
 
 
+@log_entry
 def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
     """
     Set the x-axis label of the axes.
@@ -97,11 +100,11 @@ def set_xlabel(ax: plt.Axes, xlabel: str) -> plt.Axes:
     matplotlib.axes.Axes
         The axes with the x-label set.
     """
-    logger.debug("Entering set_xlabel function.")
     ax.set_xlabel(xlabel)
     return ax
 
 
+@log_entry
 def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.Axes:
     """
     Format the x-axis of the axes for datetime values.
@@ -118,7 +121,6 @@ def format_datetime_axes(ax: plt.Axes, set_diurnal_format: bool = False) -> plt.
     matplotlib.axes.Axes
         The axes with formatted x-axis.
     """
-    logger.debug("Entering format_datetime_axes function.")
     # Set the locale to English (United States) for date formatting
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
 
@@ -201,6 +203,7 @@ def _create_main_legend_items(handles, labels):
     return recorditems + modelitems_to_show
 
 
+@log_entry
 def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
     """
     Set the legend for the axes, handling duplicate labels and model/observation distinction.
@@ -217,7 +220,6 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
     matplotlib.axes.Axes
         The axes with the legend set.
     """
-    logger.debug("Entering set_legend function.")
     # remove current legends from the axes
     _drop_cur_legend(ax)
 
@@ -295,6 +297,7 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
 # ------------------------------------------
 
 
+@log_entry
 def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict:
     """
     Create a categorical color map for a list of categories.
@@ -311,7 +314,6 @@ def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict
     dict
         Dictionary mapping each category to a hex color string.
     """
-    logger.debug("Entering create_categorical_color_map function.")
     unique_elements = list(set(catlist))
     unique_elements = sorted(
         unique_elements

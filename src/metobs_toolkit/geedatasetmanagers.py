@@ -43,6 +43,8 @@ from metobs_toolkit.obstypes import (
     ModelObstype_Vectorfield,
 )
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -277,6 +279,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         self.__name__ = "GeeStaticDatasetManager"
 
+    @log_entry
     def get_info(self, printout: bool = True) -> None:
         """
         Print out detailed information of the GeeStaticDataset.
@@ -290,7 +293,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         -------
         None or str
         """
-        logger.debug(f"Entering GEEStaticDatasetManager.get_info for {self}")
 
         retstr = ""
         retstr += printing.print_fmt_title("General info of GEEStaticDataset")
@@ -312,6 +314,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         else:
             return retstr
 
+    @log_entry
     def extract_static_point_data(self, metadf: pd.DataFrame) -> pd.DataFrame:
         """
         Extract point values at the locations in the metadata.
@@ -354,14 +357,15 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         df = df.rename(columns={self.band_of_use: self.name})
         df = df.set_index(["name"])
-        
+
         # Make sure all the index elements from metadf are in the df
-        #Note: if gee does not return a value, that station is not present in the 
-        #df. So add them as Nan's
+        # Note: if gee does not return a value, that station is not present in the
+        # df. So add them as Nan's
         df = df.reindex(metadf.index)
 
         return df
 
+    @log_entry
     def extract_static_buffer_frac_data(
         self, metadf: pd.DataFrame, bufferradius: int, agg_bool: bool = False
     ) -> pd.DataFrame:
@@ -402,6 +406,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         ee_fc = gee_api._df_to_features_buffer_collection(metadf, int(bufferradius))
 
+        @log_entry
         def rasterExtraction(image):
             feature = image.reduceRegions(
                 reducer=ee.Reducer.frequencyHistogram(),
@@ -446,6 +451,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         return freqsdf
 
+    @log_entry
     def make_gee_plot(
         self,
         metadf: pd.DataFrame,
@@ -487,7 +493,6 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         geemap.foliumap.Map
             The interactive map of the GeeStaticDataset.
         """
-        logger.debug(f"Entering GEEStaticDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
                 raise MetObsModelDataError(
@@ -713,6 +718,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         self.__name__ = "GeeDynamicDatasetManager"
 
+    @log_entry
     def add_modelobstype(self, modelobstype) -> None:
         """
         Add a new ModelObstype to the GeeDynamicDataset.
@@ -726,7 +732,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         -------
         None
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager.add_modelobstype for {self}")
         if not (
             (isinstance(modelobstype, ModelObstype))
             | (isinstance(modelobstype, ModelObstype_Vectorfield))
@@ -758,7 +763,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         pandas.DataFrame
             Converted dataframe.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager._convert_units for {self}")
         for obs in self.modelobstypes.values():
             if obs.name in df.columns:
                 df[obs.name] = obs.convert_to_standard_units(
@@ -864,7 +868,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         list
             List of band names.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager._get_bandnames for {self}")
         trg_bands = []
         for obs in trg_obstypes:
             if isinstance(obs, ModelObstype):
@@ -882,6 +885,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         """Return the time resolution as a string."""
         return str(self.time_res)
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print out detailed information about the GeeDynamicDataset.
@@ -895,7 +899,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         -------
         None or str
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager.get_info for {self}")
         retstr = ""
         retstr += printing.print_fmt_title("General info of GEEDynamicDataset")
 
@@ -920,6 +923,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         else:
             return retstr
 
+    @log_entry
     def make_gee_plot(
         self,
         metadf: pd.DataFrame,
@@ -961,7 +965,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         geemap.foliumap.Map
             The interactive map of the GeeDynamicDataset.
         """
-        logger.debug(f"Entering GEEDynamicDatasetManager.make_gee_plot for {self}")
         if save:
             if outputfolder is None:
                 raise MetObsModelDataError(
@@ -1111,6 +1114,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return MAP
 
+    @log_entry
     def extract_timeseries_data(
         self,
         metadf: pd.DataFrame,
@@ -1220,6 +1224,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
+        @log_entry
         def rasterExtraction(image):
             feature = image.sampleRegions(
                 collection=ee_fc,
@@ -1234,8 +1239,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         results = (
             raster.filter(
                 ee.Filter.date(
-                    gee_api._datetime_to_gee_datetime(startdt_utc),
-                    gee_api._datetime_to_gee_datetime(enddt_utc),
+                    gee_api.datetime_to_gee_datetime(startdt_utc),
+                    gee_api.datetime_to_gee_datetime(enddt_utc),
                 )
             )
             .map(gee_api._addDate)

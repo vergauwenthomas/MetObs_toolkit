@@ -32,6 +32,7 @@ A summary of all the attributes (and properties) of the Gap class.
    Gap.records
    Gap.obstype
    Gap.stationname
+   Gap.fillsettings
    Gap.fillstatus
    Gap.start_datetime
    Gap.end_datetime

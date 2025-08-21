@@ -17,6 +17,8 @@ from metobs_toolkit.io_collection.filereaders import JsonFileReader
 from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 import metobs_toolkit.backend_collection.printing_collection as printing
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 # Blacklists are created for column names, which are also used as a specific
@@ -48,7 +50,6 @@ def _get_empty_templ_dict() -> dict:
     dict
         An empty template dictionary with default values.
     """
-    logger.debug("Entering _get_empty_templ_dict()")
     templ_dict = {
         # data file
         "data_related": {
@@ -126,6 +127,7 @@ class Template:
         # Not actively used attributes
         self.filepath = None
 
+    @log_entry
     def get_info(self, printout=True) -> Union[None, str]:
         """
         Print an overview of the Template.
@@ -134,7 +136,6 @@ class Template:
         -------
         None
         """
-        logger.debug(f"Entering get_info() for {self}")
         infostr = ""
         infostr += printing.print_fmt_title("General info of Template")
         infostr += printing.print_fmt_section("Data obstypes map")
@@ -188,7 +189,6 @@ class Template:
         -------
         None
         """
-        logger.debug(f"Entering _set_dataname() for {self}")
         self.data_namemap["name"] = str(datanamecolumn)
 
     def _set_dataformat(self, datafmt: str) -> None:
@@ -209,7 +209,6 @@ class Template:
         SystemExit
             If the data format is not recognized.
         """
-        logger.debug(f"Entering _set_dataformat() for {self}")
         if str(datafmt) == "long":
             self.dataformat = "long"
         elif str(datafmt) == "wide":
@@ -248,7 +247,6 @@ class Template:
         str
             The name of the obstype for wide data.
         """
-        logger.debug(f"Entering _get_wide_obstype() for {self}")
         return list(self.obsdetails.keys())[0]
 
     def _get_tz(self) -> str:
@@ -260,7 +258,6 @@ class Template:
         str
             The timezone string.
         """
-        logger.debug(f"Entering _get_tz() for {self}")
         return self.tz
 
     def _get_data_name_map(self) -> dict:
@@ -272,7 +269,6 @@ class Template:
         dict
             Mapping from data column name to 'name'.
         """
-        logger.debug(f"Entering _get_data_name_map() for {self}")
         return {self.data_namemap["name"]: "name"}
 
     def _get_metadata_name_map(self) -> dict:
@@ -284,7 +280,6 @@ class Template:
         dict
             Mapping from metadata column name to 'name'.
         """
-        logger.debug(f"Entering _get_metadata_name_map() for {self}")
         return {self.metadata_namemap["name"]: "name"}
 
     def _get_metadata_column_map(self) -> dict:
@@ -296,7 +291,6 @@ class Template:
         dict
             Mapping from metadata column name to toolkit name.
         """
-        logger.debug(f"Entering _get_metadata_column_map() for {self}")
         return {val: key for key, val in self.metacolmapname.items()}
 
     def _get_obs_column_map(self) -> dict:
@@ -313,7 +307,6 @@ class Template:
         AssertionError
             If the datetime mapping is invalid.
         """
-        logger.debug(f"Entering _get_obs_column_map() for {self}")
         self._check_if_datetime_is_mapped()
         columnmmap = {}
         if self.dataformat == "long":
@@ -333,7 +326,6 @@ class Template:
         list
             List of all mapped columns in toolkit space.
         """
-        logger.debug(f"Entering _get_all_mapped_data_cols_in_tlk_space() for {self}")
         mapped_cols = ["name", "datetime"]
         if self.dataformat == "long":
             mapped_cols.extend(list(self.obscolumnmap.keys()))
@@ -356,7 +348,6 @@ class Template:
         str
             The original data column name.
         """
-        logger.debug(f"Entering _get_original_obstype_columnname() for {self}")
         return str(self.obscolumnmap[obstypename])
 
     def _get_input_unit_of_tlk_obstype(self, obstypename: str) -> str:
@@ -373,7 +364,6 @@ class Template:
         str
             The input unit.
         """
-        logger.debug(f"Entering _get_input_unit_of_tlk_obstype() for {self}")
         return str(self.obsdetails[obstypename]["unit"])
 
     def _get_description_of_tlk_obstype(self, obstypename: str) -> str:
@@ -390,7 +380,6 @@ class Template:
         str
             The description.
         """
-        logger.debug(f"Entering _get_description_of_tlk_obstype() for {self}")
         return str(self.obsdetails[obstypename]["description"])
 
     # =============================================================================
@@ -409,7 +398,6 @@ class Template:
         MetobsTemplateError
             If the timezone is not known or the timestamp mapping is invalid.
         """
-        logger.debug(f"Entering _check_if_datetime_is_mapped() for {self}")
         ts_info = self.timestampinfo
 
         # Check if timezone is known
@@ -461,7 +449,6 @@ class Template:
         MetobsTemplateError
             If required columns are missing or incorrectly mapped.
         """
-        logger.debug(f"Entering _data_template_compatibility_test() for {self}")
         # check datetime
         self._check_if_datetime_is_mapped()
         if self.timestampinfo["datetimecolumn"] is not None:
@@ -533,7 +520,6 @@ class Template:
         MetobsTemplateError
             If required columns are missing or incorrectly mapped.
         """
-        logger.debug(f"Entering _metadata_template_compatibility_test() for {self}")
         # check name column (must be present if multiple stations are in the data)
         if not self._is_data_single_station():
             if not (self.metadata_namemap["name"] in metadatacolumns):
@@ -577,7 +563,6 @@ class Template:
         dict
             Mapping from original column names to renamed column names.
         """
-        logger.debug(f"Entering _apply_blacklist() for {self}")
         if on_data:
             blacklist = column_data_blacklist
         else:
@@ -620,6 +605,7 @@ class Template:
     # Other methods
     # =============================================================================
 
+    @log_entry
     def read_template_from_file(
         self, jsonpath: str, templatefile_is_url: bool = False
     ) -> None:
@@ -642,7 +628,6 @@ class Template:
         MetobsTemplateError
             If required keys are missing in the template file.
         """
-        logger.debug(f"Entering read_template_from_file() for {self}")
         jsonreader = JsonFileReader(file_path=jsonpath, is_url=templatefile_is_url)
         jsonreader.read()
 
@@ -694,6 +679,7 @@ class Template:
             self.metacolmapname[extra_col] = extra_col
 
 
+@log_entry
 def update_known_obstype_with_original_data(
     known_obstypes: list, template: Template
 ) -> list:
@@ -712,7 +698,6 @@ def update_known_obstype_with_original_data(
     list
         The updated list of known obstype objects.
     """
-    logger.debug("Entering update_known_obstype_with_original_data()")
     if template._is_data_long():
         orig_data_column_name_map = template._get_obs_column_map()
         for orig_name, obsname in orig_data_column_name_map.items():

@@ -15,6 +15,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -196,6 +198,7 @@ class Site:
     #   Setters
     # ------------------------------------------
 
+    @log_entry
     def set_geedata(self, dataname: str, value: Union[str, float]) -> None:
         """
         Set a value in the geedata dictionary.
@@ -207,9 +210,9 @@ class Site:
         value : str or float
             Value to set.
         """
-        logger.debug("Entering set_geedata for %s", self)
         self._geedata[dataname] = value
 
+    @log_entry
     def set_gee_buffered_frac_data(self, buffer: float, data: dict) -> None:
         """
         Set buffered fraction data for a given buffer radius.
@@ -221,11 +224,11 @@ class Site:
         data : dict
             Dictionary of cover fractions.
         """
-        logger.debug("Entering set_gee_buffered_frac_data for %s", self)
         # Replace NaNs in data with 0
         data = {k: (0 if pd.isna(v) else v) for k, v in data.items()}
         self._gee_buffered_fractions.update({buffer: data})
 
+    @log_entry
     def add_metadata(self, metadata: dict) -> None:
         """
         Add metadata to the site.
@@ -240,7 +243,6 @@ class Site:
         ValueError
             If metadata is not a dictionary.
         """
-        logger.debug("Entering add_metadata for %s", self)
         if not isinstance(metadata, dict):
             raise ValueError(f"metadata should be a dictionary, not {type(metadata)}")
         logger.debug(f"Adding metadata: {metadata}")
@@ -251,6 +253,7 @@ class Site:
     #    Flaggers
     # ------------------------------------------
 
+    @log_entry
     def flag_has_altitude(self) -> bool:
         """
         Check if the site has altitude information.
@@ -260,9 +263,9 @@ class Site:
         bool
             True if altitude is available, False otherwise.
         """
-        logger.debug("Entering flag_has_altitude for %s", self)
         return not pd.isnull(self.altitude)
 
+    @log_entry
     def flag_altitude_from_gee(self) -> bool:
         """
         Check if altitude information is from GEE.
@@ -272,9 +275,9 @@ class Site:
         bool
             True if altitude is from GEE, False otherwise.
         """
-        logger.debug("Entering flag_altitude_from_gee for %s", self)
         return "altitude" in self._geedata.keys()
 
+    @log_entry
     def flag_has_LCZ(self) -> bool:
         """
         Check if the site has LCZ information.
@@ -284,9 +287,9 @@ class Site:
         bool
             True if LCZ is available, False otherwise.
         """
-        logger.debug("Entering flag_has_LCZ for %s", self)
         return not pd.isnull(self.LCZ)
 
+    @log_entry
     def flag_LCZ_from_gee(self) -> bool:
         """
         Check if LCZ information is from GEE.
@@ -296,9 +299,9 @@ class Site:
         bool
             True if LCZ is from GEE, False otherwise.
         """
-        logger.debug("Entering flag_LCZ_from_gee for %s", self)
         return "LCZ" in self._geedata.keys()
 
+    @log_entry
     def flag_has_landcoverfractions(self) -> bool:
         """
         Check if the site has land cover fractions.
@@ -308,9 +311,9 @@ class Site:
         bool
             True if land cover fractions are available, False otherwise.
         """
-        logger.debug("Entering flag_has_landcoverfractions for %s", self)
         return bool(self.buffered_fractions)
 
+    @log_entry
     def flag_has_coordinates(self) -> bool:
         """
         Check if the site has valid coordinates.
@@ -320,13 +323,13 @@ class Site:
         bool
             True if both latitude and longitude are available, False otherwise.
         """
-        logger.debug("Entering flag_has_coordinates for %s", self)
         return (not pd.isnull(self.lat)) and (not pd.isnull(self.lon))
 
     # ------------------------------------------
     #    Methods
     # ------------------------------------------
 
+    @log_entry
     def get_gee_point_metadata(
         self, geestaticdataset: GEEStaticDatasetManager, initialize_gee: bool = True
     ) -> Union[str, float]:
@@ -350,7 +353,6 @@ class Site:
         ValueError
             If geestaticdataset is not a GEEStaticDatasetManager or coordinates are unknown.
         """
-        logger.debug("Entering get_gee_point_metadata for %s", self)
         # test if modeldata is static
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
@@ -367,11 +369,14 @@ class Site:
 
         geedf = geestaticdataset.extract_static_point_data(self.metadf)
         if geedf.empty:
-            warn(f'No data returned by GEE when point extraction on {self} for {geestaticdataset.name}')
+            warn(
+                f"No data returned by GEE when point extraction on {self} for {geestaticdataset.name}"
+            )
             return np.nan
 
         return geedf[geestaticdataset.name].iloc[0]
 
+    @log_entry
     def get_gee_point_buffer_fractions(
         self,
         geestaticdataset: GEEStaticDatasetManager,
@@ -403,7 +408,6 @@ class Site:
         ValueError
             If geestaticdataset is not a GEEStaticDatasetManager or coordinates are unknown.
         """
-        logger.debug("Entering get_gee_point_buffer_fractions for %s", self)
         # test if modeldata is static
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
@@ -506,6 +510,7 @@ class Site:
 
         return infostr
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print basic information about the site.
@@ -520,7 +525,6 @@ class Site:
         str or None
             Information string if printout is False, else None.
         """
-        logger.debug("Entering get_info for %s", self)
         infostr = ""
         infostr += printing.print_fmt_title("General Info of Site")
         infostr += printing.print_fmt_line(f"Site of {self.stationname}:", 0)

@@ -13,10 +13,21 @@ Created on Fri Aug  2 14:23:30 2024
 import os
 import logging
 from datetime import datetime
+from functools import wraps
 
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+def log_entry(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logger.debug(f"Entering {func.__name__}() in {func.__code__.co_filename}")
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@log_entry
 def add_FileHandler(
     trglogfile: str,
     setlvl: str = "DEBUG",
@@ -47,7 +58,6 @@ def add_FileHandler(
     -------
     None
     """
-    logger.debug("Entering add_FileHandler()")
     if clearlog:
         if os.path.isfile(trglogfile):
             os.remove(trglogfile)
@@ -65,6 +75,7 @@ def add_FileHandler(
     rootlog.debug(f"FileHandler set at {datetime.now()}")
 
 
+@log_entry
 def add_StreamHandler(
     setlvl: str = "DEBUG", logformat: str = "LOG:: %(levelname)s - %(message)s"
 ) -> None:
@@ -85,7 +96,6 @@ def add_StreamHandler(
     -------
     None
     """
-    logger.debug("Entering add_StreamHandler()")
     # Get rootlogger
     rootlog = logging.getLogger("<metobs_toolkit>")
     rootlog.setLevel(logging.DEBUG)  # set rootlogger on debug

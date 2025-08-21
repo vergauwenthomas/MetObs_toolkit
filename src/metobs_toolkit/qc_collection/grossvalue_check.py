@@ -2,9 +2,12 @@ import logging
 from typing import Union
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def gross_value_check(
     records: pd.Series,
     lower_threshold: Union[int, float],
@@ -29,7 +32,6 @@ def gross_value_check(
 
 
     """
-    logger.debug("Entering function gross_value_check.")
 
     # Drop NaN values
     records = records.dropna()

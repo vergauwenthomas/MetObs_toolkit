@@ -4,6 +4,8 @@ import pandas as pd
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.template import Template, MetObsTemplateError
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -24,6 +26,7 @@ class DataParser:
         self.template = template
         self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style
 
+    @log_entry
     def parse(self, **readkwargs) -> "DataParser":
         """
         Parse the data file and format it according to the template.
@@ -38,7 +41,6 @@ class DataParser:
         DataParser
             The instance of DataParser with the parsed data.
         """
-        logger.debug(f"Entering parse method of {self}.")
 
         if not isinstance(readkwargs, dict):
             raise TypeError("readkwargs must be a dictionary.")
@@ -95,7 +97,6 @@ class DataParser:
         pd.DataFrame
             The DataFrame with renamed columns.
         """
-        logger.debug(f"Entering _rename_blacklabels method of {self}.")
 
         if not isinstance(rawdf, pd.DataFrame):
             raise TypeError("rawdf must be a pandas DataFrame.")
@@ -120,7 +121,6 @@ class DataParser:
         pd.DataFrame
             The DataFrame with the added dummy name column.
         """
-        logger.debug(f"Entering _add_single_station_name method of {self}.")
 
         if not isinstance(rawdf, pd.DataFrame):
             raise TypeError("rawdf must be a pandas DataFrame.")
@@ -149,7 +149,6 @@ class DataParser:
         pd.DataFrame
             The DataFrame with renamed name column.
         """
-        logger.debug(f"Entering _set_name method of {self}.")
 
         if not isinstance(rawdf, pd.DataFrame):
             raise TypeError("rawdf must be a pandas DataFrame.")
@@ -181,7 +180,6 @@ class DataParser:
         pd.DataFrame
             The DataFrame with renamed columns.
         """
-        logger.debug(f"Entering _columns_to_tlk_obstypes method of {self}.")
 
         if not isinstance(rawdf, pd.DataFrame):
             raise TypeError("rawdf must be a pandas DataFrame.")
@@ -203,7 +201,6 @@ class DataParser:
         pd.DataFrame
             The DataFrame with only mapped columns.
         """
-        logger.debug(f"Entering _subset_to_mapped_columns method of {self}.")
 
         if not isinstance(rawdf, pd.DataFrame):
             raise TypeError("rawdf must be a pandas DataFrame.")
@@ -224,6 +221,7 @@ class DataParser:
         mapped_and_present = list(set(mapped_columns).intersection(set(rawdf.columns)))
         return rawdf[mapped_and_present]
 
+    @log_entry
     def get_df(self) -> pd.DataFrame:
         """Get the parsed DataFrame."""
         logger.info(f"Entering get_df method of {self}.")
@@ -253,7 +251,6 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
     MetobsTemplateError
         If required columns are missing or datetime conversion fails.
     """
-    logger.debug("Entering _create_datetime_column function.")
 
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a pandas DataFrame.")
@@ -309,6 +306,7 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
     return df
 
 
+@log_entry
 def wide_to_long(df: pd.DataFrame, obstypename: str) -> pd.DataFrame:
     """
     Convert a wide DataFrame to a long format.
@@ -330,7 +328,6 @@ def wide_to_long(df: pd.DataFrame, obstypename: str) -> pd.DataFrame:
     TypeError
         If the input types are incorrect.
     """
-    logger.debug("Entering wide_to_long function.")
 
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df must be a pandas DataFrame.")

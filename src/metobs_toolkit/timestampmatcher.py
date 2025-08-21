@@ -8,6 +8,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -88,6 +90,7 @@ class TimestampMatcher:
         ]
         return outliersubset.set_index("datetime")[self.obsname]
 
+    @log_entry
     def get_outlier_map(self) -> dict:
         """
         Get a mapping of outlier records.
@@ -102,7 +105,6 @@ class TimestampMatcher:
         ValueError
             If no timestamp conversion has been applied yet.
         """
-        logger.debug("Entering get_outlier_map for %s", self)
         if self.conv_df.empty:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
@@ -147,7 +149,6 @@ class TimestampMatcher:
         AssertionError
             If the closing timestamp is not a valid candidate.
         """
-        logger.debug("Entering _map_to_perfect_timestamps for %s", self)
         target_freq = pd.to_timedelta(target_freq)
         # get origin
         if origin is None:
@@ -203,6 +204,7 @@ class TimestampMatcher:
 
         self.conv_df = mergedf
 
+    @log_entry
     def make_equispaced_timestamps_mapper(
         self,
         freq_estimation_method: Literal["highest", "median"],
@@ -238,7 +240,6 @@ class TimestampMatcher:
         TypeError
             If input types are incorrect.
         """
-        logger.debug("Entering make_equispaced_timestamps_mapper for %s", self)
         if not isinstance(
             freq_estimation_method, str
         ) or freq_estimation_method not in ["highest", "median"]:
@@ -289,6 +290,7 @@ class TimestampMatcher:
         )
 
 
+@log_entry
 def simplify_time(
     time: Union[pd.Timestamp, pd.Timedelta],
     max_simplify_error: pd.Timedelta,
@@ -316,7 +318,6 @@ def simplify_time(
     MetObsTimeSimplifyError
         If no simplification is possible and zero_protection is True.
     """
-    logger.debug("Entering simplify_time")
     # NOTE: Make sure that the sequence goes from coarse to fine AND
     # That all elements are natural multiplicatives of each other !! (this
     # is required since the synchronization relies on it)
@@ -342,6 +343,7 @@ def simplify_time(
     return time
 
 
+@log_entry
 def get_likely_frequency(
     timestamps: pd.DatetimeIndex,
     method: Literal["highest", "median"] = "highest",

@@ -23,9 +23,12 @@ from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
 from metobs_toolkit.io_collection.filereaders import CsvFileReader
 from metobs_toolkit.io_collection.filewriters import write_dict_to_json
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def test_unit(unitstring: str) -> bool:
     """
     Test if a unit can be interpreted by pint.
@@ -40,7 +43,6 @@ def test_unit(unitstring: str) -> bool:
     bool
         True if the unit is valid, False otherwise.
     """
-    logger.debug("Entering test_unit()")
     try:
         Obstype(obsname="dummy", std_unit=unitstring, description="dummy")
         return True
@@ -54,6 +56,7 @@ and expressions (meter/second, liter/second**2, ...)"
         return False
 
 
+@log_entry
 def add_new_obstype() -> tuple:
     """
     Interactively add a new observation type.
@@ -63,7 +66,6 @@ def add_new_obstype() -> tuple:
     tuple
         Tuple containing the new Obstype object and the current unit string.
     """
-    logger.debug("Entering add_new_obstype()")
     print("\n --- Adding a new observation type --- \n")
 
     # get obsname
@@ -113,6 +115,7 @@ store/present the data): "
     return new_obstype, cur_unit
 
 
+@log_entry
 def get_unit(trgobstype: Obstype) -> str:
     """
     Prompt the user to specify the unit of the data for a given observation
@@ -128,7 +131,6 @@ def get_unit(trgobstype: Obstype) -> str:
     str
         The unit string for the data.
     """
-    logger.debug("Entering get_unit()")
     is_std_unit = yes_no_ques(
         f" Are the {trgobstype} values in your data in {trgobstype.std_unit}?"
     )
@@ -164,6 +166,7 @@ Provide a compatible unit."
         return cur_unit
 
 
+@log_entry
 def col_option_input(columns) -> str:
     """
     prompt a list of options.
@@ -178,7 +181,6 @@ def col_option_input(columns) -> str:
     str
         The selected column name or option. Returns None if 'x' is selected.
     """
-    logger.debug("Entering col_option_input()")
     mapper = {}
     i = 1
     for col in columns:
@@ -217,6 +219,7 @@ def col_option_input(columns) -> str:
     return mapper[int(num_ans)]
 
 
+@log_entry
 def yes_no_ques(text: str) -> bool:
     """
     Get yes/no input from the user.
@@ -231,7 +234,6 @@ def yes_no_ques(text: str) -> bool:
     bool
         True if 'y' is selected, False if 'n' is selected.
     """
-    logger.debug("Entering yes_no_ques()")
     valid_input = False
 
     while valid_input is False:
@@ -247,6 +249,7 @@ def yes_no_ques(text: str) -> bool:
             print(f" {prompt} is not y or n, give a suitable answer.")
 
 
+@log_entry
 def usr_input_dir(text: str) -> str:
     """
     Prompt for a directory path and check if it exists.
@@ -261,7 +264,6 @@ def usr_input_dir(text: str) -> str:
     str
         The valid directory path.
     """
-    logger.debug("Entering usr_input_dir()")
     is_dir = False
     while is_dir is False:
         inp_dir = input(f"{text} : ")
@@ -272,6 +274,7 @@ def usr_input_dir(text: str) -> str:
     return inp_dir
 
 
+@log_entry
 def usr_input_file(text: str) -> str:
     """
     Prompt for a file path and check if it exists.
@@ -286,7 +289,6 @@ def usr_input_file(text: str) -> str:
     str
         The valid file path.
     """
-    logger.debug("Entering usr_input_file()")
     is_file = False
     while is_file is False:
         inp_file = input(f"{text} : ")
@@ -297,6 +299,7 @@ def usr_input_file(text: str) -> str:
     return inp_file
 
 
+@log_entry
 def build_template_prompt() -> None:
     """
     Launch an interactive prompt to construct a template.json file.
@@ -324,7 +327,6 @@ def build_template_prompt() -> None:
     to create the template again to be compatible with this version of the
       toolkit.
     """
-    logger.debug("Entering build_template_prompt()")
     tmpl_dict = _get_empty_templ_dict()
     tmpl_dict["data_related"]["obstype_mapping"] = []
 

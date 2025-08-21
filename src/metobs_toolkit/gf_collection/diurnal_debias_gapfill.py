@@ -2,9 +2,12 @@ import logging
 import pandas as pd
 import numpy as np
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
     """
     Compute diurnal biases for the given DataFrame.
@@ -23,7 +26,6 @@ def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
     pandas.DataFrame
         DataFrame with columns 'hour', 'min', 'sec', 'diurnalbias', and 'samplesize'.
     """
-    logger.debug("Entering compute_diurnal_biases function.")
     # calculate biases for diurnal records
     trainset = df.loc[df["label"].isin(["lead", "trail"])]
     diurnalbias = (
@@ -41,6 +43,7 @@ def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
     return diurnalbias
 
 
+@log_entry
 def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame using diurnal debiasing.
@@ -60,7 +63,6 @@ def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataF
     pandas.DataFrame
         DataFrame with columns: 'value', 'label', 'modelvalue', 'fillvalue', and 'msg'.
     """
-    logger.debug("Entering fill_with_diurnal_debias function.")
     # add hour, minute, second columns
     df["hour"] = df.index.hour
     df["min"] = df.index.minute
@@ -100,6 +102,7 @@ def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int) -> pd.DataF
     return df[["value", "label", "modelvalue", "fillvalue", "msg"]]
 
 
+@log_entry
 def fill_with_weighted_diurnal_debias(
     df: pd.DataFrame, min_lead_sample_size: int, min_trail_sample_size: int
 ) -> pd.DataFrame:
@@ -123,7 +126,6 @@ def fill_with_weighted_diurnal_debias(
     pandas.DataFrame
         DataFrame with columns: 'value', 'label', 'modelvalue', 'fillvalue', and 'msg'.
     """
-    logger.debug("Entering fill_with_weighted_diurnal_debias function.")
     # add hour, minute, second columns
     df["hour"] = df.index.hour
     df["min"] = df.index.minute
@@ -187,6 +189,7 @@ def fill_with_weighted_diurnal_debias(
     df.loc[df["samplesize_trail"] < min_trail_sample_size, "fillvalue"] = np.nan
 
     # Write message
+    @log_entry
     def msg_writer(row):
         """
         Write a message describing the fill status for each row.

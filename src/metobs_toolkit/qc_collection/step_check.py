@@ -2,9 +2,12 @@ import logging
 from typing import Union
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def step_check(
     records: pd.Series,
     max_increase_per_second: Union[int, float],
@@ -42,7 +45,6 @@ def step_check(
     threshold. This is because a temperature drop is meteorologically more
     common than a sudden increase, which is often the result of a radiation error.
     """
-    logger.debug("Entering function step_check")
 
     # Validate argument values
     if max_decrease_per_second > 0:

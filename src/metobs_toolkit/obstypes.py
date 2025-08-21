@@ -14,6 +14,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 # Use logger with name "<metobs_toolkit>"
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 # ------------------------------------------
@@ -24,6 +26,7 @@ ureg.formatter.default_format = ".3f"
 pint.set_application_registry(ureg)
 
 
+@log_entry
 def fmt_unit_to_str(unit) -> str:
     """
     Format a pint unit or quantity to string.
@@ -167,21 +170,25 @@ class Obstype:
         return fmt_unit_to_str(self._original_unit)
 
     @name.setter
+    @log_entry
     def name(self, value: str):
         """Set the name of the observation type."""
         self._name = str(value)
 
     @description.setter
+    @log_entry
     def description(self, value: str):
         """Set the description of the observation type."""
         self._description = str(value)
 
     @original_name.setter
+    @log_entry
     def original_name(self, value):
         """Set the original name of the observation type."""
         self._original_name = str(value)
 
     @original_unit.setter
+    @log_entry
     def original_unit(self, value):
         """Set the original unit and check compatibility with standard unit."""
 
@@ -199,6 +206,7 @@ class Obstype:
                 f"{self._original_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
             )
 
+    @log_entry
     def get_compatible_units(self) -> list:
         """
         Get all units compatible with the standard unit.
@@ -216,6 +224,7 @@ class Obstype:
         # return the units as strings
         return [fmt_unit_to_str(uni) for uni in compunits]
 
+    @log_entry
     def is_compatible_with(self, other: "Obstype") -> bool:
         """
         Test if the other Obstype is compatible with this one.
@@ -244,6 +253,7 @@ class Obstype:
         infostr += printing.print_fmt_line(f"description: {self.description}")
         return infostr
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the observation type.
@@ -267,6 +277,7 @@ class Obstype:
         else:
             return infostr
 
+    @log_entry
     def convert_to_standard_units(self, input_data, input_unit):
         """
         Convert input data to the standard unit.
@@ -379,6 +390,7 @@ class ModelObstype(Obstype):
         """Return the model band as string."""
         return str(self._model_band)
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the model observation type.
@@ -523,6 +535,7 @@ class ModelObstype_Vectorfield(Obstype):
         """Return the direction obstype name as string."""
         return str(self._dir_obs_name)
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Print or return detailed information of the vectorfield model observation type.
@@ -579,10 +592,12 @@ class ModelObstype_Vectorfield(Obstype):
         """
         logger.debug(f"{self.__class__.__name__}._compute_angle called for {self}")
 
+        @log_entry
         def unit_vector(vector):
             """Returns the unit vector of the vector."""
             return vector / np.linalg.norm(vector)
 
+        @log_entry
         def angle_between(u_comp, v_comp):
             """Returns the angle in ° from North (CW) from 2D Vector components."""
             v2 = (u_comp, v_comp)
@@ -625,6 +640,7 @@ class ModelObstype_Vectorfield(Obstype):
 
         return data, direction_modelobstype
 
+    @log_entry
     def compute_amplitude(self, df: pd.DataFrame) -> Union[pd.DataFrame, ModelObstype]:
         """
         Compute amplitude of 2D vectorfield components.
@@ -674,6 +690,7 @@ class ModelObstype_Vectorfield(Obstype):
 # ------------------------------------------
 
 
+@log_entry
 def is_known_unit(unit: str) -> bool:
     """
     Check if a unit string is known to the unit registry.
@@ -736,6 +753,7 @@ def _fmtunit(value) -> pint.Unit:
         raise MetObsUnitUnknown(f"{value} is not a string or pint.Unit.")
 
 
+@log_entry
 def convert_units(records, cur_unit, trg_unit):
     """
     Convert records from one unit to another.

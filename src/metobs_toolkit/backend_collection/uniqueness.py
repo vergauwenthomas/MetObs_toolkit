@@ -1,6 +1,8 @@
 from typing import Iterable, List, Any
 import logging
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 """Set comparison logic for MetObs functions.
@@ -13,6 +15,7 @@ The uniqueness is assumed if the ._id() of the instances differs.
 # is that np.nan != np.nan. So 'identical gaps' are then assumed to be non-equal.
 
 
+@log_entry
 def metobs_intersection(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     """
     Get the intersection of two collections based on their '_id()' method.
@@ -29,7 +32,6 @@ def metobs_intersection(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     List[Any]
         List of elements from A whose '_id()' is also present in B.
     """
-    logger.debug("Entering metobs_intersection")
     # NOTE: elements returned originate from A
     # transform to id-space (these are strings)
     A_ids = set([a._id() for a in A])
@@ -41,6 +43,7 @@ def metobs_intersection(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     return intersection
 
 
+@log_entry
 def metobs_B_not_in_A(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     """
     Get elements from B whose '_id()' is not present in A.
@@ -57,7 +60,6 @@ def metobs_B_not_in_A(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     List[Any]
         List of elements from B whose '_id()' is not present in A.
     """
-    logger.debug("Entering metobs_B_not_in_A")
     # transform to id-space (these are strings)
     A_ids = set([a._id() for a in A])
     B_ids = set([b._id() for b in B])
@@ -67,6 +69,7 @@ def metobs_B_not_in_A(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     return [b for b in B if b._id() in b_not_in_a_ids]
 
 
+@log_entry
 def metobs_A_not_in_B(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     """
     Get elements from A whose '_id()' is not present in B.
@@ -83,11 +86,11 @@ def metobs_A_not_in_B(A: Iterable[Any], B: Iterable[Any]) -> List[Any]:
     List[Any]
         List of elements from A whose '_id()' is not present in B.
     """
-    logger.debug("Entering metobs_A_not_in_B")
     # transform to id-space (these are strings)
     return metobs_B_not_in_A(A=B, B=A)
 
 
+@log_entry
 def get_by_id(A: Iterable[Any], id: str) -> Any:
     """
     Retrieve an element from a collection by its '_id()' value.
@@ -109,7 +112,6 @@ def get_by_id(A: Iterable[Any], id: str) -> Any:
     IndexError
         If no element or more than one element is found with the given id.
     """
-    logger.debug("Entering get_by_id")
     candidates = [a for a in A if a._id() == id]
     if len(candidates) > 1:
         raise IndexError(
@@ -120,6 +122,7 @@ def get_by_id(A: Iterable[Any], id: str) -> Any:
     return candidates[0]
 
 
+@log_entry
 def join_collections(col_A: Iterable[Any], col_B: Iterable[Any]) -> List[Any]:
     """
     Join two collections, applying in-depth addition for elements with the same id.
@@ -136,7 +139,6 @@ def join_collections(col_A: Iterable[Any], col_B: Iterable[Any]) -> List[Any]:
     List[Any]
         The joined collection. This collection holds elements without duplicated ids.
     """
-    logger.debug("Entering join_collections")
     joined_col = []
     # Triage elements using metobs logic
     same_id_elem = metobs_intersection(A=list(col_A), B=list(col_B))
