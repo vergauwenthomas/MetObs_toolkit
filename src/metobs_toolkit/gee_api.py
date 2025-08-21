@@ -86,6 +86,7 @@ def connect_to_gee(**kwargs) -> None:
         ee.Initialize()
     return
 
+
 @log_entry
 def auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     """
@@ -120,6 +121,7 @@ def auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     # Initiate Google API
     ee.Initialize(credentials)
 
+
 @log_entry
 def auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     """
@@ -146,6 +148,7 @@ def auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
         raise EnvironmentError(f"{secret} secret is not set, are present in scope.")
     credentials = ee.ServiceAccountCredentials(service_account, key_data=key_json)
     ee.Initialize(credentials)
+
 
 @log_entry
 def datetime_to_gee_datetime(datetime_obj) -> ee.Date:

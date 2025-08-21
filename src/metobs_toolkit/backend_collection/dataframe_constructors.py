@@ -15,6 +15,7 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
+
 @log_entry
 def analysis_df(analysis_instance) -> pd.DataFrame:
     """
@@ -33,7 +34,10 @@ def analysis_df(analysis_instance) -> pd.DataFrame:
         DataFrame indexed by ['datetime', 'name'] and containing
         observation columns.
     """
-    return analysis_instance.fulldf.set_index(["datetime", "name"])[analysis_instance._df_cols]
+    return analysis_instance.fulldf.set_index(["datetime", "name"])[
+        analysis_instance._df_cols
+    ]
+
 
 @log_entry
 def dataset_df(dataset_instance) -> pd.DataFrame:
@@ -74,6 +78,7 @@ def dataset_df(dataset_instance) -> pd.DataFrame:
         )
     return combdf
 
+
 @log_entry
 def station_df(station_instance) -> pd.DataFrame:
     """
@@ -92,11 +97,14 @@ def station_df(station_instance) -> pd.DataFrame:
         A pandas DataFrame with a single column 'value'.
     """
     # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
-    concatdf = save_concat(([sensor.df for sensor in station_instance.sensordata.values()]))
+    concatdf = save_concat(
+        ([sensor.df for sensor in station_instance.sensordata.values()])
+    )
 
     # sort by datetime
     concatdf.sort_index(inplace=True)
     return concatdf
+
 
 @log_entry
 def gap_df(gap_instance) -> pd.DataFrame:
@@ -116,8 +124,13 @@ def gap_df(gap_instance) -> pd.DataFrame:
         A DataFrame with columns ['value', 'label', 'details'].
     """
     return pd.DataFrame(
-        {"value": gap_instance.records, "label": gap_instance._labels, "details": gap_instance._extra_info}
+        {
+            "value": gap_instance.records,
+            "label": gap_instance._labels,
+            "details": gap_instance._extra_info,
+        }
     )
+
 
 @log_entry
 def sensordata_df(sensordata_instance) -> pd.DataFrame:
@@ -137,15 +150,22 @@ def sensordata_df(sensordata_instance) -> pd.DataFrame:
         A DataFrame indexed by ['datetime', 'obstype'] with columns ['value', 'label'].
     """
     import logging
+
     logger = logging.getLogger("<metobs_toolkit>")
-    
+
     logger.debug(
-        "Creating DataFrame from SensorData series for %s", sensordata_instance.stationname
+        "Creating DataFrame from SensorData series for %s",
+        sensordata_instance.stationname,
     )
     # get all records
     df = (
         sensordata_instance.series.to_frame()
-        .rename(columns={sensordata_instance.obstype.name: "value", sensordata_instance.stationname: "value"})
+        .rename(
+            columns={
+                sensordata_instance.obstype.name: "value",
+                sensordata_instance.stationname: "value",
+            }
+        )
         .assign(label=label_def["goodrecord"]["label"])
     )
 
@@ -169,8 +189,9 @@ def sensordata_df(sensordata_instance) -> pd.DataFrame:
         .reset_index()
         .set_index(["datetime", "obstype"])
     )
-    
+
     return df
+
 
 @log_entry
 def modeltimeseries_df(modeltimeseries_instance) -> pd.DataFrame:
@@ -192,7 +213,12 @@ def modeltimeseries_df(modeltimeseries_instance) -> pd.DataFrame:
     # get all records
     df = (
         modeltimeseries_instance.series.to_frame()
-        .rename(columns={modeltimeseries_instance.obstype.name: "value", modeltimeseries_instance.stationname: "value"})
+        .rename(
+            columns={
+                modeltimeseries_instance.obstype.name: "value",
+                modeltimeseries_instance.stationname: "value",
+            }
+        )
         .assign(model=modeltimeseries_instance.modelname)
     )
     return df

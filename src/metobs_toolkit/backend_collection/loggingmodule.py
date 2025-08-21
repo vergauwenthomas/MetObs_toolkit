@@ -26,6 +26,7 @@ def log_entry(func):
 
     return wrapper
 
+
 @log_entry
 def add_FileHandler(
     trglogfile: str,

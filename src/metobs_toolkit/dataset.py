@@ -241,7 +241,6 @@ class Dataset:
     def df(self) -> pd.DataFrame:
         return dataset_df(self)
 
-
     @copy_doc(Station.outliersdf)
     @property
     def outliersdf(self) -> pd.DataFrame:
@@ -288,7 +287,6 @@ class Dataset:
             )
         return combdf
 
-
     @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
@@ -313,7 +311,6 @@ class Dataset:
             )
         return combdf
 
-
     @copy_doc(Station.metadf)
     @property
     def metadf(self) -> pd.DataFrame:
@@ -321,7 +318,6 @@ class Dataset:
         for sta in self.stations:
             concatlist.append(sta.metadf)
         return save_concat((concatlist)).sort_index()
-
 
     @copy_doc(Station.start_datetime)
     @property

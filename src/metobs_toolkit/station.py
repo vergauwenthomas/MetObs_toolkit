@@ -41,7 +41,6 @@ from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
 class Station:
     """
     Represents a weather station, holding metadata, sensor data, and model data.
@@ -2020,4 +2019,3 @@ class Station:
             raise MetObsObstypeNotFound(
                 f"There is no {obstype} - modeldata present for {self}"
             )
-
