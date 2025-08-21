@@ -32,6 +32,8 @@ A summary of all the attributes that hold or return data.
    Dataset.gapsdf
    Dataset.modeldatadf
    Dataset.present_observations
+   Dataset.start_datetime
+   Dataset.end_datetime
 
 
 General methods and attributes

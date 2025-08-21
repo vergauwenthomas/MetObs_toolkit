@@ -27,6 +27,8 @@ A summary of all the attributes that hold or return data.
 .. autosummary::
    :toctree: api/
 
+   Station.name
+   Station.site
    Station.sensordata
    Station.df
    Station.metadf
@@ -34,6 +36,9 @@ A summary of all the attributes that hold or return data.
    Station.gapsdf
    Station.modeldatadf
    Station.present_observations
+   Station.start_datetime
+   Station.end_datetime
+   Station.modeldata
 
 
 General methods and attributes

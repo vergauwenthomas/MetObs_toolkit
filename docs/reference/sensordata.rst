@@ -25,6 +25,8 @@ A summary of all the attributes (and properties) of the SensorData class.
    :toctree: api/
 
    SensorData.df
+   SensorData.outliersdf
+   SensorData.gapsdf
    SensorData.stationname
    SensorData.tz
    SensorData.start_datetime
