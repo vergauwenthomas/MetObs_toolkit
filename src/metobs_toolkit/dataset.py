@@ -44,6 +44,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMissingArgument,
     MetObsMetadataNotFound,
     MetObsNonUniqueIDs,
+    MetObsModelDataError,
 )
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
@@ -302,7 +303,7 @@ class Dataset:
         combdf.sort_index(inplace=True)
         if combdf.empty:
             combdf = pd.DataFrame(
-                columns=["value", "details"],
+                columns=["value", "details", "modelname", "modelvariable"],
                 index=pd.MultiIndex(
                     levels=[[], [], []],
                     codes=[[], [], []],
@@ -914,6 +915,8 @@ class Dataset:
         linestyle: str = "--",
         ax: Union[Axes, None] = None,
         figkwargs: dict = {},
+        modelname: str | None = None,
+        modelvariable: str | None = None
     ) -> Axes:
         """
         Generate a timeseries plot of model data for a specific observation type.
@@ -940,23 +943,56 @@ class Dataset:
             The axes object containing the plot.
         """
 
-        modeldatadf = self.modeldatadf
-        if obstype not in modeldatadf.index.get_level_values("obstype"):
+       
+        trg_modeldatadf = self.modeldatadf
+    
+        #filter on obstype
+        if obstype not in trg_modeldatadf.index.get_level_values("obstype"):
             raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
+        trg_modeldatadf = trg_modeldatadf.xs(obstype, level="obstype", drop_level=False)
 
-        for sta in self.stations:
-            if obstype in sta.modeldata.keys():
-                modeltimeseries = sta.get_modeltimeseries(obstype)
-                modelobstype = modeltimeseries.obstype
-                modelname = modeltimeseries.modelname
-                modelvar = modeltimeseries.modelname
-                break
+        #filter on modelname
+        if modelname is not None:
+            if modelname not in trg_modeldatadf["modelname"].values:
+                raise MetObsModelDataError(f"There is no modeldata present of {modelname}")
+            else:
+                trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelvariable"] == modelvariable]
+
+
+        #filter on modelvariable
+        if modelvariable is not None:
+            if modelvariable not in trg_modeldatadf["modelvariable"].values:
+                raise MetObsModelDataError(f"There is no modeldata present of {modelvariable}")
+            else:
+                trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelname"] == modelname]
+
+
+       # If there are multiple model names or variables, warn and take first occurrence
+        if len(trg_modeldatadf["modelname"].unique()) > 1:
+            unique_models = trg_modeldatadf["modelname"].unique()
+            warnings.warn(
+                f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}",
+                UserWarning
+            )
+            trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelname"] == unique_models[0]]
+
+        if len(trg_modeldatadf["modelvariable"].unique()) > 1:
+            unique_vars = trg_modeldatadf["modelvariable"].unique()
+            warnings.warn(
+                f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}",
+                UserWarning
+            )
+            trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelvariable"] == unique_vars[0]]
+
+        # Get the final model metadata for display
+        modelname = trg_modeldatadf["modelname"].iloc[0]
+        modelvar = trg_modeldatadf["modelvariable"].iloc[0]
+        modelobstype = self.obstypes[obstype]
 
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
-        plotdf = (
-            modeldatadf.xs(obstype, level="obstype", drop_level=False)
+        plotdf = (trg_modeldatadf
             .reset_index()
             .set_index(["name", "obstype", "datetime"])
             .sort_index()

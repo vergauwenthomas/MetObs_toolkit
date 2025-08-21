@@ -74,6 +74,7 @@ class ModelTimeSeries:
 
         # model metadata
         self.modelname = modelname
+        #FIXME: is modelvariable not band_unit from the obstype?
         self.modelvariable = modelvariable
 
     # ------------------------------------------

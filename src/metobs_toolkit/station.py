@@ -64,7 +64,7 @@ class Station:
         }
 
         # Extra extracted data
-        self._modeldata = {}  # dict of ModelTimeSeries
+        self._modeldata = []  # list of ModelTimeSeries
 
     def _id(self) -> str:
         """A physical unique id.
@@ -135,8 +135,8 @@ class Station:
 
         # --- Merge Modeldata ----
         merged_modeldatalist = join_collections(
-            col_A=self.modeldata.values(),
-            col_B=other.modeldata.values(),
+            col_A=self.modeldata,
+            col_B=other.modeldata,
         )
 
         # Construct a new station
@@ -306,12 +306,14 @@ class Station:
             the value, and details of the corresponding model data.
         """
         concatlist = []
-        for modeldata in self.modeldata.values():
+        for modeldata in self.modeldata:
             df = (
                 modeldata.df.assign(obstype=modeldata.obstype.name)
                 .assign(
                     details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.obstype.model_unit} -> {modeldata.obstype.std_unit}"
                 )
+                .assign(modelname=modeldata.modelname)
+                .assign(modelvariable=modeldata.modelvariable)
                 .reset_index()
                 .set_index(["datetime", "obstype"])
             )
@@ -319,18 +321,20 @@ class Station:
         combdf = save_concat(concatlist)
         if combdf.empty:
             combdf = pd.DataFrame(
-                columns=["value", "details"],
+                columns=["value", "details", "modelname", "modelvariable"],
                 index=pd.MultiIndex(
                     levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
                 ),
             )
         # formatting
-        combdf = combdf[["value", "details"]]
+        combdf = combdf[["value", "details", "modelname", "modelvariable"]]
         combdf.sort_index(inplace=True)
         return combdf
 
     @log_entry
-    def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    def get_modeltimeseries(self, obstype: str,
+                            modelname: str | None = None,
+                            modelvariable: str | None = None) -> "ModelTimeSeries":  # type: ignore #noqa: F821
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
@@ -343,9 +347,53 @@ class Station:
         ModelTimeSeries
             The ModelTimeSeries instance for the specified observation type.
         """
-        self._obstype_has_modeldata_check(obstype)
-        return self.modeldata[obstype]
+        
+        if not bool(self.modeldata):
+            raise MetObsModelDataError(f"No model data found in {self}. ")
 
+        #Get all candidates of modeldata for target obstype
+        all_candidates = self.modeldata
+        
+        #1. obstype filter
+        candidates = [
+            modeldata for modeldata in all_candidates
+            if modeldata.obstype.name == str(obstype)
+        ]
+        
+        if len(candidates) == 0:
+            raise MetObsModelDataError(f"No model data found for {obstype} in {self}. The following modeldata is available: \n{all_candidates}")
+
+        #2. modelname filter
+        if modelname is not None:
+            candidates = [
+                modeldata for modeldata in candidates
+                if modeldata.modelname == str(modelname)
+            ]
+            if len(candidates) == 0:
+                raise MetObsModelDataError(f"No model data found for {obstype} and {modelname} in {self}. The following modeldata is available: \n{all_candidates}")
+
+        #3. modelvariable filter
+        if modelvariable is not None:
+            candidates = [
+                modeldata for modeldata in candidates
+                if str(modeldata.modelvariable) == str(modelvariable)
+            ]
+            if len(candidates) == 0:
+                if modelname is None:
+                    raise MetObsModelDataError(
+                        f"No model data found for {obstype} with model variable: {modelvariable} in {self}. The following modeldata is available: \n{all_candidates}"
+                    )
+                else:
+                    raise MetObsModelDataError(f"No model data found for {obstype}, {modelname} and {modelvariable} in {self}. The following modeldata is available: \n{all_candidates}")
+
+        if len(candidates) > 1:
+            raise MetObsModelDataError(
+                f"Multiple model data found for {obstype} in {self}. Please specify modelname and/or modelvariable. The following modeldata is available for {obstype}: \n{candidates}"
+            )
+        target = candidates[0]
+        return target
+    
+    
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -469,25 +517,22 @@ class Station:
             raise TypeError(
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
-        present_modeldata_ids = [modeldat._id() for modeldat in self.modeldata.values()]
-        # Test if there is already model data for the same obstype available
-        if (new_modeltimeseries._id() in present_modeldata_ids) & (not force_update):
-            raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
-            )
-
-        # NOTE: At the moment, the obstypename is used for keys in the station collection
-        # of modeltimeseries. So in addition to the ID that has to be unque, the key (i.g; the obstypename),
-        # must be different aswell!
-        present_keys = list(self.modeldata.keys())
-        target_key = new_modeltimeseries.obstype.name
-
-        if target_key in present_keys:
-            raise MetObsDataAlreadyPresent(
-                f"There is already a modeltimeseries instance with key: {target_key} stored in the modeldata: {self.modeldata}."
-            )
-
-        self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
+        present_modeldata_ids = [modeldat._id() for modeldat in self.modeldata]
+        
+        # Test if there is already model data for the same ID available
+        if (new_modeltimeseries._id() in present_modeldata_ids):
+            if force_update:
+                #Subset to all other id's
+                logger.warning(f"ModelTimeSeries with id {new_modeltimeseries._id()} already exists and will be overwritten due to force_update=True.")
+                self._modeldata = [md for md in self._modeldata if md._id() != new_modeltimeseries._id()]
+                self._modeldata.append(new_modeltimeseries)
+            else:
+                raise MetObsDataAlreadyPresent(
+                    f"There is already a modeltimeseries instance with id {new_modeltimeseries._id()}, and force_update is False."
+                )
+        else:
+            self._modeldata.append(new_modeltimeseries)
+        
 
     @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
@@ -534,8 +579,8 @@ class Station:
         if not bool(self.modeldata):
             infostr += printing.print_fmt_line("Station instance without model data.")
         else:
-            for obstype, modeldata in self.modeldata.items():
-                infostr += printing.print_fmt_line(f"{obstype}:", 1)
+            for modeldata in self.modeldata:
+                infostr += printing.print_fmt_line(f"{modeldata._id()}:", 1)
                 infostr += modeldata._get_info_core(nident_root=2)
 
         if printout:
@@ -1362,6 +1407,8 @@ class Station:
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
+        modelname: str | None = None,
+        modelvariable: str | None = None,
         linecolor: Union[str, None] = None,
         title: Union[str, None] = None,
         linestyle: str = "--",
@@ -1393,6 +1440,9 @@ class Station:
         """
         # test if the obstype has model data
         self._obstype_has_modeldata_check(obstype)
+        trg_modeltimeseries = self.get_modeltimeseries(obstype=obstype,
+                                                       modelname=modelname,
+                                                       modelvariable=modelvariable)
 
         # Create new axes if needed
         if ax is None:
@@ -1423,10 +1473,10 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{self.get_modeltimeseries(obstype).modelname}:{self.get_modeltimeseries(obstype).modelvariable}@",
+            legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
         )
         # Styling
-        obstypeinstance = self.get_modeltimeseries(obstype).obstype
+        obstypeinstance = trg_modeltimeseries.obstype
 
         # Set title:
         if title is None:
@@ -1594,7 +1644,8 @@ class Station:
 
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False
+        self, target_obstype: str, overwrite_fill: bool = False,
+        modelname: str | None = None, modelvariable: str | None = None
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1630,12 +1681,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        if target_obstype not in self.modeldata:
-            raise MetObsModelDataError(
-                f"No Modeldata found for {target_obstype} in {self}"
-            )
-
-        modeltimeseries = self.get_modeltimeseries(target_obstype)
+        modeltimeseries = self.get_modeltimeseries(target_obstype,
+                                                    modelname=modelname,
+                                                    modelvariable=modelvariable)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1651,6 +1699,8 @@ class Station:
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1704,12 +1754,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        if target_obstype not in self.modeldata:
-            raise MetObsModelDataError(
-                f"No Modeldata found for {target_obstype} in {self}"
-            )
-
-        modeltimeseries = self.get_modeltimeseries(target_obstype)
+        modeltimeseries = self.get_modeltimeseries(target_obstype,
+                                                    modelname=modelname,
+                                                    modelvariable=modelvariable)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1732,6 +1779,8 @@ class Station:
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -1791,12 +1840,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        if target_obstype not in self.modeldata:
-            raise MetObsModelDataError(
-                f"No Modeldata found for {target_obstype} in {self}"
-            )
-
-        modeltimeseries = self.get_modeltimeseries(target_obstype)
+        modeltimeseries = self.get_modeltimeseries(target_obstype,
+                                                    modelname=modelname,
+                                                    modelvariable=modelvariable)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1819,6 +1865,8 @@ class Station:
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,
+        modelname: str | None = None,
+        modelvariable: str | None = None
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -1889,12 +1937,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        if target_obstype not in self.modeldata:
-            raise MetObsModelDataError(
-                f"No Modeldata found for {target_obstype} in {self}"
-            )
-
-        modeltimeseries = self.get_modeltimeseries(target_obstype)
+        modeltimeseries = self.get_modeltimeseries(target_obstype,
+                                                    modelname=modelname,
+                                                    modelvariable=modelvariable)
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -2013,9 +2058,4 @@ class Station:
                 f"{self} does not hold {obstype} sensordata. The present sensordata is: {list(self.obsdata.keys())}"
             )
 
-    def _obstype_has_modeldata_check(self, obstype: str) -> None:
-        """Raise error if obstype is not present in modeldata."""
-        if obstype not in self.modeldata.keys():
-            raise MetObsObstypeNotFound(
-                f"There is no {obstype} - modeldata present for {self}"
-            )
+    

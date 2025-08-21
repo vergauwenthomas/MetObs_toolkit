@@ -305,7 +305,7 @@ class TestDemoDataset:
         )
 
         # test get info on metadata-only dataset
-        for modeltimeseries in dataset.get_station("vlinder18").modeldata.values():
+        for modeltimeseries in dataset.get_station("vlinder18").modeldata:
             _ = modeltimeseries.get_info(printout=False)
 
     def test_ERA5_extraction(self, overwrite_solution=False):
