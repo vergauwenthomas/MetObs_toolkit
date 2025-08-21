@@ -8,7 +8,7 @@ from metobs_toolkit.backend_collection.loggingmodule import log_entry
 logger = logging.getLogger(__name__)
 
 
-possible_time_aggregates = [  # TYPO
+possible_time_aggregates = [
     "year",
     "month",
     "hour",
