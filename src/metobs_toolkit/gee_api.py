@@ -19,9 +19,12 @@ import ee
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsGEEDatasetError
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger(__file__)
 
 
+@log_entry
 def connect_to_gee(**kwargs) -> None:
     """
     Set up authentication for the use of the GEE Python API.
@@ -66,11 +69,11 @@ def connect_to_gee(**kwargs) -> None:
     logger.info("Entering connect_to_gee function.")
 
     if "/runner/" in os.getcwd():  # Triggered on GitHub action runner
-        _auth_on_runner()
+        auth_on_runner()
         return
 
     if os.getenv("READTHEDOCS_VIRTUALENV_PATH") is not None:  # Triggered on RTD builds
-        _auth_on_rtd()
+        auth_on_rtd()
         return
 
     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
@@ -83,8 +86,8 @@ def connect_to_gee(**kwargs) -> None:
         ee.Initialize()
     return
 
-
-def _auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
+@log_entry
+def auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     """
     Authenticate and initialize the GEE API using a service account for ReadTheDocs builds.
 
@@ -99,7 +102,6 @@ def _auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     EnvironmentError
         If the specified environment variable is not set or the key JSON is missing.
     """
-    logger.debug("Entering _auth_on_rtd function.")
 
     if os.getenv(secret) is None:
         raise EnvironmentError(f"{secret} variable is not set or not present in scope.")
@@ -118,8 +120,8 @@ def _auth_on_rtd(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     # Initiate Google API
     ee.Initialize(credentials)
 
-
-def _auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
+@log_entry
+def auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     """
     Authenticate and initialize the GEE API using a service account for CI runners.
 
@@ -138,7 +140,6 @@ def _auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     -------
     This function is only relevant when there is no stdin available (typical for GitHub runners).
     """
-    logger.debug("Entering authentication on runnen funtion")
     service_account = "metobs-service-account@metobs-public.iam.gserviceaccount.com"
     key_json = os.getenv(secret)
     if not key_json:
@@ -146,8 +147,8 @@ def _auth_on_runner(secret: str = "GEE_SERVICE_ACCOUNT") -> None:
     credentials = ee.ServiceAccountCredentials(service_account, key_data=key_json)
     ee.Initialize(credentials)
 
-
-def _datetime_to_gee_datetime(datetime_obj) -> ee.Date:
+@log_entry
+def datetime_to_gee_datetime(datetime_obj) -> ee.Date:
     """
     Convert a Python datetime object to a GEE ee.Date object.
 
@@ -166,10 +167,10 @@ def _datetime_to_gee_datetime(datetime_obj) -> ee.Date:
     TypeError
         If datetime_obj is not a datetime.datetime instance.
     """
-    logger.debug("Entering _datetime_to_gee_datetime function.")
     return ee.Date(datetime_obj.replace(tzinfo=None))
 
 
+@log_entry
 def get_ee_obj(model, target_bands: list = [], force_mosaic: bool = None):
     """
     Get an ee.Image or ee.ImageCollection from a GEE object.
@@ -195,7 +196,6 @@ def get_ee_obj(model, target_bands: list = [], force_mosaic: bool = None):
     MetObsGEEDatasetError
         If no image could be constructed.
     """
-    logger.debug("Entering get_ee_obj function.")
 
     # get the dataset
     if model.is_image:
@@ -249,7 +249,6 @@ def _is_eeobj_empty(geeobj) -> bool:
     TypeError
         If geeobj is not an ee.Image or ee.ImageCollection.
     """
-    logger.debug("Entering _is_eeobj_empty function.")
     if isinstance(geeobj, ee.ImageCollection):
         return geeobj.size().getInfo() == 0
     elif isinstance(geeobj, ee.Image):
@@ -270,7 +269,6 @@ def _is_image(geeobj) -> bool:
     bool
         True if geeobj is an ee.Image, False otherwise.
     """
-    logger.debug("Entering _is_image function.")
     return isinstance(geeobj, ee.image.Image)
 
 
@@ -288,7 +286,6 @@ def _is_imagecollection(geeobj) -> bool:
     bool
         True if geeobj is an ee.ImageCollection, False otherwise.
     """
-    logger.debug("Entering _is_imagecollection function.")
     return isinstance(geeobj, ee.imagecollection.ImageCollection)
 
 
@@ -313,7 +310,6 @@ def _validate_metadf(metadf: pd.DataFrame) -> bool:
     TypeError
         If metadf is not a pandas DataFrame.
     """
-    logger.debug("Entering _validate_metadf function.")
     if metadf.empty:
         return False
     if metadf["geometry"].x.isnull().values.all():
@@ -348,7 +344,6 @@ def _addDate(image) -> ee.Image:
     TypeError
         If image is not an ee.Image.
     """
-    logger.debug("Entering _addDate function.")
     img_date = ee.Date(image.date())
     img_date = ee.Number.parse(img_date.format("YYYYMMddHHmmss"))
     return image.addBands(ee.Image(img_date).rename("datetime"))
@@ -373,7 +368,6 @@ def _df_to_features_point_collection(df: pd.DataFrame) -> ee.FeatureCollection:
     TypeError
         If df is not a pandas DataFrame.
     """
-    logger.debug("Entering _df_to_features_point_collection function.")
     features = []
     for index, row in df.reset_index().iterrows():
         # Construct the geometry from dataframe
@@ -410,7 +404,6 @@ def _df_to_features_buffer_collection(
     TypeError
         If df is not a pandas DataFrame or bufferradius is not a float or int.
     """
-    logger.debug("Entering _df_to_features_buffer_collection function.")
     features = []
     for index, row in df.reset_index().iterrows():
         # Construct the geometry from dataframe
@@ -426,6 +419,7 @@ def _df_to_features_buffer_collection(
     return ee.FeatureCollection(features)
 
 
+@log_entry
 def coordinates_available(
     metadf: pd.DataFrame, latcol: str = "lat", loncol: str = "lon"
 ) -> bool:
@@ -451,7 +445,6 @@ def coordinates_available(
     TypeError
         If metadf is not a pandas DataFrame or latcol/loncol are not strings.
     """
-    logger.debug("Entering coordinates_available function.")
     if metadf[latcol].isnull().all():
         logger.warning("No coordinates are found!")
         return False
@@ -490,7 +483,6 @@ def _estimate_data_size(
     TypeError
         If arguments are not of the correct type.
     """
-    logger.debug("Entering _estimate_data_size function.")
 
     datatimerange = pd.date_range(start=startdt, end=enddt, freq=time_res)
     return metadf.shape[0] * len(datatimerange) * n_bands

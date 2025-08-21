@@ -10,11 +10,14 @@ Created on Thu Mar  2 16:00:59 2023
 import logging
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger(__name__)
 
 pd.options.mode.copy_on_write = True
 
 
+@log_entry
 def save_concat(targets, **kwargs):
     if not isinstance(targets, list):
         targets = list(targets)
@@ -36,6 +39,7 @@ def save_concat(targets, **kwargs):
         return pd.DataFrame(columns=list(all_columns), index=list(all_index))
 
 
+@log_entry
 def to_timedelta(inputdelta):
     """Convert input to a pandas timedelta object."""
     if isinstance(inputdelta, pd.Timedelta):

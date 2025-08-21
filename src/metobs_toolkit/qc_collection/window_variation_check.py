@@ -4,9 +4,12 @@ import pandas as pd
 
 from .common_functions import test_moving_window_condition
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def window_variation_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
@@ -56,7 +59,6 @@ def window_variation_check(
     This check is similar to the step check, but not identical. The step check tests a maximum allowed increase or decrease
     with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
     """
-    logger.debug("Entering function window_variation_check")
 
     # Validate argument values
     if max_decrease_per_second > 0:
@@ -88,6 +90,7 @@ def window_variation_check(
     )
 
     # Define window test (applied on the windows)
+    @log_entry
     def variation_test(window: pd.Series) -> int:
         """
         Test if the variation in the window exceeds the allowed increase or decrease.

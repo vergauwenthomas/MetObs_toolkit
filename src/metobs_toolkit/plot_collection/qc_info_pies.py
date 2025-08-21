@@ -9,11 +9,14 @@ from metobs_toolkit.settings_collection import label_def, label_to_color_map
 from metobs_toolkit.plot_collection import default_plot_settings
 
 # Configure logging
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 pieplotsettings = default_plot_settings["pie_charts"]
 
 
+@log_entry
 def qc_overview_pies(
     df: pd.DataFrame,
     figsize: Tuple[int, int] = pieplotsettings["figsize"],
@@ -53,7 +56,6 @@ def qc_overview_pies(
     TypeError
         If any of the arguments are not of the expected type.
     """
-    logger.debug("Entering qc_overview_pies function.")
 
     # Validate argument types
     if not isinstance(df, pd.DataFrame):

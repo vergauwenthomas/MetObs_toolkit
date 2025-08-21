@@ -2,9 +2,12 @@ import logging
 from typing import Union
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def create_a_combined_df(
     leadseries: pd.Series, trailseries: pd.Series, gap
 ) -> pd.DataFrame:
@@ -27,7 +30,6 @@ def create_a_combined_df(
         Combined DataFrame with columns 'value' and 'label', indexed by
         datetime.
     """
-    logger.debug("Entering create_a_combined_df")
     leaddf = pd.DataFrame(
         index=leadseries.index, data={"value": leadseries, "label": "lead"}
     )
@@ -40,6 +42,7 @@ def create_a_combined_df(
     return pd.concat([leaddf, traildf, gapdf]).sort_index()
 
 
+@log_entry
 def add_modeldata_to_combdf(combineddf: pd.DataFrame, modeltimeseries) -> pd.DataFrame:
     """
     Add model data to a combined DataFrame, interpolating model values to
@@ -60,7 +63,6 @@ def add_modeldata_to_combdf(combineddf: pd.DataFrame, modeltimeseries) -> pd.Dat
         DataFrame with an additional 'modelvalue' column, aligned and
         interpolated to the combineddf index.
     """
-    logger.debug("Entering add_modeldata_to_combdf")
     modelseries = modeltimeseries.series
 
     # 1. Ensure both series have the same timezone
@@ -99,6 +101,7 @@ def add_modeldata_to_combdf(combineddf: pd.DataFrame, modeltimeseries) -> pd.Dat
     return combdf_reindexed
 
 
+@log_entry
 def check_if_modeltimeseries_is_compatible(
     gap,
     modeltimeseries,
@@ -127,7 +130,6 @@ def check_if_modeltimeseries_is_compatible(
     tuple of (bool, str)
         (True, "_") if compatible, otherwise (False, reason).
     """
-    logger.debug("Entering check_if_modeltimeseries_is_compatible")
     # Check if start of model data is before gap start
     if modeltimeseries.start_datetime <= (gap.start_datetime - lp_duration):
         pass
@@ -163,6 +165,7 @@ of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
     return True, "_"
 
 
+@log_entry
 def get_trailing_period(
     gap,
     sensordata,
@@ -194,7 +197,6 @@ def get_trailing_period(
     tuple
         (trailing_period: pd.Series, continueflag: bool, msg: str)
     """
-    logger.debug("Entering get_trailing_period")
     # Compute the trailing period from non-NaN records
     sta_obs_series = sensordata.series
 
@@ -234,6 +236,7 @@ but {n_records} needed)"
     return tp, continueflag, msg
 
 
+@log_entry
 def get_leading_period(
     gap,
     sensordata,
@@ -265,7 +268,6 @@ def get_leading_period(
     tuple
         (leading_period: pd.Series, continueflag: bool, msg: str)
     """
-    logger.debug("Entering get_leading_period")
     # Compute the leading period from non-NaN records
     sta_obs_series = sensordata.series
 

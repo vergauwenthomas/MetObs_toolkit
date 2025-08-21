@@ -129,7 +129,7 @@ class TestDemoDataset:
         ax = station.make_plot_of_modeldata(obstype="temp")
         fig = ax.get_figure()
         return fig
-    
+
     @pytest.mark.mpl_image_compare
     def test_modeldatatimeseries_timeseries(self):
         #  1. get_startpoint data
@@ -139,7 +139,9 @@ class TestDemoDataset:
             methodname="test_ERA5_extraction",
         )
 
-        modelseries = dataset_with_era.get_station("vlinder05").get_modeltimeseries('temp')
+        modelseries = dataset_with_era.get_station("vlinder05").get_modeltimeseries(
+            "temp"
+        )
         ax = modelseries.make_plot()
         fig = ax.get_figure()
         return fig

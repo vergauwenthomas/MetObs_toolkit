@@ -34,7 +34,10 @@ from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_da
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
+
 
 
 class Station:
@@ -149,6 +152,7 @@ class Station:
         """Return a string representation for debugging."""
         return f"Station instance of {self.name}"
 
+    @log_entry
     def copy(self, deep: bool = True) -> "Station":
         """
         Return a copy of the Station.
@@ -163,7 +167,6 @@ class Station:
         Station
             The copied station.
         """
-        logger.debug("Entering Station.copy")
 
         if deep:
             return copy.deepcopy(self)
@@ -184,6 +187,7 @@ class Station:
         """The SensorData related to the station, as a dictionary."""
         return dict(self.obsdata)
 
+    @log_entry
     def get_sensor(self, obstype: str) -> "SensorData":  # type: ignore #noqa: F821
         """Get the SensorData instance for a specific observation type.
 
@@ -201,6 +205,7 @@ class Station:
         return self.obsdata[obstype]
 
     @copy_doc(station_to_xr)
+    @log_entry
     def to_xr(self) -> "xarray.Dataset":
         return station_to_xr(self)
 
@@ -336,6 +341,7 @@ class Station:
         combdf.sort_index(inplace=True)
         return combdf
 
+    @log_entry
     def get_modeltimeseries(self, obstype: str) -> "ModelTimeSeries":  # type: ignore #noqa: F821
         """Get the ModelTimeSeries instance for a specific observation type.
 
@@ -416,6 +422,7 @@ class Station:
         """
         return sorted(list(self.sensordata.keys()))
 
+    @log_entry
     def add_to_sensordata(
         self, new_sensordata: SensorData, force_update: bool = False
     ) -> None:
@@ -435,7 +442,6 @@ class Station:
         -------
         None
         """
-        logger.debug("Entering add_to_sensordata for %s", self)
         # Validate argument types
         if not isinstance(new_sensordata, SensorData):
             raise TypeError("new_sensordata must be an instance of SensorData.")
@@ -450,6 +456,7 @@ class Station:
 
         self.obsdata.update({new_sensordata.obstype.name: new_sensordata})
 
+    @log_entry
     def add_to_modeldata(
         self, new_modeltimeseries: ModelTimeSeries, force_update: bool = False
     ) -> None:
@@ -469,7 +476,6 @@ class Station:
         -------
         None
         """
-        logger.debug("Entering add_to_modeldata for %s", self)
         # Validate argument types
         if not isinstance(new_modeltimeseries, ModelTimeSeries):
             raise TypeError(
@@ -495,6 +501,7 @@ class Station:
 
         self._modeldata.update({new_modeltimeseries.obstype.name: new_modeltimeseries})
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print detailed information about the station.
@@ -511,7 +518,6 @@ class Station:
             A string containing the station information if `printout` is False.
             Otherwise, returns None.
         """
-        logger.debug("Entering get_info for %s", self)
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Station")
@@ -549,6 +555,7 @@ class Station:
         else:
             return infostr
 
+    @log_entry
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
@@ -613,7 +620,6 @@ class Station:
         -------
         Cumulative tolerance errors can be introduced when this method is called multiple times.
         """
-        logger.debug("Entering resample for %s", self)
         # format arguments
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
@@ -639,6 +645,7 @@ class Station:
                 origin_simplify_tolerance=origin_simplify_tolerance,
             )
 
+    @log_entry
     def convert_outliers_to_gaps(
         self, all_observations: bool = False, obstype: str = "temp"
     ) -> None:
@@ -667,7 +674,6 @@ class Station:
         -------
         QC labels are lost when outliers are converted to gaps.
         """
-        logger.debug("Entering convert_outliers_to_gaps for %s", self)
         if all_observations:
             for sensor in self.sensordata.values():
                 sensor.convert_outliers_to_gaps()
@@ -686,6 +692,7 @@ class Station:
         for sensordat in self.sensordata.values():
             sensordat._rename(targetname)
 
+    @log_entry
     def get_static_gee_point_data(
         self,
         geestaticdatasetmanager: GEEStaticDatasetManager,
@@ -718,7 +725,6 @@ class Station:
         This method interacts with the GEE API to fetch metadata for the station's location.
         Ensure that the GEE API is properly authenticated and initialized before using this method.
         """
-        logger.debug("Entering get_static_gee_point_data for %s", self)
         if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
@@ -732,10 +738,13 @@ class Station:
 
         return value
 
-    def get_LCZ(self,
-                overwrite: bool = True,
-                initialize_gee: bool = True,
-                apply_seamask_fix: bool = True) -> str:
+    @log_entry
+    def get_LCZ(
+        self,
+        overwrite: bool = True,
+        initialize_gee: bool = True,
+        apply_seamask_fix: bool = True,
+    ) -> str:
         """
         Retrieve Local Climate Zone (LCZ) for the station using Google Earth Engine (GEE).
 
@@ -749,7 +758,7 @@ class Station:
             The LCZ map is only defined over land, and thus locations in sea
             will have a LCZ of Nan. If this argument is set to True, Nan values
             return by the GEE call are converted to the LCZ-G (water) category.
-        
+
         Returns
         -------
         str
@@ -760,8 +769,7 @@ class Station:
         This method relies on the `get_static_gee_point_data` function and the
         `default_gee_datasets` dictionary to fetch the LCZ data.
         """
-        logger.debug("Entering get_LCZ for %s", self)
-        lcz =  self.get_static_gee_point_data(
+        lcz = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
@@ -771,13 +779,14 @@ class Station:
                 # LCZ is a string, so no seamask fix needed
                 return lcz
             elif np.isnan(lcz):
-                lcz = default_gee_datasets["LCZ"].class_map[17] #LCZ-G water
+                lcz = default_gee_datasets["LCZ"].class_map[17]  # LCZ-G water
                 if overwrite:
                     self.site.set_geedata(default_gee_datasets["LCZ"].name, lcz)
             else:
                 raise ValueError("Unexpected LCZ value")
         return lcz
 
+    @log_entry
     def get_altitude(
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> float:
@@ -801,13 +810,13 @@ class Station:
         This method relies on the `get_static_gee_point_data` function and the
         `default_gee_datasets` dictionary to fetch the altitude data.
         """
-        logger.debug("Entering get_altitude for %s", self)
         return self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["altitude"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
         )
 
+    @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
         geestaticdataset: GEEStaticDatasetManager,
@@ -848,7 +857,6 @@ class Station:
         -------
         It can happen that for stations located on small islands, or close to the coast, the sea-mask is not used as a landcover fraction.
         """
-        logger.debug("Entering get_static_gee_buffer_fraction_data for %s", self)
         if not isinstance(geestaticdataset, GEEStaticDatasetManager):
             raise ValueError(
                 f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdataset)}"
@@ -865,6 +873,7 @@ class Station:
                 self.site.set_gee_buffered_frac_data(buffer=bufferrad, data=fractions)
         return nesteddict
 
+    @log_entry
     def get_landcover_fractions(
         self, buffers: list = [100], aggregate: bool = False, overwrite: bool = True
     ) -> dict:
@@ -894,7 +903,6 @@ class Station:
         -------
         This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
         """
-        logger.debug("Entering get_landcover_fractions for %s", self)
         return self.get_static_gee_buffer_fraction_data(
             geestaticdataset=default_gee_datasets["worldcover"],
             buffers=buffers,
@@ -902,6 +910,7 @@ class Station:
             overwrite=overwrite,
         )
 
+    @log_entry
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
@@ -980,7 +989,6 @@ class Station:
           the method returns None.
 
         """
-        logger.debug("Entering get_gee_timeseries_data for %s", self)
         # Check geedynamic dataset
         if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
             raise ValueError(
@@ -1050,6 +1058,7 @@ class Station:
 
         return df
 
+    @log_entry
     def gross_value_check(
         self,
         target_obstype: str = "temp",
@@ -1077,7 +1086,6 @@ class Station:
         This method modifies the outliers in place and does not return anything.
         You can use the `outliersdf` property to view all flagged outliers.
         """
-        logger.debug("Entering gross_value_check for %s", self)
         # argument validity checks
         self._obstype_is_known_check(target_obstype)
 
@@ -1085,6 +1093,7 @@ class Station:
             lower_threshold=lower_threshold, upper_threshold=upper_threshold
         )
 
+    @log_entry
     def persistence_check(
         self,
         target_obstype: str = "temp",
@@ -1130,7 +1139,6 @@ class Station:
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
         """
-        logger.debug("Entering persistence_check for %s", self)
         # argument checks
         self._obstype_is_known_check(target_obstype)
         timewindow = fmt_timedelta_arg(timewindow)
@@ -1140,6 +1148,7 @@ class Station:
             timewindow=timewindow, min_records_per_window=min_records_per_window
         )
 
+    @log_entry
     def repetitions_check(
         self, target_obstype: str = "temp", max_N_repetitions: int = 5
     ) -> None:
@@ -1180,7 +1189,6 @@ class Station:
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
         """
-        logger.debug("Entering repetitions_check for %s", self)
         # argument checks
         self._obstype_is_known_check(target_obstype)
 
@@ -1189,6 +1197,7 @@ class Station:
             max_N_repetitions=max_N_repetitions
         )
 
+    @log_entry
     def step_check(
         self,
         target_obstype: str = "temp",
@@ -1231,7 +1240,6 @@ class Station:
           common than a sudden increase which is often the result of a radiation error.
 
         """
-        logger.debug("Entering step_check for %s", self)
         # argument checks
         self._obstype_is_known_check(target_obstype)
 
@@ -1241,6 +1249,7 @@ class Station:
             max_decrease_per_second=max_decrease_per_second,
         )
 
+    @log_entry
     def window_variation_check(
         self,
         target_obstype: str = "temp",
@@ -1295,7 +1304,6 @@ class Station:
           with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
 
         """
-        logger.debug("Entering window_variation_check for %s", self)
         # argument checks
         self._obstype_is_known_check(target_obstype)
         timewindow = fmt_timedelta_arg(timewindow)
@@ -1308,6 +1316,7 @@ class Station:
             max_decrease_per_second=max_decrease_per_second,
         )
 
+    @log_entry
     def get_qc_stats(
         self, target_obstype: str = "temp", make_plot: bool = True
     ) -> pd.DataFrame:
@@ -1345,7 +1354,6 @@ class Station:
             * `N_checked`: Number of records checked for the specific QC check.
 
         """
-        logger.debug("Entering get_qc_stats for %s", self)
         # argument checks
         self._obstype_is_known_check(target_obstype)
         # get freq statistics
@@ -1362,6 +1370,7 @@ class Station:
         else:
             return qc_df
 
+    @log_entry
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
@@ -1394,7 +1403,6 @@ class Station:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        logger.debug("Entering make_plot_of_modeldata for %s", self)
         # test if the obstype has model data
         self._obstype_has_modeldata_check(obstype)
 
@@ -1455,6 +1463,7 @@ class Station:
 
         return ax
 
+    @log_entry
     def make_plot(
         self,
         obstype: str = "temp",
@@ -1510,7 +1519,6 @@ class Station:
         * The x-axis timestamps are formatted according to the timezone of the data.
 
         """
-        logger.debug("Entering make_plot for %s", self)
         # test if obstype have sensordata
         self._obstype_is_known_check(obstype)
 
@@ -1596,6 +1604,7 @@ class Station:
 
         return ax
 
+    @log_entry
     def fill_gaps_with_raw_modeldata(
         self, target_obstype: str, overwrite_fill: bool = False
     ) -> None:
@@ -1629,7 +1638,6 @@ class Station:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
-        logger.debug("Entering fill_gaps_with_raw_modeldata for %s", self)
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -1646,6 +1654,7 @@ class Station:
             modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill
         )
 
+    @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
         target_obstype: str,
@@ -1698,7 +1707,6 @@ class Station:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
-        logger.debug("Entering fill_gaps_with_debiased_modeldata for %s", self)
 
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
@@ -1728,6 +1736,7 @@ class Station:
             overwrite_fill=overwrite_fill,
         )
 
+    @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
@@ -1786,7 +1795,6 @@ class Station:
         ----------
         Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
         """
-        logger.debug("Entering fill_gaps_with_diurnal_debiased_modeldata for %s", self)
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -1814,6 +1822,7 @@ class Station:
             overwrite_fill=overwrite_fill,
         )
 
+    @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
@@ -1912,6 +1921,7 @@ class Station:
             overwrite_fill=overwrite_fill,
         )
 
+    @log_entry
     def interpolate_gaps(
         self,
         target_obstype: str,
@@ -1990,7 +2000,6 @@ class Station:
         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
         """
-        logger.debug("Entering interpolate_gaps for %s", self)
         # special formatters
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
@@ -2022,3 +2031,6 @@ class Station:
             raise MetObsObstypeNotFound(
                 f"There is no {obstype} - modeldata present for {self}"
             )
+
+
+print(Station.df.__doc__)

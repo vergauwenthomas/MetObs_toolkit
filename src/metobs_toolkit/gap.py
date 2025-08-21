@@ -18,6 +18,8 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
     fill_with_weighted_diurnal_debias,
 )
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 _unfilled_label = "unfilled"
@@ -134,6 +136,7 @@ class Gap:
     #    Get info methods
     # ------------------------------------------
 
+    @log_entry
     def flag_can_be_filled(self, overwrite: bool = False) -> bool:
         """
         Determine if the gap can be filled.
@@ -164,6 +167,7 @@ class Gap:
         else:
             return True
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Print or return detailed information about the Gap.
@@ -178,7 +182,6 @@ class Gap:
         str or None
             The gap information as a string if printout is False, otherwise None.
         """
-        logger.debug(f"Entering get_info for {self} with printout={printout}")
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Gap")
@@ -204,6 +207,7 @@ class Gap:
         else:
             return infostr
 
+    @log_entry
     def debiased_model_gapfill(
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821
@@ -253,8 +257,6 @@ class Gap:
         5. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
-
-        logger.debug(f"Entering debiased_model_gapfill for {self}")
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -327,6 +329,7 @@ class Gap:
         # update details
         self._extra_info = filleddf["msg"].rename("details")
 
+    @log_entry
     def diurnal_debiased_model_gapfill(
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821
@@ -386,7 +389,6 @@ class Gap:
         Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
-        logger.debug(f"Entering diurnal_debiased_model_gapfill for {self}")
         self._fillkwargs = {
             "applied_gapfill_method": "diurnal_debias_model_gapfill",
             "leading_period_duration": leading_period_duration,
@@ -456,6 +458,7 @@ class Gap:
         # update details
         self._extra_info = filleddf["msg"].rename("details")
 
+    @log_entry
     def weighted_diurnal_debiased_model_gapfill(
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821
@@ -525,7 +528,6 @@ class Gap:
         Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
-        logger.debug(f"Entering weighted_debiased_model_gapfill for {self}")
 
         self._fillkwargs = {
             "applied_gapfill_method": "weighted_diurnal_debias_model_gapfill",
@@ -604,6 +606,7 @@ class Gap:
         # update details
         self._extra_info = filleddf["msg"].rename("details")
 
+    @log_entry
     def raw_model_gapfill(self, modeltimeseries: ModelTimeSeries) -> None:
         """
         Fill the gap using model data without correction.
@@ -631,7 +634,6 @@ class Gap:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
-        logger.debug(f"Entering raw_model_gapfill for {self}")
         self._fillkwargs = {"applied_gapfill_method": "raw_model_gapfill"}
 
         # 1. Check validity of modeltimeseries
@@ -686,6 +688,7 @@ class Gap:
         )
         self._extra_info.loc[self.records.isna()] = "Unsuccessful raw modeldata fill."
 
+    @log_entry
     def interpolate(
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821
@@ -754,7 +757,6 @@ class Gap:
         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
         """
-        logger.debug(f"Entering interpolate for {self}")
         # store fill settings
         self._fillkwargs = {
             "applied_gapfill_method": "interpolation",
@@ -854,6 +856,7 @@ class Gap:
     #    Helping methods
     # ------------------------------------------
 
+    @log_entry
     def flush_fill(self) -> None:
         """
         Clear all fill information for this gap.
@@ -910,7 +913,6 @@ class Gap:
             whether the setup was successful. If unsuccessful, the leading and trailing
             periods will be None, and the flag will be False.
         """
-        logger.debug(f"Entering _setup_lead_and_trail_for_debias_gapfill for {self}")
 
         # Validate argument types
 

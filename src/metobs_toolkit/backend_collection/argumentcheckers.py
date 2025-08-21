@@ -8,9 +8,12 @@ import pandas as pd
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsArgumentError
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
     if (none_is_none) & (timedeltaarg is None):
         return None
@@ -32,6 +35,7 @@ convert it to a pd.Timedelta()."
     return dt
 
 
+@log_entry
 def fmt_datetime_arg(
     datetimearg, tz_if_dt_is_naive="UTC", none_is_none=True
 ) -> pd.Timestamp:

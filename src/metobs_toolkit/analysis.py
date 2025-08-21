@@ -25,9 +25,9 @@ from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
-
-
 
 
 class Analysis:
@@ -109,7 +109,6 @@ but a {type(Dataholder)}"
             DataFrame indexed by ['datetime', 'name'] and containing
             observation columns.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.df property")
         return self.fulldf.set_index(["datetime", "name"])[self._df_cols]
 
     def __eq__(self, other: object) -> bool:
@@ -126,11 +125,11 @@ but a {type(Dataholder)}"
         bool
             True if both the data and metadata are equal, False otherwise.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.__eq__")
         if not isinstance(other, Analysis):
             return False
         return self.df.equals(other.df) and self.metadf.equals(other.metadf)
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
         Provides information about the Analysis instance, including the number
@@ -149,7 +148,6 @@ but a {type(Dataholder)}"
             Returns None if `printout` is True. Returns the information string
             if `printout` is False.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.get_info")
 
         infostr = ""
         infostr += printing.print_fmt_title("General info of Analysis")
@@ -170,6 +168,7 @@ but a {type(Dataholder)}"
         else:
             return infostr
 
+    @log_entry
     def get_tz(self) -> str:
         """
         Retrieve the timezone information of the 'datetime' index.
@@ -179,9 +178,9 @@ but a {type(Dataholder)}"
         str
             The timezone of the 'datetime' index.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.get_tz")
         return self.df.index.get_level_values("datetime").tz
 
+    @log_entry
     def apply_filter_on_metadata(self, filter_string: str) -> "Analysis":
         """
         Apply a filter expression to the metadata and update the records
@@ -206,7 +205,6 @@ but a {type(Dataholder)}"
         is not put in quotation marks.
 
         """
-        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_metadata")
 
         # Apply the filter string
         try:
@@ -223,6 +221,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after applying the filter."
             )
 
+    @log_entry
     def apply_filter_on_records(self, filter_string: str) -> "Analysis":
         """
         Apply a filter expression to the records.
@@ -246,7 +245,6 @@ but a {type(Dataholder)}"
         is not put in quotation marks.
 
         """
-        logger.debug(f"Entering {self.__class__.__name__}.apply_filter_on_records")
         # Apply the filter string
         try:
             self.fulldf.query(filter_string, inplace=True)
@@ -259,6 +257,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after applying the filter."
             )
 
+    @log_entry
     def subset_period(
         self,
         startdt: Union[pd.Timestamp, datetypeclass, str],
@@ -285,7 +284,6 @@ but a {type(Dataholder)}"
         This function modifies the data in place, so filtered-out data will
         be lost.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.subset_period")
         startdt = fmt_datetime_arg(startdt)
         enddt = fmt_datetime_arg(enddt)
 
@@ -298,6 +296,7 @@ but a {type(Dataholder)}"
                 "The resulting DataFrame is empty after subsetting the period."
             )
 
+    @log_entry
     def aggregate_df(
         self,
         trgobstype: str = "temp",
@@ -324,7 +323,6 @@ but a {type(Dataholder)}"
             A DataFrame with aggregated values, indexed by the specified
             grouping columns.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.aggregate_df")
 
         if not callable(method):
             raise TypeError("method must be callable.")
@@ -363,6 +361,7 @@ These are all the possible agg categories: \
         agg_df = agg_df.set_index(agg)
         return agg_df
 
+    @log_entry
     def plot_diurnal_cycle(
         self,
         trgobstype: str = "temp",
@@ -410,7 +409,6 @@ These are all the possible agg categories: \
             The plot axes. If `return_data` is True, returns a tuple of the
             plot axes and the aggregated DataFrame.
         """
-        logger.debug(f"Entering {self.__class__.__name__}.plot_diurnal_cycle")
 
         # test if trgobstype is known
         self._obstype_is_known(trgobstype)
@@ -496,6 +494,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
             return ax, aggdf
         return ax
 
+    @log_entry
     def plot_diurnal_cycle_with_reference_station(
         self,
         ref_station: str,
@@ -679,7 +678,6 @@ with {ref_station} as reference, grouped per {colorby}."
         MetObsObstypeNotFound
             If the observation type is not present.
         """
-        logger.debug(f"Entering {self.__class__.__name__}._obstype_is_known")
         if trgobstype in self.df.columns:
             return
         raise MetObsObstypeNotFound(f"{trgobstype} is not present in {self}.")
@@ -699,4 +697,3 @@ possible_agg_categories"
         )
         metacategories = list(self.metadf.reset_index().columns)
         return list(set(metacategories + possible_time_aggregates))
-

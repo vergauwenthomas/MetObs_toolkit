@@ -1,9 +1,12 @@
 import pandas as pd
 import logging
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def test_moving_window_condition(
     records: pd.Series, windowsize: pd.Timedelta, min_records_per_window: int
 ) -> bool:
@@ -31,7 +34,6 @@ def test_moving_window_condition(
     Exception
         If the input records do not have a perfectly regular timestamp.
     """
-    logger.debug("Entering function test_moving_window_condition.")
 
     # Get frequency of records
     freqstr = pd.infer_freq(records.index)

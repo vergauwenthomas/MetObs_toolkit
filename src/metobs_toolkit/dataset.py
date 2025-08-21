@@ -53,6 +53,7 @@ from metobs_toolkit.geedatasetmanagers import (
     default_datasets,
 )
 from metobs_toolkit.gee_api import connect_to_gee
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -95,7 +96,6 @@ class Dataset:
 
     def __eq__(self, other: object) -> bool:
         """Check equality with another Dataset instance."""
-        logger.debug("Entering Dataset.__eq__")
         if not isinstance(other, Dataset):
             return False
         return self.stations == other.stations
@@ -157,15 +157,14 @@ class Dataset:
 
     def __str__(self) -> str:
         """Return a string representation of the Dataset."""
-        logger.debug("Entering Dataset.__str__")
         return "Dataset instance"
 
     def __repr__(self) -> str:
         """Return an info representation of the Dataset."""
-        logger.debug("Entering Dataset.__repr__")
         class_name = type(self).__name__
         return f"Instance of {class_name} at {hex(id(self))}"
 
+    @log_entry
     def copy(self, deep: bool = True) -> "Dataset":
         """
         Return a copy of the Dataset.
@@ -180,8 +179,6 @@ class Dataset:
         Dataset
             The copied Dataset.
         """
-        logger.debug("Entering Dataset.copy")
-
         if deep:
             return copy.deepcopy(self)
         return copy.copy(self)
@@ -211,6 +208,7 @@ class Dataset:
         return self._template
 
     @stations.setter
+    @log_entry
     def stations(self, stationlist: list) -> None:
         """
         Set the list of stations.
@@ -223,6 +221,7 @@ class Dataset:
         self._stations = stationlist
 
     @obstypes.setter
+    @log_entry
     def obstypes(self, obstypesdict: dict) -> None:
         """
         Set the obstypes.
@@ -259,6 +258,7 @@ class Dataset:
                 ),
             )
         return combdf
+
 
     @copy_doc(Station.outliersdf)
     @property
@@ -306,6 +306,7 @@ class Dataset:
             )
         return combdf
 
+
     @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
@@ -330,6 +331,7 @@ class Dataset:
             )
         return combdf
 
+
     @copy_doc(Station.metadf)
     @property
     def metadf(self) -> pd.DataFrame:
@@ -337,6 +339,7 @@ class Dataset:
         for sta in self.stations:
             concatlist.append(sta.metadf)
         return save_concat((concatlist)).sort_index()
+
 
     @copy_doc(Station.start_datetime)
     @property
@@ -367,9 +370,11 @@ class Dataset:
     #   Extracting data
     # ------------------------------------------
     @copy_doc(dataset_to_xr)
+    @log_entry
     def to_xr(self) -> "xarray.Dataset":
         return dataset_to_xr(self)
 
+    @log_entry
     def subset_by_stations(
         self, stationnames: list, deepcopy: bool = False
     ) -> "Dataset":
@@ -388,8 +393,6 @@ class Dataset:
         Dataset
             A new Dataset instance containing only the selected stations.
         """
-        logger.debug("Entering Dataset.subset_by_stations")
-
         new_dataset = Dataset()
 
         filtered_stations = [
@@ -413,6 +416,7 @@ class Dataset:
 
         return new_dataset
 
+    @log_entry
     def get_station(self, stationname: str) -> Station:
         """
         Retrieve a Station by name.
@@ -427,8 +431,6 @@ class Dataset:
         Station
             The station object corresponding to the given name.
         """
-        logger.debug("Entering Dataset.get_station")
-
         stationlookup = {sta.name: sta for sta in self.stations}
         try:
             station = stationlookup[stationname]
@@ -438,9 +440,8 @@ class Dataset:
         return station
 
     @copy_doc(Station.get_info)
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
-        logger.debug("Entering Dataset.get_info")
-
         infostr = ""
         infostr += printing.print_fmt_title("General info of Dataset")
 
@@ -542,6 +543,7 @@ class Dataset:
         else:
             return infostr
 
+    @log_entry
     def sync_records(
         self,
         target_obstype: str = "temp",
@@ -619,6 +621,7 @@ class Dataset:
                 )
 
     @copy_doc(Station.resample)
+    @log_entry
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
@@ -627,7 +630,6 @@ class Dataset:
         origin: Union[str, pd.Timestamp, None] = None,
         origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
     ) -> None:
-        logger.debug("Entering Dataset.resample")
         target_freq = fmt_timedelta_arg(target_freq)
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
 
@@ -644,6 +646,7 @@ class Dataset:
     #   Reading/writing data
     # ------------------------------------------
 
+    @log_entry
     def import_gee_data_from_file(
         self,
         filepath: str,
@@ -675,7 +678,6 @@ class Dataset:
         pd.DataFrame
             The processed DataFrame containing the GEE data.
         """
-        logger.debug("Entering Dataset.import_gee_data_from_file")
 
         if _force_from_dataframe is None:
             reader = CsvFileReader(file_path=filepath)
@@ -718,6 +720,7 @@ class Dataset:
 
         return totaldf
 
+    @log_entry
     def add_new_observationtype(self, obstype: Obstype) -> None:
         """
         Add a new observation type to the dataset known-obstypes.
@@ -732,7 +735,6 @@ class Dataset:
         -------
         None
         """
-        logger.debug("Entering Dataset.add_new_observationtype")
         if not isinstance(obstype, Obstype):
             raise TypeError("obstype must be an instance of Obstype.")
 
@@ -743,6 +745,7 @@ class Dataset:
 
         self.obstypes.update({obstype.name: obstype})
 
+    @log_entry
     def save_dataset_to_pkl(
         self,
         target_folder: Union[str, Path],
@@ -766,7 +769,6 @@ class Dataset:
         -------
         None
         """
-        logger.debug("Entering Dataset.save_dataset_to_pkl")
         if not Path(target_folder).is_dir():
             raise FileNotFoundError(f"{target_folder} does not exist")
 
@@ -785,6 +787,7 @@ class Dataset:
         with open(target_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
+    @log_entry
     def import_data_from_file(
         self,
         template_file: Union[str, Path],
@@ -851,7 +854,6 @@ class Dataset:
         -------
         None
         """
-        logger.debug("Entering Dataset.import_data_from_file")
 
         freq_estimation_simplify_tolerance = fmt_timedelta_arg(
             freq_estimation_simplify_tolerance
@@ -925,6 +927,7 @@ class Dataset:
     #    Plotting
     # ------------------------------------------
 
+    @log_entry
     def make_plot_of_modeldata(
         self,
         obstype: str = "temp",
@@ -958,7 +961,6 @@ class Dataset:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        logger.debug("Entering Dataset.make_plot_of_modeldata")
 
         modeldatadf = self.modeldatadf
         if obstype not in modeldatadf.index.get_level_values("obstype"):
@@ -1018,6 +1020,7 @@ class Dataset:
 
         return ax
 
+    @log_entry
     def make_plot(
         self,
         obstype: str = "temp",
@@ -1062,7 +1065,6 @@ class Dataset:
         matplotlib.axes.Axes
             The axes containing the plot.
         """
-        logger.debug("Entering Dataset.make_plot")
 
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
@@ -1135,6 +1137,7 @@ class Dataset:
 
         return ax
 
+    @log_entry
     def make_gee_plot(
         self,
         geedatasetmanager: Union[
@@ -1188,7 +1191,6 @@ class Dataset:
         geemap.foliummap.Map
             The interactive map.
         """
-        logger.debug("Entering Dataset.make_gee_plot")
         if not isinstance(
             geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
         ):
@@ -1234,6 +1236,7 @@ class Dataset:
     #    Gee extracting
     # ------------------------------------------
 
+    @log_entry
     def get_static_gee_point_data(
         self,
         geestaticdatasetmanager: GEEStaticDatasetManager,
@@ -1287,6 +1290,7 @@ class Dataset:
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
         return geedf
 
+    @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
         geestaticdatasetmanager: GEEStaticDatasetManager,
@@ -1362,11 +1366,12 @@ class Dataset:
 
         return geedf
 
+    @log_entry
     def get_LCZ(
         self,
         overwrite: bool = True,
         initialize_gee: bool = True,
-        apply_seamask_fix: bool = True
+        apply_seamask_fix: bool = True,
     ) -> pd.DataFrame:
         """
         Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
@@ -1386,26 +1391,28 @@ class Dataset:
         pandas.DataFrame
             A DataFrame containing the LCZ data for the stations, with the station names as index.
         """
-        logger.debug("Entering Dataset.get_LCZ")
 
         lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
-        ) 
+        )
 
         if apply_seamask_fix:
-            lcz_water = default_datasets["LCZ"].class_map[17] #LCZ-G water
-            #overwrite the site attribute
+            lcz_water = default_datasets["LCZ"].class_map[17]  # LCZ-G water
+            # overwrite the site attribute
             if overwrite:
-                seastations = lcz_df[lcz_df['LCZ'].isna()]
+                seastations = lcz_df[lcz_df["LCZ"].isna()]
                 for station in seastations.index:
-                    self.get_station(station).site.set_geedata(default_datasets["LCZ"].name, lcz_water)
-            #replace the lcz in the return df
+                    self.get_station(station).site.set_geedata(
+                        default_datasets["LCZ"].name, lcz_water
+                    )
+            # replace the lcz in the return df
             lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
-        
+
         return lcz_df
 
+    @log_entry
     def get_altitude(
         self, overwrite: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
@@ -1424,7 +1431,6 @@ class Dataset:
         pandas.DataFrame
             A DataFrame containing the altitude data for the stations, with the station names as index.
         """
-        logger.debug("Entering Dataset.get_altitude")
 
         return self.get_static_gee_point_data(
             default_datasets["altitude"],
@@ -1432,6 +1438,7 @@ class Dataset:
             initialize_gee=initialize_gee,
         )
 
+    @log_entry
     def get_landcover_fractions(
         self,
         buffers: list = [100],
@@ -1463,7 +1470,6 @@ class Dataset:
         This method makes use of GEE API. Make sure that you have access and user rights to use the GEE API.
 
         """
-        logger.debug("Entering Dataset.get_landcover_fractions")
         if not isinstance(buffers, list):
             raise TypeError("buffers must be a list.")
 
@@ -1476,6 +1482,7 @@ class Dataset:
         )
 
     @copy_doc(Station.get_gee_timeseries_data)
+    @log_entry
     def get_gee_timeseries_data(
         self,
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
@@ -1488,7 +1495,6 @@ class Dataset:
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
     ) -> Union[pd.DataFrame, None]:
-        logger.debug("Entering Dataset.get_gee_timeseries_data")
         if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
             raise TypeError(
                 "geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance."
@@ -1559,6 +1565,7 @@ class Dataset:
         The default is False."""
 
     @copy_doc(copy_func=Station.gross_value_check, extra_param_desc=_use_mp_docargstr)
+    @log_entry
     def gross_value_check(
         self,
         target_obstype: str = "temp",
@@ -1566,7 +1573,6 @@ class Dataset:
         upper_threshold: float = 39.0,
         use_mp: bool = True,
     ) -> None:
-        logger.debug("Entering Dataset.gross_value_check")
 
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1584,6 +1590,7 @@ class Dataset:
             self.stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.persistence_check, extra_param_desc=_use_mp_docargstr)
+    @log_entry
     def persistence_check(
         self,
         target_obstype: str = "temp",
@@ -1591,7 +1598,6 @@ class Dataset:
         min_records_per_window: int = 5,
         use_mp: bool = True,
     ) -> None:
-        logger.debug("Entering Dataset.persistence_check")
         timewindow = fmt_timedelta_arg(timewindow)
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1609,13 +1615,13 @@ class Dataset:
             self.stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.repetitions_check, extra_param_desc=_use_mp_docargstr)
+    @log_entry
     def repetitions_check(
         self,
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
         use_mp: bool = True,
     ) -> None:
-        logger.debug("Entering Dataset.repetitions_check")
 
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1633,6 +1639,7 @@ class Dataset:
             self.stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
 
     @copy_doc(copy_func=Station.step_check, extra_param_desc=_use_mp_docargstr)
+    @log_entry
     def step_check(
         self,
         target_obstype: str = "temp",
@@ -1640,7 +1647,6 @@ class Dataset:
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         use_mp: bool = True,
     ) -> None:
-        logger.debug("Entering Dataset.step_check")
 
         func_feed_list = _create_qc_arg_set(
             dataset=self,
@@ -1659,6 +1665,7 @@ class Dataset:
     @copy_doc(
         copy_func=Station.window_variation_check, extra_param_desc=_use_mp_docargstr
     )
+    @log_entry
     def window_variation_check(
         self,
         target_obstype: str = "temp",
@@ -1668,7 +1675,6 @@ class Dataset:
         max_decrease_per_second: Union[int, float] = -0.0027,
         use_mp: bool = True,
     ) -> None:
-        logger.debug("Entering Dataset.window_variation_check")
 
         timewindow = fmt_timedelta_arg(timewindow)
 
@@ -1690,6 +1696,7 @@ class Dataset:
         else:
             self.stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
 
+    @log_entry
     def buddy_check(
         self,
         target_obstype: str = "temp",
@@ -1779,7 +1786,6 @@ class Dataset:
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
 
         """
-        logger.debug("Entering Dataset.buddy_check")
 
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
         if (lapserate is not None) | (max_alt_diff is not None):
@@ -1841,6 +1847,7 @@ class Dataset:
                     },
                 )
 
+    @log_entry
     def buddy_check_with_LCZ_safety_net(
         self,
         target_obstype: str = "temp",
@@ -1964,7 +1971,6 @@ class Dataset:
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
 
         """
-        logger.debug("Entering Dataset.buddy_check_with_LCZ_safety_net")
 
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
         if not all(sta.site.flag_has_LCZ() for sta in self.stations):
@@ -2034,10 +2040,10 @@ class Dataset:
                 )
 
     @copy_doc(Station.get_qc_stats)
+    @log_entry
     def get_qc_stats(
         self, target_obstype: str = "temp", make_plot: bool = True
     ) -> Union[pd.DataFrame, None]:
-        logger.debug("Entering Dataset.get_qc_stats")
         freqdf_list = [
             sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
             for sta in self.stations
@@ -2064,6 +2070,7 @@ class Dataset:
     #    Other methods
     # ------------------------------------------
 
+    @log_entry
     def rename_stations(self, renamedict: dict) -> None:
         """
         Rename stations in the dataset.
@@ -2085,7 +2092,6 @@ class Dataset:
           operation for that station will be skipped.
 
         """
-        logger.debug("Entering Dataset.rename_stations")
 
         for origname, trgname in renamedict.items():
             if origname not in [sta.name for sta in self.stations]:
@@ -2100,10 +2106,10 @@ class Dataset:
             self.get_station(origname)._rename(targetname=trgname)
 
     @copy_doc(Station.convert_outliers_to_gaps)
+    @log_entry
     def convert_outliers_to_gaps(
         self, all_observations: bool = True, obstype: str = "temp"
     ) -> None:
-        logger.debug("Entering Dataset.convert_outliers_to_gaps")
 
         for sta in self.stations:
             sta.convert_outliers_to_gaps(
@@ -2114,6 +2120,7 @@ class Dataset:
     #    Gapfilling
     # ------------------------------------------
     @copy_doc(Station.interpolate_gaps)
+    @log_entry
     def interpolate_gaps(
         self,
         target_obstype: str,
@@ -2126,7 +2133,6 @@ class Dataset:
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
     ) -> None:
-        logger.debug("Entering Dataset.interpolate_gaps")
 
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
@@ -2145,10 +2151,10 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
+    @log_entry
     def fill_gaps_with_raw_modeldata(
         self, target_obstype: str, overwrite_fill: bool = False
     ) -> None:
-        logger.debug("Entering Dataset.fill_gaps_with_raw_modeldata")
 
         for sta in self.stations:
             sta.fill_gaps_with_raw_modeldata(
@@ -2156,6 +2162,7 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
+    @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
         target_obstype: str,
@@ -2165,7 +2172,6 @@ class Dataset:
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
     ) -> None:
-        logger.debug("Entering Dataset.fill_gaps_with_debiased_modeldata")
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2181,6 +2187,7 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
+    @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
@@ -2189,7 +2196,6 @@ class Dataset:
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
     ) -> None:
-        logger.debug("Entering Dataset.fill_gaps_with_diurnal_debiased_modeldata")
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2204,6 +2210,7 @@ class Dataset:
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
+    @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
         target_obstype: str,
@@ -2270,6 +2277,7 @@ def _create_qc_arg_set(dataset: Dataset, **qckwargs: dict) -> list:
     return [([sta, dict(**qckwargs)]) for sta in dataset.stations]
 
 
+@log_entry
 def create_metadata_only_stations(metadata_parser: MetaDataParser) -> list:
     """
     Create a list of Station objects from metadata.
@@ -2284,7 +2292,6 @@ def create_metadata_only_stations(metadata_parser: MetaDataParser) -> list:
     list
         A list of Station objects, each representing a station with its associated metadata.
     """
-    logger.debug("Entering create_metadata_only_stations")
 
     stations = []
 
@@ -2306,6 +2313,7 @@ def create_metadata_only_stations(metadata_parser: MetaDataParser) -> list:
     return stations
 
 
+@log_entry
 def createstations(
     data_parser: DataParser,
     metadata_parser: Union[MetaDataParser, None],
@@ -2348,7 +2356,6 @@ def createstations(
     list
         A list of Station objects, each representing a station with its associated sensor data and metadata.
     """
-    logger.debug("Entering createstations")
     datadf = data_parser.get_df()
 
     not_an_obstype = ["name", "datetime"]
@@ -2430,6 +2437,7 @@ def createstations(
     return stations
 
 
+@log_entry
 def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     """
     Import a Dataset instance from a pickle file.
@@ -2444,7 +2452,6 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     Dataset
         The Dataset instance.
     """
-    logger.debug("Entering import_dataset_from_pkl")
 
     picklereader = PickleFileReader(file_path=target_path)
     return picklereader.read_as_local_file()

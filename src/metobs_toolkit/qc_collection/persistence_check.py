@@ -5,9 +5,12 @@ import pandas as pd
 
 from .common_functions import test_moving_window_condition
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def persistence_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
@@ -48,7 +51,6 @@ def persistence_check(
     If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
     returns an empty DatetimeIndex.
     """
-    logger.debug("Entering function persistence_check")
 
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
@@ -63,6 +65,7 @@ def persistence_check(
         return pd.DatetimeIndex(name="datetime", data=[])
 
     # Apply persistence
+    @log_entry
     def is_unique(window: pd.Series) -> bool:
         """
         Check if all non-NaN values in the window are identical.

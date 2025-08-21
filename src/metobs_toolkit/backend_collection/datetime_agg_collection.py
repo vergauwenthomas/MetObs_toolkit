@@ -1,6 +1,9 @@
 import pandas as pd
+
 # from metobs_toolkit.backend_collection.loggingmodule import logentry
 import logging
+
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +19,7 @@ possible_time_aggregates = [  # TYPO
 ]
 
 
+@log_entry
 def get_time_derivates(datetimes) -> pd.DataFrame:
     """
     Construct a dataframe where all columns are time derivatives,
@@ -31,7 +35,6 @@ def get_time_derivates(datetimes) -> pd.DataFrame:
     pd.DataFrame
         DataFrame with time derivative columns.
     """
-    logger.debug("Entering _get_time_derivates function.")
     timesdf = pd.DataFrame(index=datetimes)
     for deriv in possible_time_aggregates:
         if deriv == "season":
@@ -42,6 +45,7 @@ def get_time_derivates(datetimes) -> pd.DataFrame:
     return timesdf
 
 
+@log_entry
 def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
     """
     Assign a season label to each date in a DatetimeIndex.
@@ -61,7 +65,6 @@ def get_season(datetimeindex: pd.DatetimeIndex) -> pd.Series:
     TypeError
         If datetimeindex is not a pandas.DatetimeIndex.
     """
-    logger.debug("Entering get_season function.")
 
     summer_start = pd.Timestamp("2020-06-01")
     autumn_start = pd.Timestamp("2020-09-01")

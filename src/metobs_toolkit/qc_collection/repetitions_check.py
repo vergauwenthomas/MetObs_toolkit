@@ -1,9 +1,12 @@
 import logging
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def repetitions_check(records: pd.Series, max_N_repetitions: int) -> pd.DatetimeIndex:
     """
     Test if an observation changes after a number of repetitions.
@@ -34,7 +37,6 @@ def repetitions_check(records: pd.Series, max_N_repetitions: int) -> pd.Datetime
     The persistence check uses thresholds that are meteorologically based (e.g., the moving window is defined by a duration),
     in contrast to the repetitions check whose thresholds are instrumentally based (e.g., the "window" is defined by a number of records).
     """
-    logger.debug("Entering function repetitions_check")
 
     # Drop outliers from the series (these are NaNs)
     input_series = records.dropna()

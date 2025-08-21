@@ -1,9 +1,12 @@
 import logging
 import pandas as pd
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+@log_entry
 def fill_regular_debias(df: pd.DataFrame) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame by applying a regular debiasing correction.
@@ -23,7 +26,6 @@ def fill_regular_debias(df: pd.DataFrame) -> pd.DataFrame:
     pandas.DataFrame
         DataFrame with columns: 'value', 'label', 'modelvalue', 'fillvalue', and 'msg'.
     """
-    logger.debug("Entering fill_regular_debias function.")
     trainset = df.loc[df["label"].isin(["lead", "trail"])]
     biasvalue = (trainset["modelvalue"] - trainset["value"]).mean()
 

@@ -10,6 +10,8 @@ import folium
 from folium import plugins as folium_plugins
 
 # Configure logging
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -32,6 +34,7 @@ def _get_init_mapcenter(gdf: pd.DataFrame) -> List[float]:
     return [centroid.y, centroid.x]
 
 
+@log_entry
 def folium_map() -> geemap.Map:
     """
     Create a folium map using geemap.
@@ -41,11 +44,11 @@ def folium_map() -> geemap.Map:
     geemap.Map
         A folium map object.
     """
-    logger.debug("Entering folium_map function.")
     Map = geemap.Map(add_google_map=False)
     return Map
 
 
+@log_entry
 def add_title_to_folium_map(title: str, Map: folium.Map) -> folium.Map:
     """
     Add a title to a folium map.
@@ -62,7 +65,6 @@ def add_title_to_folium_map(title: str, Map: folium.Map) -> folium.Map:
     folium.Map
         The updated folium map with the title added.
     """
-    logger.debug("Entering add_title_to_folium_map function.")
     if not isinstance(title, str):
         raise TypeError("Argument 'title' must be of type str.")
     if not isinstance(Map, folium.Map):
@@ -78,6 +80,7 @@ def add_title_to_folium_map(title: str, Map: folium.Map) -> folium.Map:
     return Map
 
 
+@log_entry
 def add_stations_to_folium_map(
     Map: folium.Map, metadf: pd.DataFrame, display_cols: List[str] = ["name"]
 ) -> folium.Map:
@@ -98,7 +101,6 @@ def add_stations_to_folium_map(
     folium.Map
         The updated folium map with station markers added.
     """
-    logger.debug("Entering add_stations_to_folium_map function.")
 
     metadf = metadf.reset_index()
     metadf["geometry"] = metadf["geometry"].to_crs("epsg:4326")
@@ -114,6 +116,7 @@ def add_stations_to_folium_map(
     return Map
 
 
+@log_entry
 def make_folium_html_plot(
     gdf: pd.DataFrame,
     variable_column: str,
@@ -166,7 +169,6 @@ def make_folium_html_plot(
     folium.Map
         The generated folium map.
     """
-    logger.debug("Entering make_folium_html_plot function.")
 
     # Create a map
     m = folium.Map(
@@ -199,6 +201,7 @@ def make_folium_html_plot(
     )
 
     # Map values to colors
+    @log_entry
     def map_value_to_hex(series, vmin, vmax, cmapname="viridis"):
         norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
         mapper = matplotlib.cm.ScalarMappable(
@@ -221,6 +224,7 @@ def make_folium_html_plot(
     gdf["label_color"] = gdf[label_column].map(label_col_map)
 
     # Serialize data to features
+    @log_entry
     def make_scatter_feature(row):
         dtstring = pd.to_datetime([row["datetime"]]).strftime(dt_disp_fmt)[0]
         coords = [[row["geometry"].x, row["geometry"].y]]

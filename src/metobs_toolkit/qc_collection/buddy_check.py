@@ -9,6 +9,8 @@ import pandas as pd
 
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -41,8 +43,8 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
     The Haversine formula calculates the great circle distance, which is
     the shortest distance over the Earth's surface.
     """
-    logger.debug("Entering _calculate_distance_matrix_with_haverine")
 
+    @log_entry
     def haversine(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
         """Calculate the great circle distance between two points."""
         # convert decimal degrees to radians
@@ -66,6 +68,7 @@ def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFra
     return pd.DataFrame(distance_matrix)
 
 
+@log_entry
 def synchronize_series(
     series_list: List[pd.Series], max_shift: pd.Timedelta
 ) -> Tuple[pd.DataFrame, Dict]:
@@ -95,7 +98,6 @@ def synchronize_series(
         Dictionary mapping each synchronized timestamp to its
         original timestamp.
     """
-    logger.debug("Entering synchronize_series")
 
     # find highest frequency
     frequencies = [to_timedelta(s.index.inferred_freq) for s in series_list]
@@ -197,7 +199,6 @@ def _find_spatial_buddies(
     dict
         Dictionary mapping each station to a list of its buddies.
     """
-    logger.debug("Entering _find_spatial_buddies")
     if not isinstance(distance_df, pd.DataFrame):
         raise TypeError("distance_df must be a pandas.DataFrame")
     if not isinstance(buddy_radius, (int, float)):
@@ -232,7 +233,6 @@ def _filter_to_altitude_buddies(
     dict
         Dictionary mapping each station to a list of altitude-filtered buddies.
     """
-    logger.debug("Entering _filter_to_altitude_buddies")
 
     alt_buddies_dict = {}
     for refstation, buddylist in buddies.items():
@@ -260,7 +260,6 @@ def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict
         Dictionary mapping each station to a list of buddies meeting the
         minimum sample size.
     """
-    logger.debug("Entering _filter_to_minimum_samplesize")
 
     to_check_stations = {}
     for refstation, buddies in buddydict.items():
@@ -272,6 +271,7 @@ def _filter_to_minimum_samplesize(buddydict: Dict, min_sample_size: int) -> Dict
     return to_check_stations
 
 
+@log_entry
 def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
     """
     Create unique groups of buddies from a buddy dictionary.
@@ -286,7 +286,6 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
     list of tuple
         List of tuples, each containing a group of station names.
     """
-    logger.debug("Entering create_groups_of_buddies")
 
     grouped_stations = []
     groups = []
@@ -303,6 +302,7 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
     return groups
 
 
+@log_entry
 def toolkit_buddy_check(
     dataset: "Dataset",  # noqa: F821
     obstype: str,
@@ -613,6 +613,7 @@ value for 'altitude'"
     return outliersbin, timestamp_map
 
 
+@log_entry
 def apply_LCZ_safety_net(
     outliers: list,  # list of tuples
     LCZ_buddies: dict,
@@ -720,6 +721,7 @@ def apply_LCZ_safety_net(
     return checked_outliers
 
 
+@log_entry
 def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     """
     Apply a buddy check on a group to identify outliers.
@@ -780,7 +782,6 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
 
     """
-    logger.debug("Entering find_buddy_group_outlier")
 
     buddygroup, combdf = inputarg[0], inputarg[1]
     min_sample_size, min_std, outlier_threshold = inputarg[2:]
@@ -815,6 +816,7 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     # locate the most extreme outlier per timestamp
     buddydf["is_the_most_extreme_outlier"] = buddydf[[*buddygroup]].idxmax(axis=1)
 
+    @log_entry
     def msgcreator(row):
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
         retstr += f" with chi value \
