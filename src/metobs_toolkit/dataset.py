@@ -35,6 +35,7 @@ import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.qc_collection import toolkit_buddy_check
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.dataframe_constructors import dataset_df
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsStationNotFound,
     MetObsDataAlreadyPresent,
@@ -235,29 +236,10 @@ class Dataset:
 
         self._obstypes = obstypesdict
 
-    @copy_doc(Station.df)
+    @copy_doc(dataset_df)
     @property
     def df(self) -> pd.DataFrame:
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.df.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["datetime", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["value", "label"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["datetime", "obstype", "name"],
-                ),
-            )
-        return combdf
+        return dataset_df(self)
 
 
     @copy_doc(Station.outliersdf)

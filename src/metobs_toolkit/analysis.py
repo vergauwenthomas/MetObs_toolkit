@@ -24,8 +24,9 @@ from metobs_toolkit.backend_collection.datetime_agg_collection import (
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
-
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.dataframe_constructors import analysis_df
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -98,18 +99,10 @@ but a {type(Dataholder)}"
         # extra data
         self._obstypes = obstypes  # for displaying units in plots
 
+    @copy_doc(analysis_df)
     @property
     def df(self) -> pd.DataFrame:
-        """
-        Returns the full DataFrame without the time derivatives.
-
-        Returns
-        -------
-        pd.DataFrame
-            DataFrame indexed by ['datetime', 'name'] and containing
-            observation columns.
-        """
-        return self.fulldf.set_index(["datetime", "name"])[self._df_cols]
+        return analysis_df(self)
 
     def __eq__(self, other: object) -> bool:
         """

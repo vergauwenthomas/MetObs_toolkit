@@ -35,6 +35,8 @@ from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -209,23 +211,10 @@ class Station:
     def to_xr(self) -> "xarray.Dataset":
         return station_to_xr(self)
 
+    @copy_doc(station_df)
     @property
     def df(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of the observations.
-
-        Returns
-        -------
-        pd.DataFrame
-            A pandas DataFrame with a single column 'value'.
-        """
-
-        # return dataframe with ['datetime', 'obstype'] as index and 'value' as single column.
-        concatdf = save_concat(([sensor.df for sensor in self.sensordata.values()]))
-
-        # sort by datetime
-        concatdf.sort_index(inplace=True)
-        return concatdf
+        return station_df(self)
 
     @property
     def outliersdf(self) -> pd.DataFrame:
@@ -2032,5 +2021,3 @@ class Station:
                 f"There is no {obstype} - modeldata present for {self}"
             )
 
-
-print(Station.df.__doc__)

@@ -19,6 +19,8 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
 )
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.dataframe_constructors import gap_df
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -125,12 +127,10 @@ class Gap:
         """Return the end datetime of the gap."""
         return max(self.records.index)
 
+    @copy_doc(gap_df)
     @property
     def df(self) -> pd.DataFrame:
-        """Return a DataFrame representation of the gap."""
-        return pd.DataFrame(
-            {"value": self.records, "label": self._labels, "details": self._extra_info}
-        )
+        return gap_df(self)
 
     # ------------------------------------------
     #    Get info methods

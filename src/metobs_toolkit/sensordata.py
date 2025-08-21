@@ -22,6 +22,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_df
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -205,40 +206,10 @@ class SensorData:
             return copy.deepcopy(self)
         return copy.copy(self)
 
+    @copy_doc(sensordata_df)
     @property
     def df(self) -> pd.DataFrame:
-        """Return a DataFrame of the sensor records."""
-        logger.debug(
-            "Creating DataFrame from SensorData series for %s", self.stationname
-        )
-        # get all records
-        df = (
-            self.series.to_frame()
-            .rename(columns={self.obstype.name: "value", self.stationname: "value"})
-            .assign(label=label_def["goodrecord"]["label"])
-        )
-
-        outliersdf = self.outliersdf[["value", "label"]]
-
-        gapsdf = self.gapsdf[["value", "label"]]
-
-        # concat all together (do not change order)
-        to_concat = [df]
-        if not outliersdf.empty:
-            to_concat.append(outliersdf)
-        if not gapsdf.empty:
-            to_concat.append(gapsdf)
-        df = save_concat((to_concat))
-        # remove duplicates
-        df = df[~df.index.duplicated(keep="last")].sort_index()
-
-        # add 'obstype' as index
-        df = (
-            df.assign(obstype=self.obstype.name)
-            .reset_index()
-            .set_index(["datetime", "obstype"])
-        )
-        return df
+        return sensordata_df(self)
 
     @copy_doc(sensordata_to_xr)
     @log_entry
