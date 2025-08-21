@@ -76,7 +76,7 @@ def box_to_extent_list(bbox: box) -> List[float]:
 @log_entry
 def find_extent_of_geodf(
     geodf: Any, lat_size: float = 1.0, lon_size: float = 1.0
-) -> box:  # TYPO
+) -> box:
     """
     Construct a bounding box for the plot based on the GeoDataFrame.
 
