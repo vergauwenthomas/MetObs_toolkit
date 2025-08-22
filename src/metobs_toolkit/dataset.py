@@ -916,7 +916,7 @@ class Dataset:
         ax: Union[Axes, None] = None,
         figkwargs: dict = {},
         modelname: str | None = None,
-        modelvariable: str | None = None
+        modelvariable: str | None = None,
     ) -> Axes:
         """
         Generate a timeseries plot of model data for a specific observation type.
@@ -936,6 +936,14 @@ class Dataset:
             The axes on which to plot. If None, a new axes object is created.
         figkwargs : dict, optional
             Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
 
         Returns
         -------
@@ -943,46 +951,55 @@ class Dataset:
             The axes object containing the plot.
         """
 
-       
         trg_modeldatadf = self.modeldatadf
-    
-        #filter on obstype
+
+        # filter on obstype
         if obstype not in trg_modeldatadf.index.get_level_values("obstype"):
             raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
         trg_modeldatadf = trg_modeldatadf.xs(obstype, level="obstype", drop_level=False)
 
-        #filter on modelname
+        # filter on modelname
         if modelname is not None:
             if modelname not in trg_modeldatadf["modelname"].values:
-                raise MetObsModelDataError(f"There is no modeldata present of {modelname}")
+                raise MetObsModelDataError(
+                    f"There is no modeldata present of {modelname}"
+                )
             else:
-                trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelvariable"] == modelvariable]
+                trg_modeldatadf = trg_modeldatadf[
+                    trg_modeldatadf["modelvariable"] == modelvariable
+                ]
 
-
-        #filter on modelvariable
+        # filter on modelvariable
         if modelvariable is not None:
             if modelvariable not in trg_modeldatadf["modelvariable"].values:
-                raise MetObsModelDataError(f"There is no modeldata present of {modelvariable}")
+                raise MetObsModelDataError(
+                    f"There is no modeldata present of {modelvariable}"
+                )
             else:
-                trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelname"] == modelname]
+                trg_modeldatadf = trg_modeldatadf[
+                    trg_modeldatadf["modelname"] == modelname
+                ]
 
-
-       # If there are multiple model names or variables, warn and take first occurrence
+        # If there are multiple model names or variables, warn and take first occurrence
         if len(trg_modeldatadf["modelname"].unique()) > 1:
             unique_models = trg_modeldatadf["modelname"].unique()
             warnings.warn(
                 f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}",
-                UserWarning
+                UserWarning,
             )
-            trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelname"] == unique_models[0]]
+            trg_modeldatadf = trg_modeldatadf[
+                trg_modeldatadf["modelname"] == unique_models[0]
+            ]
 
         if len(trg_modeldatadf["modelvariable"].unique()) > 1:
             unique_vars = trg_modeldatadf["modelvariable"].unique()
             warnings.warn(
                 f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}",
-                UserWarning
+                UserWarning,
             )
-            trg_modeldatadf = trg_modeldatadf[trg_modeldatadf["modelvariable"] == unique_vars[0]]
+            trg_modeldatadf = trg_modeldatadf[
+                trg_modeldatadf["modelvariable"] == unique_vars[0]
+            ]
 
         # Get the final model metadata for display
         modelname = trg_modeldatadf["modelname"].iloc[0]
@@ -992,8 +1009,8 @@ class Dataset:
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
-        plotdf = (trg_modeldatadf
-            .reset_index()
+        plotdf = (
+            trg_modeldatadf.reset_index()
             .set_index(["name", "obstype", "datetime"])
             .sort_index()
         )

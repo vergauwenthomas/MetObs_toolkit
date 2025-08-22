@@ -332,50 +332,76 @@ class Station:
         return combdf
 
     @log_entry
-    def get_modeltimeseries(self, obstype: str,
-                            modelname: str | None = None,
-                            modelvariable: str | None = None) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    def get_modeltimeseries(
+        self,
+        obstype: str,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
+    ) -> "ModelTimeSeries":  # type: ignore #noqa: F821
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
         ----------
         obstype : str
             The observation type to retrieve.
+        modelname : str, optional
+            The model name to filter by. Use this parameter when multiple model 
+            data sources exist for the same observation type. If None, no 
+            filtering by model name is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by. Use this parameter when multiple 
+            model variables exist for the same observation type and model. If None, 
+            no filtering by model variable is applied. The default is None.
 
         Returns
         -------
         ModelTimeSeries
             The ModelTimeSeries instance for the specified observation type.
+            
+        Raises
+        ------
+        MetObsModelDataError
+            If no model data is found for the specified parameters, or if 
+            multiple model data instances are found and additional filtering 
+            parameters (modelname, modelvariable) are needed to uniquely 
+            identify the target model data.
         """
-        
+
         if not bool(self.modeldata):
             raise MetObsModelDataError(f"No model data found in {self}. ")
 
-        #Get all candidates of modeldata for target obstype
+        # Get all candidates of modeldata for target obstype
         all_candidates = self.modeldata
-        
-        #1. obstype filter
+
+        # 1. obstype filter
         candidates = [
-            modeldata for modeldata in all_candidates
+            modeldata
+            for modeldata in all_candidates
             if modeldata.obstype.name == str(obstype)
         ]
-        
-        if len(candidates) == 0:
-            raise MetObsModelDataError(f"No model data found for {obstype} in {self}. The following modeldata is available: \n{all_candidates}")
 
-        #2. modelname filter
+        if len(candidates) == 0:
+            raise MetObsModelDataError(
+                f"No model data found for {obstype} in {self}. The following modeldata is available: \n{all_candidates}"
+            )
+
+        # 2. modelname filter
         if modelname is not None:
             candidates = [
-                modeldata for modeldata in candidates
+                modeldata
+                for modeldata in candidates
                 if modeldata.modelname == str(modelname)
             ]
             if len(candidates) == 0:
-                raise MetObsModelDataError(f"No model data found for {obstype} and {modelname} in {self}. The following modeldata is available: \n{all_candidates}")
+                raise MetObsModelDataError(
+                    f"No model data found for {obstype} and {modelname} in {self}. The following modeldata is available: \n{all_candidates}"
+                )
 
-        #3. modelvariable filter
+        # 3. modelvariable filter
         if modelvariable is not None:
             candidates = [
-                modeldata for modeldata in candidates
+                modeldata
+                for modeldata in candidates
                 if str(modeldata.modelvariable) == str(modelvariable)
             ]
             if len(candidates) == 0:
@@ -384,7 +410,9 @@ class Station:
                         f"No model data found for {obstype} with model variable: {modelvariable} in {self}. The following modeldata is available: \n{all_candidates}"
                     )
                 else:
-                    raise MetObsModelDataError(f"No model data found for {obstype}, {modelname} and {modelvariable} in {self}. The following modeldata is available: \n{all_candidates}")
+                    raise MetObsModelDataError(
+                        f"No model data found for {obstype}, {modelname} and {modelvariable} in {self}. The following modeldata is available: \n{all_candidates}"
+                    )
 
         if len(candidates) > 1:
             raise MetObsModelDataError(
@@ -392,8 +420,7 @@ class Station:
             )
         target = candidates[0]
         return target
-    
-    
+
     @property
     def start_datetime(self) -> pd.Timestamp:
         """
@@ -518,13 +545,19 @@ class Station:
                 "new_modeltimeseries must be an instance of ModelTimeSeries."
             )
         present_modeldata_ids = [modeldat._id() for modeldat in self.modeldata]
-        
+
         # Test if there is already model data for the same ID available
-        if (new_modeltimeseries._id() in present_modeldata_ids):
+        if new_modeltimeseries._id() in present_modeldata_ids:
             if force_update:
-                #Subset to all other id's
-                logger.warning(f"ModelTimeSeries with id {new_modeltimeseries._id()} already exists and will be overwritten due to force_update=True.")
-                self._modeldata = [md for md in self._modeldata if md._id() != new_modeltimeseries._id()]
+                # Subset to all other id's
+                logger.warning(
+                    f"ModelTimeSeries with id {new_modeltimeseries._id()} already exists and will be overwritten due to force_update=True."
+                )
+                self._modeldata = [
+                    md
+                    for md in self._modeldata
+                    if md._id() != new_modeltimeseries._id()
+                ]
                 self._modeldata.append(new_modeltimeseries)
             else:
                 raise MetObsDataAlreadyPresent(
@@ -532,7 +565,6 @@ class Station:
                 )
         else:
             self._modeldata.append(new_modeltimeseries)
-        
 
     @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
@@ -1422,6 +1454,14 @@ class Station:
         ----------
         obstype : str, optional
             The type of observation to plot model data for, by default "temp".
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
         linecolor : str or None, optional
             The color of the line in the plot. If None, a default color map is used.
         title : str or None, optional
@@ -1440,9 +1480,9 @@ class Station:
         """
         # test if the obstype has model data
         self._obstype_has_modeldata_check(obstype)
-        trg_modeltimeseries = self.get_modeltimeseries(obstype=obstype,
-                                                       modelname=modelname,
-                                                       modelvariable=modelvariable)
+        trg_modeltimeseries = self.get_modeltimeseries(
+            obstype=obstype, modelname=modelname, modelvariable=modelvariable
+        )
 
         # Create new axes if needed
         if ax is None:
@@ -1644,8 +1684,11 @@ class Station:
 
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False,
-        modelname: str | None = None, modelvariable: str | None = None
+        self,
+        target_obstype: str,
+        overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1660,6 +1703,14 @@ class Station:
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. Defaults to False.
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
 
         Returns
         -------
@@ -1681,9 +1732,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        modeltimeseries = self.get_modeltimeseries(target_obstype,
-                                                    modelname=modelname,
-                                                    modelvariable=modelvariable)
+        modeltimeseries = self.get_modeltimeseries(
+            target_obstype, modelname=modelname, modelvariable=modelvariable
+        )
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1700,7 +1751,7 @@ class Station:
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
         modelname: str | None = None,
-        modelvariable: str | None = None
+        modelvariable: str | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1727,6 +1778,14 @@ class Station:
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
 
         Returns
         -------
@@ -1754,9 +1813,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        modeltimeseries = self.get_modeltimeseries(target_obstype,
-                                                    modelname=modelname,
-                                                    modelvariable=modelvariable)
+        modeltimeseries = self.get_modeltimeseries(
+            target_obstype, modelname=modelname, modelvariable=modelvariable
+        )
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1780,7 +1839,7 @@ class Station:
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
         modelname: str | None = None,
-        modelvariable: str | None = None
+        modelvariable: str | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -1805,6 +1864,14 @@ class Station:
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
 
         Returns
         -------
@@ -1840,9 +1907,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        modeltimeseries = self.get_modeltimeseries(target_obstype,
-                                                    modelname=modelname,
-                                                    modelvariable=modelvariable)
+        modeltimeseries = self.get_modeltimeseries(
+            target_obstype, modelname=modelname, modelvariable=modelvariable
+        )
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -1866,7 +1933,7 @@ class Station:
         min_trail_debias_sample_size: int = 2,
         overwrite_fill=False,
         modelname: str | None = None,
-        modelvariable: str | None = None
+        modelvariable: str | None = None,
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -1899,6 +1966,14 @@ class Station:
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
+        modelname : str, optional
+            The model name to filter by when multiple model data sources exist 
+            for the same observation type. If None, no filtering by model name 
+            is applied. The default is None.
+        modelvariable : str, optional
+            The model variable to filter by when multiple model variables exist 
+            for the same observation type and model. If None, no filtering by 
+            model variable is applied. The default is None.
 
         Returns
         -------
@@ -1937,9 +2012,9 @@ class Station:
         self._obstype_is_known_check(obstype=target_obstype)
 
         # Get modeltimeseries
-        modeltimeseries = self.get_modeltimeseries(target_obstype,
-                                                    modelname=modelname,
-                                                    modelvariable=modelvariable)
+        modeltimeseries = self.get_modeltimeseries(
+            target_obstype, modelname=modelname, modelvariable=modelvariable
+        )
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
@@ -2057,5 +2132,3 @@ class Station:
             raise MetObsSensorDataNotFound(
                 f"{self} does not hold {obstype} sensordata. The present sensordata is: {list(self.obsdata.keys())}"
             )
-
-    
