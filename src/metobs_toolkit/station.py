@@ -1479,7 +1479,6 @@ class Station:
             The axes object containing the plot.
         """
         # test if the obstype has model data
-        self._obstype_has_modeldata_check(obstype)
         trg_modeltimeseries = self.get_modeltimeseries(
             obstype=obstype, modelname=modelname, modelvariable=modelvariable
         )

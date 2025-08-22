@@ -177,7 +177,7 @@ class ModelTimeSeries:
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
         infostr += printing.print_fmt_line(
-            f"Origin {self.modelname} -> variable/band: {self.modelvariable}",
+            f"Modelname {self.modelname} -> variable/band: {self.modelvariable}",
             nident_root,
         )
         infostr += printing.print_fmt_line(
