@@ -331,3 +331,38 @@ def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict
     }
 
     return color_map
+
+@log_entry
+def create_linestyle_map(catlist: list,
+    linestyles: list = ['-', '--', '-.', ':'],
+    user_linestyle_defs: dict = {}
+) -> dict:
+    """
+    Create a linestyle map for a list of categories.
+
+    Parameters
+    ----------
+    catlist : list
+        List of categories to assign linestyles to.
+    linestyles : list, optional
+        List of matplotlib linestyle strings to cycle through, by default ['-', '--', '-.', ':'].
+    user_linestyle_defs : dict, optional
+        Dictionary of user-defined linestyle overrides. Keys should match categories 
+        from catlist, values should be matplotlib linestyle strings, by default {}.
+
+    Returns
+    -------
+    dict
+        Dictionary mapping each unique category to its corresponding linestyle string.
+    """
+    unique_elements = list(set(catlist))
+    unique_elements = sorted(
+        unique_elements
+    )  # sort alphabetically, so color scheme is equal in workflow
+
+    linestyle_map = {val: linestyles[i % len(linestyles)] for i, val in enumerate(unique_elements)}
+
+    # Force the user defs
+    linestyle_map.update(user_linestyle_defs)
+    
+    return linestyle_map
