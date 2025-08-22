@@ -240,8 +240,8 @@ class TestAddMethods:
 
         # crop modeldata of a singel station
         ds2 = copy.deepcopy(ds_orig)
-        ds2.stations[3]._modeldata["temp"].series = (
-            ds2.stations[3]._modeldata["temp"].series[:4]
+        ds2.stations[3]._modeldata[2].series = (
+            ds2.stations[3].modeldata[2].series[:4]
         )
         assert ds2.modeldatadf.shape[0] == ds1.modeldatadf.shape[0] - 4
         assert_equality(ds1 + ds2, ds_orig)
@@ -287,8 +287,8 @@ class TestAddMethods:
         ds1.stations[6].site._lat = ds1.stations[6].site.lat + 3.16
         # C Modelobs change
         # extracting modeldata
-        ds2.stations[3]._modeldata["temp"].series = (
-            ds2.stations[3]._modeldata["temp"].series + 982.1
+        ds2.stations[3]._modeldata[2].series = (
+            ds2.stations[3].modeldata[2].series + 982.1
         )
 
         # D obstype change
