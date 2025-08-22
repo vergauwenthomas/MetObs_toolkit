@@ -966,7 +966,7 @@ class Dataset:
                 )
             else:
                 trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelvariable"] == modelvariable
+                    trg_modeldatadf["modelname"] == modelname
                 ]
 
         # filter on modelvariable
@@ -977,7 +977,7 @@ class Dataset:
                 )
             else:
                 trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelname"] == modelname
+                    trg_modeldatadf["modelvariable"] == modelvariable
                 ]
 
         # If there are multiple model names or variables, warn and take first occurrence
