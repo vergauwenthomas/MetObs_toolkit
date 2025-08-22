@@ -80,6 +80,9 @@ class ModelTimeSeries:
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
+    def __repr__(self):
+        return f'<ModelTimeSeries(id={self._id()},obstype={self.obstype.name})>'
+    
     def _id(self) -> str:
         """A physical unique id.
 
