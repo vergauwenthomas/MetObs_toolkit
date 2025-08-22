@@ -1115,7 +1115,7 @@ class Station:
                     ].model_band,
                 )
                 # todo: duplicacy check
-                self._modeldata[modeltimeseries.obstype.name] = modeltimeseries
+                self.add_to_modeldata(modeltimeseries, force_update=True)
             else:
                 logger.info(
                     f"Skip {modelobscol} for creating a ModelTimeeries because of unknown obstype."
