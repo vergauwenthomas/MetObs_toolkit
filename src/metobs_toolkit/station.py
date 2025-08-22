@@ -345,25 +345,25 @@ class Station:
         obstype : str
             The observation type to retrieve.
         modelname : str, optional
-            The model name to filter by. Use this parameter when multiple model 
-            data sources exist for the same observation type. If None, no 
+            The model name to filter by. Use this parameter when multiple model
+            data sources exist for the same observation type. If None, no
             filtering by model name is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by. Use this parameter when multiple 
-            model variables exist for the same observation type and model. If None, 
+            The model variable to filter by. Use this parameter when multiple
+            model variables exist for the same observation type and model. If None,
             no filtering by model variable is applied. The default is None.
 
         Returns
         -------
         ModelTimeSeries
             The ModelTimeSeries instance for the specified observation type.
-            
+
         Raises
         ------
         MetObsModelDataError
-            If no model data is found for the specified parameters, or if 
-            multiple model data instances are found and additional filtering 
-            parameters (modelname, modelvariable) are needed to uniquely 
+            If no model data is found for the specified parameters, or if
+            multiple model data instances are found and additional filtering
+            parameters (modelname, modelvariable) are needed to uniquely
             identify the target model data.
         """
 
@@ -1455,12 +1455,12 @@ class Station:
         obstype : str, optional
             The type of observation to plot model data for, by default "temp".
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
         linecolor : str or None, optional
             The color of the line in the plot. If None, a default color map is used.
@@ -1704,12 +1704,12 @@ class Station:
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. Defaults to False.
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
 
         Returns
@@ -1779,12 +1779,12 @@ class Station:
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
 
         Returns
@@ -1865,12 +1865,12 @@ class Station:
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
 
         Returns
@@ -1967,12 +1967,12 @@ class Station:
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
             If False, only gaps without gapfill data are filled. The default is False.
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
 
         Returns

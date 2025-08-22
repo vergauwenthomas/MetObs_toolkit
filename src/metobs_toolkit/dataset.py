@@ -937,12 +937,12 @@ class Dataset:
         figkwargs : dict, optional
             Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
         modelname : str, optional
-            The model name to filter by when multiple model data sources exist 
-            for the same observation type. If None, no filtering by model name 
+            The model name to filter by when multiple model data sources exist
+            for the same observation type. If None, no filtering by model name
             is applied. The default is None.
         modelvariable : str, optional
-            The model variable to filter by when multiple model variables exist 
-            for the same observation type and model. If None, no filtering by 
+            The model variable to filter by when multiple model variables exist
+            for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
 
         Returns
