@@ -152,9 +152,7 @@ def station_to_xr(station: "Station") -> xr.Dataset:
     station_vars = [sens.to_xr() for sens in target_sensors]
 
     # Construct modeldata xr
-    modelobs_vars = [
-        modeltimeseries.to_xr() for modeltimeseries in station.modeldata.values()
-    ]
+    modelobs_vars = [modeltimeseries.to_xr() for modeltimeseries in station.modeldata]
 
     # The 'datetime' coordinate of the observations is not (persee) the
     # same as in the modelobs datasets. This leads to un-mergable dataset. To resolve

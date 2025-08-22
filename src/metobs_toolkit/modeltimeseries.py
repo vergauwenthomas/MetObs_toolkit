@@ -74,11 +74,15 @@ class ModelTimeSeries:
 
         # model metadata
         self.modelname = modelname
+        # TODO: is modelvariable not band_unit from the obstype?
         self.modelvariable = modelvariable
 
     # ------------------------------------------
     #    Specials
     # ------------------------------------------
+    def __repr__(self):
+        return f"<ModelTimeSeries(id={self._id()},obstype={self.obstype.name})>"
+
     def _id(self) -> str:
         """A physical unique id.
 
@@ -173,7 +177,7 @@ class ModelTimeSeries:
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
         infostr += printing.print_fmt_line(
-            f"Origin {self.modelname} -> variable/band: {self.modelvariable}",
+            f"Modelname {self.modelname} -> variable/band: {self.modelvariable}",
             nident_root,
         )
         infostr += printing.print_fmt_line(

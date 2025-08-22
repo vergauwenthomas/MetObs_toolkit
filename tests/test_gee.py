@@ -243,7 +243,9 @@ class TestDemoDataset:
 
     def test_ERA5_extraction_on_metadata_only(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+        _method_name = (
+            "test_ERA5_extraction_on_metadata_only"  # get the name of this method
+        )
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
@@ -305,12 +307,12 @@ class TestDemoDataset:
         )
 
         # test get info on metadata-only dataset
-        for modeltimeseries in dataset.get_station("vlinder18").modeldata.values():
+        for modeltimeseries in dataset.get_station("vlinder18").modeldata:
             _ = modeltimeseries.get_info(printout=False)
 
     def test_ERA5_extraction(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+        _method_name = "test_ERA5_extraction"  # get the name of this method
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=metobs_toolkit.demo_template,
@@ -353,6 +355,27 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
+    def test_station_timeseries_extraction(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_data_file=metobs_toolkit.demo_datafile,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+        )
+        dataset.resample(target_freq="15min")
+
+        era5_manager = metobs_toolkit.default_GEE_datasets['ERA5-land']
+        #Extract the timeseries 
+        era5_temp = dataset.get_station('vlinder02').get_gee_timeseries_data(
+                        geedynamicdatasetmanager=era5_manager, #The datasetmanager to use
+                        startdt_utc=None,
+                        enddt_utc=None,
+                        target_obstypes=['temp'], #the observationtypes to extract, must be known modelobstypes
+                        force_direct_transfer=True
+                        )
+
+        assert dataset.get_station('vlinder02').modeldatadf.shape == (361, 4)
+
     def test_pickling(self):
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -386,8 +409,11 @@ class TestDemoDataset:
             .get_info(printout=False)
         )
 
-        assert dataset.modeldatadf.shape == (532, 2)
-        assert dataset.get_station("vlinder02").modeldatadf.shape == (19, 2)
+        assert dataset.modeldatadf.shape == (532, 4)
+        assert dataset.get_station("vlinder02").modeldatadf.shape == (19, 4)
+        assert dataset.get_station("vlinder02").get_modeltimeseries(
+            "temp"
+        ).series.shape == (19,)
 
     def test_ERA5_google_drive_interface(self):
         # 1. Test writing to drive file
@@ -428,6 +454,7 @@ class TestDemoDataset:
 
         # test equality
         assert_equality(dataset, dataset_direct)
+        
 
     def test_modeldata_timeseries_plot(self):
         # 1. get_startpoint data WITH records
@@ -439,14 +466,15 @@ class TestDemoDataset:
         station.make_plot(show_modeldata=True)
 
 
-# TODO: plot test of modeldata on dataset level
+
 
 
 if __name__ == "__main__":
     test = TestDemoDataset()
-    test.test_import_demo_metadata(overwrite_solution=False)
-    test.test_LCZ_extraction(overwrite_solution=False)
-    test.test_altitude_extraction(overwrite_solution=False)
-    test.test_landcover_frac_extraction(overwrite_solution=False)
-    test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
-    test.test_ERA5_extraction(overwrite_solution=False)
+    # test.test_import_demo_metadata(overwrite_solution=False)
+    # test.test_LCZ_extraction(overwrite_solution=False)
+    # test.test_altitude_extraction(overwrite_solution=False)
+    # test.test_landcover_frac_extraction(overwrite_solution=False)
+    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
+    # test.test_ERA5_extraction(overwrite_solution=False)
+    # test.test_ERA5_extraction(overwrite_solution=False)

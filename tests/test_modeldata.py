@@ -11,6 +11,10 @@ import matplotlib.pyplot as plt
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 sys.path.insert(0, str(libfolder / "src"))
 import metobs_toolkit
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsModelDataError,
+    MetObsDataAlreadyPresent,
+)
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
@@ -172,3 +176,289 @@ class TestModelDataManagers:
 
         except Exception as e:
             pytest.skip(f"GEE manager get_info failed: {e}")
+
+
+class TestStationModelDataMethods:
+    """Test Station methods for adding and retrieving model data."""
+
+    # to pass to the solutionfixer
+    solkwargs = {
+        "testfile": Path(__file__).name,
+        "classname": "teststationmodeldatamethods",
+    }
+    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+
+    def create_test_station_with_multiple_modeldata(self):
+        """Create a station with multiple model data sources for testing."""
+        # Create basic dataset
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+
+        # Get first station
+        station = dataset.stations[0]
+
+        # Create multiple ModelTimeSeries with same obstype but different modelname/modelvariable
+        temp_obstype = dataset.obstypes["temp"]
+
+        # Create test data
+        timestamps = pd.date_range("2022-01-01", periods=24, freq="h")
+        data1 = np.array([20.0 + i * 0.1 for i in range(24)])  # ERA5 data
+        data2 = np.array([20.5 + i * 0.1 for i in range(24)])  # GFS data
+        data3 = np.array([19.8 + i * 0.1 for i in range(24)])  # Different ERA5 variable
+
+        # Create ModelTimeSeries with different modelname/modelvariable combinations
+        model_ts1 = metobs_toolkit.ModelTimeSeries(
+            site=station.site,
+            datarecords=data1,
+            timestamps=timestamps,
+            obstype=temp_obstype,
+            datadtype=np.float32,
+            timezone="UTC",
+            modelname="ERA5",
+            modelvariable="temperature_2m",
+        )
+
+        model_ts2 = metobs_toolkit.ModelTimeSeries(
+            site=station.site,
+            datarecords=data2,
+            timestamps=timestamps,
+            obstype=temp_obstype,
+            datadtype=np.float32,
+            timezone="UTC",
+            modelname="GFS",
+            modelvariable="temperature_2m",
+        )
+
+        model_ts3 = metobs_toolkit.ModelTimeSeries(
+            site=station.site,
+            datarecords=data3,
+            timestamps=timestamps,
+            obstype=temp_obstype,
+            datadtype=np.float32,
+            timezone="UTC",
+            modelname="ERA5",
+            modelvariable="skin_temperature",
+        )
+
+        return station, model_ts1, model_ts2, model_ts3
+
+    def test_add_to_modeldata_basic(self):
+        """Test basic functionality of add_to_modeldata."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Initially no model data
+        assert len(station.modeldata) == 0, "Station should start with no model data"
+
+        # Add first model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        assert (
+            len(station.modeldata) == 1
+        ), "Station should have 1 model data after first addition"
+
+        # Add second model data (different modelname)
+        station.add_to_modeldata(model_ts2, force_update=False)
+        assert (
+            len(station.modeldata) == 2
+        ), "Station should have 2 model data after second addition"
+
+        # Add third model data (different modelvariable)
+        station.add_to_modeldata(model_ts3, force_update=False)
+        assert (
+            len(station.modeldata) == 3
+        ), "Station should have 3 model data after third addition"
+
+    def test_add_to_modeldata_force_update(self):
+        """Test add_to_modeldata with force_update functionality."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add initial model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        assert len(station.modeldata) == 1
+
+        # Try to add same model data again without force_update - should raise error
+        with pytest.raises(MetObsDataAlreadyPresent):
+            station.add_to_modeldata(model_ts1, force_update=False)
+
+        # Add same model data with force_update=True - should succeed
+        station.add_to_modeldata(model_ts1, force_update=True)
+        assert (
+            len(station.modeldata) == 1
+        ), "Should still have only 1 model data after force update"
+
+    def test_add_to_modeldata_wrong_type(self):
+        """Test add_to_modeldata with wrong input type."""
+        station, _, _, _ = self.create_test_station_with_multiple_modeldata()
+
+        # Try to add non-ModelTimeSeries object
+        with pytest.raises(
+            TypeError,
+            match="new_modeltimeseries must be an instance of ModelTimeSeries",
+        ):
+            station.add_to_modeldata("not_a_modeltimeseries", force_update=False)
+
+    def test_get_modeltimeseries_by_obstype_only(self):
+        """Test get_modeltimeseries with obstype only when unique."""
+        station, model_ts1, _, _ = self.create_test_station_with_multiple_modeldata()
+
+        # Add only one model data for temp
+        station.add_to_modeldata(model_ts1, force_update=False)
+
+        # Should be able to retrieve by obstype only
+        retrieved = station.get_modeltimeseries("temp")
+        assert (
+            retrieved._id() == model_ts1._id()
+        ), "Should retrieve the correct model data"
+        assert retrieved.modelname == "ERA5", "Should have correct modelname"
+        assert (
+            retrieved.modelvariable == "temperature_2m"
+        ), "Should have correct modelvariable"
+
+    def test_get_modeltimeseries_multiple_same_obstype(self):
+        """Test get_modeltimeseries when multiple model data exist for same obstype."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add multiple model data for same obstype
+        station.add_to_modeldata(model_ts1, force_update=False)
+        station.add_to_modeldata(model_ts2, force_update=False)
+        station.add_to_modeldata(model_ts3, force_update=False)
+
+        # Should raise error when trying to get by obstype only
+        with pytest.raises(MetObsModelDataError, match="Multiple model data found"):
+            station.get_modeltimeseries("temp")
+
+    def test_get_modeltimeseries_by_modelname(self):
+        """Test get_modeltimeseries filtering by modelname."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add multiple model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        station.add_to_modeldata(model_ts2, force_update=False)
+        station.add_to_modeldata(model_ts3, force_update=False)
+
+        # Should still raise error when filtering by modelname only (ERA5 has 2 variables)
+        with pytest.raises(MetObsModelDataError, match="Multiple model data found"):
+            station.get_modeltimeseries("temp", modelname="ERA5")
+
+        # Should work when filtering by unique modelname
+        retrieved = station.get_modeltimeseries("temp", modelname="GFS")
+        assert retrieved._id() == model_ts2._id(), "Should retrieve GFS model data"
+        assert retrieved.modelname == "GFS", "Should have correct modelname"
+
+    def test_get_modeltimeseries_by_modelvariable(self):
+        """Test get_modeltimeseries filtering by modelvariable."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add multiple model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        station.add_to_modeldata(model_ts2, force_update=False)
+        station.add_to_modeldata(model_ts3, force_update=False)
+
+        # Should work when filtering by unique modelvariable
+        retrieved = station.get_modeltimeseries(
+            "temp", modelvariable="skin_temperature"
+        )
+        assert (
+            retrieved._id() == model_ts3._id()
+        ), "Should retrieve skin_temperature model data"
+        assert (
+            retrieved.modelvariable == "skin_temperature"
+        ), "Should have correct modelvariable"
+
+    def test_get_modeltimeseries_by_both_filters(self):
+        """Test get_modeltimeseries filtering by both modelname and modelvariable."""
+        station, model_ts1, model_ts2, model_ts3 = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add multiple model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        station.add_to_modeldata(model_ts2, force_update=False)
+        station.add_to_modeldata(model_ts3, force_update=False)
+
+        # Should work when filtering by both modelname and modelvariable
+        retrieved = station.get_modeltimeseries(
+            "temp", modelname="ERA5", modelvariable="temperature_2m"
+        )
+        assert (
+            retrieved._id() == model_ts1._id()
+        ), "Should retrieve ERA5 temperature_2m model data"
+        assert retrieved.modelname == "ERA5", "Should have correct modelname"
+        assert (
+            retrieved.modelvariable == "temperature_2m"
+        ), "Should have correct modelvariable"
+
+        # Test another combination
+        retrieved2 = station.get_modeltimeseries(
+            "temp", modelname="ERA5", modelvariable="skin_temperature"
+        )
+        assert (
+            retrieved2._id() == model_ts3._id()
+        ), "Should retrieve ERA5 skin_temperature model data"
+
+    def test_get_modeltimeseries_no_match(self):
+        """Test get_modeltimeseries when no model data matches the criteria."""
+        station, model_ts1, _, _ = self.create_test_station_with_multiple_modeldata()
+
+        # Add only one model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+
+        # Test non-existing obstype
+        with pytest.raises(MetObsModelDataError, match="No model data found"):
+            station.get_modeltimeseries("humidity")
+
+        # Test non-existing modelname
+        with pytest.raises(MetObsModelDataError, match="No model data found"):
+            station.get_modeltimeseries("temp", modelname="ECMWF")
+
+        # Test non-existing modelvariable
+        with pytest.raises(MetObsModelDataError, match="No model data found"):
+            station.get_modeltimeseries("temp", modelvariable="nonexistent_var")
+
+        # Test non-existing combination
+        with pytest.raises(MetObsModelDataError, match="No model data found"):
+            station.get_modeltimeseries(
+                "temp", modelname="ERA5", modelvariable="nonexistent_var"
+            )
+
+    def test_get_modeltimeseries_no_modeldata(self):
+        """Test get_modeltimeseries when station has no model data."""
+        station, _, _, _ = self.create_test_station_with_multiple_modeldata()
+
+        # Don't add any model data
+        with pytest.raises(MetObsModelDataError, match="No model data found"):
+            station.get_modeltimeseries("temp")
+
+    def test_modeldata_property_list_format(self):
+        """Test that modeldata property returns a list."""
+        station, model_ts1, model_ts2, _ = (
+            self.create_test_station_with_multiple_modeldata()
+        )
+
+        # Add model data
+        station.add_to_modeldata(model_ts1, force_update=False)
+        station.add_to_modeldata(model_ts2, force_update=False)
+
+        # Test modeldata property
+        modeldata_list = station.modeldata
+        assert isinstance(modeldata_list, list), "modeldata should return a list"
+        assert len(modeldata_list) == 2, "Should have 2 model data items"
+
+        # Test that items are ModelTimeSeries
+        for item in modeldata_list:
+            assert isinstance(
+                item, metobs_toolkit.ModelTimeSeries
+            ), "Items should be ModelTimeSeries"

@@ -131,7 +131,7 @@ class TestDataWithGaps:
 
     def test_interpolation_on_dataset(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
+        _method_name = "test_interpolation_on_dataset"
 
         #  1. get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(

@@ -119,6 +119,10 @@ class Site:
         newsite._gee_buffered_fractions = new_gee_buffered
         return newsite
 
+    def __repr__(self):
+        """Return a string representation for debugging."""
+        return f"{type(self).__name__}(id={self._id()})"
+
     @property
     def stationname(self) -> str:
         """Return the station name."""
