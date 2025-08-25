@@ -17,4 +17,4 @@ jobs:
         with:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
           allow_poetry_pre_release: "yes"
-          package_directory: "metobs_toolkit"
+          package_directory: "src/metobs_toolkit"
