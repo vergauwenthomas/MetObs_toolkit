@@ -34,7 +34,6 @@ dependencies=[
   # "folium>=0.19.5",  # needed for geemap
   "geemap>=0.35.3",
   "geopandas>=1.0.1",
-  "geos>=0.2.3",
   "mapclassify>=2.8.1",
   # "numpy>=1.17.3", #in pandas
   "matplotlib>=3.9.2",
