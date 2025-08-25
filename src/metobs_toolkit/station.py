@@ -672,8 +672,6 @@ class Station:
         -----
 
         * If `target_obstype` is None, all sensors in `self.sensordata` will be
-
-        * If `target_obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
         * If `target_obstype` is specified, it must be a known observation type.
         Warning
@@ -1245,7 +1243,6 @@ class Station:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The repetitions check is similar to the persistence check, but not identical.
-        * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
@@ -1299,7 +1296,6 @@ class Station:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        * In general, for temperatures, the decrease threshold is set less stringent than the increase
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.

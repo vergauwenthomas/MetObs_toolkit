@@ -465,7 +465,7 @@ class TestDataWithGaps:
         with pytest.raises(MetObsDataAlreadyPresent):
             sta.add_to_modeldata(fake_modeltimeseries)
 
-        #change modelname, now modeldata should be accepted
+        # change modelname, now modeldata should be accepted
         fake_modeltimeseries.modelname = "fake_model"
         sta.add_to_modeldata(fake_modeltimeseries)
 

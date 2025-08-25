@@ -324,7 +324,6 @@ def toolkit_buddy_check(
 ) -> Tuple[list, dict]:
     """
     Spatial buddy check.
-    Spatial buddy check.
 
     The buddy check compares an observation against its neighbors
     (i.e. spatial buddies). The check loops over all the groups, which are stations
@@ -345,7 +344,6 @@ def toolkit_buddy_check(
     outlier is saved. It will be removed from the outliers, and will pass to the
     next iteration or the end of this function.
 
-    A schematic step-by-step description of the buddy check:
     A schematic step-by-step description of the buddy check:
 
     #. A distance matrix is constructed for all interdistances between
@@ -490,10 +488,6 @@ def toolkit_buddy_check(
                 "At least one station has a NaN \
 value for 'altitude'"
             )
-            raise ValueError(
-                "At least one station has a NaN \
-value for 'altitude'"
-            )
         # Filter by altitude difference
         spatial_buddies = _filter_to_altitude_buddies(
             buddies=spatial_buddies,
@@ -553,7 +547,6 @@ value for 'altitude'"
         if use_mp:
             # Use multiprocessing generator (parallelization)
             num_cpus = os.cpu_count()
-            # since this check is an instantaneous check -->
             # since this check is an instantaneous check -->
             # perfect for splitting the dataset in chunks in time
             chunks = np.array_split(combdf, num_cpus)

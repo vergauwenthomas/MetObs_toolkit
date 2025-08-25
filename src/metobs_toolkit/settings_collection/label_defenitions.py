@@ -53,7 +53,6 @@ label_def = {
     },
     # ----- debias model gapfill -----
     "debias_modeldata_fill": {"label": "debiased modeldata fill", "color": "#6e1868"},
-    "debias_modeldata_fill": {"label": "debiased modeldata fill", "color": "#6e1868"},
     "failed_debias_modeldata_fill": {
         "label": "failed debiased modeldata fill",
         "color": "#6e1868",
