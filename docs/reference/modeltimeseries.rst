@@ -40,3 +40,16 @@ A summary of all methods in the ModelTimeSeries class.
 
    ModelTimeSeries.get_info
    ModelTimeSeries.make_plot
+   ModelTimeSeries.to_xr
+
+
+Special methods
+------------------
+
+The `ModelTimeSeries` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two ModelTimeSeries objects. 
+
+- ``__eq__``: Test equality between two ModelTimeSeries objects.
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.

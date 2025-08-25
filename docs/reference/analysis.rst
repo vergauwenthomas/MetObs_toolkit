@@ -17,6 +17,16 @@ Constructor
    Analysis
 
 
+Data attributes
+----------------
+A summary of all the attributes that hold or return data.
+
+.. autosummary::
+   :toctree: api/
+
+   Analysis.df
+
+
 Methods
 ----------
 A summary of all methods in the ``Analysis`` class.

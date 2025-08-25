@@ -25,6 +25,8 @@ A summary of all the attributes (and properties) of the SensorData class.
    :toctree: api/
 
    SensorData.df
+   SensorData.outliersdf
+   SensorData.gapsdf
    SensorData.stationname
    SensorData.tz
    SensorData.start_datetime
@@ -50,3 +52,18 @@ A summary of all methods in the SensorData class.
    SensorData.repetitions_check
    SensorData.step_check
    SensorData.window_variation_check
+   SensorData.to_xr
+
+
+Special methods
+------------------
+
+The `SensorData` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two SensorData objects, using the 'other' for duplicated timestamps. Note that all gaps and outliers are reset! 
+
+- ``__eq__``: Test equality between two SensorData objects.
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.
+
+- ``copy``: Create a (deep) copy of the Sensordata.

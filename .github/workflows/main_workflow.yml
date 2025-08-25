@@ -61,7 +61,7 @@ jobs:
         - name: Set up Python
           uses: actions/setup-python@v4
           with:
-            python-version: '3.9'
+            python-version: '3.10'
 
         - name: Install Poetry
           run: |
@@ -97,7 +97,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
-                python-version: [3.9, 3.12]
+                python-version: ['3.10', '3.13']
         runs-on: ${{ matrix.os }}
         steps:
               - name: Download package artifact
@@ -144,6 +144,7 @@ jobs:
             - docs/topics/log_example.ipynb
             - docs/topics/metadata_only.ipynb
             - docs/topics/template_doc.ipynb
+            - docs/topics/to_xarray.ipynb
 
 
 
@@ -271,7 +272,7 @@ jobs:
           - name: get_version
             id: 'version_info'
             run: |
-              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' metobs_toolkit/__init__.py)"
+              CURRENT_VERSION="$(grep -oP '__version__ = "\K\d+\.\d+\.\d+' src/metobs_toolkit/__init__.py)"
               echo "current version (init) = ${CURRENT_VERSION}"
               echo "::set-output name=current_version::$CURRENT_VERSION"
               PYPROJECT_VERSION="$(grep -oP 'version = "\K\d+\.\d+\.\d+' pyproject.toml)"
@@ -291,13 +292,16 @@ jobs:
         strategy:
           matrix:
             test_file:
-            - toolkit_tests/test_qc.py
-            - toolkit_tests/test_obstypes.py
-            - toolkit_tests/test_gf.py
-            - toolkit_tests/test_analysis.py
-            - toolkit_tests/test_importing.py
-            - toolkit_tests/test_plotting.py
-            - toolkit_tests/test_gee.py
+            - tests/test_qc.py
+            - tests/test_obstypes.py
+            - tests/test_gf.py
+            - tests/test_analysis.py
+            - tests/test_importing.py
+            - tests/test_plotting.py
+            - tests/test_gee.py
+            - tests/test_add.py
+            - tests/test_to_xr.py
+            - tests/test_modeldata.py
 
         continue-on-error: true
         steps:
@@ -337,7 +341,7 @@ jobs:
             env:
                 GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
-              if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
+              if [ "${{ matrix.test_file }}" = "tests/test_plotting.py" ]; then
                   mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
                   pytest ${{ matrix.test_file }} --mpl --mpl-generate-summary=html --mpl-results-path=tmp/${{ steps.get_test_basename.outputs.test_basename }}
                 else
@@ -345,7 +349,7 @@ jobs:
                 fi
 
           - name: Upload mpl-diff artifact (only for test_plotting.py)
-            if: ${{ matrix.test_file == 'toolkit_tests/test_plotting.py' }}
+            if: ${{ matrix.test_file == 'tests/test_plotting.py' }}
             uses: actions/upload-artifact@v4
             with:
               name: mpl-diff
@@ -356,7 +360,7 @@ jobs:
             env:
               GEE_SERVICE_ACCOUNT: ${{ secrets.GEE_SERVICE_ACCOUNT }}
             run: |
-              if [ "${{ matrix.test_file }}" = "toolkit_tests/test_plotting.py" ]; then
+              if [ "${{ matrix.test_file }}" = "tests/test_plotting.py" ]; then
                 mkdir -p tmp/${{ steps.get_test_basename.outputs.test_basename }}
                 pytest ${{ matrix.test_file }} --mpl
               else

@@ -32,6 +32,8 @@ A summary of all the attributes that hold or return data.
    Dataset.gapsdf
    Dataset.modeldatadf
    Dataset.present_observations
+   Dataset.start_datetime
+   Dataset.end_datetime
 
 
 General methods and attributes
@@ -53,6 +55,7 @@ General methods and attributes
    Dataset.add_new_observationtype
    Dataset.save_dataset_to_pkl
    Dataset.import_data_from_file
+   Dataset.to_xr
 
 
 GEE related methods
@@ -97,6 +100,7 @@ Quality control related methods
    Dataset.step_check
    Dataset.window_variation_check
    Dataset.buddy_check
+   Dataset.buddy_check_with_LCZ_safety_net
    Dataset.get_qc_stats
    Dataset.convert_outliers_to_gaps
 
@@ -122,3 +126,38 @@ Dataset related functions
    :toctree: api/
 
    import_dataset_from_pkl
+
+
+
+Special methods
+------------------
+
+The `Dataset` class implements several Python special methods for convenience:
+
+- ``__add__``: Combine two Dataset objects, merging stations and obstypes. 
+
+- ``__eq__``: Test equality between two Dataset objects (compares stations).
+
+- ``__str__`` and ``__repr__``: String representations for printing and debugging.
+
+- ``copy``: Create a (deep) copy of the Dataset.
+
+**Example usage:**
+
+.. code-block:: python
+
+   from metobs_toolkit.dataset import Dataset
+
+   # Assume ds1 and ds2 are Dataset instances
+   ds3 = ds1 + ds2  # Merge datasets
+
+   # Equality check
+   if ds1 == ds2:
+       print("Datasets are equal")
+
+   # Copying
+   ds4 = ds1.copy(deep=True)
+
+   # String representation
+   print(str(ds1))
+

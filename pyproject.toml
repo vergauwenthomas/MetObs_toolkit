@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "0.4.0"
+version = "0.4.3"
 license = "LICENSE"
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be"}]
 description = "A Meteorological observations toolkit for scientists"
@@ -25,7 +25,7 @@ classifiers = [
 documentation = "https://metobs-toolkit.readthedocs.io/en/latest/index.html"
 keywords = ["meteorology", "observations", "urban climate"]
 packages = [{include = "metobs_toolkit"}]
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10,<4.0"
 
 
 dependencies=[
@@ -34,16 +34,15 @@ dependencies=[
   # "folium>=0.19.5",  # needed for geemap
   "geemap>=0.35.3",
   "geopandas>=1.0.1",
-  "geos>=0.2.3",
   "mapclassify>=2.8.1",
   # "numpy>=1.17.3", #in pandas
   "matplotlib>=3.9.2",
   "numpy>=1",
   "pandas>=2",
   "pint>=0.24.4",
-  # "python>=3.9",
   "setuptools>=78.1.0",
-  "shapely>=2.0.6"
+  "shapely>=2.0.6",
+  "xarray (>=2025,<2026)"
 ]
 
 [tool.poetry.group.dev.dependencies]
@@ -58,6 +57,8 @@ pytest = "^8.3.5"
 pytest-mpl = "^0.17.0"
 pytest-cov = "^6.1.1"
 nbval = "^0.11.0"
+black = "^25.1.0"
+jupyter = "^1.1.1"
 
 [tool.poetry.group.documentation.dependencies]
 ipykernel = "^6.29.5"
