@@ -465,15 +465,15 @@ class TestDataWithGaps:
         with pytest.raises(MetObsDataAlreadyPresent):
             sta.add_to_modeldata(fake_modeltimeseries)
 
+        #change modelname, now modeldata should be accepted
         fake_modeltimeseries.modelname = "fake_model"
-        with pytest.raises(MetObsDataAlreadyPresent):
-            # Duplicate keys error
-            sta.add_to_modeldata(fake_modeltimeseries)
-
-        fake_modeltimeseries.obstype.name = "fake name"
         sta.add_to_modeldata(fake_modeltimeseries)
 
-        assert len(set(sta.modeldata)) == 2
+        fake_modeldata2 = copy.deepcopy(fake_modeltimeseries)
+        fake_modeldata2.modelvariable = "fake name"
+        sta.add_to_modeldata(fake_modeldata2)
+
+        assert len(sta.modeldata) == 3
 
     # ------------------------------------------
     #    Plotting tests are present in the test_plotting.py
