@@ -364,17 +364,19 @@ class TestDemoDataset:
         )
         dataset.resample(target_freq="15min")
 
-        era5_manager = metobs_toolkit.default_GEE_datasets['ERA5-land']
-        #Extract the timeseries 
-        era5_temp = dataset.get_station('vlinder02').get_gee_timeseries_data(
-                        geedynamicdatasetmanager=era5_manager, #The datasetmanager to use
-                        startdt_utc=None,
-                        enddt_utc=None,
-                        target_obstypes=['temp'], #the observationtypes to extract, must be known modelobstypes
-                        force_direct_transfer=True
-                        )
+        era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+        # Extract the timeseries
+        era5_temp = dataset.get_station("vlinder02").get_gee_timeseries_data(
+            geedynamicdatasetmanager=era5_manager,  # The datasetmanager to use
+            startdt_utc=None,
+            enddt_utc=None,
+            target_obstypes=[
+                "temp"
+            ],  # the observationtypes to extract, must be known modelobstypes
+            force_direct_transfer=True,
+        )
 
-        assert dataset.get_station('vlinder02').modeldatadf.shape == (361, 4)
+        assert dataset.get_station("vlinder02").modeldatadf.shape == (361, 4)
 
     def test_pickling(self):
         # 1. get_startpoint data
@@ -454,7 +456,6 @@ class TestDemoDataset:
 
         # test equality
         assert_equality(dataset, dataset_direct)
-        
 
     def test_modeldata_timeseries_plot(self):
         # 1. get_startpoint data WITH records
@@ -464,9 +465,6 @@ class TestDemoDataset:
 
         station = dataset.get_station("vlinder05")
         station.make_plot(show_modeldata=True)
-
-
-
 
 
 if __name__ == "__main__":
