@@ -88,7 +88,7 @@ class ModelTimeSeries:
             raise TypeError(f"Expected ModelObstype, got {type(self.modelobstype)}")
         if self.modelobstype.model_unit is None:
             raise MetObsUnitUnknown(
-                f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit(...)."
+                f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit = value syntax."
             )
 
         # Data
