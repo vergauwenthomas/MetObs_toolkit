@@ -30,16 +30,22 @@ logger = logging.getLogger("<metobs_toolkit>")
 class ModelTimeSeries:
     """Class for model-based timeseries at one location.
 
+    This class stores model data at a specific location and automatically converts
+    the data from the model's native units to standard units as defined by the
+    observation type. The unit conversion is performed during initialization.
+
     Parameters
     ----------
     site : object
         The site object representing the location.
     datarecords : np.ndarray
-        Array of data records.
+        Array of data records in the model's native units. These will be
+        automatically converted to standard units during initialization.
     timestamps : np.ndarray
         Array of timestamps corresponding to the data records.
-    obstype : Obstype
-        The observation type.
+    obstype : ModelObstype
+        The observation type containing unit information. Must have a model_unit
+        attribute set for unit conversion to work properly.
     datadtype : type, optional
         Data type for the records, by default np.float32.
     timezone : str, optional
@@ -48,6 +54,18 @@ class ModelTimeSeries:
         Name of the model, by default None.
     modelvariable : str, optional
         Name of the model variable, by default None.
+
+    Notes
+    -----
+    The stored data in the `series` attribute will be in standard units as defined
+    by `obstype.std_unit`, not in the original model units. The conversion is
+    performed automatically using `obstype.convert_to_standard_units()` method.
+
+    Raises
+    ------
+    MetObsUnitUnknown
+        If the obstype does not have a model_unit set, which is required for
+        unit conversion.
     """
 
     def __init__(
