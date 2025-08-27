@@ -73,14 +73,14 @@ class ModelTimeSeries:
         site,
         datarecords: np.ndarray,
         timestamps: np.ndarray,
-        obstype: Obstype,
+        modelobstype: Obstype,
         datadtype: type = np.float32,
         timezone: str = "UTC",
         modelname: str = None,
         modelvariable: str = None,
     ):
         self.site = site
-        self.obstype = obstype
+        self.obstype = modelobstype
         if self.obstype.model_unit is None:
             raise MetObsUnitUnknown(f'The model_unit of {self.obstype} is not set. Set this using the Obstype.model_unit(...).')
 
@@ -88,7 +88,7 @@ class ModelTimeSeries:
         data = pd.Series(
             data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
-            name=obstype.name,
+            name=modelobstype.name,
         )
         
         self.series = self.obstype.convert_to_standard_units(
@@ -151,7 +151,7 @@ class ModelTimeSeries:
             site=self.site,
             datarecords=combined_series.values,
             timestamps=combined_series.index.values,
-            obstype=self.obstype + other.obstype,
+            modelobstype=self.obstype + other.obstype,
             datadtype=combined_series.dtype,
             timezone=self.tz,
             modelname=self.modelname,

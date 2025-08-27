@@ -1104,7 +1104,7 @@ class Station:
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
