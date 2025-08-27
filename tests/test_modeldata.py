@@ -203,9 +203,9 @@ class TestStationModelDataMethods:
 
         # Create multiple ModelTimeSeries with same obstype but different modelname/modelvariable
         temp_obstype = dataset.obstypes["temp"]
-        temp_modelobstype = metobs_toolkit.ModelObstype(obstype=temp_obstype,
-                                                        model_unit="kelvin",
-                                                        model_band='fake-band')
+        temp_modelobstype = metobs_toolkit.ModelObstype(
+            obstype=temp_obstype, model_unit="kelvin", model_band="fake-band"
+        )
 
         # Create test data
         timestamps = pd.date_range("2022-01-01", periods=24, freq="h")
@@ -465,7 +465,6 @@ class TestStationModelDataMethods:
             assert isinstance(
                 item, metobs_toolkit.ModelTimeSeries
             ), "Items should be ModelTimeSeries"
-
 
 
 if __name__ == "__main__":

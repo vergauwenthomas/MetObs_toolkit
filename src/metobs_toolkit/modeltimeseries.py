@@ -81,7 +81,7 @@ class ModelTimeSeries:
         _convert_to_standard_units: bool = True,
     ):
         self.site = site
-        
+
         # Testing the ModelObstype
         self.modelobstype = modelobstype
         if not isinstance(self.modelobstype, ModelObstype):
@@ -103,7 +103,7 @@ class ModelTimeSeries:
             )
         else:
             pass
-        
+
         self.series = data
 
         # model metadata
@@ -166,7 +166,7 @@ class ModelTimeSeries:
             timezone=self.tz,
             modelname=self.modelname,
             modelvariable=self.modelvariable,
-            _convert_to_standard_units=False, # !! units are already converted !!
+            _convert_to_standard_units=False,  # !! units are already converted !!
         )
         return combined
 
@@ -310,7 +310,9 @@ class ModelTimeSeries:
         # Add Styling attributes
         # Set title:
         if title is None:
-            set_title(ax, f"{self.modelobstype.name} data for station {self.stationname}")
+            set_title(
+                ax, f"{self.modelobstype.name} data for station {self.stationname}"
+            )
         else:
             set_title(ax, title)
         # Set ylabel
