@@ -687,7 +687,7 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
                     modelvariable=geedynamicdatasetmanager.modelobstypes[

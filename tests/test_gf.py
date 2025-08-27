@@ -454,7 +454,7 @@ class TestDataWithGaps:
             site=sta.site,
             datarecords=fake_data.to_numpy(),
             timestamps=fake_data.index.to_numpy(),
-            obstype=orig_modeltimeseries.obstype,
+            modelobstype=orig_modeltimeseries.obstype,
             modelname=orig_modeltimeseries.modelname,
             modelvariable=orig_modeltimeseries.modelvariable,
         )
