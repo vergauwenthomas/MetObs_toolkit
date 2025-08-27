@@ -80,10 +80,10 @@ class ModelTimeSeries:
         modelvariable: str = None,
     ):
         self.site = site
-        self.obstype = modelobstype
-        if self.obstype.model_unit is None:
+        self.modelobstype = modelobstype
+        if self.modelobstype.model_unit is None:
             raise MetObsUnitUnknown(
-                f"The model_unit of {self.obstype} is not set. Set this using the Obstype.model_unit(...)."
+                f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit(...)."
             )
 
         # Data
@@ -93,8 +93,8 @@ class ModelTimeSeries:
             name=modelobstype.name,
         )
 
-        self.series = self.obstype.convert_to_standard_units(
-            input_data=data, input_unit=self.obstype.model_unit
+        self.series = self.modelobstype.convert_to_standard_units(
+            input_data=data, input_unit=self.modelobstype.model_unit
         )
 
         # model metadata
@@ -106,7 +106,7 @@ class ModelTimeSeries:
     #    Specials
     # ------------------------------------------
     def __repr__(self):
-        return f"<ModelTimeSeries(id={self._id()},obstype={self.obstype.name})>"
+        return f"<ModelTimeSeries(id={self._id()},obstype={self.modelobstype.name})>"
 
     def _id(self) -> str:
         """A physical unique id.
@@ -122,7 +122,7 @@ class ModelTimeSeries:
             return False
         return (
             self.site == other.site
-            and self.obstype == other.obstype
+            and self.modelobstype == other.obstype
             and self.series.equals(other.series)
             and self.modelname == other.modelname
             and self.modelvariable == other.modelvariable
@@ -152,7 +152,7 @@ class ModelTimeSeries:
             site=self.site,
             datarecords=combined_series.values,
             timestamps=combined_series.index.values,
-            modelobstype=self.obstype + other.obstype,
+            modelobstype=self.modelobstype + other.obstype,
             datadtype=combined_series.dtype,
             timezone=self.tz,
             modelname=self.modelname,
@@ -215,7 +215,7 @@ class ModelTimeSeries:
             f"Number of records: {self.series.shape[0]}", nident_root
         )
         infostr += printing.print_fmt_line(
-            f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}",
+            f"Units are converted from {self.modelobstype.model_unit} --> {self.modelobstype.std_unit}",
             nident_root,
         )
 
@@ -240,7 +240,7 @@ class ModelTimeSeries:
         infostr = ""
         infostr += printing.print_fmt_title("General info of ModelTimeSeries")
         infostr += printing.print_fmt_line(
-            f"{self.obstype.name} model data at location of {self.stationname}"
+            f"{self.modelobstype.name} model data at location of {self.stationname}"
         )
         infostr += self._get_info_core(nident_root=1)
         if printout:
@@ -300,11 +300,11 @@ class ModelTimeSeries:
         # Add Styling attributes
         # Set title:
         if title is None:
-            set_title(ax, f"{self.obstype.name} data for station {self.stationname}")
+            set_title(ax, f"{self.modelobstype.name} data for station {self.stationname}")
         else:
             set_title(ax, title)
         # Set ylabel
-        set_ylabel(ax, self.obstype._get_plot_y_label())
+        set_ylabel(ax, self.modelobstype._get_plot_y_label())
 
         # Set xlabel
         set_xlabel(ax, f"Timestamps (in {self.tz})")
