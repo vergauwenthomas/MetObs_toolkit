@@ -20,7 +20,7 @@ from metobs_toolkit.plot_collection.general_functions import (
 )
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
-
+from metobs_toolkit.backend_collection.errorclasses import MetObsUnitUnknown
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
@@ -63,6 +63,8 @@ class ModelTimeSeries:
     ):
         self.site = site
         self.obstype = obstype
+        if self.obstype.model_unit is None:
+            raise MetObsUnitUnknown(f'The model_unit of {self.obstype} is not set. Set this using the Obstype.model_unit(...).')
 
         # Data
         data = pd.Series(
@@ -70,7 +72,11 @@ class ModelTimeSeries:
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
             name=obstype.name,
         )
-        self.series = data
+        
+        self.series = self.obstype.convert_to_standard_units(
+            input_data=data, input_unit=self.obstype.model_unit
+        )
+       
 
         # model metadata
         self.modelname = modelname
