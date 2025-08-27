@@ -78,6 +78,7 @@ class ModelTimeSeries:
         timezone: str = "UTC",
         modelname: str = None,
         modelvariable: str = None,
+        _convert_to_standard_units: bool = True,
     ):
         self.site = site
         self.modelobstype = modelobstype
@@ -92,10 +93,14 @@ class ModelTimeSeries:
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
             name=modelobstype.name,
         )
-
-        self.series = self.modelobstype.convert_to_standard_units(
-            input_data=data, input_unit=self.modelobstype.model_unit
-        )
+        if _convert_to_standard_units:
+            data = self.modelobstype.convert_to_standard_units(
+                input_data=data, input_unit=self.modelobstype.model_unit
+            )
+        else:
+            pass
+        
+        self.series = data
 
         # model metadata
         self.modelname = modelname
@@ -152,11 +157,12 @@ class ModelTimeSeries:
             site=self.site,
             datarecords=combined_series.values,
             timestamps=combined_series.index.values,
-            modelobstype=self.modelobstype + other.obstype,
+            modelobstype=self.modelobstype + other.modelobstype,
             datadtype=combined_series.dtype,
             timezone=self.tz,
             modelname=self.modelname,
             modelvariable=self.modelvariable,
+            _convert_to_standard_units=False, #!! unit are already converted.
         )
         return combined
 
