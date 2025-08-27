@@ -215,7 +215,7 @@ def modeltimeseries_df(modeltimeseries_instance) -> pd.DataFrame:
         modeltimeseries_instance.series.to_frame()
         .rename(
             columns={
-                modeltimeseries_instance.obstype.name: "value",
+                modeltimeseries_instance.modelobstype.name: "value",
                 modeltimeseries_instance.stationname: "value",
             }
         )
