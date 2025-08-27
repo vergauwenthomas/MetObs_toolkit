@@ -749,7 +749,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         else:
             self.modelobstypes[modelobstype.name] = modelobstype
 
-
     def _format_gee_df_structure(self, geedf: pd.DataFrame) -> pd.DataFrame:
         """
         Format a dataframe (constructed directly from GEE) to a modeldf.

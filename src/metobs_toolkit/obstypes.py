@@ -399,7 +399,7 @@ class ModelObstype(Obstype):
             raise MetObsUnitsIncompatible(
                 f"{self._model_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
             )
-            
+
     @model_band.setter
     @log_entry
     def model_band(self, value: str):

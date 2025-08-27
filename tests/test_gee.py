@@ -243,7 +243,9 @@ class TestDemoDataset:
 
     def test_ERA5_extraction_on_metadata_only(self, overwrite_solution=False):
         # 0. Get info of the current check
-        _method_name = "test_ERA5_extraction_on_metadata_only"  # get the name of this method
+        _method_name = (
+            "test_ERA5_extraction_on_metadata_only"  # get the name of this method
+        )
         # 1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
