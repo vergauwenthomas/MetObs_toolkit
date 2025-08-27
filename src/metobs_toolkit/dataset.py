@@ -664,7 +664,6 @@ class Dataset:
             force_update = True
 
             totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
-            totaldf = geedynamicdatasetmanager._convert_units(totaldf)
         else:
             totaldf = _force_from_dataframe
 
@@ -688,7 +687,7 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
                     modelvariable=geedynamicdatasetmanager.modelobstypes[

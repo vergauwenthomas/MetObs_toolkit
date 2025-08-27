@@ -308,9 +308,9 @@ class Station:
         concatlist = []
         for modeldata in self.modeldata:
             df = (
-                modeldata.df.assign(obstype=modeldata.obstype.name)
+                modeldata.df.assign(obstype=modeldata.modelobstype.name)
                 .assign(
-                    details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.obstype.model_unit} -> {modeldata.obstype.std_unit}"
+                    details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
                 )
                 .assign(modelname=modeldata.modelname)
                 .assign(modelvariable=modeldata.modelvariable)
@@ -377,7 +377,7 @@ class Station:
         candidates = [
             modeldata
             for modeldata in all_candidates
-            if modeldata.obstype.name == str(obstype)
+            if modeldata.modelobstype.name == str(obstype)
         ]
 
         if len(candidates) == 0:
@@ -1104,7 +1104,7 @@ class Station:
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
@@ -1511,7 +1511,7 @@ class Station:
             legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.obstype
+        obstypeinstance = trg_modeltimeseries.modelobstype
 
         # Set title:
         if title is None:

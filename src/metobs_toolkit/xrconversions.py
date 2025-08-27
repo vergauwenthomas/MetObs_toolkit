@@ -41,16 +41,16 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
         dims=["kind", "models", "datetime"],
         attrs={
             modeltimeseries.modelname: {
-                "obstype_name": modeltimeseries.obstype.name,
-                "obstype_desc": modeltimeseries.obstype.description,
-                "obstype_unit": modeltimeseries.obstype.std_unit,
+                "obstype_name": modeltimeseries.modelobstype.name,
+                "obstype_desc": modeltimeseries.modelobstype.description,
+                "obstype_unit": modeltimeseries.modelobstype.std_unit,
                 "modelname": modeltimeseries.modelname,
                 "modelvariable": modeltimeseries.modelvariable,
             }
         },
     )
 
-    return xr.Dataset({modeltimeseries.obstype.name: ar})
+    return xr.Dataset({modeltimeseries.modelobstype.name: ar})
 
 
 def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
