@@ -9,7 +9,7 @@ from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
-from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstypes import ModelObstype
 from metobs_toolkit.plot_collection.general_functions import (
     create_axes,
     set_legend,
@@ -58,13 +58,13 @@ class ModelTimeSeries:
     Notes
     -----
     The stored data in the `series` attribute will be in standard units as defined
-    by `obstype.std_unit`, not in the original model units. The conversion is
-    performed automatically using `obstype.convert_to_standard_units()` method.
+    by `modelobstype.std_unit`, not in the original model units. The conversion is
+    performed automatically.
 
     Raises
     ------
     MetObsUnitUnknown
-        If the obstype does not have a model_unit set, which is required for
+        If the modelobstype does not have a model_unit set, which is required for
         unit conversion.
     """
 
@@ -73,7 +73,7 @@ class ModelTimeSeries:
         site,
         datarecords: np.ndarray,
         timestamps: np.ndarray,
-        modelobstype: Obstype,
+        modelobstype: ModelObstype,
         datadtype: type = np.float32,
         timezone: str = "UTC",
         modelname: str = None,
@@ -81,7 +81,11 @@ class ModelTimeSeries:
         _convert_to_standard_units: bool = True,
     ):
         self.site = site
+        
+        #Testing the ModelObstype
         self.modelobstype = modelobstype
+        if not isinstance(self.modelobstype, ModelObstype):
+            raise TypeError(f"Expected ModelObstype, got {type(self.modelobstype)}")
         if self.modelobstype.model_unit is None:
             raise MetObsUnitUnknown(
                 f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit(...)."
