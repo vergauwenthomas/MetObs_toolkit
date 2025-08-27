@@ -82,7 +82,7 @@ class ModelTimeSeries:
     ):
         self.site = site
         
-        #Testing the ModelObstype
+        # Testing the ModelObstype
         self.modelobstype = modelobstype
         if not isinstance(self.modelobstype, ModelObstype):
             raise TypeError(f"Expected ModelObstype, got {type(self.modelobstype)}")
@@ -131,7 +131,7 @@ class ModelTimeSeries:
             return False
         return (
             self.site == other.site
-            and self.modelobstype == other.obstype
+            and self.modelobstype == other.modelobstype
             and self.series.equals(other.series)
             and self.modelname == other.modelname
             and self.modelvariable == other.modelvariable
@@ -166,7 +166,7 @@ class ModelTimeSeries:
             timezone=self.tz,
             modelname=self.modelname,
             modelvariable=self.modelvariable,
-            _convert_to_standard_units=False, #!! unit are already converted.
+            _convert_to_standard_units=False, # !! units are already converted !!
         )
         return combined
 
