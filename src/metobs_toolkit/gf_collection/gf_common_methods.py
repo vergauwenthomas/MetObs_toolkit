@@ -153,13 +153,13 @@ gap (plus the trailing period size): {modeltimeseries.end_datetime} >= \
         )
 
     # Check if the model represents the same obstype as the gap
-    if modeltimeseries.obstype.is_compatible_with(gap.obstype):
+    if modeltimeseries.modelobstype.is_compatible_with(gap.obstype):
         pass
     else:
         return (
             False,
             f"The obstypes of the modeltimeseries is not compatible with that \
-of the gap: {modeltimeseries.obstype} == {gap.obstype} == False.",
+of the gap: {modeltimeseries.modelobstype} == {gap.obstype} == False.",
         )
 
     return True, "_"

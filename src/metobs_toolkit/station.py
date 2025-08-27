@@ -1511,7 +1511,7 @@ class Station:
             legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.obstype
+        obstypeinstance = trg_modeltimeseries.modelobstype
 
         # Set title:
         if title is None:

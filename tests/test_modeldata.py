@@ -127,8 +127,8 @@ class TestModelDataImport:
 
         _ = modeltimeseries.get_info()
 
-        assert modeltimeseries.obstype.model_band == "temperature_2m"
-        assert modeltimeseries.obstype.model_unit == "kelvin"
+        assert modeltimeseries.modelobstype.model_band == "temperature_2m"
+        assert modeltimeseries.modelobstype.model_unit == "kelvin"
 
 
 class TestModelDataManagers:
@@ -203,6 +203,9 @@ class TestStationModelDataMethods:
 
         # Create multiple ModelTimeSeries with same obstype but different modelname/modelvariable
         temp_obstype = dataset.obstypes["temp"]
+        temp_modelobstype = metobs_toolkit.ModelObstype(obstype=temp_obstype,
+                                                        model_unit="kelvin",
+                                                        model_band='fake-band')
 
         # Create test data
         timestamps = pd.date_range("2022-01-01", periods=24, freq="h")
@@ -215,7 +218,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data1,
             timestamps=timestamps,
-            modelobstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="ERA5",
@@ -226,7 +229,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data2,
             timestamps=timestamps,
-            modelobstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="GFS",
@@ -237,7 +240,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data3,
             timestamps=timestamps,
-            modelobstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="ERA5",
@@ -462,3 +465,10 @@ class TestStationModelDataMethods:
             assert isinstance(
                 item, metobs_toolkit.ModelTimeSeries
             ), "Items should be ModelTimeSeries"
+
+
+
+if __name__ == "__main__":
+
+    tester = TestStationModelDataMethods()
+    tester.test_add_to_modeldata_basic()
