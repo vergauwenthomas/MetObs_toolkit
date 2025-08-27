@@ -43,7 +43,7 @@ class ModelTimeSeries:
         automatically converted to standard units during initialization.
     timestamps : np.ndarray
         Array of timestamps corresponding to the data records.
-    obstype : ModelObstype
+    modelobstype : ModelObstype
         The observation type containing unit information. Must have a model_unit
         attribute set for unit conversion to work properly.
     datadtype : type, optional
