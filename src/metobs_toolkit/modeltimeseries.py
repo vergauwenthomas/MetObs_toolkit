@@ -82,7 +82,9 @@ class ModelTimeSeries:
         self.site = site
         self.obstype = modelobstype
         if self.obstype.model_unit is None:
-            raise MetObsUnitUnknown(f'The model_unit of {self.obstype} is not set. Set this using the Obstype.model_unit(...).')
+            raise MetObsUnitUnknown(
+                f"The model_unit of {self.obstype} is not set. Set this using the Obstype.model_unit(...)."
+            )
 
         # Data
         data = pd.Series(
@@ -90,11 +92,10 @@ class ModelTimeSeries:
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
             name=modelobstype.name,
         )
-        
+
         self.series = self.obstype.convert_to_standard_units(
             input_data=data, input_unit=self.obstype.model_unit
         )
-       
 
         # model metadata
         self.modelname = modelname

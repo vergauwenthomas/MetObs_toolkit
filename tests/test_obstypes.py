@@ -172,32 +172,33 @@ class TestObstype:
         temp_obstype = metobs_toolkit.obstypes.Obstype(
             obsname="temp", std_unit="°C", description="Temperature"
         )
-        
+
         # Create a ModelObstype with initial model_unit
         model_obstype = metobs_toolkit.obstypes.ModelObstype(
-            obstype=temp_obstype,
-            model_unit="kelvin",
-            model_band="temperature_2m"
+            obstype=temp_obstype, model_unit="kelvin", model_band="temperature_2m"
         )
-        
+
         # Test initial value
         assert model_obstype.model_unit == "kelvin"
-        
+
         # Test setting compatible unit (string)
         model_obstype.model_unit = "fahrenheit"
         assert model_obstype.model_unit == "degree_Fahrenheit"
-        
+
         # Test setting compatible unit (pint.Unit)
         ureg = pint.UnitRegistry()
         model_obstype.model_unit = ureg.degC
         assert model_obstype.model_unit == "degree_Celsius"
-        
+
         # Test setting incompatible unit should raise error
-        from metobs_toolkit.backend_collection.errorclasses import MetObsUnitsIncompatible
-        
+        from metobs_toolkit.backend_collection.errorclasses import (
+            MetObsUnitsIncompatible,
+        )
+
         with pytest.raises(MetObsUnitsIncompatible):
-            model_obstype.model_unit = "meter"  # Length unit incompatible with temperature
-            
+            model_obstype.model_unit = (
+                "meter"  # Length unit incompatible with temperature
+            )
 
     def test_model_band_setter(self):
         """Test the model_band setter of ModelObstype class."""
@@ -205,21 +206,19 @@ class TestObstype:
         temp_obstype = metobs_toolkit.obstypes.Obstype(
             obsname="temp", std_unit="°C", description="Temperature"
         )
-        
+
         # Create a ModelObstype with initial model_band
         model_obstype = metobs_toolkit.obstypes.ModelObstype(
-            obstype=temp_obstype,
-            model_unit="kelvin",
-            model_band="temperature_2m"
+            obstype=temp_obstype, model_unit="kelvin", model_band="temperature_2m"
         )
-        
+
         # Test initial value
         assert model_obstype.model_band == "temperature_2m"
-        
+
         # Test setting new string value
         model_obstype.model_band = "skin_temperature"
         assert model_obstype.model_band == "skin_temperature"
-       
+
 
 if __name__ == "__main__":
     # pytest.main([__file__])
