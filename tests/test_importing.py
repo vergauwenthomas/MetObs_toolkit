@@ -289,6 +289,15 @@ class TestDemoData:
         df_original = dataset.df
         df_read = pd.read_csv(csv_file, index_col=[0, 1, 2])  # Multi-index
 
+        # ----Typecasting for compatibility ----
+        # Convert datetime index level to datetime format to match original
+        df_read.index = df_read.index.set_levels(
+            pd.to_datetime(df_read.index.levels[0]), level=0
+        )
+        
+        # Convert 'value' column to float32 to match original
+        df_read['value'] = df_read['value'].astype('float32')
+
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
 
@@ -344,6 +353,16 @@ class TestDemoData:
         # Read back and compare
         df_original = station.df
         df_read = pd.read_csv(csv_file, index_col=[0, 1])  # Multi-index
+
+        # ----Typecasting for compatibility ----
+        # Convert datetime index level to datetime format to match original
+        df_read.index = df_read.index.set_levels(
+            pd.to_datetime(df_read.index.levels[0]), level=0
+        )
+        
+        # Convert 'value' column to float32 to match original
+        df_read['value'] = df_read['value'].astype('float32')
+
 
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
