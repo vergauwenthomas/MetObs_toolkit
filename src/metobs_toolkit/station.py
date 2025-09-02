@@ -210,6 +210,60 @@ class Station:
     def to_xr(self) -> "xarray.Dataset":
         return station_to_xr(self)
 
+    @log_entry
+    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the station observations to a parquet file.
+
+        The DataFrame returned by the `.df` property is written to a parquet file.
+        This includes all observations with their QC labels for this station.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the parquet file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Station.df : The DataFrame property that is written to file.
+        Station.to_csv : Save station data to CSV format.
+        """
+        df = self.df
+        df.to_parquet(target_file, **kwargs)
+
+    @log_entry
+    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the station observations to a CSV file.
+
+        The DataFrame returned by the `.df` property is written to a CSV file.
+        This includes all observations with their QC labels for this station.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the CSV file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_csv().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Station.df : The DataFrame property that is written to file.
+        Station.to_parquet : Save station data to parquet format.
+        """
+        df = self.df
+        df.to_csv(target_file, **kwargs)
+
     @copy_doc(station_df)
     @property
     def df(self) -> pd.DataFrame:
