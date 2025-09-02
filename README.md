@@ -29,7 +29,7 @@ pip install metobs-toolkit
 Install using `conda`
 
 ```bash
-conda install metobs-toolkit -c conda-forge
+conda install -c conda-forge metobs-toolkit 
 ```
 or using `mamba`
 
