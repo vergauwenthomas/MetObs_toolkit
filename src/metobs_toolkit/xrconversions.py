@@ -4,8 +4,11 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.settings_collection import __version__
+from metobs_toolkit.settings_collection.label_defenitions import label_to_numeric_map
 
-def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
+def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries", 
+                          fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Convert a model time series object to an xarray Dataset.
 
@@ -31,6 +34,13 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
         Dataset with dimensions ('kind', 'models', 'datetime') where
         kind = ['model'].
     """
+    attrsdict = {"obstype_name": modeltimeseries.obstype.name,
+                "obstype_desc": modeltimeseries.obstype.description,
+                "obstype_unit": modeltimeseries.obstype.std_unit,
+                "modelname": modeltimeseries.modelname,
+                "modelvariable": modeltimeseries.modelvariable,}
+    attrsdict.update(construct_metobs_attr)
+    
     ar = xr.DataArray(
         data=[[modeltimeseries.series.values]],
         coords={
@@ -39,21 +49,15 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries") -> xr.Dataset:
             "kind": ["model"],
         },
         dims=["kind", "models", "datetime"],
-        attrs={
-            modeltimeseries.modelname: {
-                "obstype_name": modeltimeseries.obstype.name,
-                "obstype_desc": modeltimeseries.obstype.description,
-                "obstype_unit": modeltimeseries.obstype.std_unit,
-                "modelname": modeltimeseries.modelname,
-                "modelvariable": modeltimeseries.modelvariable,
-            }
-        },
+        attrs=attrsdict
     )
+    ds = xr.Dataset({modeltimeseries.obstype.name: ar})
+    if fmt_datetime_coordinate:
+        ds = format_datetime_coord(ds)
+    return ds
 
-    return xr.Dataset({modeltimeseries.obstype.name: ar})
 
-
-def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
+def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Convert sensor observations (including labels) to an xarray Dataset.
 
@@ -89,13 +93,19 @@ def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
         coords={"datetime": df.index.get_level_values("datetime"), "kind": ["obs"]},
         dims=["kind", "datetime"],
         attrs={},
-    )
+    ) 
+    # Labels
+    # Note: to make the xr.Dataset serializable, we need to use integer labels!!
+    present_labels = df["label"].unique()
+    df["label_numeric"] = df["label"].map(label_to_numeric_map)
+
+    applied_map={f"Label:{key}":val for key,val in label_to_numeric_map.items() if key in present_labels}
 
     xr_labels = xr.DataArray(
-        data=[df["label"].values],
+        data=[df["label_numeric"].values],
         coords={"datetime": df.index.get_level_values("datetime"), "kind": ["label"]},
         dims=["kind", "datetime"],
-        attrs={},
+        attrs={}
     )
 
     # Attributes
@@ -105,16 +115,24 @@ def sensordata_to_xr(sensordata: "Sensordata") -> xr.Dataset:
         "obstype_unit": sensordata.obstype.std_unit,
     }
     # Labels
-    sensor_attrs["QC"] = get_QC_info_in_dict(sensordata)
-    sensor_attrs["GF"] = get_GF_info_in_dict(sensordata)
+    sensor_attrs.update(construct_metobs_attr())
+    sensor_attrs.update(construct_QC_attr(sensordata))
+    sensor_attrs.update(construct_GF_attr(sensordata))
+    sensor_attrs.update(applied_map)  # only the applied labels
 
     # Combine along the type dimension
     xr_comb = xr.concat([xr_value, xr_labels], dim="kind")
     xr_comb.attrs = sensor_attrs
-    return xr.Dataset({varname: xr_comb})
+    
+    # Construct dataset
+    ds = xr.Dataset({varname: xr_comb})
+    if fmt_datetime_coordinate:
+        ds = format_datetime_coord(ds)
+        
+    return ds
 
 
-def station_to_xr(station: "Station") -> xr.Dataset:
+def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Merge all sensor and model data of a station into a single Dataset.
 
@@ -149,10 +167,10 @@ def station_to_xr(station: "Station") -> xr.Dataset:
     target_sensors = list(station.sensordata.values())
 
     # Create xrdataarrays
-    station_vars = [sens.to_xr() for sens in target_sensors]
+    station_vars = [sensordata_to_xr(sens, fmt_datetime_coordinate=False) for sens in target_sensors]
 
     # Construct modeldata xr
-    modelobs_vars = [modeltimeseries.to_xr() for modeltimeseries in station.modeldata]
+    modelobs_vars = [modeltimeseries_to_xr(modeltimeseries, fmt_datetime_coordinate=False) for modeltimeseries in station.modeldata]
 
     # The 'datetime' coordinate of the observations is not (persee) the
     # same as in the modelobs datasets. This leads to un-mergable dataset. To resolve
@@ -187,10 +205,12 @@ def station_to_xr(station: "Station") -> xr.Dataset:
     sta_coords.update(extra_data_coords)
 
     ds = ds.assign_coords(sta_coords)
+    if fmt_datetime_coordinate:
+        ds = format_datetime_coord(ds)
     return ds
 
 
-def dataset_to_xr(dataset: "Dataset") -> xr.Dataset:
+def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Concatenate multiple station Datasets into one along a new 'name'
     dimension.
@@ -210,9 +230,13 @@ def dataset_to_xr(dataset: "Dataset") -> xr.Dataset:
         Multi-station Dataset with a 'name' dimension plus any variable
         dimensions such as ('kind', 'datetime').
     """
-    sta_xrdict = {sta.name: sta.to_xr() for sta in dataset.stations}
+    sta_xrdict = {sta.name: station_to_xr(sta, fmt_datetime_coordinate=False) for sta in dataset.stations}
     ds = xr.concat(objs=sta_xrdict.values(), dim="name")
     ds = ds.assign_coords({"name": list(sta_xrdict.keys())})
+
+    if fmt_datetime_coordinate:
+        ds = format_datetime_coord(ds)
+
     return ds
 
 
@@ -226,328 +250,203 @@ def dataset_to_xr(dataset: "Dataset") -> xr.Dataset:
 # ------------------------------------------
 
 
-def flatten_nested_dict(nested_dict: Dict[str, Any], prefix: str = "") -> Dict[str, str]:
+# def flatten_nested_dict(nested_dict: Dict[str, Any], prefix: str = "") -> Dict[str, str]:
+#     """
+#     Flatten nested dictionaries into dot-separated keys with string values.
+    
+#     This function converts nested dictionaries to a flat structure that is 
+#     compatible with netCDF attribute serialization.
+    
+#     Parameters
+#     ----------
+#     nested_dict : Dict[str, Any]
+#         The nested dictionary to flatten.
+#     prefix : str, optional
+#         Prefix to add to keys, by default "".
+        
+#     Returns
+#     -------
+#     Dict[str, str]
+#         Flattened dictionary with string values.
+        
+#     Examples
+#     --------
+#     >>> nested = {"QC": {"gross_value": {"settings": {"threshold": 10}}}}
+#     >>> flatten_nested_dict(nested)
+#     {"QC.gross_value.settings.threshold": "10"}
+#     """
+#     flat_dict = {}
+    
+#     for key, value in nested_dict.items():
+#         new_key = f"{prefix}.{key}" if prefix else key
+        
+#         if isinstance(value, dict):
+#             if len(value) == 0:
+#                 # Handle empty dictionaries by storing them as a placeholder
+#                 flat_dict[new_key] = "{empty_dict}"
+#             else:
+#                 # Recursively flatten nested dictionaries
+#                 flat_dict.update(flatten_nested_dict(value, new_key))
+#         else:
+#             # Convert all values to strings for netCDF compatibility
+#             flat_dict[new_key] = str(value)
+    
+#     return flat_dict
+
+
+
+
+
+# def make_dataset_serializable(ds: xr.Dataset) -> xr.Dataset:
+#     """
+#     Convert an xarray Dataset to be netCDF serializable.
+    
+#     This function handles:
+#     - Nested dictionaries in variable attributes (converted to flattened structure)
+#     - Timezone-aware datetime coordinates (converted to timezone-naive with tz attribute)
+#     - Mixed-type variables with 'kind' dimension (split into separate obs/label variables)
+#     - CF convention compliance for metadata
+    
+#     Parameters
+#     ----------
+#     ds : xarray.Dataset
+#         The input Dataset with potentially non-serializable attributes.
+        
+#     Returns
+#     -------
+#     xarray.Dataset
+#         A copy of the Dataset with all attributes made netCDF serializable.
+#     """
+#     # Create a copy to avoid modifying the original
+#     ds_copy = ds.copy(deep=True)
+    
+#     # Handle datetime timezone conversion
+#     ds_copy = _handle_datetime_timezones(ds_copy)
+    
+#     # Handle mixed-type variables with 'kind' dimension (this also flattens attributes)
+#     ds_copy = _handle_mixed_type_variables(ds_copy)
+    
+#     # Process global dataset attributes
+#     new_global_attrs = {}
+#     for attr_name, attr_val in ds_copy.attrs.items():
+#         if isinstance(attr_val, dict):
+#             flattened = flatten_nested_dict(attr_val, attr_name)
+#             new_global_attrs.update(flattened)
+#         else:
+#             new_global_attrs[attr_name] = _make_value_serializable(attr_val)
+    
+#     ds_copy.attrs = new_global_attrs
+    
+#     return ds_copy
+
+
+
+# ------------------------------------------
+#    Coordinates formatters
+# ------------------------------------------
+def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     """
-    Flatten nested dictionaries into dot-separated keys with string values.
-    
-    This function converts nested dictionaries to a flat structure that is 
-    compatible with netCDF attribute serialization.
-    
+    Format a datetime coordinate for output.
+
     Parameters
     ----------
-    nested_dict : Dict[str, Any]
-        The nested dictionary to flatten.
-    prefix : str, optional
-        Prefix to add to keys, by default "".
-        
+    coord : xr.DataArray
+        The datetime coordinate to format.
+
     Returns
     -------
-    Dict[str, str]
-        Flattened dictionary with string values.
-        
-    Examples
-    --------
-    >>> nested = {"QC": {"gross_value": {"settings": {"threshold": 10}}}}
-    >>> flatten_nested_dict(nested)
-    {"QC.gross_value.settings.threshold": "10"}
+    xr.DataArray
+        The formatted datetime coordinate.
     """
-    flat_dict = {}
-    
-    for key, value in nested_dict.items():
-        new_key = f"{prefix}.{key}" if prefix else key
-        
-        if isinstance(value, dict):
-            if len(value) == 0:
-                # Handle empty dictionaries by storing them as a placeholder
-                flat_dict[new_key] = "{empty_dict}"
-            else:
-                # Recursively flatten nested dictionaries
-                flat_dict.update(flatten_nested_dict(value, new_key))
+    if 'UTC' in str(ds['datetime'].dtype) or 'tz' in str(ds['datetime'].dtype):
+
+        # Convert to pandas datetime index for timezone handling
+        dt_index = pd.DatetimeIndex(ds['datetime'].values)
+
+        if dt_index.tz is not None:
+            # Store timezone info and convert to naive
+            timezone_name = str(dt_index.tz)
+            dt_naive = dt_index.tz_localize(None)
         else:
-            # Convert all values to strings for netCDF compatibility
-            flat_dict[new_key] = str(value)
-    
-    return flat_dict
+            # Handle datetime64[ns, UTC] format - manually remove timezone
+            timezone_name = 'UTC'
+            # Convert to naive by accessing the underlying datetime64[ns] values
+            dt_naive = pd.DatetimeIndex(ds['datetime'].values.astype('datetime64[ns]'))
 
-
-def make_dataset_serializable(ds: xr.Dataset) -> xr.Dataset:
-    """
-    Convert an xarray Dataset to be netCDF serializable.
-    
-    This function handles:
-    - Nested dictionaries in variable attributes (converted to flattened structure)
-    - Timezone-aware datetime coordinates (converted to timezone-naive with tz attribute)
-    - Mixed-type variables with 'kind' dimension (split into separate obs/label variables)
-    - CF convention compliance for metadata
-    
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The input Dataset with potentially non-serializable attributes.
+        # Update coordinate with naive datetime
+        ds = ds.assign_coords({'datetime': dt_naive})
         
-    Returns
-    -------
-    xarray.Dataset
-        A copy of the Dataset with all attributes made netCDF serializable.
-    """
-    # Create a copy to avoid modifying the original
-    ds_copy = ds.copy(deep=True)
-    
-    # Handle datetime timezone conversion
-    ds_copy = _handle_datetime_timezones(ds_copy)
-    
-    # Handle mixed-type variables with 'kind' dimension (this also flattens attributes)
-    ds_copy = _handle_mixed_type_variables(ds_copy)
-    
-    # Process global dataset attributes
-    new_global_attrs = {}
-    for attr_name, attr_val in ds_copy.attrs.items():
-        if isinstance(attr_val, dict):
-            flattened = flatten_nested_dict(attr_val, attr_name)
-            new_global_attrs.update(flattened)
-        else:
-            new_global_attrs[attr_name] = _make_value_serializable(attr_val)
-    
-    ds_copy.attrs = new_global_attrs
-    
-    return ds_copy
-
-
-def _handle_mixed_type_variables(ds: xr.Dataset) -> xr.Dataset:
-    """
-    Handle variables with mixed data types along the 'kind' dimension.
-    
-    Variables that contain both observation data (floats) and label data (strings)
-    along a 'kind' dimension are split into separate variables to ensure netCDF
-    compatibility.
-    
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        Dataset with potentially mixed-type variables.
-        
-    Returns
-    -------
-    xarray.Dataset
-        Dataset with mixed-type variables split into separate obs/label variables.
-    """
-    new_vars = {}
-    vars_to_remove = []
-    
-    for var_name in ds.data_vars:
-        var = ds[var_name]
-        
-        # Check if this variable has 'kind' dimension with mixed types
-        if 'kind' in var.dims and 'kind' in ds.coords:
-            kind_values = ds.coords['kind'].values
-            
-            # Check if we have both 'obs' and 'label' kinds
-            if 'obs' in kind_values and 'label' in kind_values:
-                # Split into separate variables
-                obs_data = var.sel(kind='obs')
-                label_data = var.sel(kind='label')
-                
-                # Prepare flattened attributes from original variable
-                flattened_attrs = {}
-                for attr_name, attr_val in var.attrs.items():
-                    if isinstance(attr_val, dict):
-                        # Flatten nested dictionaries
-                        flattened = flatten_nested_dict(attr_val, attr_name)
-                        flattened_attrs.update(flattened)
-                    else:
-                        flattened_attrs[attr_name] = _make_value_serializable(attr_val)
-                
-                # Create obs variable (ensure numeric type)
-                obs_var_name = f"{var_name}_obs"
-                try:
-                    # Try to convert to float64 for consistency
-                    obs_values = obs_data.values.astype(float)
-                    new_vars[obs_var_name] = xr.DataArray(
-                        obs_values,
-                        coords={coord: obs_data.coords[coord] for coord in obs_data.coords if coord != 'kind'},
-                        dims=[dim for dim in obs_data.dims if dim != 'kind'],
-                        attrs={**flattened_attrs, 'data_type': 'observations'}
-                    )
-                except (ValueError, TypeError):
-                    # If conversion fails, keep as object but mark it
-                    new_vars[obs_var_name] = obs_data.drop_vars('kind', errors='ignore').assign_attrs(
-                        {**flattened_attrs, 'data_type': 'observations'}
-                    )
-                
-                # Create label variable (ensure string type)
-                label_var_name = f"{var_name}_label"
-                try:
-                    # Convert to strings for consistency
-                    label_values = label_data.values.astype('U')  # Unicode strings
-                    new_vars[label_var_name] = xr.DataArray(
-                        label_values,
-                        coords={coord: label_data.coords[coord] for coord in label_data.coords if coord != 'kind'},
-                        dims=[dim for dim in label_data.dims if dim != 'kind'],
-                        attrs={**flattened_attrs, 'data_type': 'labels', 'description': 'Quality control and gap-fill labels'}
-                    )
-                except (ValueError, TypeError):
-                    # If conversion fails, keep as object but mark it
-                    new_vars[label_var_name] = label_data.drop_vars('kind', errors='ignore').assign_attrs(
-                        {**flattened_attrs, 'data_type': 'labels', 'description': 'Quality control and gap-fill labels'}
-                    )
-                
-                # Mark original variable for removal
-                vars_to_remove.append(var_name)
-            else:
-                # Variable has 'kind' dimension but not mixed types, keep as-is but flatten attributes
-                flattened_attrs = {}
-                for attr_name, attr_val in var.attrs.items():
-                    if isinstance(attr_val, dict):
-                        flattened = flatten_nested_dict(attr_val, attr_name)
-                        flattened_attrs.update(flattened)
-                    else:
-                        flattened_attrs[attr_name] = _make_value_serializable(attr_val)
-                
-                new_vars[var_name] = var.assign_attrs(flattened_attrs)
-        else:
-            # Variable doesn't have 'kind' dimension, keep as-is but flatten attributes
-            flattened_attrs = {}
-            for attr_name, attr_val in var.attrs.items():
-                if isinstance(attr_val, dict):
-                    flattened = flatten_nested_dict(attr_val, attr_name)
-                    flattened_attrs.update(flattened)
-                else:
-                    flattened_attrs[attr_name] = _make_value_serializable(attr_val)
-            
-            new_vars[var_name] = var.assign_attrs(flattened_attrs)
-    
-    # Create new dataset
-    ds_new = xr.Dataset(new_vars, coords=ds.coords, attrs=ds.attrs)
-    
-    # Remove 'kind' coordinate if no variables use it anymore
-    remaining_vars_with_kind = [name for name in ds_new.data_vars 
-                               if 'kind' in ds_new[name].dims]
-    if not remaining_vars_with_kind and 'kind' in ds_new.coords:
-        ds_new = ds_new.drop_vars('kind')
-    
-    return ds_new
-
-
-def _handle_datetime_timezones(ds: xr.Dataset) -> xr.Dataset:
-    """
-    Handle timezone-aware datetime coordinates for CF compliance.
-    
-    Convert timezone-aware datetime coordinates to timezone-naive and store
-    timezone information as a coordinate attribute following CF conventions.
-    
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        Input dataset with potentially timezone-aware coordinates.
-        
-    Returns
-    -------
-    xarray.Dataset
-        Dataset with timezone-naive datetime coordinates and timezone attrs.
-    """
-    # Process datetime coordinates
-    for coord_name, coord in ds.coords.items():
-        if coord_name == 'datetime':
-            # Check if the coordinate contains timezone info in dtype
-            if 'UTC' in str(coord.dtype) or 'tz' in str(coord.dtype):
-                try:
-                    # Convert to pandas datetime index for timezone handling
-                    dt_index = pd.DatetimeIndex(coord.values)
-                    
-                    if dt_index.tz is not None:
-                        # Store timezone info and convert to naive
-                        timezone_name = str(dt_index.tz)
-                        dt_naive = dt_index.tz_localize(None)
-                    else:
-                        # Handle datetime64[ns, UTC] format - manually remove timezone
-                        timezone_name = 'UTC'
-                        # Convert to naive by accessing the underlying datetime64[ns] values
-                        dt_naive = pd.DatetimeIndex(coord.values.astype('datetime64[ns]'))
-                    
-                    # Update coordinate with naive datetime
-                    ds = ds.assign_coords({coord_name: dt_naive})
-                    
-                    # Add CF-compliant time attributes (but avoid calendar to prevent conflicts)
-                    ds[coord_name].attrs['timezone'] = timezone_name
-                    ds[coord_name].attrs['standard_name'] = 'time'
-                    ds[coord_name].attrs['long_name'] = 'time'
-                    # Note: calendar attribute is handled by xarray automatically
-                        
-                except Exception as e:
-                    logging.warning(f"Could not process timezone for {coord_name}: {e}")
-    
-    # Also handle datetime data variables (not just coordinates)
-    for var_name in ds.data_vars:
-        var = ds[var_name]
-        if 'datetime64' in str(var.dtype) and ('UTC' in str(var.dtype) or 'tz' in str(var.dtype)):
-            try:
-                # Convert timezone-aware datetime values to naive
-                dt_values = pd.DatetimeIndex(var.values)
-                if dt_values.tz is not None:
-                    dt_naive = dt_values.tz_localize(None)
-                else:
-                    # Handle datetime64[ns, UTC] format manually
-                    dt_naive = pd.DatetimeIndex(var.values.astype('datetime64[ns]'))
-                
-                ds[var_name] = (var.dims, dt_naive, var.attrs)
-            except Exception as e:
-                logging.warning(f"Could not convert variable {var_name}: {e}")
+        # Add CF-compliant time attributes (but avoid calendar to prevent conflicts)
+        ds['datetime'].attrs['timezone'] = timezone_name
+        ds['datetime'].attrs['standard_name'] = 'time'
+        ds['datetime'].attrs['long_name'] = 'time'
+    else:
+        pass
     
     return ds
-
-
-def _make_value_serializable(value: Any) -> Union[str, int, float, list, tuple]:
-    """
-    Convert a value to a netCDF-serializable format.
     
-    Parameters
-    ----------
-    value : Any
-        The value to make serializable.
-        
-    Returns
-    -------
-    Union[str, int, float, list, tuple]
-        Serializable version of the value.
-    """
-    if isinstance(value, (str, int, float, bool)):
-        return value
-    elif isinstance(value, (list, tuple)):
-        return [_make_value_serializable(v) for v in value]
-    elif isinstance(value, np.ndarray):
-        return value.tolist()
-    elif hasattr(value, '__iter__') and not isinstance(value, (str, bytes)):
-        return [_make_value_serializable(v) for v in value]
-    else:
-        return str(value)
+    
 
 
 # ------------------------------------------
 #    Attribute formatters and helpers
 # ------------------------------------------
-
-
-def get_QC_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
+def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
     """
-    Collect QC check settings applied to a sensor dataset.
+    Format an attribute value for output.
 
     Parameters
     ----------
-    sensordata : Sensordata
-        Sensor data with recorded QC outlier checks.
+    val : Any
+        The attribute value to format.
+
+    Returns
+    -------
+    Any
+        The formatted attribute value.
+    """
+    if isinstance(val, dict):
+        raise ValueError(f"Nested dictionaries are not allowed in netCDF attributes. Found: {val}")
+    elif isinstance(val, type(None)):
+        return str(val)
+    elif isinstance(val, list):
+        # return [fmt_attr_value(v) for v in val]
+        return val
+    elif isinstance(val, (str, int, float)):
+        return val
+    else:
+        raise ValueError(f"Unsupported attribute type found: {type(val)}")
+
+
+def construct_metobs_attr() -> Dict:
+    """
+    Construct metadata attributes for a MetObs dataset.
 
     Returns
     -------
     dict
-        Mapping of check name to its settings.
+        Metadata attributes for the dataset.
     """
-    returndict = {}
+    return {
+        "MetObs toolkit version": __version__,
+    }
+
+
+def construct_QC_attr(sensordata: "Sensordata") -> Dict:
+    returndict = {'QC checks': []}
     for qcdict in sensordata.outliers:
-        returndict[qcdict["checkname"]] = {"settings": qcdict["settings"]}
+        #add name to the list
+        returndict['QC checks'].append(qcdict["checkname"])
+        #add details as flat dict items
+        for key, value in qcdict["settings"].items():
+            returndict[f"QC:{qcdict['checkname']}.{key}"] = fmt_attr_value(value) #NO NESTED DICT!
+
     return returndict
+    
 
 
-def get_GF_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
+
+def construct_GF_attr(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
     """
     Extract applied gap-fill methods and their settings.
 
@@ -561,16 +460,19 @@ def get_GF_info_in_dict(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
     dict
         Mapping of gap-fill method names to the settings used.
     """
-    returndict = {}
+    returndict = {'GF methods': []}
     # NOTE:iteration is done over all the gaps, this is a bit overkill?
 
     for gap in sensordata.gaps:
         if "applied_gapfill_method" in gap.fillsettings:
             method = gap.fillsettings["applied_gapfill_method"]
-            gapsettings = gap.fillsettings
-            del gapsettings["applied_gapfill_method"]  # delete key, so update works
-            # create infodict
-            gapinfo = {method: gapsettings}
-            # UPdate
-            returndict.update(gapinfo)
+            if method not in returndict['GF methods']:
+                returndict['GF methods'].append(method)
+                #add details as flat dict items
+                for settingname, settingval in gap.fillsettings.items():
+                    if settingname == 'applied_gapfill_method':
+                        continue
+
+                    returndict[f"GF:{method}.{settingname}"] = fmt_attr_value(settingval) #NO NESTED DICT!
+
     return returndict

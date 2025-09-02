@@ -351,7 +351,7 @@ class Dataset:
     @copy_doc(dataset_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return dataset_to_xr(self)
+        return dataset_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
     def to_netcdf(self, filepath: str, **kwargs) -> None:

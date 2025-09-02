@@ -208,7 +208,7 @@ class Station:
     @copy_doc(station_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return station_to_xr(self)
+        return station_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
     def to_netcdf(self, filepath: str, **kwargs) -> None:
