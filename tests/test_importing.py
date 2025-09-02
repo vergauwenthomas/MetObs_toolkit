@@ -395,7 +395,6 @@ class TestStationAddMethods:
         # Add with force_update, should succeed
         station.add_to_sensordata(new_sensor, force_update=True)
 
-
 class TestParquetData:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testparquetdata"}
