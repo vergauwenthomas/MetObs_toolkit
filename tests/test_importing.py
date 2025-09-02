@@ -294,9 +294,9 @@ class TestDemoData:
         df_read.index = df_read.index.set_levels(
             pd.to_datetime(df_read.index.levels[0]), level=0
         )
-        
+
         # Convert 'value' column to float32 to match original
-        df_read['value'] = df_read['value'].astype('float32')
+        df_read["value"] = df_read["value"].astype("float32")
 
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
@@ -359,10 +359,9 @@ class TestDemoData:
         df_read.index = df_read.index.set_levels(
             pd.to_datetime(df_read.index.levels[0]), level=0
         )
-        
-        # Convert 'value' column to float32 to match original
-        df_read['value'] = df_read['value'].astype('float32')
 
+        # Convert 'value' column to float32 to match original
+        df_read["value"] = df_read["value"].astype("float32")
 
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
