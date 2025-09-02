@@ -396,6 +396,56 @@ class TestStationAddMethods:
         station.add_to_sensordata(new_sensor, force_update=True)
 
 
+class TestParquetData:
+    # to pass to the solutionfixer
+    solkwargs = {"testfile": Path(__file__).name, "classname": "testparquetdata"}
+    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+
+    # paths to data
+    datafile = datadir.joinpath("single_station.parquet")
+    templatefile = datadir.joinpath("single_station_template.json")
+    metadatfile = datadir.joinpath("single_station_metadata.csv")
+
+    # Create parquet file if it does not exist
+    if not datafile.exists():
+        csv_file = datadir.joinpath("single_station.csv")
+        df = pd.read_csv(csv_file)
+        df.to_parquet(datafile)
+
+    def test_import_parquet_data(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        # 1. get_startpoint data
+        pass
+
+        # 2. apply a metobs manipulation
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=self.templatefile,
+            input_metadata_file=self.metadatfile,
+            input_data_file=self.datafile,
+        )
+
+        data_to_test = dataset
+
+        # 3. overwrite solution?
+        if overwrite_solution:
+            TestParquetData.solutionfixer.create_solution(
+                solutiondata=data_to_test,
+                methodname=_method_name,
+                **TestParquetData.solkwargs,
+            )
+
+        # 4. Get solution
+        solutionobj = TestParquetData.solutionfixer.get_solution(
+            methodname=_method_name, **TestParquetData.solkwargs
+        )
+
+        # 5. Construct the equlity tests
+        assert_equality(data_to_test, solutionobj)  # dataset comparison
+
+
 if __name__ == "__main__":
     # pytest.main([__file__])
     demo_tester = TestDemoData()

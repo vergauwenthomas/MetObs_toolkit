@@ -15,7 +15,7 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
-from metobs_toolkit.io_collection.dataparser import DataParser
+from metobs_toolkit.io_collection.dataparser import DataParser, FILE_READERS
 from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
@@ -854,8 +854,28 @@ class Dataset:
 
         if input_data_file is not None:
             use_data = True
+
+            # Check if input_data_file is a URL
+            is_url = isinstance(input_data_file, str) and ("://" in input_data_file)
+
+            if is_url:
+                from urllib.parse import urlparse
+
+                path = urlparse(input_data_file).path
+                ext = Path(path).suffix
+            else:
+                ext = Path(input_data_file).suffix
+
+            if ext not in FILE_READERS:
+                raise NotImplementedError(
+                    f"No reader implemented for file extension {ext}"
+                )
+            filereader_class = FILE_READERS[ext]
+
             dataparser = DataParser(
-                datafilereader=CsvFileReader(file_path=input_data_file),
+                datafilereader=filereader_class(
+                    file_path=input_data_file, is_url=is_url
+                ),
                 template=self.template,
             )
             dataparser.parse(**kwargs_data_read)

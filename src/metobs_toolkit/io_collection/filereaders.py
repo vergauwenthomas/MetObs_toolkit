@@ -332,6 +332,84 @@ class PickleFileReader(FileReader):
         )
 
 
+class ParquetFileReader(FileReader):
+    """
+    File reader for Parquet files.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the Parquet file or URL.
+    is_url : bool, optional
+        Whether the file_path is a URL (default is False).
+    """
+
+    def __init__(self, file_path: str, is_url: bool = False):
+        """Initialize ParquetFileReader."""
+        super().__init__(file_path, is_url=is_url)
+
+    @log_entry
+    def read(self, **readkwargs) -> pd.DataFrame:
+        """
+        Read the Parquet file and return its contents as a DataFrame.
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+        """
+        if self.is_url:
+            data = self.read_as_remote_file(**readkwargs)
+        else:
+            data = self.read_as_local_file(**readkwargs)
+        return data
+
+    @log_entry
+    def read_as_local_file(self, **readkwargs) -> pd.DataFrame:
+        """
+        Read the Parquet file as a local file.
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
+        """
+        if not self.file_exist():
+            raise FileNotFoundError(f"{self.file_path} is not a file.")
+        return pd.read_parquet(self.file_path, **readkwargs)
+
+    @log_entry
+    def read_as_remote_file(self, **readkwargs) -> pd.DataFrame:
+        """Read the Parquet file as a remote file (URL).
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+        """
+        return pd.read_parquet(self.file_path, **readkwargs)
+
+
 @log_entry
 def read_csv(filepath: str, **kwargs) -> pd.DataFrame:
     """

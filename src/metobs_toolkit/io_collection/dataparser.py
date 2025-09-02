@@ -1,12 +1,21 @@
 import logging
 import pandas as pd
 
-from metobs_toolkit.io_collection.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.filereaders import (
+    CsvFileReader,
+    ParquetFileReader,
+    FileReader,
+)
 from metobs_toolkit.template import Template, MetObsTemplateError
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
+
+FILE_READERS = {
+    ".csv": CsvFileReader,
+    ".parquet": ParquetFileReader,
+}
 
 
 class DataParser:
@@ -15,13 +24,13 @@ class DataParser:
 
     Parameters
     ----------
-    datafilereader : CsvFileReader
-        An instance of CsvFileReader to read the data file.
+    datafilereader : FileReader
+        An instance of FileReader to read the data file.
     template : Template
         An instance of Template to validate and map the data.
     """
 
-    def __init__(self, datafilereader: CsvFileReader, template: Template):
+    def __init__(self, datafilereader: FileReader, template: Template):
         self.filereader = datafilereader
         self.template = template
         self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style
