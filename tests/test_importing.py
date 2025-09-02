@@ -255,18 +255,18 @@ class TestDemoData:
         # Create a tmp dir
         tmpdir = libfolder.joinpath("tmp")
         tmpdir.mkdir(parents=True, exist_ok=True)
-        
+
         # Save to parquet
         parquet_file = tmpdir / "test_dataset.parquet"
         dataset.to_parquet(parquet_file)
-        
+
         # Read back and compare
         df_original = dataset.df
         df_read = pd.read_parquet(parquet_file)
-        
+
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
-        
+
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
 
@@ -280,18 +280,18 @@ class TestDemoData:
         # Create a tmp dir
         tmpdir = libfolder.joinpath("tmp")
         tmpdir.mkdir(parents=True, exist_ok=True)
-        
+
         # Save to CSV
         csv_file = tmpdir / "test_dataset.csv"
         dataset.to_csv(csv_file)
-        
+
         # Read back and compare
         df_original = dataset.df
         df_read = pd.read_csv(csv_file, index_col=[0, 1, 2])  # Multi-index
-        
+
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
-        
+
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
 
@@ -301,25 +301,25 @@ class TestDemoData:
         dataset = TestDemoData.solutionfixer.get_solution(
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
-        
+
         # Get a station
         station = dataset.get_station("vlinder05")
-        
+
         # Create a tmp dir
         tmpdir = libfolder.joinpath("tmp")
         tmpdir.mkdir(parents=True, exist_ok=True)
-        
+
         # Save to parquet
         parquet_file = tmpdir / "test_station.parquet"
         station.to_parquet(parquet_file)
-        
+
         # Read back and compare
         df_original = station.df
         df_read = pd.read_parquet(parquet_file)
-        
+
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
-        
+
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
 
@@ -329,25 +329,25 @@ class TestDemoData:
         dataset = TestDemoData.solutionfixer.get_solution(
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
-        
+
         # Get a station
         station = dataset.get_station("vlinder05")
-        
+
         # Create a tmp dir
         tmpdir = libfolder.joinpath("tmp")
         tmpdir.mkdir(parents=True, exist_ok=True)
-        
+
         # Save to CSV
         csv_file = tmpdir / "test_station.csv"
         station.to_csv(csv_file)
-        
+
         # Read back and compare
         df_original = station.df
         df_read = pd.read_csv(csv_file, index_col=[0, 1])  # Multi-index
-        
+
         # Remove the tmp dir
         shutil.rmtree(tmpdir)
-        
+
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
 
