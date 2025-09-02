@@ -1,6 +1,7 @@
 # MetObs-toolkit
 
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/metobs-toolkit.svg)](https://anaconda.org/conda-forge/metobs-toolkit)
 [![Documentation Status](https://readthedocs.org/projects/metobs-toolkit/badge/?version=latest)](https://metobs-toolkit.readthedocs.io/en/latest/?badge=latest)
 [![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
 [![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
@@ -24,6 +25,16 @@ Install the latest release from PyPI:
 
 ```bash
 pip install metobs-toolkit
+```
+Install using `conda`
+
+```bash
+conda install metobs-toolkit -c conda-forge
+```
+or using `mamba`
+
+```bash
+mamba install metobs-toolkit
 ```
 
 To install the latest development version from GitHub:
