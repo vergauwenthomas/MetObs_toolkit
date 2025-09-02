@@ -54,6 +54,7 @@ General methods and attributes
    Station.get_info
    Station.resample
    Station.to_xr
+   Station.to_netcdf
 
 
 GEE related methods

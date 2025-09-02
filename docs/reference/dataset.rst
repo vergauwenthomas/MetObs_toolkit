@@ -56,6 +56,7 @@ General methods and attributes
    Dataset.save_dataset_to_pkl
    Dataset.import_data_from_file
    Dataset.to_xr
+   Dataset.to_netcdf
 
 
 GEE related methods
