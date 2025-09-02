@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Literal, Union
 from datetime import datetime
 from matplotlib.pyplot import Axes
+from pathlib import Path
 
 from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (

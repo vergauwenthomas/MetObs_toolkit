@@ -42,7 +42,8 @@ dependencies=[
   "pint>=0.24.4",
   "setuptools>=78.1.0",
   "shapely>=2.0.6",
-  "xarray (>=2025,<2026)"
+  "xarray (>=2025,<2026)",
+  "pyarrow (>=21.0.0,<22.0.0)"
 ]
 
 [tool.poetry.group.dev.dependencies]
