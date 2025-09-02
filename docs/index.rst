@@ -39,29 +39,31 @@ and `GeoPandas <https://geopandas.org/en/stable/>`_ functionalities.
 How to install
 =================
 
-To use the package python 3.9 or higher is required.
+To use the package python 3.10 or higher is required.
 To install the package one can use pip:
 
 .. code-block:: console
 
    pip install metobs-toolkit
 
-To install the PyPi version of the toolkit. To install the github versions one can use these commands:
+Or install the packge using `conda`:
 
 .. code-block:: console
 
-   #main versions
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git
+   conda install -c conda-forge metobs-toolkit
+
+
+To install the latest development version: 
+
+.. code-block:: console
 
    #development version
    pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@dev
 
-   #specific release from github
-   pip install git+https://github.com/vergauwenthomas/MetObs_toolkit.git@v0.2.0
-
 
 .. note::
    To install the package in a notebook, one has to add ! in front of the pip install command.
+
 
 .. code-block:: python
 
