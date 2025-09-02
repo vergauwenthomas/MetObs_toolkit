@@ -772,7 +772,7 @@ class Dataset:
         Save the dataset observations to a parquet file.
 
         The DataFrame returned by the `.df` property is written to a parquet file.
-        This includes all observations with their QC labels from all stations in the dataset.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
 
         Parameters
         ----------
@@ -800,7 +800,7 @@ class Dataset:
         Save the dataset observations to a CSV file.
 
         The DataFrame returned by the `.df` property is written to a CSV file.
-        This includes all observations with their QC labels from all stations in the dataset.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
 
         Parameters
         ----------

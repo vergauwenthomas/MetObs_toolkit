@@ -217,7 +217,7 @@ class Station:
         Save the station observations to a parquet file.
 
         The DataFrame returned by the `.df` property is written to a parquet file.
-        This includes all observations with their QC labels for this station.
+        This includes all observations with their QC labels (or gapfill labels) for this station.
 
         Parameters
         ----------
@@ -244,7 +244,7 @@ class Station:
         Save the station observations to a CSV file.
 
         The DataFrame returned by the `.df` property is written to a CSV file.
-        This includes all observations with their QC labels for this station.
+        This includes all observations with their QC labels (or gapfill labels) for this station.
 
         Parameters
         ----------
