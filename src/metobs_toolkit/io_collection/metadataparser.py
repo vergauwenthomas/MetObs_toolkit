@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from metobs_toolkit.io_collection.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.filereaders import FileReader
 from metobs_toolkit.template import Template
 from metobs_toolkit.backend_collection.errorclasses import MetObsInconsistentStationName
 
@@ -20,13 +20,13 @@ class MetaDataParser:
 
     Parameters
     ----------
-    metadatafilereader : CsvFileReader
+    metadatafilereader : FileReader
         The file reader object to read the metadata file.
     template : Template
         The template object that defines the metadata structure.
     """
 
-    def __init__(self, metadatafilereader: CsvFileReader, template: Template):
+    def __init__(self, metadatafilereader: FileReader, template: Template):
         """Initialize MetaDataParser."""
         self.filereader = metadatafilereader
         self.template = template

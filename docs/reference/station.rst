@@ -60,8 +60,8 @@ Exporting and converting methods
 .. autosummary::
    :toctree: api/
 
-   Station.to_parquet
    Station.to_csv
+   Station.to_parquet
    Station.to_xr
    Station.to_netcdf
 

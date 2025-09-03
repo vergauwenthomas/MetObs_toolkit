@@ -16,7 +16,10 @@ from metobs_toolkit.template import Template, update_known_obstype_with_original
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
-from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
+from metobs_toolkit.io_collection.filereaders import (
+    PickleFileReader,
+    find_suitable_reader,
+)
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -695,7 +698,7 @@ class Dataset:
         """
 
         if _force_from_dataframe is None:
-            reader = CsvFileReader(file_path=filepath)
+            reader = find_suitable_reader(filepath=filepath)
             data = reader.read_as_local_file()
             force_update = True
 
@@ -876,10 +879,10 @@ class Dataset:
         Importing data requires a ´Template´ which is constructed from a template file (JSON).
         (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
 
-        If `input_data_file` is provided, the method reads the raw observational data (CSV).
-        A basic quality control (duplicate timestamps and invalid input) is performed, and
-        a frequency estimation is made. Based on the estimated frequency, gaps are identified
-        if present.
+        If `input_data_file` is provided, the method reads the raw observational data
+        (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps
+        and invalid input) is performed, and a frequency estimation is made. Based on the
+        estimated frequency, gaps are identified if present.
 
         The method performs the following steps:
 
@@ -890,16 +893,18 @@ class Dataset:
         * Executes checks for duplicates and invalid input.
         * Identifies gaps in the data.
 
-        if `input_metadata_file` is provided, the method reads the metadata (CSV).
+        if `input_metadata_file` is provided, the method reads the metadata
+        (supported formats: CSV, Parquet).
 
         Parameters
         ------------
         template_file : str or Path
             Path to the template (JSON) file used to interpret the raw data/metadata files.
         input_data_file : str or Path, optional
-            Path to the input data file containing observations. If None, no data is read.
+            Path to the input data file containing observations (CSV or Parquet format).
+            If None, no data is read.
         input_metadata_file : str or Path, optional
-            Path to the input metadata file. If None, no metadata is read.
+            Path to the input metadata file (CSV or Parquet format). If None, no metadata is read.
         freq_estimation_method : {'highest', 'median'}, optional
             Method to estimate the frequency of observations (per station per observation type).
         freq_estimation_simplify_tolerance : str or pd.Timedelta, optional
@@ -911,11 +916,11 @@ class Dataset:
             The maximum allowed time shift tolerance for aligning timestamps
             to target (perfect-frequency) timestamps.
         kwargs_data_read : dict, optional
-            Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the data file.
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
+            for CSV files or `pandas.read_parquet()` for Parquet files) when reading the data file.
         kwargs_metadata_read : dict, optional
-            Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the metadata file.
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
+            for CSV files or `pandas.read_parquet()` for Parquet files) when reading the metadata file.
         templatefile_is_url : bool, optional
             If True, the `template_file` is interpreted as a URL to an online
             template file. If False, it is interpreted as a local file path.
@@ -945,10 +950,19 @@ class Dataset:
 
         if input_data_file is not None:
             use_data = True
+
+            # Check if input_data_file is a URL
+            is_url = isinstance(input_data_file, str) and ("://" in input_data_file)
+
+            # Create a file reader
+            filereader = find_suitable_reader(filepath=input_data_file, is_url=is_url)
+
+            # Initiate the datatparser
             dataparser = DataParser(
-                datafilereader=CsvFileReader(file_path=input_data_file),
+                datafilereader=filereader,
                 template=self.template,
             )
+            # Parse the data
             dataparser.parse(**kwargs_data_read)
         else:
             logger.info("No datafile is provided --> metadata-only mode")
@@ -957,8 +971,19 @@ class Dataset:
 
         if input_metadata_file is not None:
             use_metadata = True
+
+            # Check if input_data_file is a URL
+            meta_is_url = isinstance(input_metadata_file, str) and (
+                "://" in input_metadata_file
+            )
+            # Create a file reader
+            metafilereader = find_suitable_reader(
+                filepath=input_metadata_file, is_url=meta_is_url
+            )
+            # Init parser
+
             metadataparser = MetaDataParser(
-                metadatafilereader=CsvFileReader(file_path=input_metadata_file),
+                metadatafilereader=metafilereader,
                 template=self.template,
             )
             metadataparser.parse(**kwargs_metadata_read)
