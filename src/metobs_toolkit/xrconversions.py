@@ -105,7 +105,7 @@ def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> 
     present_labels = df["label"].unique()
     df["label_numeric"] = df["label"].map(label_to_numeric_map)
 
-    applied_map={f"Label:{key}":val for key,val in label_to_numeric_map.items() if key in present_labels}
+    applied_map = {f"Label:{key}":val for key,val in label_to_numeric_map.items() if key in present_labels}
 
     xr_labels = xr.DataArray(
         data=[df["label_numeric"].values],

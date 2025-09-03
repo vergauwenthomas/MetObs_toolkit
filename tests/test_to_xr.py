@@ -101,12 +101,12 @@ class TestDemoData:
         )
         ds = station.to_xr()
 
-        assert 13 in ds["temp"].sel(kind="label").data #failded
+        assert 13 in ds["temp"].sel(kind="label").data 
         assert 12 in ds["temp"].sel(kind="label").data #interpolated
         assert "interpolation" in ds["temp"].attrs['GF methods']
         assert ds["temp"].attrs['GF:interpolation.method'] == "time"
         assert ds["temp"].attrs['GF:interpolation.max_consec_fill'] == 500
-        assert ds["temp"].attrs['GF:interpolation.n_leading_anchors'] == 1 #test if default argumens are present
+        assert ds["temp"].attrs['GF:interpolation.n_leading_anchors'] == 1 #test if default arguments are present
 
     def test_to_xr_on_dataset(self):
         dataset = metobs_toolkit.Dataset()
