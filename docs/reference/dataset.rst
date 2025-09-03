@@ -58,10 +58,10 @@ Exporting and converting methods
 .. autosummary::
    :toctree: api/
 
-   Dataset.save_dataset_to_pkl
-   Dataset.to_parquet
-   Dataset.to_csv
    Dataset.import_data_from_file
+   Dataset.save_dataset_to_pkl
+   Dataset.to_csv
+   Dataset.to_parquet
    Dataset.to_xr
    Dataset.to_netcdf
 
