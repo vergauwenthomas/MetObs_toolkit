@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Literal, Union
 from datetime import datetime
 from matplotlib.pyplot import Axes
+from pathlib import Path
 
 from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -208,7 +209,96 @@ class Station:
     @copy_doc(station_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return station_to_xr(self)
+        return station_to_xr(self, fmt_datetime_coordinate=True)
+
+    @log_entry
+    def to_netcdf(self, filepath: str, **kwargs) -> None:
+        """
+        Save the Station as a netCDF file.
+
+        This method converts the Station to an xarray Dataset and saves it as a
+        netCDF file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path where the netCDF file will be saved.
+        **kwargs
+            Additional keyword arguments passed to xarray.Dataset.to_netcdf().
+            Common options include:
+            - format : str, netCDF format ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC')
+            - engine : str, netCDF engine to use ('netcdf4', 'scipy', 'h5netcdf')
+            - encoding : dict, variable-specific encoding parameters
+
+        Examples
+        --------
+        >>> station.to_netcdf('station_data.nc')
+        >>> station.to_netcdf('data.nc', format='NETCDF4_CLASSIC')
+
+        Notes
+        -----
+        This method is an export method. It is not possible to convert a netCDF
+        to a metobs_toolkit.Station object.
+        """
+
+        # Convert to xarray Dataset
+        ds = self.to_xr()
+        # Save to netCDF
+        ds.to_netcdf(filepath, **kwargs)
+
+    @log_entry
+    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the station observations to a parquet file.
+
+        The DataFrame returned by the `.df` property is written to a parquet file.
+        This includes all observations with their QC labels (or gapfill labels) for this station.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the parquet file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Station.df : The DataFrame property that is written to file.
+        Station.to_csv : Save station data to CSV format.
+        """
+        df = self.df
+        df.to_parquet(target_file, **kwargs)
+
+    @log_entry
+    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the station observations to a CSV file.
+
+        The DataFrame returned by the `.df` property is written to a CSV file.
+        This includes all observations with their QC labels (or gapfill labels) for this station.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the CSV file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_csv().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Station.df : The DataFrame property that is written to file.
+        Station.to_parquet : Save station data to parquet format.
+        """
+        df = self.df
+        df.to_csv(target_file, **kwargs)
 
     @copy_doc(station_df)
     @property
@@ -308,9 +398,9 @@ class Station:
         concatlist = []
         for modeldata in self.modeldata:
             df = (
-                modeldata.df.assign(obstype=modeldata.obstype.name)
+                modeldata.df.assign(obstype=modeldata.modelobstype.name)
                 .assign(
-                    details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.obstype.model_unit} -> {modeldata.obstype.std_unit}"
+                    details=f"{modeldata.modelname}:{modeldata.modelvariable} converted from {modeldata.modelobstype.model_unit} -> {modeldata.modelobstype.std_unit}"
                 )
                 .assign(modelname=modeldata.modelname)
                 .assign(modelvariable=modeldata.modelvariable)
@@ -377,7 +467,7 @@ class Station:
         candidates = [
             modeldata
             for modeldata in all_candidates
-            if modeldata.obstype.name == str(obstype)
+            if modeldata.modelobstype.name == str(obstype)
         ]
 
         if len(candidates) == 0:
@@ -1104,7 +1194,7 @@ class Station:
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
@@ -1511,7 +1601,7 @@ class Station:
             legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.obstype
+        obstypeinstance = trg_modeltimeseries.modelobstype
 
         # Set title:
         if title is None:

@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "0.4.3"
+version = "0.4.4"
 license = "LICENSE"
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be"}]
 description = "A Meteorological observations toolkit for scientists"
@@ -42,7 +42,9 @@ dependencies=[
   "pint>=0.24.4",
   "setuptools>=78.1.0",
   "shapely>=2.0.6",
-  "xarray (>=2025,<2026)"
+  "xarray (>=2025,<2026)",
+  "pyarrow (>=21.0.0,<22.0.0)",
+  "netcdf4 (>=1.7.2,<2.0.0)"
 ]
 
 [project.optional-dependencies]
