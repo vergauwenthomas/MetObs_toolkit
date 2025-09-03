@@ -202,4 +202,75 @@ class TestDemoData:
             28,
             4328,
         )
+
+    def test_station_to_netcdf(self):
+        """Test Station.to_netcdf() method."""
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+
+        station = dataset.get_station("vlinder05")
+        station.repetitions_check(max_N_repetitions=200)
+
+        # Test saving to netCDF
+        import tempfile
+        import os
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filepath = os.path.join(tmpdir, "test_station.nc")
+            station.to_netcdf(filepath)
+            
+            # Verify file was created
+            assert os.path.exists(filepath)
+            
+            # Verify file can be read back as xarray Dataset
+            ds_from_file = xr.open_dataset(filepath)
+            
+            # Basic checks
+            assert isinstance(ds_from_file, xr.core.dataset.Dataset)
+            assert "datetime" in ds_from_file.dims
+            assert "kind" in ds_from_file.dims
+            assert "temp" in ds_from_file.data_vars
+            assert "humidity" in ds_from_file.data_vars
+            
+            ds_from_file.close()
+
+    def test_dataset_to_netcdf(self):
+        """Test Dataset.to_netcdf() method."""
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+
+        station = dataset.get_station("vlinder05")
+        station.repetitions_check(max_N_repetitions=200)
+
+        # Test saving to netCDF
+        import tempfile
+        import os
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filepath = os.path.join(tmpdir, "test_dataset.nc")
+            dataset.to_netcdf(filepath)
+            
+            # Verify file was created
+            assert os.path.exists(filepath)
+            
+            # Verify file can be read back as xarray Dataset
+            ds_from_file = xr.open_dataset(filepath)
+            
+            # Basic checks
+            assert isinstance(ds_from_file, xr.core.dataset.Dataset)
+            assert "datetime" in ds_from_file.dims
+            assert "kind" in ds_from_file.dims
+            assert "name" in ds_from_file.dims  # Dataset should have name dimension
+            assert "temp" in ds_from_file.data_vars
+            assert "humidity" in ds_from_file.data_vars
+            
+            ds_from_file.close()
         
