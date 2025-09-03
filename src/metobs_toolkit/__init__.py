@@ -79,5 +79,4 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 # DO not change this manually!
-from .settings_collection import __version__
-
+__version__ = "0.4.3"

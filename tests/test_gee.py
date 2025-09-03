@@ -469,6 +469,7 @@ class TestDemoDataset:
 
 if __name__ == "__main__":
     test = TestDemoDataset()
+    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution= False)
     # test.test_import_demo_metadata(overwrite_solution=False)
     # test.test_LCZ_extraction(overwrite_solution=False)
     # test.test_altitude_extraction(overwrite_solution=False)

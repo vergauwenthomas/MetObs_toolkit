@@ -47,16 +47,24 @@ General methods and attributes
    Dataset.subset_by_stations
    Dataset.get_station
    Dataset.rename_stations
-
    Dataset.sync_records
    Dataset.resample
-
-
    Dataset.add_new_observationtype
+   
+
+Exporting and converting methods
+--------------------------------
+
+.. autosummary::
+   :toctree: api/
+
    Dataset.save_dataset_to_pkl
+   Dataset.to_parquet
+   Dataset.to_csv
    Dataset.import_data_from_file
    Dataset.to_xr
    Dataset.to_netcdf
+
 
 
 GEE related methods

@@ -53,6 +53,15 @@ General methods and attributes
    Station.add_to_modeldata
    Station.get_info
    Station.resample
+   
+Exporting and converting methods
+--------------------------------
+
+.. autosummary::
+   :toctree: api/
+
+   Station.to_parquet
+   Station.to_csv
    Station.to_xr
    Station.to_netcdf
 

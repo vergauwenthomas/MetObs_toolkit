@@ -700,7 +700,6 @@ class Dataset:
             force_update = True
 
             totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
-            totaldf = geedynamicdatasetmanager._convert_units(totaldf)
         else:
             totaldf = _force_from_dataframe
 
@@ -724,7 +723,7 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
                     modelvariable=geedynamicdatasetmanager.modelobstypes[
@@ -801,6 +800,62 @@ class Dataset:
 
         with open(target_path, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+    @log_entry
+    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the dataset observations to a parquet file.
+
+        The DataFrame returned by the `.df` property is written to a parquet file.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the parquet file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Dataset.df : The DataFrame property that is written to file.
+        Dataset.to_csv : Save dataset to CSV format.
+        Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
+        """
+        df = self.df
+        df.to_parquet(target_file, **kwargs)
+
+    @log_entry
+    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the dataset observations to a CSV file.
+
+        The DataFrame returned by the `.df` property is written to a CSV file.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the CSV file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_csv().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Dataset.df : The DataFrame property that is written to file.
+        Dataset.to_parquet : Save dataset to parquet format.
+        Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
+        """
+        df = self.df
+        df.to_csv(target_file, **kwargs)
 
     @log_entry
     def import_data_from_file(
