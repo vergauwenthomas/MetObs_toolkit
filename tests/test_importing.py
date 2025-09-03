@@ -531,7 +531,7 @@ class TestParquetData:
     def test_import_single_station(self):
         # 1. csv to parquet
         csv_file = datadir.joinpath("single_station.csv")
-        parquet_file = to_parquet(csv_file)
+        parquet_file = to_parquet(csv_file, sep=',')
         # 2. metobs dataset from csv files
         dataset_a = metobs_toolkit.Dataset()
         dataset_a.import_data_from_file(
@@ -542,7 +542,7 @@ class TestParquetData:
         # 3. metobs dataset from parquet files
         dataset_parq = metobs_toolkit.Dataset()
         dataset_parq.import_data_from_file(
-            template_file=self.templatefile,
+            template_file=datadir.joinpath("single_station_template.json"),
             # input_metadata_file=self.metadatfile,
             input_data_file=parquet_file,
         )
