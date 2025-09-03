@@ -37,12 +37,12 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries",
         Dataset with dimensions ('kind', 'models', 'datetime') where
         kind = ['model'].
     """
-    attrsdict = {"obstype_name": modeltimeseries.obstype.name,
-                "obstype_desc": modeltimeseries.obstype.description,
-                "obstype_unit": modeltimeseries.obstype.std_unit,
+    attrsdict = {"modelobstype_name": modeltimeseries.obstype.name,
+                "modelobstype_desc": modeltimeseries.obstype.description,
+                "modelobstype_unit": modeltimeseries.obstype.std_unit,
                 "modelname": modeltimeseries.modelname,
                 "modelvariable": modeltimeseries.modelvariable,}
-    attrsdict.update(construct_metobs_attr)
+    attrsdict.update(construct_metobs_attr())
     
     ar = xr.DataArray(
         data=[[modeltimeseries.series.values]],
