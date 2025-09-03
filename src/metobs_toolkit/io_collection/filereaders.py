@@ -4,6 +4,7 @@ import json
 import pickle
 import requests
 from abc import ABC, abstractmethod
+from typing import Union
 
 import pandas as pd
 
@@ -478,3 +479,53 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs) -> pd.DataFrame:
             logger.debug(f"Failed to read {filepath} with separator '{sep}': {e}")
 
     raise ValueError(f"Could not determine the separator for {filepath}")
+
+@log_entry
+def find_suitable_reader(filepath: Union[str, Path], is_url=False) -> FileReader:
+    """
+    Find a suitable file reader based on file extension.
+
+    Determines the appropriate FileReader subclass (CSV, JSON, or Parquet) 
+    by examining the file extension and returns an instance of that reader.
+
+    Parameters
+    ----------
+    filepath : str or Path
+        Path to the file or URL.
+    is_url : bool, optional
+        Whether the filepath is a URL (default is False).
+
+    Returns
+    -------
+    FileReader
+        An instance of the appropriate FileReader subclass.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the local file does not exist.
+    NotImplementedError
+        If no reader is available for the file extension.
+    """
+    
+    #to Path
+    if isinstance(filepath, str):
+        filepath = Path(filepath)
+
+    #1. Check if the file exists
+    if not filepath.exists():
+        raise FileNotFoundError(f"{filepath} does not exist.")
+
+    #2. Get suffix
+    suffix = filepath.suffix
+
+    if suffix == '.csv':
+        return CsvFileReader(filepath, is_url=is_url)
+    elif suffix == '.json':
+        return JsonFileReader(filepath, is_url=is_url)
+    elif suffix == '.parquet':
+        return ParquetFileReader(filepath, is_url=is_url)
+    else:
+        raise NotImplementedError(
+                    f"Could not read {filepath}, no reader implemented for file extension {suffix}"
+                )

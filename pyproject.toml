@@ -47,9 +47,6 @@ dependencies=[
   "netcdf4 (>=1.7.2,<2.0.0)"
 ]
 
-[project.optional-dependencies]
-parquet = ["pyarrow>=16.1.0"]
-
 [tool.poetry.group.dev.dependencies]
 jedi = "^0.19"
 nbconvert = "^7.16.6"

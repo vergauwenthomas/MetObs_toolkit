@@ -1,6 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
+import copy
 
 # import metobs_toolkit
 import pandas as pd
@@ -526,49 +527,148 @@ class TestParquetData:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testparquetdata"}
     solutionfixer = SolutionFixer(solutiondir=solutionsdir)
 
-    # paths to data
-    datafile = datadir.joinpath("single_station.parquet")
-    templatefile = datadir.joinpath("single_station_template.json")
-    metadatfile = datadir.joinpath("single_station_metadata.csv")
 
-    # Create parquet file if it does not exist
-    if not datafile.exists():
+    def test_import_single_station(self):
+        #1. csv to parquet
         csv_file = datadir.joinpath("single_station.csv")
-        df = pd.read_csv(csv_file)
-        df.to_parquet(datafile)
+        parquet_file = to_parquet(csv_file)
+        #2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=datadir.joinpath("single_station_template.json"),
+            # input_metadata_file=self.metadatfile,
+            input_data_file=csv_file,
+        )
+        #3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=self.templatefile,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
+        
+        assert_equality(dataset_a, dataset_parq)
+        
+    def test_import_demo_data(self):
+        #1. csv to parquet
+        csv_file = Path(metobs_toolkit.demo_datafile)
+        parquet_file = to_parquet(csv_file)
+        #2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=csv_file,
+        )
+        #3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
+        assert_equality(dataset_a, dataset_parq)
+        
+        
+    def test_import_demo_metadata_only(self):
+        #1. csv to parquet
+        csv_file = Path(metobs_toolkit.demo_metadatafile)
+        parquet_file = to_parquet(csv_file, sep=',')
+        #2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            # input_data_file=csv_file,
+        )
+        #3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=parquet_file,
+            # input_data_file=parquet_file,
+        )
+        assert_equality(dataset_a, dataset_parq)
+    
+    def test_import_wide_data(self):
+        #1. csv to parquet
+        datafile = datadir.joinpath("wide_test_data.csv")
+        templatefile = datadir.joinpath("wide_test_template.json")
+        parquet_file = to_parquet(datafile, sep=',')
+        #2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=templatefile,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=datafile,
+        )
+        #3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=templatefile,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
 
-    def test_import_parquet_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+        assert_equality(dataset_a, dataset_parq)
 
-        # 1. get_startpoint data
-        pass
+    def test_import_with_timezone(self):
+        inputdatafile = metobs_toolkit.demo_datafile
+        #read the csv
+        rawdf = pd.read_csv(inputdatafile, sep=';')
+        rawdf = rawdf[:300] #reduce storage
+        #format datetime and something else
+        rawdf['datetime'] = pd.to_datetime(rawdf['Datum'] + rawdf['Tijd (UTC)'], format='%Y-%m-%d%H:%M:%S')
+        rawdf.drop(columns=['Datum', 'Tijd (UTC)'], inplace=True)
 
-        # 2. apply a metobs manipulation
+        rawdf_utc = copy.deepcopy(rawdf)
+        rawdf_utc['datetime'] = rawdf_utc['datetime'].dt.tz_localize('UTC')
+        
+        #to parquet
+        target_parquetfile_utc = datadir.joinpath("demo_data_with_timezone_utc.parquet")
+        if target_parquetfile_utc.exists():
+            target_parquetfile_utc.unlink()
+        rawdf_utc.to_parquet(target_parquetfile_utc)
+
+
+        template_file = datadir.joinpath('demo_template_for_parquet.json')
+
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
-            template_file=self.templatefile,
-            input_metadata_file=self.metadatfile,
-            input_data_file=self.datafile,
+            template_file=template_file,
+            input_data_file=target_parquetfile_utc
         )
+        
+        #Now make sure the tz is mismatched between the parquet file and template
+        rawdf_paris = copy.deepcopy(rawdf)
+        rawdf_paris['datetime'] = rawdf_paris['datetime'].dt.tz_localize('Europe/Paris')
 
-        data_to_test = dataset
-
-        # 3. overwrite solution?
-        if overwrite_solution:
-            TestParquetData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
-                methodname=_method_name,
-                **TestParquetData.solkwargs,
+        #to parquet
+        target_parquetfile_paris = datadir.joinpath("demo_data_with_timezone_paris.parquet")
+        if target_parquetfile_paris.exists():
+            target_parquetfile_paris.unlink()
+        rawdf_paris.to_parquet(target_parquetfile_paris)
+        
+        dataset = metobs_toolkit.Dataset()
+        
+        from metobs_toolkit.backend_collection import errorclasses as err
+        with pytest.raises(err.MetObsTemplateError):
+            dataset.import_data_from_file(
+                template_file=template_file,
+                input_data_file=target_parquetfile_paris
             )
 
-        # 4. Get solution
-        solutionobj = TestParquetData.solutionfixer.get_solution(
-            methodname=_method_name, **TestParquetData.solkwargs
-        )
+def to_parquet(csvfile, sep=';'):
+    target_parquetfile = csvfile.with_suffix(".parquet")
+    if target_parquetfile.exists(): 
+        #always update, so that changes in the csv are always in the parquet
+        target_parquetfile.unlink()
 
-        # 5. Construct the equlity tests
-        assert_equality(data_to_test, solutionobj)  # dataset comparison
+    df = pd.read_csv(csvfile, sep=sep)
+    df.to_parquet(target_parquetfile)
+    return target_parquetfile
+        
+
 
 
 if __name__ == "__main__":
