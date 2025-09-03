@@ -27,6 +27,9 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries",
     ----------
     modeltimeseries : ModelTimeseries
         Object holding a time-indexed pandas Series and related metadata.
+    fmt_datetime_coordinate : bool, optional
+        If True, format the datetime coordinate for CF compliance by removing
+        timezone information and adding CF-compliant attributes. Default is True.
 
     Returns
     -------
@@ -77,6 +80,9 @@ def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> 
     sensordata : Sensordata
         Sensor data object containing a DataFrame with 'value' and 'label'
         plus metadata (QC, gap-fill info).
+    fmt_datetime_coordinate : bool, optional
+        If True, format the datetime coordinate for CF compliance by removing
+        timezone information and adding CF-compliant attributes. Default is True.
 
     Returns
     -------
@@ -153,6 +159,9 @@ def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Datase
     ----------
     station : Station
         Station object containing sensor and model data.
+    fmt_datetime_coordinate : bool, optional
+        If True, format the datetime coordinate for CF compliance by removing
+        timezone information and adding CF-compliant attributes. Default is True.
 
     Returns
     -------
@@ -223,6 +232,9 @@ def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Datase
     ----------
     dataset : Dataset
         Collection of Station objects.
+    fmt_datetime_coordinate : bool, optional
+        If True, format the datetime coordinate for CF compliance by removing
+        timezone information and adding CF-compliant attributes. Default is True.
 
     Returns
     -------
@@ -245,99 +257,6 @@ def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Datase
 # ------------------------------------------
 
 
-# ------------------------------------------
-#    NetCDF serialization helpers
-# ------------------------------------------
-
-
-# def flatten_nested_dict(nested_dict: Dict[str, Any], prefix: str = "") -> Dict[str, str]:
-#     """
-#     Flatten nested dictionaries into dot-separated keys with string values.
-    
-#     This function converts nested dictionaries to a flat structure that is 
-#     compatible with netCDF attribute serialization.
-    
-#     Parameters
-#     ----------
-#     nested_dict : Dict[str, Any]
-#         The nested dictionary to flatten.
-#     prefix : str, optional
-#         Prefix to add to keys, by default "".
-        
-#     Returns
-#     -------
-#     Dict[str, str]
-#         Flattened dictionary with string values.
-        
-#     Examples
-#     --------
-#     >>> nested = {"QC": {"gross_value": {"settings": {"threshold": 10}}}}
-#     >>> flatten_nested_dict(nested)
-#     {"QC.gross_value.settings.threshold": "10"}
-#     """
-#     flat_dict = {}
-    
-#     for key, value in nested_dict.items():
-#         new_key = f"{prefix}.{key}" if prefix else key
-        
-#         if isinstance(value, dict):
-#             if len(value) == 0:
-#                 # Handle empty dictionaries by storing them as a placeholder
-#                 flat_dict[new_key] = "{empty_dict}"
-#             else:
-#                 # Recursively flatten nested dictionaries
-#                 flat_dict.update(flatten_nested_dict(value, new_key))
-#         else:
-#             # Convert all values to strings for netCDF compatibility
-#             flat_dict[new_key] = str(value)
-    
-#     return flat_dict
-
-
-
-
-
-# def make_dataset_serializable(ds: xr.Dataset) -> xr.Dataset:
-#     """
-#     Convert an xarray Dataset to be netCDF serializable.
-    
-#     This function handles:
-#     - Nested dictionaries in variable attributes (converted to flattened structure)
-#     - Timezone-aware datetime coordinates (converted to timezone-naive with tz attribute)
-#     - Mixed-type variables with 'kind' dimension (split into separate obs/label variables)
-#     - CF convention compliance for metadata
-    
-#     Parameters
-#     ----------
-#     ds : xarray.Dataset
-#         The input Dataset with potentially non-serializable attributes.
-        
-#     Returns
-#     -------
-#     xarray.Dataset
-#         A copy of the Dataset with all attributes made netCDF serializable.
-#     """
-#     # Create a copy to avoid modifying the original
-#     ds_copy = ds.copy(deep=True)
-    
-#     # Handle datetime timezone conversion
-#     ds_copy = _handle_datetime_timezones(ds_copy)
-    
-#     # Handle mixed-type variables with 'kind' dimension (this also flattens attributes)
-#     ds_copy = _handle_mixed_type_variables(ds_copy)
-    
-#     # Process global dataset attributes
-#     new_global_attrs = {}
-#     for attr_name, attr_val in ds_copy.attrs.items():
-#         if isinstance(attr_val, dict):
-#             flattened = flatten_nested_dict(attr_val, attr_name)
-#             new_global_attrs.update(flattened)
-#         else:
-#             new_global_attrs[attr_name] = _make_value_serializable(attr_val)
-    
-#     ds_copy.attrs = new_global_attrs
-    
-#     return ds_copy
 
 
 
@@ -346,17 +265,21 @@ def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Datase
 # ------------------------------------------
 def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     """
-    Format a datetime coordinate for output.
+    Format a datetime coordinate in an xarray Dataset for CF compliance.
+
+    Removes timezone information from datetime coordinates and adds 
+    CF-compliant time attributes including 'standard_name', 'long_name', 
+    and 'timezone' attributes.
 
     Parameters
     ----------
-    coord : xr.DataArray
-        The datetime coordinate to format.
+    ds : xr.Dataset
+        The Dataset containing a 'datetime' coordinate to format.
 
     Returns
     -------
-    xr.DataArray
-        The formatted datetime coordinate.
+    xr.Dataset
+        The Dataset with formatted datetime coordinate.
     """
     if 'UTC' in str(ds['datetime'].dtype) or 'tz' in str(ds['datetime'].dtype):
 
@@ -433,6 +356,24 @@ def construct_metobs_attr() -> Dict:
 
 
 def construct_QC_attr(sensordata: "Sensordata") -> Dict:
+    """
+    Extract quality control check metadata from sensor data.
+
+    Creates attributes documenting all QC checks applied to the sensor data,
+    including a list of check names and detailed settings for each check
+    as flattened dictionary items.
+
+    Parameters
+    ----------
+    sensordata : Sensordata
+        Sensor data object containing outliers list with QC check metadata.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'QC checks' list and flattened QC settings as 
+        'QC:{checkname}.{setting}' key-value pairs.
+    """
     returndict = {'QC checks': []}
     for qcdict in sensordata.outliers:
         #add name to the list
