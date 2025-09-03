@@ -52,9 +52,8 @@ class TestDemoData:
             == station.get_sensor("temp").df.index.get_level_values("datetime").shape[0]
         )
         assert ds["datetime"].attrs["standard_name"] == "time"
-        assert 'timezone' in ds['datetime'].attrs
-        assert ds['datetime'].dtype == 'datetime64[ns]'
-        
+        assert "timezone" in ds["datetime"].attrs
+        assert ds["datetime"].dtype == "datetime64[ns]"
 
         for obsname in station.obsdata.keys():
             # test observation variables
@@ -82,18 +81,16 @@ class TestDemoData:
 
         # Test presents of QC labels
 
-        assert "repetitions" in ds['temp'].attrs["QC checks"]
-        assert "repetitions" not in ds['humidity'].attrs["QC checks"]
-        assert 'QC:repetitions.max_N_repetitions' in ds['temp'].attrs
-        assert ds['temp'].attrs['QC:repetitions.max_N_repetitions'] == 200
-        
-        #test label conversions
-        assert ds['temp'].attrs['Label:ok'] == 0
-        assert ds['temp'].attrs['Label:repetitions outlier'] == 5
-        assert 'Label:repetitions outlier' not in ds['humidity'].attrs
-        
-        
-        
+        assert "repetitions" in ds["temp"].attrs["QC checks"]
+        assert "repetitions" not in ds["humidity"].attrs["QC checks"]
+        assert "QC:repetitions.max_N_repetitions" in ds["temp"].attrs
+        assert ds["temp"].attrs["QC:repetitions.max_N_repetitions"] == 200
+
+        # test label conversions
+        assert ds["temp"].attrs["Label:ok"] == 0
+        assert ds["temp"].attrs["Label:repetitions outlier"] == 5
+        assert "Label:repetitions outlier" not in ds["humidity"].attrs
+
         # Test presens of GF labels
         station.convert_outliers_to_gaps(obstype="temp")
         station.interpolate_gaps(
@@ -101,12 +98,14 @@ class TestDemoData:
         )
         ds = station.to_xr()
 
-        assert 13 in ds["temp"].sel(kind="label").data 
-        assert 12 in ds["temp"].sel(kind="label").data #interpolated
-        assert "interpolation" in ds["temp"].attrs['GF methods']
-        assert ds["temp"].attrs['GF:interpolation.method'] == "time"
-        assert ds["temp"].attrs['GF:interpolation.max_consec_fill'] == 500
-        assert ds["temp"].attrs['GF:interpolation.n_leading_anchors'] == 1 #test if default arguments are present
+        assert 13 in ds["temp"].sel(kind="label").data
+        assert 12 in ds["temp"].sel(kind="label").data  # interpolated
+        assert "interpolation" in ds["temp"].attrs["GF methods"]
+        assert ds["temp"].attrs["GF:interpolation.method"] == "time"
+        assert ds["temp"].attrs["GF:interpolation.max_consec_fill"] == 500
+        assert (
+            ds["temp"].attrs["GF:interpolation.n_leading_anchors"] == 1
+        )  # test if default arguments are present
 
     def test_to_xr_on_dataset(self):
         dataset = metobs_toolkit.Dataset()
@@ -155,33 +154,30 @@ class TestDemoData:
         assert "datetime" in ds.dims
         assert "kind" in ds.dims
         assert "name" in ds.dims
-        
+
         var = ds["temp"]
-        
+
         # Test that 'kind' dimension has 3 elements (obs, label, model)
-        assert len(ds.coords['kind']) == 3
-        assert 'obs' in ds.coords['kind'].values
-        assert 'label' in ds.coords['kind'].values
-        assert 'model' in ds.coords['kind'].values
-        
+        assert len(ds.coords["kind"]) == 3
+        assert "obs" in ds.coords["kind"].values
+        assert "label" in ds.coords["kind"].values
+        assert "model" in ds.coords["kind"].values
+
         # Test var attributes when model data is present
-        #obstype related
+        # obstype related
         assert "obstype_name" in var.attrs
         assert "obstype_desc" in var.attrs
         assert "obstype_unit" in var.attrs
         assert "QC checks" in var.attrs
         assert "GF methods" in var.attrs
-        
-        
-        #modelobstype related
-        
+
+        # modelobstype related
+
         assert "modelobstype_name" in var.attrs
         assert "modelobstype_desc" in var.attrs
         assert "modelobstype_unit" in var.attrs
-        assert var.attrs['modelname'] == 'ERA5-land'
-        assert var.attrs['modelvariable'] == 'temperature_2m'
-       
-
+        assert var.attrs["modelname"] == "ERA5-land"
+        assert var.attrs["modelvariable"] == "temperature_2m"
 
         # Test that observations and labels still exist alongside model data
         obs_temp = ds["temp"].sel(kind="obs")
@@ -193,10 +189,9 @@ class TestDemoData:
         assert "models" in ds.coords
         assert "ERA5-land" in ds.coords["models"].values
         assert len(ds.coords["models"]) == 1
-        
+
         # Test that var has the correct kind dimension
-        assert set(var.dims) == set(('name', 'kind', 'models', 'datetime'))
-  
+        assert set(var.dims) == set(("name", "kind", "models", "datetime"))
 
         assert ds["temp"].sel(kind="model").sel(models="ERA5-land").data.shape == (
             28,
@@ -218,24 +213,24 @@ class TestDemoData:
         # Test saving to netCDF
         import tempfile
         import os
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             filepath = os.path.join(tmpdir, "test_station.nc")
             station.to_netcdf(filepath)
-            
+
             # Verify file was created
             assert os.path.exists(filepath)
-            
+
             # Verify file can be read back as xarray Dataset
             ds_from_file = xr.open_dataset(filepath)
-            
+
             # Basic checks
             assert isinstance(ds_from_file, xr.core.dataset.Dataset)
             assert "datetime" in ds_from_file.dims
             assert "kind" in ds_from_file.dims
             assert "temp" in ds_from_file.data_vars
             assert "humidity" in ds_from_file.data_vars
-            
+
             ds_from_file.close()
 
     def test_dataset_to_netcdf(self):
@@ -253,17 +248,17 @@ class TestDemoData:
         # Test saving to netCDF
         import tempfile
         import os
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             filepath = os.path.join(tmpdir, "test_dataset.nc")
             dataset.to_netcdf(filepath)
-            
+
             # Verify file was created
             assert os.path.exists(filepath)
-            
+
             # Verify file can be read back as xarray Dataset
             ds_from_file = xr.open_dataset(filepath)
-            
+
             # Basic checks
             assert isinstance(ds_from_file, xr.core.dataset.Dataset)
             assert "datetime" in ds_from_file.dims
@@ -271,6 +266,5 @@ class TestDemoData:
             assert "name" in ds_from_file.dims  # Dataset should have name dimension
             assert "temp" in ds_from_file.data_vars
             assert "humidity" in ds_from_file.data_vars
-            
+
             ds_from_file.close()
-        

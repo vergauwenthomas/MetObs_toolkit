@@ -7,8 +7,10 @@ import pandas as pd
 from metobs_toolkit.settings_collection import __version__
 from metobs_toolkit.settings_collection.label_defenitions import label_to_numeric_map
 
-def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries", 
-                          fmt_datetime_coordinate=True) -> xr.Dataset:
+
+def modeltimeseries_to_xr(
+    modeltimeseries: "Modeltimeseries", fmt_datetime_coordinate=True
+) -> xr.Dataset:
     """
     Convert a model time series object to an xarray Dataset.
 
@@ -37,13 +39,15 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries",
         Dataset with dimensions ('kind', 'models', 'datetime') where
         kind = ['model'].
     """
-    attrsdict = {"modelobstype_name": modeltimeseries.obstype.name,
-                "modelobstype_desc": modeltimeseries.obstype.description,
-                "modelobstype_unit": modeltimeseries.obstype.std_unit,
-                "modelname": modeltimeseries.modelname,
-                "modelvariable": modeltimeseries.modelvariable,}
+    attrsdict = {
+        "modelobstype_name": modeltimeseries.obstype.name,
+        "modelobstype_desc": modeltimeseries.obstype.description,
+        "modelobstype_unit": modeltimeseries.obstype.std_unit,
+        "modelname": modeltimeseries.modelname,
+        "modelvariable": modeltimeseries.modelvariable,
+    }
     attrsdict.update(construct_metobs_attr())
-    
+
     ar = xr.DataArray(
         data=[[modeltimeseries.series.values]],
         coords={
@@ -52,7 +56,7 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries",
             "kind": ["model"],
         },
         dims=["kind", "models", "datetime"],
-        attrs=attrsdict
+        attrs=attrsdict,
     )
     ds = xr.Dataset({modeltimeseries.obstype.name: ar})
     if fmt_datetime_coordinate:
@@ -60,7 +64,9 @@ def modeltimeseries_to_xr(modeltimeseries: "Modeltimeseries",
     return ds
 
 
-def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> xr.Dataset:
+def sensordata_to_xr(
+    sensordata: "Sensordata", fmt_datetime_coordinate=True
+) -> xr.Dataset:
     """
     Convert sensor observations (including labels) to an xarray Dataset.
 
@@ -99,19 +105,23 @@ def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> 
         coords={"datetime": df.index.get_level_values("datetime"), "kind": ["obs"]},
         dims=["kind", "datetime"],
         attrs={},
-    ) 
+    )
     # Labels
     # Note: to make the xr.Dataset serializable, we need to use integer labels!!
     present_labels = df["label"].unique()
     df["label_numeric"] = df["label"].map(label_to_numeric_map)
 
-    applied_map = {f"Label:{key}":val for key,val in label_to_numeric_map.items() if key in present_labels}
+    applied_map = {
+        f"Label:{key}": val
+        for key, val in label_to_numeric_map.items()
+        if key in present_labels
+    }
 
     xr_labels = xr.DataArray(
         data=[df["label_numeric"].values],
         coords={"datetime": df.index.get_level_values("datetime"), "kind": ["label"]},
         dims=["kind", "datetime"],
-        attrs={}
+        attrs={},
     )
 
     # Attributes
@@ -129,12 +139,12 @@ def sensordata_to_xr(sensordata: "Sensordata", fmt_datetime_coordinate=True) -> 
     # Combine along the type dimension
     xr_comb = xr.concat([xr_value, xr_labels], dim="kind")
     xr_comb.attrs = sensor_attrs
-    
+
     # Construct dataset
     ds = xr.Dataset({varname: xr_comb})
     if fmt_datetime_coordinate:
         ds = format_datetime_coord(ds)
-        
+
     return ds
 
 
@@ -176,10 +186,15 @@ def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Datase
     target_sensors = list(station.sensordata.values())
 
     # Create xrdataarrays
-    station_vars = [sensordata_to_xr(sens, fmt_datetime_coordinate=False) for sens in target_sensors]
+    station_vars = [
+        sensordata_to_xr(sens, fmt_datetime_coordinate=False) for sens in target_sensors
+    ]
 
     # Construct modeldata xr
-    modelobs_vars = [modeltimeseries_to_xr(modeltimeseries, fmt_datetime_coordinate=False) for modeltimeseries in station.modeldata]
+    modelobs_vars = [
+        modeltimeseries_to_xr(modeltimeseries, fmt_datetime_coordinate=False)
+        for modeltimeseries in station.modeldata
+    ]
 
     # The 'datetime' coordinate of the observations is not (persee) the
     # same as in the modelobs datasets. This leads to un-mergable dataset. To resolve
@@ -242,7 +257,10 @@ def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Datase
         Multi-station Dataset with a 'name' dimension plus any variable
         dimensions such as ('kind', 'datetime').
     """
-    sta_xrdict = {sta.name: station_to_xr(sta, fmt_datetime_coordinate=False) for sta in dataset.stations}
+    sta_xrdict = {
+        sta.name: station_to_xr(sta, fmt_datetime_coordinate=False)
+        for sta in dataset.stations
+    }
     ds = xr.concat(objs=sta_xrdict.values(), dim="name")
     ds = ds.assign_coords({"name": list(sta_xrdict.keys())})
 
@@ -257,9 +275,6 @@ def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Datase
 # ------------------------------------------
 
 
-
-
-
 # ------------------------------------------
 #    Coordinates formatters
 # ------------------------------------------
@@ -267,8 +282,8 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     """
     Format a datetime coordinate in an xarray Dataset for CF compliance.
 
-    Removes timezone information from datetime coordinates and adds 
-    CF-compliant time attributes including 'standard_name', 'long_name', 
+    Removes timezone information from datetime coordinates and adds
+    CF-compliant time attributes including 'standard_name', 'long_name',
     and 'timezone' attributes.
 
     Parameters
@@ -281,10 +296,10 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     xr.Dataset
         The Dataset with formatted datetime coordinate.
     """
-    if 'UTC' in str(ds['datetime'].dtype) or 'tz' in str(ds['datetime'].dtype):
+    if "UTC" in str(ds["datetime"].dtype) or "tz" in str(ds["datetime"].dtype):
 
         # Convert to pandas datetime index for timezone handling
-        dt_index = pd.DatetimeIndex(ds['datetime'].values)
+        dt_index = pd.DatetimeIndex(ds["datetime"].values)
 
         if dt_index.tz is not None:
             # Store timezone info and convert to naive
@@ -292,23 +307,21 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
             dt_naive = dt_index.tz_localize(None)
         else:
             # Handle datetime64[ns, UTC] format - manually remove timezone
-            timezone_name = 'UTC'
+            timezone_name = "UTC"
             # Convert to naive by accessing the underlying datetime64[ns] values
-            dt_naive = pd.DatetimeIndex(ds['datetime'].values.astype('datetime64[ns]'))
+            dt_naive = pd.DatetimeIndex(ds["datetime"].values.astype("datetime64[ns]"))
 
         # Update coordinate with naive datetime
-        ds = ds.assign_coords({'datetime': dt_naive})
-        
+        ds = ds.assign_coords({"datetime": dt_naive})
+
         # Add CF-compliant time attributes (but avoid calendar to prevent conflicts)
-        ds['datetime'].attrs['timezone'] = timezone_name
-        ds['datetime'].attrs['standard_name'] = 'time'
-        ds['datetime'].attrs['long_name'] = 'time'
+        ds["datetime"].attrs["timezone"] = timezone_name
+        ds["datetime"].attrs["standard_name"] = "time"
+        ds["datetime"].attrs["long_name"] = "time"
     else:
         pass
-    
+
     return ds
-    
-    
 
 
 # ------------------------------------------
@@ -329,7 +342,9 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
         The formatted attribute value.
     """
     if isinstance(val, dict):
-        raise ValueError(f"Nested dictionaries are not allowed in netCDF attributes. Found: {val}")
+        raise ValueError(
+            f"Nested dictionaries are not allowed in netCDF attributes. Found: {val}"
+        )
     elif isinstance(val, type(None)):
         return str(val)
     elif isinstance(val, list):
@@ -371,20 +386,20 @@ def construct_QC_attr(sensordata: "Sensordata") -> Dict:
     Returns
     -------
     dict
-        Dictionary with 'QC checks' list and flattened QC settings as 
+        Dictionary with 'QC checks' list and flattened QC settings as
         'QC:{checkname}.{setting}' key-value pairs.
     """
-    returndict = {'QC checks': []}
+    returndict = {"QC checks": []}
     for qcdict in sensordata.outliers:
-        #add name to the list
-        returndict['QC checks'].append(qcdict["checkname"])
-        #add details as flat dict items
+        # add name to the list
+        returndict["QC checks"].append(qcdict["checkname"])
+        # add details as flat dict items
         for key, value in qcdict["settings"].items():
-            returndict[f"QC:{qcdict['checkname']}.{key}"] = fmt_attr_value(value) #NO NESTED DICT!
+            returndict[f"QC:{qcdict['checkname']}.{key}"] = fmt_attr_value(
+                value
+            )  # NO NESTED DICT!
 
     return returndict
-    
-
 
 
 def construct_GF_attr(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
@@ -401,19 +416,21 @@ def construct_GF_attr(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
     dict
         Mapping of gap-fill method names to the settings used.
     """
-    returndict = {'GF methods': []}
+    returndict = {"GF methods": []}
     # NOTE:iteration is done over all the gaps, this is a bit overkill?
 
     for gap in sensordata.gaps:
         if "applied_gapfill_method" in gap.fillsettings:
             method = gap.fillsettings["applied_gapfill_method"]
-            if method not in returndict['GF methods']:
-                returndict['GF methods'].append(method)
-                #add details as flat dict items
+            if method not in returndict["GF methods"]:
+                returndict["GF methods"].append(method)
+                # add details as flat dict items
                 for settingname, settingval in gap.fillsettings.items():
-                    if settingname == 'applied_gapfill_method':
+                    if settingname == "applied_gapfill_method":
                         continue
 
-                    returndict[f"GF:{method}.{settingname}"] = fmt_attr_value(settingval) #NO NESTED DICT!
+                    returndict[f"GF:{method}.{settingname}"] = fmt_attr_value(
+                        settingval
+                    )  # NO NESTED DICT!
 
     return returndict
