@@ -20,7 +20,7 @@ from metobs_toolkit.backend_collection.dev_collection import get_function_defaul
 from metobs_toolkit.template import _get_empty_templ_dict
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
-from metobs_toolkit.io_collection.filereaders import CsvFileReader
+from metobs_toolkit.io_collection.filereaders import find_suitable_reader
 from metobs_toolkit.io_collection.filewriters import write_dict_to_json
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -357,7 +357,7 @@ Answer the prompt and hit Enter. \n \n"
         print("\n\n *******      Data File   ***********")
 
         print(" ... opening the data file ...")
-        datareader = CsvFileReader(file_path=datafilepath, is_url=False)
+        datareader = find_suitable_reader(filepath=datafilepath, is_url=False)
 
         data = datareader.read(nrows=10)
         columnnames = data.columns.to_list()
@@ -608,7 +608,7 @@ observation(s) of one station)": 3,
 
     if meta_avail:
         print(" ... opening the metadata file ...")
-        metadatareader = CsvFileReader(file_path=metadatafilepath, is_url=False)
+        metadatareader = find_suitable_reader(filepath=metadatafilepath, is_url=False)
 
         metadata = metadatareader.read(nrows=10)
         metacolumnnames = metadata.columns.to_list()

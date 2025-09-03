@@ -17,7 +17,6 @@ from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser, FILE_READERS
 from metobs_toolkit.io_collection.filereaders import (
-    CsvFileReader,
     PickleFileReader,
     find_suitable_reader,
 )
@@ -699,7 +698,7 @@ class Dataset:
         """
 
         if _force_from_dataframe is None:
-            reader = CsvFileReader(file_path=filepath)
+            reader = find_suitable_reader(filepath=filepath)
             data = reader.read_as_local_file()
             force_update = True
 
