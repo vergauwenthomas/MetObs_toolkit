@@ -15,7 +15,7 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
-from metobs_toolkit.io_collection.dataparser import DataParser, FILE_READERS
+from metobs_toolkit.io_collection.dataparser import DataParser
 from metobs_toolkit.io_collection.filereaders import (
     PickleFileReader,
     find_suitable_reader,
@@ -879,9 +879,9 @@ class Dataset:
         Importing data requires a ´Template´ which is constructed from a template file (JSON).
         (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
 
-        If `input_data_file` is provided, the method reads the raw observational data 
-        (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps 
-        and invalid input) is performed, and a frequency estimation is made. Based on the 
+        If `input_data_file` is provided, the method reads the raw observational data
+        (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps
+        and invalid input) is performed, and a frequency estimation is made. Based on the
         estimated frequency, gaps are identified if present.
 
         The method performs the following steps:
@@ -893,7 +893,7 @@ class Dataset:
         * Executes checks for duplicates and invalid input.
         * Identifies gaps in the data.
 
-        if `input_metadata_file` is provided, the method reads the metadata 
+        if `input_metadata_file` is provided, the method reads the metadata
         (supported formats: CSV, Parquet).
 
         Parameters
@@ -901,7 +901,7 @@ class Dataset:
         template_file : str or Path
             Path to the template (JSON) file used to interpret the raw data/metadata files.
         input_data_file : str or Path, optional
-            Path to the input data file containing observations (CSV or Parquet format). 
+            Path to the input data file containing observations (CSV or Parquet format).
             If None, no data is read.
         input_metadata_file : str or Path, optional
             Path to the input metadata file (CSV or Parquet format). If None, no metadata is read.
@@ -916,10 +916,10 @@ class Dataset:
             The maximum allowed time shift tolerance for aligning timestamps
             to target (perfect-frequency) timestamps.
         kwargs_data_read : dict, optional
-            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()` 
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
             for CSV files or `pandas.read_parquet()` for Parquet files) when reading the data file.
         kwargs_metadata_read : dict, optional
-            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()` 
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
             for CSV files or `pandas.read_parquet()` for Parquet files) when reading the metadata file.
         templatefile_is_url : bool, optional
             If True, the `template_file` is interpreted as a URL to an online
@@ -956,7 +956,7 @@ class Dataset:
 
             # Create a file reader
             filereader = find_suitable_reader(filepath=input_data_file, is_url=is_url)
-            
+
             # Initiate the datatparser
             dataparser = DataParser(
                 datafilereader=filereader,
@@ -971,13 +971,17 @@ class Dataset:
 
         if input_metadata_file is not None:
             use_metadata = True
-        
+
             # Check if input_data_file is a URL
-            meta_is_url = isinstance(input_metadata_file, str) and ("://" in input_metadata_file)
+            meta_is_url = isinstance(input_metadata_file, str) and (
+                "://" in input_metadata_file
+            )
             # Create a file reader
-            metafilereader = find_suitable_reader(filepath=input_metadata_file, is_url=meta_is_url)
+            metafilereader = find_suitable_reader(
+                filepath=input_metadata_file, is_url=meta_is_url
+            )
             # Init parser
-            
+
             metadataparser = MetaDataParser(
                 metadatafilereader=metafilereader,
                 template=self.template,
