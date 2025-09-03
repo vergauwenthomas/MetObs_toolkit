@@ -78,5 +78,4 @@ rootlog.addHandler(console_handler)
 # Version
 # =============================================================================
 
-# DO not change this manually!
-__version__ = "0.4.3"
+from metobs_toolkit.settings_collection.version import __version__
