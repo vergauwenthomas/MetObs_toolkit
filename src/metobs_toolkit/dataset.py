@@ -359,8 +359,7 @@ class Dataset:
         Save the Dataset as a netCDF file.
         
         This method converts the Dataset to an xarray Dataset and saves it as a 
-        netCDF file. All nested dictionary attributes are automatically flattened
-        to ensure CF convention compliance and netCDF serializability.
+        netCDF file.
         
         Parameters
         ----------
@@ -380,21 +379,15 @@ class Dataset:
         
         Notes
         -----
-        This method automatically handles:
-        - Flattening nested dictionary attributes (QC, GF, model metadata)
-        - Converting timezone-aware datetime coordinates to CF-compliant format
-        - Ensuring all attribute values are netCDF serializable
+        This method is an export method. It is not possible to convert a netCDF 
+        to a metobs_toolkit.Dataset object.
         """
-        from metobs_toolkit.xrconversions import make_dataset_serializable
         
         # Convert to xarray Dataset
         ds = self.to_xr()
         
-        # Make it serializable for netCDF
-        ds_serializable = make_dataset_serializable(ds)
-        
         # Save to netCDF
-        ds_serializable.to_netcdf(filepath, **kwargs)
+        ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
     def subset_by_stations(
