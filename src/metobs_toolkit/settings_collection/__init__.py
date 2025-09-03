@@ -6,3 +6,5 @@ from .label_defenitions import (
     failed_gapfill_label_group,
     qc_label_group,
 )
+
+from .version import __version__

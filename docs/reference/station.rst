@@ -63,6 +63,7 @@ Exporting and converting methods
    Station.to_parquet
    Station.to_csv
    Station.to_xr
+   Station.to_netcdf
 
 
 GEE related methods

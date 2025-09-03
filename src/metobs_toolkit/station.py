@@ -209,7 +209,42 @@ class Station:
     @copy_doc(station_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return station_to_xr(self)
+        return station_to_xr(self, fmt_datetime_coordinate=True)
+
+    @log_entry
+    def to_netcdf(self, filepath: str, **kwargs) -> None:
+        """
+        Save the Station as a netCDF file.
+
+        This method converts the Station to an xarray Dataset and saves it as a
+        netCDF file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path where the netCDF file will be saved.
+        **kwargs
+            Additional keyword arguments passed to xarray.Dataset.to_netcdf().
+            Common options include:
+            - format : str, netCDF format ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC')
+            - engine : str, netCDF engine to use ('netcdf4', 'scipy', 'h5netcdf')
+            - encoding : dict, variable-specific encoding parameters
+
+        Examples
+        --------
+        >>> station.to_netcdf('station_data.nc')
+        >>> station.to_netcdf('data.nc', format='NETCDF4_CLASSIC')
+
+        Notes
+        -----
+        This method is an export method. It is not possible to convert a netCDF
+        to a metobs_toolkit.Station object.
+        """
+
+        # Convert to xarray Dataset
+        ds = self.to_xr()
+        # Save to netCDF
+        ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
     def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:

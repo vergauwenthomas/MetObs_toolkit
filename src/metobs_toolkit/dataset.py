@@ -351,7 +351,43 @@ class Dataset:
     @copy_doc(dataset_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return dataset_to_xr(self)
+        return dataset_to_xr(self, fmt_datetime_coordinate=True)
+
+    @log_entry
+    def to_netcdf(self, filepath: str, **kwargs) -> None:
+        """
+        Save the Dataset as a netCDF file.
+
+        This method converts the Dataset to an xarray Dataset and saves it as a
+        netCDF file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path where the netCDF file will be saved.
+        **kwargs
+            Additional keyword arguments passed to xarray.Dataset.to_netcdf().
+            Common options include:
+            - format : str, netCDF format ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC')
+            - engine : str, netCDF engine to use ('netcdf4', 'scipy', 'h5netcdf')
+            - encoding : dict, variable-specific encoding parameters
+
+        Examples
+        --------
+        >>> dataset.to_netcdf('my_observations.nc')
+        >>> dataset.to_netcdf('data.nc', format='NETCDF4_CLASSIC')
+
+        Notes
+        -----
+        This method is an export method. It is not possible to convert a netCDF
+        to a metobs_toolkit.Dataset object.
+        """
+
+        # Convert to xarray Dataset
+        ds = self.to_xr()
+
+        # Save to netCDF
+        ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
     def subset_by_stations(

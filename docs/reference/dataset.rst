@@ -63,6 +63,7 @@ Exporting and converting methods
    Dataset.to_csv
    Dataset.import_data_from_file
    Dataset.to_xr
+   Dataset.to_netcdf
 
 
 

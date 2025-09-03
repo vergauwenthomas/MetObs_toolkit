@@ -214,7 +214,7 @@ class SensorData:
     @copy_doc(sensordata_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return sensordata_to_xr(self)
+        return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
     @property
     def outliersdf(self) -> pd.DataFrame:

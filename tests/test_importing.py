@@ -25,7 +25,9 @@ class TestDemoData:
 
     def test_version(self):
         # check if the local version is used
-        initpath = libfolder.joinpath("src", "metobs_toolkit", "__init__.py")
+        initpath = libfolder.joinpath(
+            "src", "metobs_toolkit", "settings_collection", "version.py"
+        )
         with open(initpath, "r") as f:
             content = f.read()
         version_line = [line for line in content.splitlines() if "__version__" in line][

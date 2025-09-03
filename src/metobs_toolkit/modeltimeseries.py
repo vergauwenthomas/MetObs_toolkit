@@ -207,7 +207,7 @@ class ModelTimeSeries:
     @copy_doc(modeltimeseries_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return modeltimeseries_to_xr(self)
+        return modeltimeseries_to_xr(self, fmt_datetime_coordinate=True)
 
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
