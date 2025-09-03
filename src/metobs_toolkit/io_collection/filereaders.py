@@ -480,12 +480,13 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs) -> pd.DataFrame:
 
     raise ValueError(f"Could not determine the separator for {filepath}")
 
+
 @log_entry
 def find_suitable_reader(filepath: Union[str, Path], is_url=False) -> FileReader:
     """
     Find a suitable file reader based on file extension.
 
-    Determines the appropriate FileReader subclass (CSV, JSON, or Parquet) 
+    Determines the appropriate FileReader subclass (CSV, JSON, or Parquet)
     by examining the file extension and returns an instance of that reader.
 
     Parameters
@@ -507,25 +508,25 @@ def find_suitable_reader(filepath: Union[str, Path], is_url=False) -> FileReader
     NotImplementedError
         If no reader is available for the file extension.
     """
-    
-    #to Path
+
+    # to Path
     if isinstance(filepath, str):
         filepath = Path(filepath)
 
-    #1. Check if the file exists
+    # 1. Check if the file exists
     if not filepath.exists():
         raise FileNotFoundError(f"{filepath} does not exist.")
 
-    #2. Get suffix
+    # 2. Get suffix
     suffix = filepath.suffix
 
-    if suffix == '.csv':
+    if suffix == ".csv":
         return CsvFileReader(filepath, is_url=is_url)
-    elif suffix == '.json':
+    elif suffix == ".json":
         return JsonFileReader(filepath, is_url=is_url)
-    elif suffix == '.parquet':
+    elif suffix == ".parquet":
         return ParquetFileReader(filepath, is_url=is_url)
     else:
         raise NotImplementedError(
-                    f"Could not read {filepath}, no reader implemented for file extension {suffix}"
-                )
+            f"Could not read {filepath}, no reader implemented for file extension {suffix}"
+        )

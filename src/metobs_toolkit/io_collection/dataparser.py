@@ -266,14 +266,14 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
                 f'The {template.timestampinfo["datetimecolumn"]} is not found in the columns of the data file: {df.columns}'
             )
         df = df.rename(columns={template.timestampinfo["datetimecolumn"]: "datetime"})
-        
-        #NOTE: in parquet files, the datetimecolumn can be a pandas datetime column with tz info.
+
+        # NOTE: in parquet files, the datetimecolumn can be a pandas datetime column with tz info.
         # It becomes problematic when the tz in the data, is not the same as the tz set in the template
-        
+
         # Check if datetime column is already in datetime format
         if pd.api.types.is_datetime64_any_dtype(df["datetime"]):
             # If already datetime, convert to timezone-naive
-            if hasattr(df["datetime"].dtype, 'tz') and df["datetime"].dt.tz is not None:
+            if hasattr(df["datetime"].dtype, "tz") and df["datetime"].dt.tz is not None:
                 data_tz = df["datetime"].dt.tz
                 template_tz = template._get_tz()
                 if str(data_tz) != template_tz:
@@ -281,7 +281,7 @@ def _create_datetime_column(df: pd.DataFrame, template: Template) -> pd.DataFram
                         f"The timezone of the data ({data_tz}) does not match the template ({template_tz}). Please update the template."
                     )
             return df
-        
+
         try:
             df["datetime"] = pd.to_datetime(
                 df["datetime"], format=template.timestampinfo["fmt"]
