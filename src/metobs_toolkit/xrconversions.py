@@ -40,9 +40,9 @@ def modeltimeseries_to_xr(
         kind = ['model'].
     """
     attrsdict = {
-        "modelobstype_name": modeltimeseries.obstype.name,
-        "modelobstype_desc": modeltimeseries.obstype.description,
-        "modelobstype_unit": modeltimeseries.obstype.std_unit,
+        "modelobstype_name": modeltimeseries.modelobstype.name,
+        "modelobstype_desc": modeltimeseries.modelobstype.description,
+        "modelobstype_unit": modeltimeseries.modelobstype.std_unit,
         "modelname": modeltimeseries.modelname,
         "modelvariable": modeltimeseries.modelvariable,
     }
@@ -58,7 +58,7 @@ def modeltimeseries_to_xr(
         dims=["kind", "models", "datetime"],
         attrs=attrsdict,
     )
-    ds = xr.Dataset({modeltimeseries.obstype.name: ar})
+    ds = xr.Dataset({modeltimeseries.modelobstype.name: ar})
     if fmt_datetime_coordinate:
         ds = format_datetime_coord(ds)
     return ds
