@@ -409,6 +409,16 @@ def get_likely_frequency(
 
     logger.debug(f"Assumed frequency before simplification: {assume_freq}")
 
+    # Check if frequency estimation failed (empty timestamps or no valid differences)
+    if pd.isna(assume_freq):
+        raise MetObsTimeSimplifyError(
+            f"Cannot estimate frequency from the provided timestamps. "
+            f"This typically occurs when there are no valid timestamps, "
+            f"only a single timestamp, or all timestamps are identical. "
+            f"Number of timestamps: {len(timestamps)}, "
+            f"Number of valid differences: {len(freqs)}"
+        )
+
     if simplify:
         assume_freq = simplify_time(
             time=assume_freq,
