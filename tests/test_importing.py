@@ -1,6 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
+import tempfile
 
 # import metobs_toolkit
 import pandas as pd
@@ -244,6 +245,37 @@ class TestDemoData:
 
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
+
+    def test_importing_data_with_nans_for_single_station(self):
+        #goal is to test if metobs is able to import a datafile,
+        #that has nans for a specific obstype for a specific station. 
+        
+        df = pd.read_csv(metobs_toolkit.demo_datafile, sep=';')
+
+        trgstation = 'vlinder03'
+        trg_column = 'Vochtigheid'
+        #all to Nan
+        df.loc[df['Vlinder'] == trgstation, trg_column] = np.nan
+        
+        
+        #to csv
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            targetfile = tmpdir / "data_with_nans.csv"
+            df.to_csv(targetfile, index=False, sep=';')
+
+
+            dataset = metobs_toolkit.Dataset()
+            dataset.import_data_from_file(
+                                template_file=metobs_toolkit.demo_template,
+                                input_data_file=targetfile,
+                                input_metadata_file=metobs_toolkit.demo_metadatafile
+                                )
+
+        sta = dataset.get_station(trgstation)
+        assert len(sta.obsdata) == 3
+
+        
 
 
 class TestWideData:
