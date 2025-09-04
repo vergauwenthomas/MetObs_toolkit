@@ -2420,7 +2420,7 @@ def createstations(
 
             # 4. Test minimum number of notna values
             if records.notna().sum() < 1:
-                logger.warning(
+                warnings.warn(
                     f"Station {stationname} -> {obstypename} is skipped because it has less than 1 valid record."
                 )
                 continue
