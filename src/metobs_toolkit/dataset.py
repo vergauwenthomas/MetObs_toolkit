@@ -16,7 +16,10 @@ from metobs_toolkit.template import Template, update_known_obstype_with_original
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
-from metobs_toolkit.io_collection.filereaders import CsvFileReader, PickleFileReader
+from metobs_toolkit.io_collection.filereaders import (
+    PickleFileReader,
+    find_suitable_reader,
+)
 from metobs_toolkit.site import Site
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -45,7 +48,9 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMetadataNotFound,
     MetObsNonUniqueIDs,
     MetObsModelDataError,
+    MetObsSensorDataNotFound,
 )
+
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
 
@@ -351,7 +356,43 @@ class Dataset:
     @copy_doc(dataset_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return dataset_to_xr(self)
+        return dataset_to_xr(self, fmt_datetime_coordinate=True)
+
+    @log_entry
+    def to_netcdf(self, filepath: str, **kwargs) -> None:
+        """
+        Save the Dataset as a netCDF file.
+
+        This method converts the Dataset to an xarray Dataset and saves it as a
+        netCDF file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path where the netCDF file will be saved.
+        **kwargs
+            Additional keyword arguments passed to xarray.Dataset.to_netcdf().
+            Common options include:
+            - format : str, netCDF format ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC')
+            - engine : str, netCDF engine to use ('netcdf4', 'scipy', 'h5netcdf')
+            - encoding : dict, variable-specific encoding parameters
+
+        Examples
+        --------
+        >>> dataset.to_netcdf('my_observations.nc')
+        >>> dataset.to_netcdf('data.nc', format='NETCDF4_CLASSIC')
+
+        Notes
+        -----
+        This method is an export method. It is not possible to convert a netCDF
+        to a metobs_toolkit.Dataset object.
+        """
+
+        # Convert to xarray Dataset
+        ds = self.to_xr()
+
+        # Save to netCDF
+        ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
     def subset_by_stations(
@@ -659,12 +700,11 @@ class Dataset:
         """
 
         if _force_from_dataframe is None:
-            reader = CsvFileReader(file_path=filepath)
+            reader = find_suitable_reader(filepath=filepath)
             data = reader.read_as_local_file()
             force_update = True
 
             totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
-            totaldf = geedynamicdatasetmanager._convert_units(totaldf)
         else:
             totaldf = _force_from_dataframe
 
@@ -688,7 +728,7 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    obstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
                     timezone="UTC",
                     modelname=geedynamicdatasetmanager.name,
                     modelvariable=geedynamicdatasetmanager.modelobstypes[
@@ -767,6 +807,62 @@ class Dataset:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     @log_entry
+    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the dataset observations to a parquet file.
+
+        The DataFrame returned by the `.df` property is written to a parquet file.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the parquet file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Dataset.df : The DataFrame property that is written to file.
+        Dataset.to_csv : Save dataset to CSV format.
+        Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
+        """
+        df = self.df
+        df.to_parquet(target_file, **kwargs)
+
+    @log_entry
+    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+        """
+        Save the dataset observations to a CSV file.
+
+        The DataFrame returned by the `.df` property is written to a CSV file.
+        This includes all observations with their QC labels (or gapfill labels) from all stations in the dataset.
+
+        Parameters
+        ----------
+        target_file : str or Path
+            The file path where the CSV file will be saved.
+        **kwargs
+            Additional keyword arguments to pass to pandas.DataFrame.to_csv().
+
+        Returns
+        -------
+        None
+
+        See Also
+        --------
+        Dataset.df : The DataFrame property that is written to file.
+        Dataset.to_parquet : Save dataset to parquet format.
+        Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
+        """
+        df = self.df
+        df.to_csv(target_file, **kwargs)
+
+    @log_entry
     def import_data_from_file(
         self,
         template_file: Union[str, Path],
@@ -785,10 +881,10 @@ class Dataset:
         Importing data requires a ´Template´ which is constructed from a template file (JSON).
         (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
 
-        If `input_data_file` is provided, the method reads the raw observational data (CSV).
-        A basic quality control (duplicate timestamps and invalid input) is performed, and
-        a frequency estimation is made. Based on the estimated frequency, gaps are identified
-        if present.
+        If `input_data_file` is provided, the method reads the raw observational data
+        (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps
+        and invalid input) is performed, and a frequency estimation is made. Based on the
+        estimated frequency, gaps are identified if present.
 
         The method performs the following steps:
 
@@ -799,16 +895,18 @@ class Dataset:
         * Executes checks for duplicates and invalid input.
         * Identifies gaps in the data.
 
-        if `input_metadata_file` is provided, the method reads the metadata (CSV).
+        if `input_metadata_file` is provided, the method reads the metadata
+        (supported formats: CSV, Parquet).
 
         Parameters
         ------------
         template_file : str or Path
             Path to the template (JSON) file used to interpret the raw data/metadata files.
         input_data_file : str or Path, optional
-            Path to the input data file containing observations. If None, no data is read.
+            Path to the input data file containing observations (CSV or Parquet format).
+            If None, no data is read.
         input_metadata_file : str or Path, optional
-            Path to the input metadata file. If None, no metadata is read.
+            Path to the input metadata file (CSV or Parquet format). If None, no metadata is read.
         freq_estimation_method : {'highest', 'median'}, optional
             Method to estimate the frequency of observations (per station per observation type).
         freq_estimation_simplify_tolerance : str or pd.Timedelta, optional
@@ -820,11 +918,11 @@ class Dataset:
             The maximum allowed time shift tolerance for aligning timestamps
             to target (perfect-frequency) timestamps.
         kwargs_data_read : dict, optional
-            Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the data file.
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
+            for CSV files or `pandas.read_parquet()` for Parquet files) when reading the data file.
         kwargs_metadata_read : dict, optional
-            Additional keyword arguments to pass to `pandas.read_csv()` when
-            reading the metadata file.
+            Additional keyword arguments to pass to the file reader (e.g., `pandas.read_csv()`
+            for CSV files or `pandas.read_parquet()` for Parquet files) when reading the metadata file.
         templatefile_is_url : bool, optional
             If True, the `template_file` is interpreted as a URL to an online
             template file. If False, it is interpreted as a local file path.
@@ -854,10 +952,19 @@ class Dataset:
 
         if input_data_file is not None:
             use_data = True
+
+            # Check if input_data_file is a URL
+            is_url = isinstance(input_data_file, str) and ("://" in input_data_file)
+
+            # Create a file reader
+            filereader = find_suitable_reader(filepath=input_data_file, is_url=is_url)
+
+            # Initiate the datatparser
             dataparser = DataParser(
-                datafilereader=CsvFileReader(file_path=input_data_file),
+                datafilereader=filereader,
                 template=self.template,
             )
+            # Parse the data
             dataparser.parse(**kwargs_data_read)
         else:
             logger.info("No datafile is provided --> metadata-only mode")
@@ -866,8 +973,19 @@ class Dataset:
 
         if input_metadata_file is not None:
             use_metadata = True
+
+            # Check if input_data_file is a URL
+            meta_is_url = isinstance(input_metadata_file, str) and (
+                "://" in input_metadata_file
+            )
+            # Create a file reader
+            metafilereader = find_suitable_reader(
+                filepath=input_metadata_file, is_url=meta_is_url
+            )
+            # Init parser
+
             metadataparser = MetaDataParser(
-                metadatafilereader=CsvFileReader(file_path=input_metadata_file),
+                metadatafilereader=metafilereader,
                 template=self.template,
             )
             metadataparser.parse(**kwargs_metadata_read)
@@ -1605,8 +1723,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
@@ -1616,9 +1739,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.persistence_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1630,8 +1755,14 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
+
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
@@ -1641,9 +1772,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.repetitions_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1654,8 +1787,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             max_N_repetitions=max_N_repetitions,
         )
@@ -1665,9 +1803,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.step_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1679,8 +1819,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
@@ -1689,9 +1834,11 @@ class Dataset:
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_step_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_step_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(
         copy_func=Station.window_variation_check, extra_param_desc=_use_mp_docargstr
@@ -1707,10 +1854,15 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         timewindow = fmt_timedelta_arg(timewindow)
 
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
@@ -1723,9 +1875,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @log_entry
     def buddy_check(
@@ -1844,7 +1998,15 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        outlierslist, timestamp_map = toolkit_buddy_check(dataset=self, **qc_kwargs)
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
+
+        outlierslist, timestamp_map = toolkit_buddy_check(
+            target_stations=target_stations, metadf=metadf, **qc_kwargs
+        )
         # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
         # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
         # timestamps to the original timestamps
@@ -1853,30 +2015,29 @@ class Dataset:
         df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
 
         # update all the sensordata
-        for station in self.stations:
-            if target_obstype in station.sensordata.keys():
-                # Get the sensordata object
-                sensorddata = station.get_sensor(target_obstype)
+        for station in target_stations:
+            # Get the sensordata object
+            sensorddata = station.get_sensor(target_obstype)
 
-                # get outlier datetimeindex
-                outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            # get outlier datetimeindex
+            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
 
-                if not outldt.empty:
-                    # convert to original timestamps
-                    dtmap = timestamp_map[station.name]
-                    outldt = outldt.map(dtmap)
+            if not outldt.empty:
+                # convert to original timestamps
+                dtmap = timestamp_map[station.name]
+                outldt = outldt.map(dtmap)
 
-                # update the sensordata
-                sensorddata._update_outliers(
-                    qccheckname="buddy_check",
-                    outliertimestamps=outldt,
-                    check_kwargs=qc_kwargs,
-                    extra_columns={
-                        "detail_msg": df[df["name"] == station.name][
-                            "detail_msg"
-                        ].to_numpy()
-                    },
-                )
+            # update the sensordata
+            sensorddata._update_outliers(
+                qccheckname="buddy_check",
+                outliertimestamps=outldt,
+                check_kwargs=qc_kwargs,
+                extra_columns={
+                    "detail_msg": df[df["name"] == station.name][
+                        "detail_msg"
+                    ].to_numpy()
+                },
+            )
 
     @log_entry
     def buddy_check_with_LCZ_safety_net(
@@ -2015,8 +2176,6 @@ class Dataset:
                     "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
                 )
 
-        # TODO: apply black
-
         qc_kwargs = dict(
             obstype=target_obstype,
             spatial_buddy_radius=spatial_buddy_radius,
@@ -2036,7 +2195,16 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        outlierslist, timestamp_map = toolkit_buddy_check(dataset=self, **qc_kwargs)
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
+
+        outlierslist, timestamp_map = toolkit_buddy_check(
+            target_stations=target_stations, metadf=metadf, **qc_kwargs
+        )
+
         # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
         # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
         # timestamps to the original timestamps
@@ -2045,30 +2213,29 @@ class Dataset:
         df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
 
         # update all the sensordata
-        for station in self.stations:
-            if target_obstype in station.sensordata.keys():
-                # Get the sensordata object
-                sensorddata = station.get_sensor(target_obstype)
+        for station in target_stations:
+            # Get the sensordata object
+            sensorddata = station.get_sensor(target_obstype)
 
-                # get outlier datetimeindex
-                outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            # get outlier datetimeindex
+            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
 
-                if not outldt.empty:
-                    # convert to original timestamps
-                    dtmap = timestamp_map[station.name]
-                    outldt = outldt.map(dtmap)
+            if not outldt.empty:
+                # convert to original timestamps
+                dtmap = timestamp_map[station.name]
+                outldt = outldt.map(dtmap)
 
-                # update the sensordata
-                sensorddata._update_outliers(
-                    qccheckname="buddy_check_with_LCZ_safety_net",
-                    outliertimestamps=outldt,
-                    check_kwargs=qc_kwargs,
-                    extra_columns={
-                        "detail_msg": df[df["name"] == station.name][
-                            "detail_msg"
-                        ].to_numpy()
-                    },
-                )
+            # update the sensordata
+            sensorddata._update_outliers(
+                qccheckname="buddy_check_with_LCZ_safety_net",
+                outliertimestamps=outldt,
+                check_kwargs=qc_kwargs,
+                extra_columns={
+                    "detail_msg": df[df["name"] == station.name][
+                        "detail_msg"
+                    ].to_numpy()
+                },
+            )
 
     @copy_doc(Station.get_qc_stats)
     @log_entry
@@ -2304,8 +2471,8 @@ def _qc_window_var_generatorfunc(input: list) -> Station:
 # ------------------------------------------
 
 
-def _create_qc_arg_set(dataset: Dataset, **qckwargs: dict) -> list:
-    return [([sta, dict(**qckwargs)]) for sta in dataset.stations]
+def _create_qc_arg_set(stations: list[Station], **qckwargs: dict) -> list:
+    return [([sta, dict(**qckwargs)]) for sta in stations]
 
 
 @log_entry
@@ -2495,3 +2662,27 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
 
     picklereader = PickleFileReader(file_path=target_path)
     return picklereader.read_as_local_file()
+
+
+def filter_to_stations_with_target_obstype(
+    stations: list[Station], target_obstype: str
+) -> (list[Station], list[Station]):
+    """
+    Split stations into those with and without the target observation type.
+
+    Returns two lists: stations containing the target observation type, and stations skipped.
+    """
+    subset = []
+    skipped = []
+    for sta in stations:
+        try:
+            sta._obstype_is_known_check(target_obstype)
+            subset.append(sta)
+        except MetObsSensorDataNotFound:
+            skipped.append(sta)
+            warnings.warn(
+                f"{sta} does not hold {target_obstype} sensordata! It will be skipped! "
+            )
+            continue
+
+    return subset, skipped

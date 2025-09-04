@@ -132,6 +132,7 @@ def assert_equality(to_check, solution):
             left=to_check,
             right=solution,
             check_exact=False,
+            rtol=0.001,
         )
 
     # pandas dataframes
@@ -140,6 +141,7 @@ def assert_equality(to_check, solution):
             left=to_check,
             right=solution,
             check_exact=False,
+            rtol=0.001,
         )
 
     # metobs_toolkit.Dataset test

@@ -260,7 +260,7 @@ class TestAddMethods:
             site=trgsta.site,
             datarecords=trgsta.get_modeltimeseries("temp").series.to_numpy() + 264,
             timestamps=trgsta.get_modeltimeseries("temp").series.index.to_numpy(),
-            obstype=fake_modelobs,
+            modelobstype=fake_modelobs,
         )
 
         trgsta.add_to_modeldata(fake_modeltimesries)

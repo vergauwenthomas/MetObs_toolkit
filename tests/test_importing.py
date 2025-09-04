@@ -1,6 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
+import copy
 import tempfile
 
 # import metobs_toolkit
@@ -26,7 +27,9 @@ class TestDemoData:
 
     def test_version(self):
         # check if the local version is used
-        initpath = libfolder.joinpath("src", "metobs_toolkit", "__init__.py")
+        initpath = libfolder.joinpath(
+            "src", "metobs_toolkit", "settings_collection", "version.py"
+        )
         with open(initpath, "r") as f:
             content = f.read()
         version_line = [line for line in content.splitlines() if "__version__" in line][
@@ -232,19 +235,126 @@ class TestDemoData:
         )
 
         # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
-        # pickle dataset
-        dataset.save_dataset_to_pkl(target_folder=tmpdir, filename="deleteme")
-        # Read in the pickled dataset
-        dataset2 = metobs_toolkit.import_dataset_from_pkl(
-            target_path=tmpdir.joinpath("deleteme.pkl")
-        )
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # pickle dataset
+            dataset.save_dataset_to_pkl(target_folder=tmpdir, filename="deleteme")
+            # Read in the pickled dataset
+            dataset2 = metobs_toolkit.import_dataset_from_pkl(
+                target_path=tmpdir.joinpath("deleteme.pkl")
+            )
 
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
+
+    def test_dataset_to_parquet(self):
+        """Test Dataset.to_parquet method"""
+        # 1. get dataset data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            
+            tmpdir = Path(tmpdir)
+            # Save to parquet
+            parquet_file = tmpdir / "test_dataset.parquet"
+            dataset.to_parquet(parquet_file)
+
+            # Read back and compare
+            df_original = dataset.df
+            df_read = pd.read_parquet(parquet_file)
+
+
+        # Test if dataframes are equal
+        pd.testing.assert_frame_equal(df_original, df_read)
+
+    def test_dataset_to_csv(self):
+        """Test Dataset.to_csv method"""
+        # 1. get dataset data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # Save to CSV
+            csv_file = tmpdir / "test_dataset.csv"
+            dataset.to_csv(csv_file)
+
+            # Read back and compare
+            df_original = dataset.df
+            df_read = pd.read_csv(csv_file, index_col=[0, 1, 2])  # Multi-index
+
+            # ----Typecasting for compatibility ----
+            # Convert datetime index level to datetime format to match original
+            df_read.index = df_read.index.set_levels(
+                pd.to_datetime(df_read.index.levels[0]), level=0
+            )
+
+            # Convert 'value' column to float32 to match original
+            df_read["value"] = df_read["value"].astype("float32")
+
+        # Test if dataframes are equal
+        pd.testing.assert_frame_equal(df_original, df_read)
+
+    def test_station_to_parquet(self):
+        """Test Station.to_parquet method"""
+        # 1. get dataset data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+
+        # Get a station
+        station = dataset.get_station("vlinder05")
+
+        # Create a tmp dir
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # Save to parquet
+            parquet_file = tmpdir / "test_station.parquet"
+            station.to_parquet(parquet_file)
+
+            # Read back and compare
+            df_original = station.df
+            df_read = pd.read_parquet(parquet_file)
+
+        # Test if dataframes are equal
+        pd.testing.assert_frame_equal(df_original, df_read)
+
+    def test_station_to_csv(self):
+        """Test Station.to_csv method"""
+        # 1. get dataset data
+        dataset = TestDemoData.solutionfixer.get_solution(
+            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+        )
+
+        # Get a station
+        station = dataset.get_station("vlinder05")
+
+        # Create a tmp dir
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            # Save to CSV
+            csv_file = tmpdir / "test_station.csv"
+            station.to_csv(csv_file)
+
+            # Read back and compare
+            df_original = station.df
+            df_read = pd.read_csv(csv_file, index_col=[0, 1])  # Multi-index
+
+            # ----Typecasting for compatibility ----
+            # Convert datetime index level to datetime format to match original
+            df_read.index = df_read.index.set_levels(
+                pd.to_datetime(df_read.index.levels[0]), level=0
+            )
+
+            # Convert 'value' column to float32 to match original
+            df_read["value"] = df_read["value"].astype("float32")
+
+
+        # Test if dataframes are equal
+        pd.testing.assert_frame_equal(df_original, df_read)
 
     def test_importing_data_with_nans_for_single_station(self):
         # goal is to test if metobs is able to import a datafile,
@@ -422,6 +532,154 @@ class TestStationAddMethods:
 
         # Add with force_update, should succeed
         station.add_to_sensordata(new_sensor, force_update=True)
+
+
+class TestParquetData:
+    # to pass to the solutionfixer
+    solkwargs = {"testfile": Path(__file__).name, "classname": "testparquetdata"}
+    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+
+    def test_import_single_station(self):
+        # 1. csv to parquet
+        csv_file = datadir.joinpath("single_station.csv")
+        parquet_file = to_parquet(csv_file, sep=",")
+        # 2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=datadir.joinpath("single_station_template.json"),
+            # input_metadata_file=self.metadatfile,
+            input_data_file=csv_file,
+        )
+        # 3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=datadir.joinpath("single_station_template.json"),
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
+
+        assert_equality(dataset_a, dataset_parq)
+
+    def test_import_demo_data(self):
+        # 1. csv to parquet
+        csv_file = Path(metobs_toolkit.demo_datafile)
+        parquet_file = to_parquet(csv_file)
+        # 2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=csv_file,
+        )
+        # 3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
+        assert_equality(dataset_a, dataset_parq)
+
+    def test_import_demo_metadata_only(self):
+        # 1. csv to parquet
+        csv_file = Path(metobs_toolkit.demo_metadatafile)
+        parquet_file = to_parquet(csv_file, sep=",")
+        # 2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            # input_data_file=csv_file,
+        )
+        # 3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=parquet_file,
+            # input_data_file=parquet_file,
+        )
+        assert_equality(dataset_a, dataset_parq)
+
+    def test_import_wide_data(self):
+        # 1. csv to parquet
+        datafile = datadir.joinpath("wide_test_data.csv")
+        templatefile = datadir.joinpath("wide_test_template.json")
+        parquet_file = to_parquet(datafile, sep=",")
+        # 2. metobs dataset from csv files
+        dataset_a = metobs_toolkit.Dataset()
+        dataset_a.import_data_from_file(
+            template_file=templatefile,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=datafile,
+        )
+        # 3. metobs dataset from parquet files
+        dataset_parq = metobs_toolkit.Dataset()
+        dataset_parq.import_data_from_file(
+            template_file=templatefile,
+            # input_metadata_file=self.metadatfile,
+            input_data_file=parquet_file,
+        )
+
+        assert_equality(dataset_a, dataset_parq)
+
+    def test_import_with_timezone(self):
+        inputdatafile = metobs_toolkit.demo_datafile
+        # read the csv
+        rawdf = pd.read_csv(inputdatafile, sep=";")
+        rawdf = rawdf[:300]  # reduce storage
+        # format datetime and something else
+        rawdf["datetime"] = pd.to_datetime(
+            rawdf["Datum"] + rawdf["Tijd (UTC)"], format="%Y-%m-%d%H:%M:%S"
+        )
+        rawdf.drop(columns=["Datum", "Tijd (UTC)"], inplace=True)
+
+        rawdf_utc = copy.deepcopy(rawdf)
+        rawdf_utc["datetime"] = rawdf_utc["datetime"].dt.tz_localize("UTC")
+
+        # to parquet
+        target_parquetfile_utc = datadir.joinpath("demo_data_with_timezone_utc.parquet")
+        if target_parquetfile_utc.exists():
+            target_parquetfile_utc.unlink()
+        rawdf_utc.to_parquet(target_parquetfile_utc)
+
+        template_file = datadir.joinpath("demo_template_for_parquet.json")
+
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=template_file, input_data_file=target_parquetfile_utc
+        )
+
+        # Now make sure the tz is mismatched between the parquet file and template
+        rawdf_paris = copy.deepcopy(rawdf)
+        rawdf_paris["datetime"] = rawdf_paris["datetime"].dt.tz_localize("Europe/Paris")
+
+        # to parquet
+        target_parquetfile_paris = datadir.joinpath(
+            "demo_data_with_timezone_paris.parquet"
+        )
+        if target_parquetfile_paris.exists():
+            target_parquetfile_paris.unlink()
+        rawdf_paris.to_parquet(target_parquetfile_paris)
+
+        dataset = metobs_toolkit.Dataset()
+
+        from metobs_toolkit.backend_collection import errorclasses as err
+
+        with pytest.raises(err.MetObsTemplateError):
+            dataset.import_data_from_file(
+                template_file=template_file, input_data_file=target_parquetfile_paris
+            )
+
+
+def to_parquet(csvfile, sep=";"):
+    target_parquetfile = csvfile.with_suffix(".parquet")
+    if target_parquetfile.exists():
+        # always update, so that changes in the csv are always in the parquet
+        target_parquetfile.unlink()
+
+    df = pd.read_csv(csvfile, sep=sep)
+    df.to_parquet(target_parquetfile)
+    return target_parquetfile
 
 
 if __name__ == "__main__":
