@@ -232,19 +232,19 @@ class TestDemoDataset:
         assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_qc_when_some_stations_missing_obs(self):
-         #  1. get_startpoint data
+        #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
-        target_obstype = 'temp'
-        
-        #Drop the temp of 2 random stations
+        target_obstype = "temp"
+
+        # Drop the temp of 2 random stations
         orig_count = len(dataset.stations)
-        del dataset.stations[6].obsdata['temp']
-        del dataset.stations[13].obsdata['temp']
-        
-        #See if qc pipeline still runs
-        
+        del dataset.stations[6].obsdata["temp"]
+        del dataset.stations[13].obsdata["temp"]
+
+        # See if qc pipeline still runs
+
         # Run all QC checks with default settings
         dataset.gross_value_check(target_obstype=target_obstype)
         dataset.persistence_check(target_obstype=target_obstype)
@@ -254,8 +254,7 @@ class TestDemoDataset:
         dataset.buddy_check(target_obstype=target_obstype)
 
         assert orig_count == len(dataset.stations)
-        
-        
+
     def test_buddy_check(self, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name

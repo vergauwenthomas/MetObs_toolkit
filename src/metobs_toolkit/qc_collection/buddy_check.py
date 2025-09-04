@@ -305,7 +305,7 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
 @log_entry
 def toolkit_buddy_check(
     target_stations: list["Station"],  # noqa: F821
-    metadf : pd.DataFrame,
+    metadf: pd.DataFrame,
     obstype: str,
     spatial_buddy_radius: Union[int, float],
     spatial_min_sample_size: int,
