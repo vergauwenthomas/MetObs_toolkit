@@ -2393,33 +2393,46 @@ def createstations(
     stations = []
     for stationname, stationdata in datadf.groupby("name"):
         all_station_sensor_data = []
+            
+        # 1. Skip stations with nan as name (caused by string casting errors)
+        if (stationname == str(np.nan)) | (pd.isnull(stationname)):
+            logger.warning(
+                "Skipping the records belonging to station with Nan as name. This could be the result from stringcasting the stationnames."
+            )
+            continue
+        
+        # 2. Drop NAT datetimes if present
+        stationdata = stationdata.loc[pd.notnull(stationdata["datetime"])]
+
+        # 3. Skip stations if there are less than 3 records (no freq can be estimated)
+        if stationdata.shape[0] < 3:
+            logger.warning(
+                f"Station {stationname} is skipped because it has only {stationdata.shape[0]} (is < 3) records."
+            )
+            continue
+            
         for obstypename in stationdata.columns:
             if obstypename in not_an_obstype:
                 continue
+            
+            if (stationname == 'Campo Grande - Museu da Cidade'):
+                print('Error situation')
+                
 
             obstype = known_obstypes[obstypename]
-
-            # Formatting on raw data
-            # 1. Skip stations with nan as name (caused by string casting errors)
-            if (stationname == str(np.nan)) | (pd.isnull(stationname)):
+            
+            #4. Test minimum number of notna values
+            records = stationdata[obstype.name]
+            if records.notna().sum() < 1:
                 logger.warning(
-                    "Skipping the records belonging to station with Nan as name. This could be the result from stringcasting the stationnames."
+                    f"Station {stationname} -> {obstypename} is skipped because it has less than 1 valid record."
                 )
                 continue
-            # 2. Drop NAT datetimes if present
-            stationdata = stationdata.loc[pd.notnull(stationdata["datetime"])]
-
-            # 3. Skip stations if there are less than 2 records (no freq can be estimated)
-            if stationdata.shape[0] < 3:
-                logger.warning(
-                    f"Station {stationname} is skipped because it has only {stationdata.shape[0]} (is < 3) records."
-                )
-                continue
-
+            
             # Get dataseries:
             sensordata = SensorData(
                 stationname=stationname,
-                datarecords=stationdata[obstype.name].to_numpy(),
+                datarecords=records.to_numpy(),
                 timestamps=stationdata["datetime"].to_numpy(),
                 obstype=obstype,
                 timezone=timezone,
