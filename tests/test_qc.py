@@ -231,7 +231,7 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_qc_when_some_stations_mis_obs(self):
+    def test_qc_when_some_stations_missing_obs(self):
          #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
