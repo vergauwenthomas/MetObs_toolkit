@@ -304,7 +304,8 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
 
 @log_entry
 def toolkit_buddy_check(
-    dataset: "Dataset",  # noqa: F821
+    target_stations: list["Station"],  # noqa: F821
+    metadf : pd.DataFrame,
     obstype: str,
     spatial_buddy_radius: Union[int, float],
     spatial_min_sample_size: int,
@@ -392,8 +393,12 @@ def toolkit_buddy_check(
 
     Parameters
     ----------
-    dataset : Dataset
-        The dataset to apply the buddy check on.
+    target_stations : list[Station]
+        A list of Station objects to apply the buddy check on. These should be
+        stations that contain the target observation type.
+    metadf : pandas.DataFrame
+        DataFrame containing station metadata including coordinates (geometry)
+        and altitude information for all stations.
     obstype : str
         The observation type that has to be checked.
     spatial_buddy_radius : int or float
@@ -468,7 +473,6 @@ def toolkit_buddy_check(
 
     # -----  Part 1: construct buddy groups ------
     # compute distance metric
-    metadf = dataset.metadf
     dist_matrix = _calculate_distance_matrix_with_haverine(metadf)
 
     # find potential buddies by distance
@@ -513,7 +517,7 @@ value for 'altitude'"
 
     # construct a wide observation dataframe
     concatlist = []
-    for sta in dataset.stations:
+    for sta in target_stations:
         if obstype in sta.sensordata.keys():
             records = sta.get_sensor(obstype).series
             records.name = sta.name
@@ -527,7 +531,7 @@ value for 'altitude'"
     # lapse rate correction
     if lapserate is not None:
         # get altitude dataframe
-        altdict = {sta.name: sta.site.altitude for sta in dataset.stations}
+        altdict = {sta.name: sta.site.altitude for sta in target_stations}
         altseries = pd.Series(altdict)
         altcorrectionseries = (altseries - altseries.min()) * lapserate
         combdf = combdf - altcorrectionseries  # Correct for altitude
