@@ -48,7 +48,9 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsMetadataNotFound,
     MetObsNonUniqueIDs,
     MetObsModelDataError,
+    MetObsSensorDataNotFound,
 )
+
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.settings_collection import label_def
 
@@ -1721,8 +1723,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
@@ -1732,9 +1739,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_grossvalue_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.persistence_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1746,8 +1755,14 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
+
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
@@ -1757,9 +1772,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_persistence_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.repetitions_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1770,8 +1787,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             max_N_repetitions=max_N_repetitions,
         )
@@ -1781,9 +1803,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_repetitions_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(copy_func=Station.step_check, extra_param_desc=_use_mp_docargstr)
     @log_entry
@@ -1795,8 +1819,13 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
@@ -1805,9 +1834,11 @@ class Dataset:
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_step_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_step_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @copy_doc(
         copy_func=Station.window_variation_check, extra_param_desc=_use_mp_docargstr
@@ -1823,10 +1854,15 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
 
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
         timewindow = fmt_timedelta_arg(timewindow)
 
         func_feed_list = _create_qc_arg_set(
-            dataset=self,
+            stations=target_stations,
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
@@ -1839,9 +1875,11 @@ class Dataset:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
-            self.stations = list(stationgenerator)
+            qced_stations = list(stationgenerator)
         else:
-            self.stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
+            qced_stations = list(map(_qc_window_var_generatorfunc, func_feed_list))
+
+        self.stations = qced_stations + skip_stations
 
     @log_entry
     def buddy_check(
@@ -1960,7 +1998,15 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        outlierslist, timestamp_map = toolkit_buddy_check(dataset=self, **qc_kwargs)
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
+
+        outlierslist, timestamp_map = toolkit_buddy_check(
+            target_stations=target_stations, metadf=metadf, **qc_kwargs
+        )
         # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
         # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
         # timestamps to the original timestamps
@@ -1969,30 +2015,29 @@ class Dataset:
         df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
 
         # update all the sensordata
-        for station in self.stations:
-            if target_obstype in station.sensordata.keys():
-                # Get the sensordata object
-                sensorddata = station.get_sensor(target_obstype)
+        for station in target_stations:
+            # Get the sensordata object
+            sensorddata = station.get_sensor(target_obstype)
 
-                # get outlier datetimeindex
-                outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            # get outlier datetimeindex
+            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
 
-                if not outldt.empty:
-                    # convert to original timestamps
-                    dtmap = timestamp_map[station.name]
-                    outldt = outldt.map(dtmap)
+            if not outldt.empty:
+                # convert to original timestamps
+                dtmap = timestamp_map[station.name]
+                outldt = outldt.map(dtmap)
 
-                # update the sensordata
-                sensorddata._update_outliers(
-                    qccheckname="buddy_check",
-                    outliertimestamps=outldt,
-                    check_kwargs=qc_kwargs,
-                    extra_columns={
-                        "detail_msg": df[df["name"] == station.name][
-                            "detail_msg"
-                        ].to_numpy()
-                    },
-                )
+            # update the sensordata
+            sensorddata._update_outliers(
+                qccheckname="buddy_check",
+                outliertimestamps=outldt,
+                check_kwargs=qc_kwargs,
+                extra_columns={
+                    "detail_msg": df[df["name"] == station.name][
+                        "detail_msg"
+                    ].to_numpy()
+                },
+            )
 
     @log_entry
     def buddy_check_with_LCZ_safety_net(
@@ -2131,8 +2176,6 @@ class Dataset:
                     "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
                 )
 
-        # TODO: apply black
-
         qc_kwargs = dict(
             obstype=target_obstype,
             spatial_buddy_radius=spatial_buddy_radius,
@@ -2152,7 +2195,16 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        outlierslist, timestamp_map = toolkit_buddy_check(dataset=self, **qc_kwargs)
+        # Locate stations with the target_obstype
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
+
+        outlierslist, timestamp_map = toolkit_buddy_check(
+            target_stations=target_stations, metadf=metadf, **qc_kwargs
+        )
+
         # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
         # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
         # timestamps to the original timestamps
@@ -2161,30 +2213,29 @@ class Dataset:
         df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
 
         # update all the sensordata
-        for station in self.stations:
-            if target_obstype in station.sensordata.keys():
-                # Get the sensordata object
-                sensorddata = station.get_sensor(target_obstype)
+        for station in target_stations:
+            # Get the sensordata object
+            sensorddata = station.get_sensor(target_obstype)
 
-                # get outlier datetimeindex
-                outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            # get outlier datetimeindex
+            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
 
-                if not outldt.empty:
-                    # convert to original timestamps
-                    dtmap = timestamp_map[station.name]
-                    outldt = outldt.map(dtmap)
+            if not outldt.empty:
+                # convert to original timestamps
+                dtmap = timestamp_map[station.name]
+                outldt = outldt.map(dtmap)
 
-                # update the sensordata
-                sensorddata._update_outliers(
-                    qccheckname="buddy_check_with_LCZ_safety_net",
-                    outliertimestamps=outldt,
-                    check_kwargs=qc_kwargs,
-                    extra_columns={
-                        "detail_msg": df[df["name"] == station.name][
-                            "detail_msg"
-                        ].to_numpy()
-                    },
-                )
+            # update the sensordata
+            sensorddata._update_outliers(
+                qccheckname="buddy_check_with_LCZ_safety_net",
+                outliertimestamps=outldt,
+                check_kwargs=qc_kwargs,
+                extra_columns={
+                    "detail_msg": df[df["name"] == station.name][
+                        "detail_msg"
+                    ].to_numpy()
+                },
+            )
 
     @copy_doc(Station.get_qc_stats)
     @log_entry
@@ -2420,8 +2471,8 @@ def _qc_window_var_generatorfunc(input: list) -> Station:
 # ------------------------------------------
 
 
-def _create_qc_arg_set(dataset: Dataset, **qckwargs: dict) -> list:
-    return [([sta, dict(**qckwargs)]) for sta in dataset.stations]
+def _create_qc_arg_set(stations: list[Station], **qckwargs: dict) -> list:
+    return [([sta, dict(**qckwargs)]) for sta in stations]
 
 
 @log_entry
@@ -2602,3 +2653,27 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
 
     picklereader = PickleFileReader(file_path=target_path)
     return picklereader.read_as_local_file()
+
+
+def filter_to_stations_with_target_obstype(
+    stations: list[Station], target_obstype: str
+) -> (list[Station], list[Station]):
+    """
+    Split stations into those with and without the target observation type.
+
+    Returns two lists: stations containing the target observation type, and stations skipped.
+    """
+    subset = []
+    skipped = []
+    for sta in stations:
+        try:
+            sta._obstype_is_known_check(target_obstype)
+            subset.append(sta)
+        except MetObsSensorDataNotFound:
+            skipped.append(sta)
+            warnings.warn(
+                f"{sta} does not hold {target_obstype} sensordata! It will be skipped! "
+            )
+            continue
+
+    return subset, skipped

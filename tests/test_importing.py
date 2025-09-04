@@ -2,6 +2,7 @@ import pytest
 import sys
 from pathlib import Path
 import copy
+import tempfile
 
 # import metobs_toolkit
 import pandas as pd
@@ -234,16 +235,14 @@ class TestDemoData:
         )
 
         # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
-        # pickle dataset
-        dataset.save_dataset_to_pkl(target_folder=tmpdir, filename="deleteme")
-        # Read in the pickled dataset
-        dataset2 = metobs_toolkit.import_dataset_from_pkl(
-            target_path=tmpdir.joinpath("deleteme.pkl")
-        )
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # pickle dataset
+            dataset.save_dataset_to_pkl(target_folder=tmpdir, filename="deleteme")
+            # Read in the pickled dataset
+            dataset2 = metobs_toolkit.import_dataset_from_pkl(
+                target_path=tmpdir.joinpath("deleteme.pkl")
+            )
 
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
@@ -254,21 +253,17 @@ class TestDemoData:
         dataset = TestDemoData.solutionfixer.get_solution(
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            
+            tmpdir = Path(tmpdir)
+            # Save to parquet
+            parquet_file = tmpdir / "test_dataset.parquet"
+            dataset.to_parquet(parquet_file)
 
-        # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
+            # Read back and compare
+            df_original = dataset.df
+            df_read = pd.read_parquet(parquet_file)
 
-        # Save to parquet
-        parquet_file = tmpdir / "test_dataset.parquet"
-        dataset.to_parquet(parquet_file)
-
-        # Read back and compare
-        df_original = dataset.df
-        df_read = pd.read_parquet(parquet_file)
-
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
@@ -280,29 +275,24 @@ class TestDemoData:
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
 
-        # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # Save to CSV
+            csv_file = tmpdir / "test_dataset.csv"
+            dataset.to_csv(csv_file)
 
-        # Save to CSV
-        csv_file = tmpdir / "test_dataset.csv"
-        dataset.to_csv(csv_file)
+            # Read back and compare
+            df_original = dataset.df
+            df_read = pd.read_csv(csv_file, index_col=[0, 1, 2])  # Multi-index
 
-        # Read back and compare
-        df_original = dataset.df
-        df_read = pd.read_csv(csv_file, index_col=[0, 1, 2])  # Multi-index
+            # ----Typecasting for compatibility ----
+            # Convert datetime index level to datetime format to match original
+            df_read.index = df_read.index.set_levels(
+                pd.to_datetime(df_read.index.levels[0]), level=0
+            )
 
-        # ----Typecasting for compatibility ----
-        # Convert datetime index level to datetime format to match original
-        df_read.index = df_read.index.set_levels(
-            pd.to_datetime(df_read.index.levels[0]), level=0
-        )
-
-        # Convert 'value' column to float32 to match original
-        df_read["value"] = df_read["value"].astype("float32")
-
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
+            # Convert 'value' column to float32 to match original
+            df_read["value"] = df_read["value"].astype("float32")
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
@@ -318,19 +308,15 @@ class TestDemoData:
         station = dataset.get_station("vlinder05")
 
         # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # Save to parquet
+            parquet_file = tmpdir / "test_station.parquet"
+            station.to_parquet(parquet_file)
 
-        # Save to parquet
-        parquet_file = tmpdir / "test_station.parquet"
-        station.to_parquet(parquet_file)
-
-        # Read back and compare
-        df_original = station.df
-        df_read = pd.read_parquet(parquet_file)
-
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
+            # Read back and compare
+            df_original = station.df
+            df_read = pd.read_parquet(parquet_file)
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
@@ -346,28 +332,26 @@ class TestDemoData:
         station = dataset.get_station("vlinder05")
 
         # Create a tmp dir
-        tmpdir = libfolder.joinpath("tmp")
-        tmpdir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
 
-        # Save to CSV
-        csv_file = tmpdir / "test_station.csv"
-        station.to_csv(csv_file)
+            # Save to CSV
+            csv_file = tmpdir / "test_station.csv"
+            station.to_csv(csv_file)
 
-        # Read back and compare
-        df_original = station.df
-        df_read = pd.read_csv(csv_file, index_col=[0, 1])  # Multi-index
+            # Read back and compare
+            df_original = station.df
+            df_read = pd.read_csv(csv_file, index_col=[0, 1])  # Multi-index
 
-        # ----Typecasting for compatibility ----
-        # Convert datetime index level to datetime format to match original
-        df_read.index = df_read.index.set_levels(
-            pd.to_datetime(df_read.index.levels[0]), level=0
-        )
+            # ----Typecasting for compatibility ----
+            # Convert datetime index level to datetime format to match original
+            df_read.index = df_read.index.set_levels(
+                pd.to_datetime(df_read.index.levels[0]), level=0
+            )
 
-        # Convert 'value' column to float32 to match original
-        df_read["value"] = df_read["value"].astype("float32")
+            # Convert 'value' column to float32 to match original
+            df_read["value"] = df_read["value"].astype("float32")
 
-        # Remove the tmp dir
-        shutil.rmtree(tmpdir)
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
