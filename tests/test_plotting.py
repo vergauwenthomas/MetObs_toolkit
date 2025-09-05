@@ -85,7 +85,35 @@ class TestDemoDataset:
         ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
         return fig
+    
+    @pytest.mark.mpl_image_compare    
+    def test_dataset_test_show_outliers_labelby_station(self):
+        #  1. get_startpoint data
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
 
+        # 2. apply a metobs manipulation
+        dataset.repetitions_check(max_N_repetitions=8)
+        ax = dataset.make_plot(colorby="station", show_outliers=False)
+        fig = ax.get_figure()
+        return fig
+    
+    @pytest.mark.mpl_image_compare    
+    def test_dataset_test_show_outliers_labelby_labels(self):
+        #  1. get_startpoint data
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # 2. apply a metobs manipulation
+        dataset.repetitions_check(max_N_repetitions=8)
+        ax = dataset.make_plot(colorby="label", show_outliers=False)
+        fig = ax.get_figure()
+        return fig
+    
+    
+    
     @pytest.mark.mpl_image_compare
     def test_station_timeseries_plotting_existing_ax(self):
         #  1. get_startpoint data
@@ -192,6 +220,21 @@ class TestDataWithGaps:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdatawithgaps"}
     solutionfixer = SolutionFixer(solutiondir=solutionsdir)
 
+    @pytest.mark.mpl_image_compare    
+    def test_dataset_test_show_gaps_labelby_labels(self):
+        #  1. get_startpoint data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            testfile="test_gf",  # OTHER TEST FILE!
+            classname="TestDataWithGaps",
+            methodname="test_weighted_diurnal_debias_modeldata_gapfill_A",
+        )
+
+        # 2. apply a metobs manipulation
+        ax = dataset.make_plot(colorby="label", show_gaps=False)
+        fig = ax.get_figure()
+        return fig
+    
+
     @pytest.mark.mpl_image_compare
     def test_interpolated_timeseries_plot(self):
         dataset_with_gf = TestDataWithGaps.solutionfixer.get_solution(
@@ -260,18 +303,18 @@ if __name__ == "__main__":
     test = TestDemoDataset()
     # test.test_import_data(overwrite_solution=True)
     # test.test_import_data(overwrite_solution=True)
-    test.test_dataset_timeseries_plotting_by_label()
-    test.test_dataset_timeseries_plotting_by_station()
-    test.test_station_timeseries_plotting_existing_ax()
-    test.test_station_timeseries_with_modeldata()
-    test.test_station_modeldata_timeseries()
-    test.test_dataset_modeldata_timeseries_plot()
-    test.test_dataset_color_by_station_and_modeldata_timeseries_plot()
-    test.test_dataset_color_by_label_and_modeldata_timeseries_plot()
+    # test.test_dataset_timeseries_plotting_by_label()
+    # test.test_dataset_timeseries_plotting_by_station()
+    # test.test_station_timeseries_plotting_existing_ax()
+    # test.test_station_timeseries_with_modeldata()
+    # test.test_station_modeldata_timeseries()
+    # test.test_dataset_modeldata_timeseries_plot()
+    # test.test_dataset_color_by_station_and_modeldata_timeseries_plot()
+    # test.test_dataset_color_by_label_and_modeldata_timeseries_plot()
 
-    test_gaps = TestDataWithGaps()
-    test_gaps.test_interpolated_timeseries_plot()
-    test_gaps.test_raw_modeldata_gf_timeseries_plot()
-    test_gaps.test_debias_modeldata_gf_timeseries_plot()
-    test_gaps.test_diurnal_debias_modeldata_gf_timeseries_plot()
-    test_gaps.test_weighted_diurnal_debias_modeldata_gf_timeseries_plot()
+    # test_gaps = TestDataWithGaps()
+    # test_gaps.test_interpolated_timeseries_plot()
+    # test_gaps.test_raw_modeldata_gf_timeseries_plot()
+    # test_gaps.test_debias_modeldata_gf_timeseries_plot()
+    # test_gaps.test_diurnal_debias_modeldata_gf_timeseries_plot()
+    # test_gaps.test_weighted_diurnal_debias_modeldata_gf_timeseries_plot()
