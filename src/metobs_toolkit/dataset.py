@@ -2584,7 +2584,7 @@ def createstations(
 
             # 4. Test minimum number of notna values
             if records.notna().sum() < 1:
-                warnings.warn(
+                logger.warning(
                     f"Station {stationname} -> {obstypename} is skipped because it has less than 1 valid record."
                 )
                 continue
@@ -2677,7 +2677,7 @@ def filter_to_stations_with_target_obstype(
             subset.append(sta)
         except MetObsSensorDataNotFound:
             skipped.append(sta)
-            warnings.warn(
+            logger.warning(
                 f"{sta} does not hold {target_obstype} sensordata! It will be skipped! "
             )
             continue
