@@ -151,7 +151,7 @@ class TestDemoData:
         # 5. Construct the equality tests
         assert_equality(data_to_test, solutionobj)  # Dataset comparison
 
-    def test_subset_by_stations_invalid(self):
+    def test_subset_by_stations_invalid(self, caplog):
         # 1. get_startpoint data
         dataset = TestDemoData.solutionfixer.get_solution(
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
@@ -164,9 +164,10 @@ class TestDemoData:
         with pytest.raises(ValueError):
             dataset.subset_by_stations(stationnames=["vlinder01"])
 
-        #  Test if a warning is thrown for invalid station names
-        with pytest.warns(UserWarning):
+        #  Test if a warning is logged for invalid station names
+        with caplog.at_level("WARNING"):
             dataset.subset_by_stations(stationnames=["a", "b"])
+        assert "No stations matched the provided station names" in caplog.text
 
     def test_get_info(self, overwrite_solution=False):
         # 0. Get info of the current check
