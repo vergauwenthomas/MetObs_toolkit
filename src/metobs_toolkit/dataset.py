@@ -163,12 +163,15 @@ class Dataset:
 
     def __str__(self) -> str:
         """Return a string representation of the Dataset."""
-        return "Dataset instance"
+        n_stations = len(self.stations)
+        n_obstypes = len(self.obstypes)
+        return f"Dataset(stations={n_stations}, obstypes={n_obstypes})"
 
     def __repr__(self) -> str:
-        """Return an info representation of the Dataset."""
-        class_name = type(self).__name__
-        return f"Instance of {class_name} at {hex(id(self))}"
+        """Return a human-readable representation of the Dataset."""
+        n_stations = len(self.stations)
+        n_obstypes = len(self.obstypes)
+        return f"Dataset(stations={n_stations}, obstypes={n_obstypes})"
 
     @log_entry
     def copy(self, deep: bool = True) -> "Dataset":

@@ -62,6 +62,12 @@ class Gap:
         self._obstype = obstype
         self._stationname = stationname
 
+    
+
+    def __repr__(self):
+        """Instance representation."""
+        return f"{type(self).__name__}(station={self.stationname}, obstype={self.obstype.name}, start={self.start_datetime}, end={self.end_datetime}, status={self.fillstatus})"
+
     @property
     def records(self) -> pd.Series:
         """Return the records of the gap."""
