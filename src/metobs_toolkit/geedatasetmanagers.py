@@ -120,7 +120,7 @@ class _GEEDatasetManager:
 
     def __repr__(self):
         """Return string representation of the object."""
-        return self.__str__()
+        return f"{type(self).__name__}(name={self.name}, location={self.location})"
 
     # =============================================================================
     # Checks

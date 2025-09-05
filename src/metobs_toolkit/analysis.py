@@ -102,9 +102,7 @@ but a {type(Dataholder)}"
     def __repr__(self):
         """Return a string representation for debugging."""
         n_records = len(self.fulldf)
-        n_stations = len(self.fulldf['name'].unique()) if 'name' in self.fulldf.columns else 0
-        n_obstypes = len(self._df_cols)
-        return f"Analysis(records={n_records}, stations={n_stations}, obstypes={n_obstypes})"
+        return f"Analysis(records={n_records})"
 
     @copy_doc(analysis_df)
     @property

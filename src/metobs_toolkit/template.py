@@ -129,9 +129,7 @@ class Template:
 
     def __repr__(self):
         """Return a string representation for debugging."""
-        n_obstypes = len(self.obscolumnmap)
-        n_metacols = len(self.metacolmapname)
-        return f"Template(obstypes={n_obstypes}, metacols={n_metacols})"
+        return f"Template instance"
 
     @log_entry
     def get_info(self, printout=True) -> Union[None, str]:
