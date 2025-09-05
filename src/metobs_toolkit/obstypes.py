@@ -138,7 +138,7 @@ class Obstype:
 
     def __repr__(self):
         """Instance representation."""
-        return f"{type(self).__name__} instance of {self.name}"
+        return f"{type(self).__name__}(id={self._id()})"
 
     def __str__(self):
         """Text representation."""
@@ -389,6 +389,21 @@ class ModelObstype(Obstype):
     def model_band(self) -> str:
         """Return the model band as string."""
         return str(self._model_band)
+
+    @model_unit.setter
+    @log_entry
+    def model_unit(self, value: Union[str, pint.Unit]):
+        self._model_unit = _fmtunit(value)
+        # test if it is a compatible unit wrt the standard unit
+        if not self._model_unit.is_compatible_with(self._std_unit):
+            raise MetObsUnitsIncompatible(
+                f"{self._model_unit} is not compatible with the standard unit ({self.std_unit} of {self}) "
+            )
+
+    @model_band.setter
+    @log_entry
+    def model_band(self, value: str):
+        self._model_band = str(value)
 
     @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:

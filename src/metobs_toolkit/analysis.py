@@ -99,6 +99,11 @@ but a {type(Dataholder)}"
         # extra data
         self._obstypes = obstypes  # for displaying units in plots
 
+    def __repr__(self):
+        """Return a string representation for debugging."""
+        n_records = len(self.fulldf)
+        return f"Analysis(records={n_records})"
+
     @copy_doc(analysis_df)
     @property
     def df(self) -> pd.DataFrame:

@@ -9,7 +9,7 @@ from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
-from metobs_toolkit.obstypes import Obstype
+from metobs_toolkit.obstypes import ModelObstype
 from metobs_toolkit.plot_collection.general_functions import (
     create_axes,
     set_legend,
@@ -20,7 +20,7 @@ from metobs_toolkit.plot_collection.general_functions import (
 )
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
-
+from metobs_toolkit.backend_collection.errorclasses import MetObsUnitUnknown
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
@@ -30,16 +30,22 @@ logger = logging.getLogger("<metobs_toolkit>")
 class ModelTimeSeries:
     """Class for model-based timeseries at one location.
 
+    This class stores model data at a specific location and automatically converts
+    the data from the model's native units to standard units as defined by the
+    observation type. The unit conversion is performed during initialization.
+
     Parameters
     ----------
     site : object
         The site object representing the location.
     datarecords : np.ndarray
-        Array of data records.
+        Array of data records in the model's native units. These will be
+        automatically converted to standard units during initialization.
     timestamps : np.ndarray
         Array of timestamps corresponding to the data records.
-    obstype : Obstype
-        The observation type.
+    modelobstype : ModelObstype
+        The observation type containing unit information. Must have a model_unit
+        attribute set for unit conversion to work properly.
     datadtype : type, optional
         Data type for the records, by default np.float32.
     timezone : str, optional
@@ -48,6 +54,18 @@ class ModelTimeSeries:
         Name of the model, by default None.
     modelvariable : str, optional
         Name of the model variable, by default None.
+
+    Notes
+    -----
+    The stored data in the `series` attribute will be in standard units as defined
+    by `modelobstype.std_unit`, not in the original model units. The conversion is
+    performed automatically.
+
+    Raises
+    ------
+    MetObsUnitUnknown
+        If the modelobstype does not have a model_unit set, which is required for
+        unit conversion.
     """
 
     def __init__(
@@ -55,21 +73,37 @@ class ModelTimeSeries:
         site,
         datarecords: np.ndarray,
         timestamps: np.ndarray,
-        obstype: Obstype,
+        modelobstype: ModelObstype,
         datadtype: type = np.float32,
         timezone: str = "UTC",
         modelname: str = None,
         modelvariable: str = None,
+        _convert_to_standard_units: bool = True,
     ):
         self.site = site
-        self.obstype = obstype
+
+        # Testing the ModelObstype
+        self.modelobstype = modelobstype
+        if not isinstance(self.modelobstype, ModelObstype):
+            raise TypeError(f"Expected ModelObstype, got {type(self.modelobstype)}")
+        if self.modelobstype.model_unit is None:
+            raise MetObsUnitUnknown(
+                f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit = value syntax."
+            )
 
         # Data
         data = pd.Series(
             data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
-            name=obstype.name,
+            name=modelobstype.name,
         )
+        if _convert_to_standard_units:
+            data = self.modelobstype.convert_to_standard_units(
+                input_data=data, input_unit=self.modelobstype.model_unit
+            )
+        else:
+            pass
+
         self.series = data
 
         # model metadata
@@ -81,7 +115,7 @@ class ModelTimeSeries:
     #    Specials
     # ------------------------------------------
     def __repr__(self):
-        return f"<ModelTimeSeries(id={self._id()},obstype={self.obstype.name})>"
+        return f"<ModelTimeSeries(id={self._id()},obstype={self.modelobstype.name})>"
 
     def _id(self) -> str:
         """A physical unique id.
@@ -97,7 +131,7 @@ class ModelTimeSeries:
             return False
         return (
             self.site == other.site
-            and self.obstype == other.obstype
+            and self.modelobstype == other.modelobstype
             and self.series.equals(other.series)
             and self.modelname == other.modelname
             and self.modelvariable == other.modelvariable
@@ -127,11 +161,12 @@ class ModelTimeSeries:
             site=self.site,
             datarecords=combined_series.values,
             timestamps=combined_series.index.values,
-            obstype=self.obstype + other.obstype,
+            modelobstype=self.modelobstype + other.modelobstype,
             datadtype=combined_series.dtype,
             timezone=self.tz,
             modelname=self.modelname,
             modelvariable=self.modelvariable,
+            _convert_to_standard_units=False,  # !! units are already converted !!
         )
         return combined
 
@@ -172,7 +207,7 @@ class ModelTimeSeries:
     @copy_doc(modeltimeseries_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return modeltimeseries_to_xr(self)
+        return modeltimeseries_to_xr(self, fmt_datetime_coordinate=True)
 
     def _get_info_core(self, nident_root=1) -> dict:
         infostr = ""
@@ -190,7 +225,7 @@ class ModelTimeSeries:
             f"Number of records: {self.series.shape[0]}", nident_root
         )
         infostr += printing.print_fmt_line(
-            f"Units are converted from {self.obstype.model_unit} --> {self.obstype.std_unit}",
+            f"Units are converted from {self.modelobstype.model_unit} --> {self.modelobstype.std_unit}",
             nident_root,
         )
 
@@ -215,7 +250,7 @@ class ModelTimeSeries:
         infostr = ""
         infostr += printing.print_fmt_title("General info of ModelTimeSeries")
         infostr += printing.print_fmt_line(
-            f"{self.obstype.name} model data at location of {self.stationname}"
+            f"{self.modelobstype.name} model data at location of {self.stationname}"
         )
         infostr += self._get_info_core(nident_root=1)
         if printout:
@@ -275,11 +310,13 @@ class ModelTimeSeries:
         # Add Styling attributes
         # Set title:
         if title is None:
-            set_title(ax, f"{self.obstype.name} data for station {self.stationname}")
+            set_title(
+                ax, f"{self.modelobstype.name} data for station {self.stationname}"
+            )
         else:
             set_title(ax, title)
         # Set ylabel
-        set_ylabel(ax, self.obstype._get_plot_y_label())
+        set_ylabel(ax, self.modelobstype._get_plot_y_label())
 
         # Set xlabel
         set_xlabel(ax, f"Timestamps (in {self.tz})")

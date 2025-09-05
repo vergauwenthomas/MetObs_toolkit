@@ -127,8 +127,8 @@ class TestModelDataImport:
 
         _ = modeltimeseries.get_info()
 
-        assert modeltimeseries.obstype.model_band == "temperature_2m"
-        assert modeltimeseries.obstype.model_unit == "kelvin"
+        assert modeltimeseries.modelobstype.model_band == "temperature_2m"
+        assert modeltimeseries.modelobstype.model_unit == "kelvin"
 
 
 class TestModelDataManagers:
@@ -203,6 +203,9 @@ class TestStationModelDataMethods:
 
         # Create multiple ModelTimeSeries with same obstype but different modelname/modelvariable
         temp_obstype = dataset.obstypes["temp"]
+        temp_modelobstype = metobs_toolkit.ModelObstype(
+            obstype=temp_obstype, model_unit="kelvin", model_band="fake-band"
+        )
 
         # Create test data
         timestamps = pd.date_range("2022-01-01", periods=24, freq="h")
@@ -215,7 +218,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data1,
             timestamps=timestamps,
-            obstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="ERA5",
@@ -226,7 +229,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data2,
             timestamps=timestamps,
-            obstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="GFS",
@@ -237,7 +240,7 @@ class TestStationModelDataMethods:
             site=station.site,
             datarecords=data3,
             timestamps=timestamps,
-            obstype=temp_obstype,
+            modelobstype=temp_modelobstype,
             datadtype=np.float32,
             timezone="UTC",
             modelname="ERA5",
@@ -248,9 +251,12 @@ class TestStationModelDataMethods:
 
     def test_add_to_modeldata_basic(self):
         """Test basic functionality of add_to_modeldata."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Initially no model data
         assert len(station.modeldata) == 0, "Station should start with no model data"
@@ -275,9 +281,12 @@ class TestStationModelDataMethods:
 
     def test_add_to_modeldata_force_update(self):
         """Test add_to_modeldata with force_update functionality."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add initial model data
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -323,9 +332,12 @@ class TestStationModelDataMethods:
 
     def test_get_modeltimeseries_multiple_same_obstype(self):
         """Test get_modeltimeseries when multiple model data exist for same obstype."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add multiple model data for same obstype
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -338,9 +350,12 @@ class TestStationModelDataMethods:
 
     def test_get_modeltimeseries_by_modelname(self):
         """Test get_modeltimeseries filtering by modelname."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add multiple model data
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -358,9 +373,12 @@ class TestStationModelDataMethods:
 
     def test_get_modeltimeseries_by_modelvariable(self):
         """Test get_modeltimeseries filtering by modelvariable."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add multiple model data
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -380,9 +398,12 @@ class TestStationModelDataMethods:
 
     def test_get_modeltimeseries_by_both_filters(self):
         """Test get_modeltimeseries filtering by both modelname and modelvariable."""
-        station, model_ts1, model_ts2, model_ts3 = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            model_ts3,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add multiple model data
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -444,9 +465,12 @@ class TestStationModelDataMethods:
 
     def test_modeldata_property_list_format(self):
         """Test that modeldata property returns a list."""
-        station, model_ts1, model_ts2, _ = (
-            self.create_test_station_with_multiple_modeldata()
-        )
+        (
+            station,
+            model_ts1,
+            model_ts2,
+            _,
+        ) = self.create_test_station_with_multiple_modeldata()
 
         # Add model data
         station.add_to_modeldata(model_ts1, force_update=False)
@@ -462,3 +486,8 @@ class TestStationModelDataMethods:
             assert isinstance(
                 item, metobs_toolkit.ModelTimeSeries
             ), "Items should be ModelTimeSeries"
+
+
+if __name__ == "__main__":
+    tester = TestStationModelDataMethods()
+    tester.test_add_to_modeldata_basic()

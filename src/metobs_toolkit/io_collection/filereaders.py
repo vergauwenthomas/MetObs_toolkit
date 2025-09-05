@@ -4,6 +4,7 @@ import json
 import pickle
 import requests
 from abc import ABC, abstractmethod
+from typing import Union
 
 import pandas as pd
 
@@ -332,6 +333,84 @@ class PickleFileReader(FileReader):
         )
 
 
+class ParquetFileReader(FileReader):
+    """
+    File reader for Parquet files.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the Parquet file or URL.
+    is_url : bool, optional
+        Whether the file_path is a URL (default is False).
+    """
+
+    def __init__(self, file_path: str, is_url: bool = False):
+        """Initialize ParquetFileReader."""
+        super().__init__(file_path, is_url=is_url)
+
+    @log_entry
+    def read(self, **readkwargs) -> pd.DataFrame:
+        """
+        Read the Parquet file and return its contents as a DataFrame.
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+        """
+        if self.is_url:
+            data = self.read_as_remote_file(**readkwargs)
+        else:
+            data = self.read_as_local_file(**readkwargs)
+        return data
+
+    @log_entry
+    def read_as_local_file(self, **readkwargs) -> pd.DataFrame:
+        """
+        Read the Parquet file as a local file.
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
+        """
+        if not self.file_exist():
+            raise FileNotFoundError(f"{self.file_path} is not a file.")
+        return pd.read_parquet(self.file_path, **readkwargs)
+
+    @log_entry
+    def read_as_remote_file(self, **readkwargs) -> pd.DataFrame:
+        """Read the Parquet file as a remote file (URL).
+
+        Parameters
+        ----------
+        **readkwargs
+            Additional keyword arguments to pass to the Parquet reader.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the Parquet data.
+        """
+        return pd.read_parquet(self.file_path, **readkwargs)
+
+
 @log_entry
 def read_csv(filepath: str, **kwargs) -> pd.DataFrame:
     """
@@ -400,3 +479,54 @@ def read_csv_with_flexible_seperator(filepath: str, **kwargs) -> pd.DataFrame:
             logger.debug(f"Failed to read {filepath} with separator '{sep}': {e}")
 
     raise ValueError(f"Could not determine the separator for {filepath}")
+
+
+@log_entry
+def find_suitable_reader(filepath: Union[str, Path], is_url=False) -> FileReader:
+    """
+    Find a suitable file reader based on file extension.
+
+    Determines the appropriate FileReader subclass (CSV, JSON, or Parquet)
+    by examining the file extension and returns an instance of that reader.
+
+    Parameters
+    ----------
+    filepath : str or Path
+        Path to the file or URL.
+    is_url : bool, optional
+        Whether the filepath is a URL (default is False).
+
+    Returns
+    -------
+    FileReader
+        An instance of the appropriate FileReader subclass.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the local file does not exist.
+    NotImplementedError
+        If no reader is available for the file extension.
+    """
+
+    # to Path
+    if isinstance(filepath, str):
+        filepath = Path(filepath)
+
+    # 1. Check if the file exists
+    if not filepath.exists():
+        raise FileNotFoundError(f"{filepath} does not exist.")
+
+    # 2. Get suffix
+    suffix = filepath.suffix
+
+    if suffix == ".csv":
+        return CsvFileReader(filepath, is_url=is_url)
+    elif suffix == ".json":
+        return JsonFileReader(filepath, is_url=is_url)
+    elif suffix == ".parquet":
+        return ParquetFileReader(filepath, is_url=is_url)
+    else:
+        raise NotImplementedError(
+            f"Could not read {filepath}, no reader implemented for file extension {suffix}"
+        )

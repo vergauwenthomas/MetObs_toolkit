@@ -1,6 +1,5 @@
 import logging
 from typing import Literal, Union
-import warnings
 
 import copy
 import numpy as np
@@ -107,7 +106,7 @@ class SensorData:
 
     def __repr__(self):
         """Return a string representation for debugging."""
-        return f"Sensordata instance of {self.obstype.name} -> {self.stationname}"
+        return f"{type(self).__name__}(id={self._id()})"
 
     def __str__(self) -> str:
         """Return a string representation of the SensorData object."""
@@ -169,7 +168,7 @@ class SensorData:
             | bool(other.gaps)
             | bool(other.outliers)
         ):
-            warnings.warn(
+            logger.warning(
                 f"All stored outliers and gap info of {self} will not be present in the combined."
             )
 
@@ -214,7 +213,7 @@ class SensorData:
     @copy_doc(sensordata_to_xr)
     @log_entry
     def to_xr(self) -> "xarray.Dataset":
-        return sensordata_to_xr(self)
+        return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
     @property
     def outliersdf(self) -> pd.DataFrame:

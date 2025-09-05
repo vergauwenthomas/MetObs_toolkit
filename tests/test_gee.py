@@ -3,6 +3,7 @@
 import pytest
 import sys
 from pathlib import Path
+import tempfile
 
 # import metobs_toolkit
 import pandas as pd
@@ -383,16 +384,17 @@ class TestDemoDataset:
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_ERA5_extraction"
         )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            # pickle dataset
+            dataset.save_dataset_to_pkl(
+                target_folder=tmpdir, filename="deleteme.pkl", overwrite=True
+            )
 
-        # pickle dataset
-        dataset.save_dataset_to_pkl(
-            target_folder=datadir, filename="deleteme.pkl", overwrite=True
-        )
-
-        # open datast
-        dataset_pkled = metobs_toolkit.import_dataset_from_pkl(
-            target_path=datadir.joinpath("deleteme.pkl")
-        )
+            # open datast
+            dataset_pkled = metobs_toolkit.import_dataset_from_pkl(
+                target_path=tmpdir.joinpath("deleteme.pkl")
+            )
 
         assert_equality(dataset_pkled, dataset)
 
@@ -469,6 +471,7 @@ class TestDemoDataset:
 
 if __name__ == "__main__":
     test = TestDemoDataset()
+    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution= False)
     # test.test_import_demo_metadata(overwrite_solution=False)
     # test.test_LCZ_extraction(overwrite_solution=False)
     # test.test_altitude_extraction(overwrite_solution=False)

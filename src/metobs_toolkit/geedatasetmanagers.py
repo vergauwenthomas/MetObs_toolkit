@@ -120,7 +120,7 @@ class _GEEDatasetManager:
 
     def __repr__(self):
         """Return string representation of the object."""
-        return self.__str__()
+        return f"{type(self).__name__}(name={self.name}, location={self.location})"
 
     # =============================================================================
     # Checks
@@ -749,28 +749,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         else:
             self.modelobstypes[modelobstype.name] = modelobstype
 
-    def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Convert the units of the df to toolkit-standards.
-
-        Parameters
-        ----------
-        df : pandas.DataFrame
-            Dataframe to convert.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Converted dataframe.
-        """
-        for obs in self.modelobstypes.values():
-            if obs.name in df.columns:
-                df[obs.name] = obs.convert_to_standard_units(
-                    input_data=df[obs.name], input_unit=obs.model_unit
-                )
-
-        return df
-
     def _format_gee_df_structure(self, geedf: pd.DataFrame) -> pd.DataFrame:
         """
         Format a dataframe (constructed directly from GEE) to a modeldf.
@@ -1265,7 +1243,6 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 df = self._subset_to_obstypes(df=df, trg_obstypes=obstypes)
 
             # convert units + update attr
-            df = self._convert_units(df=df)
 
             return df
 

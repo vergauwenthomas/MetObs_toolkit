@@ -4,6 +4,9 @@ import logging
 from pathlib import Path
 import copy
 import pandas as pd
+import numpy as np
+
+import tempfile
 
 
 # Add the local source directory to Python path for development
@@ -209,6 +212,34 @@ class TestDataWithGaps:
         )
 
         assert_equality(dataset, solutionobj_B)  # dataset comparison
+
+    def test_interpolating_with_station_without_that_obstype(self):
+        # goal is to test if metobs is able to interpolate on a dataset,
+        # where there is a station without the target obstype.
+
+        df = pd.read_csv(metobs_toolkit.demo_datafile, sep=";")
+
+        trgstation = "vlinder03"
+        trg_column = "Temperatuur"
+        # all to Nan
+        df.loc[df["Vlinder"] == trgstation, trg_column] = np.nan
+
+        # to csv
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+            targetfile = tmpdir / "data_with_nans.csv"
+            df.to_csv(targetfile, index=False, sep=";")
+
+            dataset = metobs_toolkit.Dataset()
+            dataset.import_data_from_file(
+                template_file=metobs_toolkit.demo_template,
+                input_data_file=targetfile,
+                input_metadata_file=metobs_toolkit.demo_metadatafile,
+            )
+
+        dataset.repetitions_check(max_N_repetitions=8)
+        dataset.convert_outliers_to_gaps()
+        dataset.interpolate_gaps(target_obstype="temp", method="linear")
 
     def test_raw_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -454,7 +485,7 @@ class TestDataWithGaps:
             site=sta.site,
             datarecords=fake_data.to_numpy(),
             timestamps=fake_data.index.to_numpy(),
-            obstype=orig_modeltimeseries.obstype,
+            modelobstype=orig_modeltimeseries.modelobstype,
             modelname=orig_modeltimeseries.modelname,
             modelvariable=orig_modeltimeseries.modelvariable,
         )

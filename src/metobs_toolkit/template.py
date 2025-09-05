@@ -127,6 +127,10 @@ class Template:
         # Not actively used attributes
         self.filepath = None
 
+    def __repr__(self):
+        """Return a string representation for debugging."""
+        return f"Template instance"
+
     @log_entry
     def get_info(self, printout=True) -> Union[None, str]:
         """
