@@ -138,7 +138,7 @@ class Obstype:
 
     def __repr__(self):
         """Instance representation."""
-        return f"{type(self).__name__} instance of {self.name}"
+        return f"{type(self).__name__}(id={self._id()})"
 
     def __str__(self):
         """Text representation."""

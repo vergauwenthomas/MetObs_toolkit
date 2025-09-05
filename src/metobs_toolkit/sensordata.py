@@ -107,7 +107,7 @@ class SensorData:
 
     def __repr__(self):
         """Return a string representation for debugging."""
-        return f"Sensordata instance of {self.obstype.name} -> {self.stationname}"
+        return f"{type(self).__name__}(id={self._id()})"
 
     def __str__(self) -> str:
         """Return a string representation of the SensorData object."""

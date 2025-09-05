@@ -151,7 +151,7 @@ class Station:
 
     def __repr__(self):
         """Return a string representation for debugging."""
-        return f"Station instance of {self.name}"
+        return f"{type(self).__name__}(id={self._id()})"
 
     @log_entry
     def copy(self, deep: bool = True) -> "Station":

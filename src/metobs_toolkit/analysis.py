@@ -99,6 +99,13 @@ but a {type(Dataholder)}"
         # extra data
         self._obstypes = obstypes  # for displaying units in plots
 
+    def __repr__(self):
+        """Return a string representation for debugging."""
+        n_records = len(self.fulldf)
+        n_stations = len(self.fulldf['name'].unique()) if 'name' in self.fulldf.columns else 0
+        n_obstypes = len(self._df_cols)
+        return f"Analysis(records={n_records}, stations={n_stations}, obstypes={n_obstypes})"
+
     @copy_doc(analysis_df)
     @property
     def df(self) -> pd.DataFrame:
