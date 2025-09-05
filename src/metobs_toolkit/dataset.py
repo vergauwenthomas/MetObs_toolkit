@@ -2,7 +2,7 @@ import os
 import copy
 import pickle
 import logging
-from typing import Literal, Union
+from typing import Literal, Union, Tuple
 from pathlib import Path
 
 import pandas as pd
@@ -2682,7 +2682,7 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
 
 def filter_to_stations_with_target_obstype(
     stations: list[Station], target_obstype: str
-) -> (list[Station], list[Station]):
+) -> Tuple[list[Station], list[Station]]:
     """
     Split stations into those with and without the target observation type.
 

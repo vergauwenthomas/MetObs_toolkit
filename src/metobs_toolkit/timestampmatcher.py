@@ -415,8 +415,6 @@ def get_likely_frequency(
             f"Cannot estimate frequency from the provided timestamps. "
             f"This typically occurs when there are no valid timestamps, "
             f"only a single timestamp, or all timestamps are identical. "
-            f"Number of timestamps: {len(timestamps)}, "
-            f"Number of valid differences: {len(freqs)}"
         )
 
     if simplify:

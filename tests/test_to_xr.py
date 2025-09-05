@@ -91,7 +91,7 @@ class TestDemoData:
         assert ds["temp"].attrs["Label:repetitions outlier"] == 5
         assert "Label:repetitions outlier" not in ds["humidity"].attrs
 
-        # Test presens of GF labels
+        # Test presence of GF labels
         station.convert_outliers_to_gaps(obstype="temp")
         station.interpolate_gaps(
             target_obstype="temp", max_consec_fill=500, overwrite_fill=True
