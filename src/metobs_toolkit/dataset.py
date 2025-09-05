@@ -423,9 +423,7 @@ class Dataset:
             if sta.name in stationnames
         ]
         if not filtered_stations:
-            logger.warning(
-                "No stations matched the provided station names."
-            )
+            logger.warning("No stations matched the provided station names.")
 
         if len(filtered_stations) == 1:
             raise ValueError(

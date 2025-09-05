@@ -62,8 +62,6 @@ class Gap:
         self._obstype = obstype
         self._stationname = stationname
 
-    
-
     def __repr__(self):
         """Instance representation."""
         return f"{type(self).__name__}(station={self.stationname}, obstype={self.obstype.name}, start={self.start_datetime}, end={self.end_datetime}, status={self.fillstatus})"
@@ -689,9 +687,9 @@ class Gap:
         ]
 
         # update details
-        self._extra_info.loc[
-            self.records.notna()
-        ] = f"Successful raw modeldata fill using {modeltimeseries.modelvariable} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelname}"
+        self._extra_info.loc[self.records.notna()] = (
+            f"Successful raw modeldata fill using {modeltimeseries.modelvariable} (but converted to {self.obstype.std_unit}) of {modeltimeseries.modelname}"
+        )
         self._extra_info.loc[self.records.isna()] = "Unsuccessful raw modeldata fill."
 
     @log_entry
@@ -816,9 +814,9 @@ class Gap:
         # 3. Check if the gap records do not exceed the max_consec_fill
         if self.records.shape[0] > max_consec_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
-            self._extra_info[
-                :
-            ] = f"Gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill})."
+            self._extra_info[:] = (
+                f"Gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill})."
+            )
             logger.warning(
                 f"Cannot interpolate {self} because the gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill}). Increase the max_consec_fill or use another gapfill method."
             )
@@ -852,9 +850,9 @@ class Gap:
 
         # update details
         self._extra_info.loc[self.records.notna()] = "Successful interpolation"
-        self._extra_info.loc[
-            self.records.isna()
-        ] = "Unsuccessful interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
+        self._extra_info.loc[self.records.isna()] = (
+            "Unsuccessful interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
+        )
 
         return
 
