@@ -85,8 +85,8 @@ class TestDemoDataset:
         ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
         return fig
-    
-    @pytest.mark.mpl_image_compare    
+
+    @pytest.mark.mpl_image_compare
     def test_dataset_test_show_outliers_labelby_station(self):
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -98,8 +98,8 @@ class TestDemoDataset:
         ax = dataset.make_plot(colorby="station", show_outliers=False)
         fig = ax.get_figure()
         return fig
-    
-    @pytest.mark.mpl_image_compare    
+
+    @pytest.mark.mpl_image_compare
     def test_dataset_test_show_outliers_labelby_labels(self):
         #  1. get_startpoint data
         dataset = TestDemoDataset.solutionfixer.get_solution(
@@ -111,9 +111,7 @@ class TestDemoDataset:
         ax = dataset.make_plot(colorby="label", show_outliers=False)
         fig = ax.get_figure()
         return fig
-    
-    
-    
+
     @pytest.mark.mpl_image_compare
     def test_station_timeseries_plotting_existing_ax(self):
         #  1. get_startpoint data
@@ -220,7 +218,7 @@ class TestDataWithGaps:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdatawithgaps"}
     solutionfixer = SolutionFixer(solutiondir=solutionsdir)
 
-    @pytest.mark.mpl_image_compare    
+    @pytest.mark.mpl_image_compare
     def test_dataset_test_show_gaps_labelby_labels(self):
         #  1. get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -233,7 +231,6 @@ class TestDataWithGaps:
         ax = dataset.make_plot(colorby="label", show_gaps=False)
         fig = ax.get_figure()
         return fig
-    
 
     @pytest.mark.mpl_image_compare
     def test_interpolated_timeseries_plot(self):
