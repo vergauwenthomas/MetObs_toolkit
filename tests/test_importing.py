@@ -255,7 +255,6 @@ class TestDemoData:
             **TestDemoData.solkwargs, methodname="test_import_demo_data"
         )
         with tempfile.TemporaryDirectory() as tmpdir:
-            
             tmpdir = Path(tmpdir)
             # Save to parquet
             parquet_file = tmpdir / "test_dataset.parquet"
@@ -264,7 +263,6 @@ class TestDemoData:
             # Read back and compare
             df_original = dataset.df
             df_read = pd.read_parquet(parquet_file)
-
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)
@@ -352,7 +350,6 @@ class TestDemoData:
 
             # Convert 'value' column to float32 to match original
             df_read["value"] = df_read["value"].astype("float32")
-
 
         # Test if dataframes are equal
         pd.testing.assert_frame_equal(df_original, df_read)

@@ -516,9 +516,9 @@ observation(s) of one station)": 3,
                 if inv_obstype_desc[desc_return] == "ADD NEW OBSERVATION TYPE":
                     new_obstype, cur_unit = add_new_obstype()
 
-                    known_obstypes[new_obstype.name] = (
-                        new_obstype  # add to known obstypes
-                    )
+                    known_obstypes[
+                        new_obstype.name
+                    ] = new_obstype  # add to known obstypes
                     obstype = new_obstype.name
                     units = cur_unit
                     description = new_obstype.description
