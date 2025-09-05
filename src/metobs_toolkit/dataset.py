@@ -1722,7 +1722,6 @@ class Dataset:
         upper_threshold: float = 39.0,
         use_mp: bool = True,
     ) -> None:
-
         # Locate stations with the target_obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -1786,7 +1785,6 @@ class Dataset:
         max_N_repetitions: int = 5,
         use_mp: bool = True,
     ) -> None:
-
         # Locate stations with the target_obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -1818,7 +1816,6 @@ class Dataset:
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         use_mp: bool = True,
     ) -> None:
-
         # Locate stations with the target_obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -1853,7 +1850,6 @@ class Dataset:
         max_decrease_per_second: Union[int, float] = -0.0027,
         use_mp: bool = True,
     ) -> None:
-
         # Locate stations with the target_obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2308,7 +2304,6 @@ class Dataset:
     def convert_outliers_to_gaps(
         self, all_observations: bool = True, obstype: str = "temp"
     ) -> None:
-
         for sta in self.stations:
             sta.convert_outliers_to_gaps(
                 all_observations=all_observations, obstype=obstype
@@ -2331,11 +2326,15 @@ class Dataset:
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
     ) -> None:
-
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
 
-        for sta in self.stations:
+        # Filter to stations with target obstype
+        target_stations, _skip = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
+        for sta in target_stations:
             sta.interpolate_gaps(
                 target_obstype=target_obstype,
                 method=method,
@@ -2353,8 +2352,12 @@ class Dataset:
     def fill_gaps_with_raw_modeldata(
         self, target_obstype: str, overwrite_fill: bool = False
     ) -> None:
+        # Filter to stations with target obstype
+        target_stations, _skip = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
 
-        for sta in self.stations:
+        for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
                 target_obstype=target_obstype, overwrite_fill=overwrite_fill
             )
@@ -2370,11 +2373,15 @@ class Dataset:
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
     ) -> None:
-
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
-        for sta in self.stations:
+        # Filter to stations with target obstype
+        target_stations, _skip = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
+        for sta in target_stations:
             sta.fill_gaps_with_debiased_modeldata(
                 target_obstype=target_obstype,
                 leading_period_duration=leading_period_duration,
@@ -2394,11 +2401,15 @@ class Dataset:
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
     ) -> None:
-
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
-        for sta in self.stations:
+        # Filter to stations with target obstype
+        target_stations, _skip = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
+        for sta in target_stations:
             sta.fill_gaps_with_diurnal_debiased_modeldata(
                 target_obstype=target_obstype,
                 leading_period_duration=leading_period_duration,
@@ -2425,7 +2436,12 @@ class Dataset:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
 
-        for sta in self.stations:
+        # Filter to stations with target obstype
+        target_stations, _skip = filter_to_stations_with_target_obstype(
+            stations=self.stations, target_obstype=target_obstype
+        )
+
+        for sta in target_stations:
             sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
                 target_obstype=target_obstype,
                 leading_period_duration=leading_period_duration,
