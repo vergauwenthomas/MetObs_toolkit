@@ -2,7 +2,6 @@ import os
 import copy
 import pickle
 import logging
-import warnings
 from typing import Literal, Union
 from pathlib import Path
 
@@ -380,8 +379,8 @@ class Dataset:
             if sta.name in stationnames
         ]
         if not filtered_stations:
-            warnings.warn(
-                "No stations matched the provided station names.", UserWarning
+            logger.warning(
+                "No stations matched the provided station names."
             )
 
         if len(filtered_stations) == 1:
@@ -983,9 +982,8 @@ class Dataset:
         # If there are multiple model names or variables, warn and take first occurrence
         if len(trg_modeldatadf["modelname"].unique()) > 1:
             unique_models = trg_modeldatadf["modelname"].unique()
-            warnings.warn(
-                f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}",
-                UserWarning,
+            logger.warning(
+                f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}"
             )
             trg_modeldatadf = trg_modeldatadf[
                 trg_modeldatadf["modelname"] == unique_models[0]
@@ -993,9 +991,8 @@ class Dataset:
 
         if len(trg_modeldatadf["modelvariable"].unique()) > 1:
             unique_vars = trg_modeldatadf["modelvariable"].unique()
-            warnings.warn(
-                f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}",
-                UserWarning,
+            logger.warning(
+                f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}"
             )
             trg_modeldatadf = trg_modeldatadf[
                 trg_modeldatadf["modelvariable"] == unique_vars[0]

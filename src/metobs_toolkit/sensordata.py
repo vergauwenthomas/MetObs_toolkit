@@ -1,6 +1,5 @@
 import logging
 from typing import Literal, Union
-import warnings
 
 import copy
 import numpy as np
@@ -169,7 +168,7 @@ class SensorData:
             | bool(other.gaps)
             | bool(other.outliers)
         ):
-            warnings.warn(
+            logger.warning(
                 f"All stored outliers and gap info of {self} will not be present in the combined."
             )
 
