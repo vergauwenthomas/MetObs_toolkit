@@ -129,9 +129,9 @@ class DataParser:
         # Check if there is a column indicating the name of the station that is mapped
         assumed_name_col = list(self.template._get_data_name_map().keys())[0]
         if assumed_name_col is None:
-            rawdf["_dummy_name_column"] = (
-                self.template._get_single_station_default_name()
-            )
+            rawdf[
+                "_dummy_name_column"
+            ] = self.template._get_single_station_default_name()
             # Add it to the template
             self.template._set_dataname("_dummy_name_column")
         return rawdf

@@ -297,7 +297,6 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
         The Dataset with formatted datetime coordinate.
     """
     if "UTC" in str(ds["datetime"].dtype) or "tz" in str(ds["datetime"].dtype):
-
         # Convert to pandas datetime index for timezone handling
         dt_index = pd.DatetimeIndex(ds["datetime"].values)
 
