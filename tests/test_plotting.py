@@ -187,14 +187,16 @@ class TestDemoDataset:
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
-        
+
         # Apply a gross value check to create some outliers
-        dataset.gross_value_check(target_obstype="temp", lower_threshold=-10, upper_threshold=30)
-        
+        dataset.gross_value_check(
+            target_obstype="temp", lower_threshold=-10, upper_threshold=30
+        )
+
         # Check that we have some outliers
         outliers = dataset.outliersdf
         assert not outliers.empty, "Expected some outliers to be created"
-        
+
         # Create plot data for testing
         plotdf = (
             dataset.df.xs("temp", level="obstype", drop_level=False)
@@ -202,18 +204,18 @@ class TestDemoDataset:
             .set_index(["name", "obstype", "datetime"])
             .sort_index()
         )
-        
+
         # Get available stations for color mapping
         stations = plotdf.index.get_level_values("name").unique().tolist()
-        
+
         # Test colorby="label" behavior
         from metobs_toolkit.plot_collection import timeseries_plotting
         from metobs_toolkit.plot_collection import general_functions
         import matplotlib.pyplot as plt
-        
+
         # Create axes for testing
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        
+
         # Plot with show_outliers=True (should include outliers)
         ax1 = timeseries_plotting.plot_timeseries_color_by_label(
             plotdf=plotdf.copy(),
@@ -222,7 +224,7 @@ class TestDemoDataset:
             ax=ax1,
         )
         general_functions.set_legend(ax1)
-        
+
         # Plot with show_outliers=False (should exclude outliers)
         ax2 = timeseries_plotting.plot_timeseries_color_by_label(
             plotdf=plotdf.copy(),
@@ -231,22 +233,24 @@ class TestDemoDataset:
             ax=ax2,
         )
         general_functions.set_legend(ax2)
-        
+
         # Check that the legends are different (fewer items when outliers are hidden)
         legend1_labels = [t.get_text() for t in ax1.get_legend().get_texts()]
         legend2_labels = [t.get_text() for t in ax2.get_legend().get_texts()]
-        
+
         # The plot with show_outliers=False should have fewer legend items
-        assert len(legend2_labels) < len(legend1_labels), "Expected fewer legend items when outliers are hidden"
-        
+        assert len(legend2_labels) < len(
+            legend1_labels
+        ), "Expected fewer legend items when outliers are hidden"
+
         plt.close(fig)
-        
-        # Test colorby="station" behavior  
+
+        # Test colorby="station" behavior
         fig, (ax3, ax4) = plt.subplots(1, 2, figsize=(12, 5))
-        
+
         # Create colormap for station plotting using actual station names
         colormap = {station: f"C{i}" for i, station in enumerate(stations)}
-        
+
         # Plot with show_outliers=True (should include outliers)
         ax3 = timeseries_plotting.plot_timeseries_color_by_station(
             plotdf=plotdf.copy(),
@@ -255,7 +259,7 @@ class TestDemoDataset:
             show_gaps=True,
             ax=ax3,
         )
-        
+
         # Plot with show_outliers=False (should exclude outliers by setting them to NaN)
         ax4 = timeseries_plotting.plot_timeseries_color_by_station(
             plotdf=plotdf.copy(),
@@ -264,20 +268,25 @@ class TestDemoDataset:
             show_gaps=True,
             ax=ax4,
         )
-        
+
         # For station plotting, outliers should be set to NaN, so we should see fewer data points
         # Get all the lines from both plots and compare data point counts
         lines1 = ax3.get_lines()
         lines2 = ax4.get_lines()
-        
+
         # Count non-NaN data points in each plot
-        total_points_with_outliers = sum(len([x for x in line.get_ydata() if not pd.isna(x)]) for line in lines1)
-        total_points_without_outliers = sum(len([x for x in line.get_ydata() if not pd.isna(x)]) for line in lines2)
-        
+        total_points_with_outliers = sum(
+            len([x for x in line.get_ydata() if not pd.isna(x)]) for line in lines1
+        )
+        total_points_without_outliers = sum(
+            len([x for x in line.get_ydata() if not pd.isna(x)]) for line in lines2
+        )
+
         # The plot without outliers should have fewer data points
-        assert total_points_without_outliers < total_points_with_outliers, \
-            f"Expected fewer data points when outliers are hidden. With: {total_points_with_outliers}, Without: {total_points_without_outliers}"
-        
+        assert (
+            total_points_without_outliers < total_points_with_outliers
+        ), f"Expected fewer data points when outliers are hidden. With: {total_points_with_outliers}, Without: {total_points_without_outliers}"
+
         plt.close(fig)
 
 
