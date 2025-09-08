@@ -9,12 +9,43 @@ Created on Thu Mar  2 16:00:59 2023
 """
 import logging
 import pandas as pd
+import numpy as np
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger(__name__)
 
 pd.options.mode.copy_on_write = True
+
+@log_entry
+def convert_to_numeric_series(arr: np.ndarray,  datadtype: type = np.float32) -> pd.Series:
+    """Convert an array to a numeric pandas series.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Input array.
+
+    Returns
+    -------
+    pd.Series
+        Numeric pandas series.
+    """
+    # First try direct conversion to check if already numeric
+    series = pd.Series(arr)
+    if pd.api.types.is_numeric_dtype(series):
+        numseries = series
+    else:
+        # Convert to string, replace commas by dots, and 'nan' by np.nan
+        strseries = series.astype(str).str.replace(",", ".").replace("nan", np.nan)
+
+        # Convert to numeric, setting errors to 'coerce' (invalid parsing will be set as NaN)
+        numseries = pd.to_numeric(strseries, errors="coerce")
+    
+    # convert to target numeric time
+    numseries = numseries.astype(datadtype)
+
+    return numseries
 
 
 @log_entry

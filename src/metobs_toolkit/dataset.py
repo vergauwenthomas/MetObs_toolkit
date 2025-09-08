@@ -10,7 +10,10 @@ import numpy as np
 from matplotlib.pyplot import Axes
 import concurrent.futures
 
-from metobs_toolkit.backend_collection.df_helpers import save_concat
+from metobs_toolkit.backend_collection.df_helpers import (
+    save_concat,
+    convert_to_numeric_series
+)
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
@@ -2599,25 +2602,33 @@ def createstations(
             obstype = known_obstypes[obstypename]
             records = stationdata[obstype.name]
 
+            # 4. convert to numeric
+            records = convert_to_numeric_series(arr=records)
+
             # 4. Test minimum number of notna values
             if records.notna().sum() < 1:
                 logger.warning(
                     f"Station {stationname} -> {obstypename} is skipped because it has less than 1 valid record."
                 )
                 continue
-
+            
             # Get dataseries:
-            sensordata = SensorData(
-                stationname=stationname,
-                datarecords=records.to_numpy(),
-                timestamps=stationdata["datetime"].to_numpy(),
-                obstype=obstype,
-                timezone=timezone,
-                freq_estimation_method=freq_estimation_method,
-                freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
-                origin_simplify_tolerance=origin_simplify_tolerance,
-                timestamp_tolerance=timestamp_tolerance,
-            )
+            logger.debug(f'Creating sensordata for station "{stationname}" -> {obstype}')
+            try:
+                sensordata = SensorData(
+                    stationname=stationname,
+                    datarecords=records.to_numpy(),
+                    timestamps=stationdata["datetime"].to_numpy(),
+                    obstype=obstype,
+                    timezone=timezone,
+                    freq_estimation_method=freq_estimation_method,
+                    freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+                    origin_simplify_tolerance=origin_simplify_tolerance,
+                    timestamp_tolerance=timestamp_tolerance,
+                )
+            except Exception as e:
+                e.add_note(f'This error occurs when creating Sensordata for {stationname} -> {obstype}')
+                raise e
 
             # Add Sensordata:
             all_station_sensor_data.append(sensordata)
