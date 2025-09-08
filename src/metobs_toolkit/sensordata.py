@@ -7,7 +7,11 @@ import pandas as pd
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
-from metobs_toolkit.backend_collection.df_helpers import save_concat, to_timedelta
+from metobs_toolkit.backend_collection.df_helpers import (
+    save_concat,
+    to_timedelta,
+    convert_to_numeric_series,
+)
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
@@ -68,7 +72,7 @@ class SensorData:
         self._stationname = stationname
         self.obstype = obstype
         data = pd.Series(
-            data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
+            data=convert_to_numeric_series(datarecords, datadtype=datadtype).to_numpy(),
             index=self._format_timestamp_index(timestamps, timezone),
             name=obstype.name,
         )
