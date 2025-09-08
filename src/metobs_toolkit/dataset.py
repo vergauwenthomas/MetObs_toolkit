@@ -12,7 +12,7 @@ import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
-    convert_to_numeric_series
+    convert_to_numeric_series,
 )
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
@@ -2611,9 +2611,11 @@ def createstations(
                     f"Station {stationname} -> {obstypename} is skipped because it has less than 1 valid record."
                 )
                 continue
-            
+
             # Get dataseries:
-            logger.debug(f'Creating sensordata for station "{stationname}" -> {obstype}')
+            logger.debug(
+                f'Creating sensordata for station "{stationname}" -> {obstype}'
+            )
             try:
                 sensordata = SensorData(
                     stationname=stationname,
@@ -2627,7 +2629,9 @@ def createstations(
                     timestamp_tolerance=timestamp_tolerance,
                 )
             except Exception as e:
-                e.add_note(f'This error occurs when creating Sensordata for {stationname} -> {obstype}')
+                e.add_note(
+                    f"This error occurs when creating Sensordata for {stationname} -> {obstype}"
+                )
                 raise e
 
             # Add Sensordata:

@@ -10,7 +10,7 @@ from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
     to_timedelta,
-    convert_to_numeric_series
+    convert_to_numeric_series,
 )
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.xrconversions import sensordata_to_xr
