@@ -20,14 +20,16 @@ pd.options.mode.copy_on_write = True
 
 @log_entry
 def convert_to_numeric_series(
-    arr: np.ndarray, datadtype: type = np.float32
+    arr: "array-like", datadtype: type = np.float32
 ) -> pd.Series:
     """Convert an array to a numeric pandas series.
 
     Parameters
     ----------
-    arr : np.ndarray
+    arr : array-like
         Input array.
+    datadtype : type, optional
+        Target numeric data type, by default np.float32
 
     Returns
     -------
@@ -45,7 +47,7 @@ def convert_to_numeric_series(
         # Convert to numeric, setting errors to 'coerce' (invalid parsing will be set as NaN)
         numseries = pd.to_numeric(strseries, errors="coerce")
 
-    # convert to target numeric time
+    # convert to target numeric type
     numseries = numseries.astype(datadtype)
 
     return numseries

@@ -2630,7 +2630,7 @@ def createstations(
                 )
             except Exception as e:
                 e.add_note(
-                    f"This error occurs when creating Sensordata for {stationname} -> {obstype}"
+                    f"This error occurs when creating SensorData for {stationname} -> {obstype}"
                 )
                 raise e
 
