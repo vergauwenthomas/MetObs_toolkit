@@ -315,7 +315,9 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             return retstr
 
     @log_entry
-    def extract_static_point_data(self, metadf: pd.DataFrame) -> pd.DataFrame:
+    def extract_static_point_data(
+        self, metadf: pd.DataFrame, interpolation: str = "bilinear"
+    ) -> pd.DataFrame:
         """
         Extract point values at the locations in the metadata.
 
@@ -323,6 +325,9 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         ----------
         metadf : pandas.DataFrame
             Metadata dataframe with station locations.
+        interpolation : str, optional
+            Interpolation method for resampling. Options are 'bilinear' (default),
+            'bicubic', or 'nearest'. See Google Earth Engine documentation for details.
 
         Returns
         -------
@@ -337,6 +342,10 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         ee_fc = gee_api._df_to_features_point_collection(metadf)
 
         raster = gee_api.get_ee_obj(self)
+
+        # Apply resampling/interpolation method if specified
+        if interpolation != "bilinear":  # bilinear is GEE default, no need to resample
+            raster = raster.resample(interpolation)
 
         results = raster.sampleRegions(collection=ee_fc, scale=self.scale).getInfo()
 

@@ -1389,6 +1389,7 @@ class Dataset:
         geestaticdatasetmanager: GEEStaticDatasetManager,
         overwrite: bool = True,
         initialize_gee: bool = True,
+        interpolation: str = "bilinear",
     ) -> pd.DataFrame:
         """Extract static data from GEE dataset at Stations locations.
 
@@ -1404,6 +1405,9 @@ class Dataset:
             Default is True.
         initialize_gee : bool, optional
             If True, initializes the GEE API before fetching the data. Default is True.
+        interpolation : str, optional
+            Interpolation method for resampling. Options are 'bilinear' (default),
+            'bicubic', or 'nearest'. See Google Earth Engine documentation for details.
 
         Returns
         -------
@@ -1429,7 +1433,9 @@ class Dataset:
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdatasetmanager.extract_static_point_data(self.metadf)
+        geedf = geestaticdatasetmanager.extract_static_point_data(
+            self.metadf, interpolation=interpolation
+        )
 
         varname = geestaticdatasetmanager.name
         if overwrite:
@@ -1519,6 +1525,7 @@ class Dataset:
         overwrite: bool = True,
         initialize_gee: bool = True,
         apply_seamask_fix: bool = True,
+        interpolation: str = "bilinear",
     ) -> pd.DataFrame:
         """
         Retrieve Local Climate Zone (LCZ) for the stations using Google Earth Engine (GEE).
@@ -1533,6 +1540,9 @@ class Dataset:
             The LCZ map is only defined over land, and thus locations in sea
             will have a LCZ of Nan. If this argument is set to True, Nan values
             return by the GEE call are converted to the LCZ-G (water) category.
+        interpolation : str, optional
+            Interpolation method for resampling. Options are 'bilinear' (default),
+            'bicubic', or 'nearest'. See Google Earth Engine documentation for details.
         Returns
         -------
         pandas.DataFrame
@@ -1543,6 +1553,7 @@ class Dataset:
             default_datasets["LCZ"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
+            interpolation=interpolation,
         )
 
         if apply_seamask_fix:
@@ -1561,7 +1572,10 @@ class Dataset:
 
     @log_entry
     def get_altitude(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self,
+        overwrite: bool = True,
+        initialize_gee: bool = True,
+        interpolation: str = "bilinear",
     ) -> pd.DataFrame:
         """
         Retrieve altitude for the stations using Google Earth Engine (GEE).
@@ -1572,6 +1586,9 @@ class Dataset:
             If True, overwrite existing altitude data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
+        interpolation : str, optional
+            Interpolation method for resampling. Options are 'bilinear' (default),
+            'bicubic', or 'nearest'. See Google Earth Engine documentation for details.
 
         Returns
         -------
@@ -1583,6 +1600,7 @@ class Dataset:
             default_datasets["altitude"],
             overwrite=overwrite,
             initialize_gee=initialize_gee,
+            interpolation=interpolation,
         )
 
     @log_entry

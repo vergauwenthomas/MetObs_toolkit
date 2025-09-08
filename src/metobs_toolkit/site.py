@@ -334,7 +334,10 @@ class Site:
 
     @log_entry
     def get_gee_point_metadata(
-        self, geestaticdataset: GEEStaticDatasetManager, initialize_gee: bool = True
+        self,
+        geestaticdataset: GEEStaticDatasetManager,
+        initialize_gee: bool = True,
+        interpolation: str = "bilinear",
     ) -> Union[str, float]:
         """
         Extract static point metadata from a GEEStaticDatasetManager.
@@ -345,6 +348,9 @@ class Site:
             The GEE static dataset manager.
         initialize_gee : bool, optional
             Whether to initialize the GEE API, by default True.
+        interpolation : str, optional
+            Interpolation method for resampling. Options are 'bilinear' (default),
+            'bicubic', or 'nearest'. See Google Earth Engine documentation for details.
 
         Returns
         -------
@@ -370,7 +376,9 @@ class Site:
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdataset.extract_static_point_data(self.metadf)
+        geedf = geestaticdataset.extract_static_point_data(
+            self.metadf, interpolation=interpolation
+        )
         if geedf.empty:
             logger.warning(
                 f"No data returned by GEE when point extraction on {self} for {geestaticdataset.name}"
