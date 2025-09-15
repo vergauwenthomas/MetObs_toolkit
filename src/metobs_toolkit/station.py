@@ -1632,8 +1632,9 @@ class Station:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modeldata_name: str = None,
         linecolor: Union[str, None] = None,
-        show_outliers=True,
+        show_outliers=True, 
         show_gaps=True,
         title: Union[str, None] = None,
         ax: Union[Axes, None] = None,
@@ -1655,6 +1656,8 @@ class Station:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_name: str, optional
+            If show_modeldata = True and multiple modeldata is available, modeldata_name selects the required model data.
         linecolor : str or None, optional
             The color of the line for the model data. If None, a default categorical color map is used. Default is None.
         show_outliers : bool, optional
@@ -1697,6 +1700,7 @@ class Station:
 
             ax = self.make_plot_of_modeldata(
                 obstype=obstype,
+                modelname=modeldata_name,
                 linecolor=linecolor,
                 ax=ax,
                 figkwargs=figkwargs,
