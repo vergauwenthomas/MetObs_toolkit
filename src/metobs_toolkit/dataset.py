@@ -1176,6 +1176,8 @@ class Dataset:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modelobstype: str = None,
+        modeldata_kwargs: dict = {},
         show_outliers: bool = True,
         show_gaps: bool = True,
         title: Union[str, None] = None,
@@ -1189,6 +1191,9 @@ class Dataset:
         ----------
         obstype : str, optional
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
+        modelobstype: str, optional
+            The name of the ModelObstype to plot. It is only used if show_modeldata is True. If None, it is set equal to obstype.
+            The default is None.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1198,6 +1203,8 @@ class Dataset:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_kwargs: dict, optional
+            Additional keyword arguments passed to `Dataset.make_plot_of_modeldata()`, by default an empty dictionary. Use it for example to specify modelname if multiple model data is available.
         show_outliers : bool, optional
             If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
         show_gaps : bool, optional
@@ -1233,15 +1240,19 @@ class Dataset:
 
         colormap = None
         if show_modeldata:
+            if modelobstype is None:
+                modelobstype = obstype
+
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
             )
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modelobstype,
                 colormap=colormap,
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
+                **modeldata_kwargs,
             )
         if colorby == "station":
             if colormap is None:

@@ -1632,6 +1632,8 @@ class Station:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modelobstype: str = None,
+        modeldata_kwargs: dict = {},
         linecolor: Union[str, None] = None,
         show_outliers=True,
         show_gaps=True,
@@ -1646,6 +1648,9 @@ class Station:
         ----------
         obstype : str, optional
             The type of observation to plot. Default is "temp".
+        modelobstype: str, optional
+            The name of the ModelObstype to plot. It is only used if show_modeldata is True. If None, it is set equal to obstype.
+            The default is None.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1655,6 +1660,8 @@ class Station:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_kwargs: dict, optional
+            Additional keyword arguments passed to make_plot_of_modeldata(), by default an empty dictionary. Use it for example to specify modelname if multiple model data is available.
         linecolor : str or None, optional
             The color of the line for the model data. If None, a default categorical color map is used. Default is None.
         show_outliers : bool, optional
@@ -1690,17 +1697,20 @@ class Station:
             ax = plotting.create_axes(**figkwargs)
 
         if show_modeldata:
+            if modelobstype is None:
+                modelobstype = obstype
             if linecolor is None:
                 colormap = plotting.create_categorical_color_map([self.name])
             else:
                 colormap = {self.name: linecolor}
 
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modelobstype,
                 linecolor=linecolor,
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
+                **modeldata_kwargs,
             )
 
         # Create plotdf
