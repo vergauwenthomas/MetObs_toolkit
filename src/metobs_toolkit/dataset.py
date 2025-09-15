@@ -1187,7 +1187,7 @@ class Dataset:
         """
         Generate a time series plot for observational data.
 
-        Parameters
+        Parameters 
         ----------
         obstype : str, optional
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
