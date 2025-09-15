@@ -1174,9 +1174,10 @@ class Dataset:
     def make_plot(
         self,
         obstype: str = "temp",
+        modeltype: str = None,
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
-        modeldata_kwargs: dict = {},
+        modeldata_kwargs: dict = None,
         show_outliers: bool = True,
         show_gaps: bool = True,
         title: Union[str, None] = None,
@@ -1190,6 +1191,8 @@ class Dataset:
         ----------
         obstype : str, optional
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
+        modeltype: str, optional
+            The type of modeldata to plot. Default is set to obstype.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1236,11 +1239,17 @@ class Dataset:
 
         colormap = None
         if show_modeldata:
+            if modeltype is None:
+                modeltype = obstype
+            else:
+                # test if modeldata have sensordata
+                self._obstype_is_known_check(modeltype)
+
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
             )
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modeltype,
                 colormap=colormap,
                 ax=ax,
                 figkwargs=figkwargs,

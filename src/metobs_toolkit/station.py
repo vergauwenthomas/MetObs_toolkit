@@ -1630,9 +1630,10 @@ class Station:
     def make_plot(
         self,
         obstype: str = "temp",
+        modeltype: str = None,
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
-        modeldata_kwargs: dict = {},
+        modeldata_kwargs: dict = None,
         linecolor: Union[str, None] = None,
         show_outliers=True,
         show_gaps=True,
@@ -1647,6 +1648,8 @@ class Station:
         ----------
         obstype : str, optional
             The type of observation to plot. Default is "temp".
+        modeltype: str, optional
+            The type of modeldata to plot. Default is set to obstype.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1693,13 +1696,19 @@ class Station:
             ax = plotting.create_axes(**figkwargs)
 
         if show_modeldata:
+            if modeltype is None:
+                modeltype = obstype
+            else:
+                # test if modeldata have sensordata
+                self._obstype_is_known_check(modeltype)
+
             if linecolor is None:
                 colormap = plotting.create_categorical_color_map([self.name])
             else:
                 colormap = {self.name: linecolor}
 
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modeltype,
                 linecolor=linecolor,
                 ax=ax,
                 figkwargs=figkwargs,
