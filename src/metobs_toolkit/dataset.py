@@ -1176,6 +1176,7 @@ class Dataset:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modeldata_kwargs: dict = {},
         show_outliers: bool = True,
         show_gaps: bool = True,
         title: Union[str, None] = None,
@@ -1198,6 +1199,8 @@ class Dataset:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_kwargs: dict, optional
+            Additional keyword arguments passed to make_plot_of_modeldata(), by default an empty dictionary. Use it for example to specify modelname if multiple model data is available.
         show_outliers : bool, optional
             If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
         show_gaps : bool, optional
@@ -1242,6 +1245,7 @@ class Dataset:
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
+                **modeldata_kwargs
             )
         if colorby == "station":
             if colormap is None:
