@@ -1241,9 +1241,6 @@ class Dataset:
         if show_modeldata:
             if modeltype is None:
                 modeltype = obstype
-            else:
-                # test if modeldata have sensordata
-                self._obstype_is_known_check(modeltype)
 
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
