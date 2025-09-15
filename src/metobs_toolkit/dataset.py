@@ -1245,7 +1245,7 @@ class Dataset:
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
-                **modeldata_kwargs
+                **modeldata_kwargs,
             )
         if colorby == "station":
             if colormap is None:

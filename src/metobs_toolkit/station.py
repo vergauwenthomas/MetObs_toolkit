@@ -1634,7 +1634,7 @@ class Station:
         show_modeldata: bool = False,
         modeldata_kwargs: dict = {},
         linecolor: Union[str, None] = None,
-        show_outliers=True, 
+        show_outliers=True,
         show_gaps=True,
         title: Union[str, None] = None,
         ax: Union[Axes, None] = None,
@@ -1704,7 +1704,7 @@ class Station:
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
-                **modeldata_kwargs
+                **modeldata_kwargs,
             )
 
         # Create plotdf
