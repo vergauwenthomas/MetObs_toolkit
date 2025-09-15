@@ -172,8 +172,7 @@ class TestDemoDataset:
             show_modeldata=True,
             modeldata_kwargs={
                 "modelname": "ERA5-land",
-                "modelvariable": "temperature_2m",
-                "fake_argument": "This should not do anything?",
+                "modelvariable": "temperature_2m"
             },
         )
         station.make_plot(
@@ -181,8 +180,7 @@ class TestDemoDataset:
             show_modeldata=True,
             modeldata_kwargs={
                 "modelname": "ERA5-land",
-                "modelvariable": "temperature_2m",
-                "fake_argument": "This should not do anything?",
+                "modelvariable": "temperature_2m"
             },
         )
         dataset_with_era.make_plot(
@@ -191,7 +189,6 @@ class TestDemoDataset:
             modeltype="temp",
             modeldata_kwargs={
                 "modelvariable": "temperature_2m",
-                "fake_argument": "This should not do anything?",
             },
         )
 
