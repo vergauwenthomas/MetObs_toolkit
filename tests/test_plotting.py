@@ -154,6 +154,27 @@ class TestDemoDataset:
         ax = station.make_plot_of_modeldata(obstype="temp")
         fig = ax.get_figure()
         return fig
+    
+    
+    def test_argtest_modeldata_args(self):
+        #  1. get_startpoint data
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder05")
+        #Test passing the modelnamearg
+        station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
+        station.make_plot(obstype='humidity', show_modeldata=True, 
+                          modeldata_kwargs={"modelname": "ERA5-land", 
+                                            "modelvariable": 'temperature_2m', 
+                                            'fake_argument' : 'This should not do anything?'})
+        dataset_with_era.make_plot(obstype='humidity', show_modeldata=True, 
+                          modeldata_kwargs={"modelvariable": 'temperature_2m', 
+                                            'fake_argument' : 'This should not do anything?'})
+        
 
     @pytest.mark.mpl_image_compare
     def test_modeldatatimeseries_timeseries(self):
