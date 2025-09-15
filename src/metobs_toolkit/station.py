@@ -1633,7 +1633,7 @@ class Station:
         modeltype: str = None,
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
-        modeldata_kwargs: dict = None,
+        modeldata_kwargs: dict = {},
         linecolor: Union[str, None] = None,
         show_outliers=True,
         show_gaps=True,

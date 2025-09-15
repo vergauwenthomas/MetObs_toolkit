@@ -1177,7 +1177,7 @@ class Dataset:
         modeltype: str = None,
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
-        modeldata_kwargs: dict = None,
+        modeldata_kwargs: dict = {},
         show_outliers: bool = True,
         show_gaps: bool = True,
         title: Union[str, None] = None,
