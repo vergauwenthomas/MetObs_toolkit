@@ -168,6 +168,16 @@ class TestDemoDataset:
         station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
         station.make_plot(
             obstype="humidity",
+            modeltype ="temp",
+            show_modeldata=True,
+            modeldata_kwargs={
+                "modelname": "ERA5-land",
+                "modelvariable": "temperature_2m",
+                "fake_argument": "This should not do anything?",
+            },
+        )
+        station.make_plot(
+            obstype="temp",
             show_modeldata=True,
             modeldata_kwargs={
                 "modelname": "ERA5-land",
@@ -178,6 +188,7 @@ class TestDemoDataset:
         dataset_with_era.make_plot(
             obstype="humidity",
             show_modeldata=True,
+            modeltype="temp",
             modeldata_kwargs={
                 "modelvariable": "temperature_2m",
                 "fake_argument": "This should not do anything?",
