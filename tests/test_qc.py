@@ -491,7 +491,7 @@ class TestDemoDataset:
         assert_equality(outliersdf_1_iter, solutionobj_1iter)
         assert_equality(outliersdf_2_iter, solutionobj_2iter)
 
-        # Tricky thing is that with big radii, a station can appear in mulitple
+        # Tricky thing is that with big radii, a station can appear in multiple
         # buddy groups, which can lead to edge cases. Here we test that the code
         # runs without errors
 
