@@ -606,10 +606,10 @@ value for 'altitude'"
 
         # Add reference to the iteration in the msg of the outliers
         outliers = [
-            (station, timestamp, f'{msg} (iteration {i}/{N_iter})')
+            (station, timestamp, f"{msg} (iteration {i}/{N_iter})")
             for station, timestamp, msg in outliers
-            ]
-           
+        ]
+
         outliersbin.extend(outliers)
         i += 1
 

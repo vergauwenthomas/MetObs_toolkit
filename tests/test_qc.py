@@ -388,7 +388,6 @@ class TestDemoDataset:
 
         assert_equality(outliersdf_2_iter, solutionobj_2iter)  # dataset comparison
 
-
     def test_buddy_check_with_big_radius(self):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -401,7 +400,7 @@ class TestDemoDataset:
         # Tricky thing is that with big radii, a station can appear in mulitple
         # buddy groups, which can lead to edge cases. Here we test that the code
         # runs without errors
-            
+
         dataset.buddy_check(
             target_obstype="temp",
             spatial_buddy_radius=50000,  # Large radius
@@ -411,7 +410,6 @@ class TestDemoDataset:
             instantaneous_tolerance=pd.Timedelta("5min"),
             use_mp=False,  # Deterministic behavior
         )
-    
 
     def test_buddy_check_with_LCZ_safety_net(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -492,12 +490,11 @@ class TestDemoDataset:
         # validate expression
         assert_equality(outliersdf_1_iter, solutionobj_1iter)
         assert_equality(outliersdf_2_iter, solutionobj_2iter)
-        
-        
+
         # Tricky thing is that with big radii, a station can appear in mulitple
         # buddy groups, which can lead to edge cases. Here we test that the code
         # runs without errors
-            
+
         dataset.buddy_check_with_LCZ_safety_net(
             target_obstype="temp",
             spatial_buddy_radius=50000,  # Large radius
