@@ -397,7 +397,7 @@ class TestDemoDataset:
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
 
-        # Tricky thing is that with big radii, a station can appear in mulitple
+        # Tricky thing is that with big radii, a station can appear in multiple
         # buddy groups, which can lead to edge cases. Here we test that the code
         # runs without errors
 

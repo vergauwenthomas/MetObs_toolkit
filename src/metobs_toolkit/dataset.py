@@ -2025,7 +2025,7 @@ class Dataset:
         )
 
         # Handle duplicates
-        # Note: duplicates can occure when a specific record was part of more then one
+        # Note: duplicates can occur when a specific record was part of more than one
         # outlier group, and is flagged by more than one group. If so, keep the
         # first row, but concat the detail_msg's (since they describe the outlier group)
 
@@ -2240,7 +2240,7 @@ class Dataset:
         )
 
         # Handle duplicates
-        # Note: duplicates can occure when a specific record was part of more then one
+        # Note: duplicates can occur when a specific record was part of more than one
         # outlier group, and is flagged by more than one group. If so, keep the
         # first row, but concat the detail_msg's (since they describe the outlier group)
 
