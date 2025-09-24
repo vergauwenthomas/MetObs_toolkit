@@ -468,6 +468,64 @@ class TestDemoDataset:
         assert_equality(outliersdf_1_iter, solutionobj_1iter)
         assert_equality(outliersdf_2_iter, solutionobj_2iter)
 
+    def test_buddy_check_duplicate_timestamps_regression(self):
+        """
+        Regression test for issue #581: buddy_check failing with
+        'length of the index does not match' error when duplicate timestamps exist.
+
+        This test specifically targets the scenario where buddy_check creates
+        duplicate outlier timestamps that need to be handled properly.
+        """
+        # Get demo dataset
+        dataset = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # Test buddy check with aggressive settings more likely to create
+        # scenarios where duplicate timestamp handling is needed
+        print("Testing buddy_check duplicate timestamp handling...")
+
+        try:
+            dataset.buddy_check(
+                target_obstype="temp",
+                spatial_buddy_radius=50000,  # Large radius
+                min_sample_size=2,
+                spatial_z_threshold=1.8,  # Lower threshold
+                N_iter=3,  # Multiple iterations increases chance of edge cases
+                instantaneous_tolerance=pd.Timedelta("5min"),
+                use_mp=False,  # Deterministic behavior
+            )
+
+            # If we get here, the fix worked - no ValueError about length mismatch
+            print(f"✓ SUCCESS: Found {len(dataset.outliersdf)} outliers without errors")
+
+        except ValueError as e:
+            if "length of the index does not match" in str(e):
+                pytest.fail(
+                    f"Regression detected: {e}. The duplicate timestamp fix is broken!"
+                )
+            else:
+                # Other ValueError - let it bubble up
+                raise
+
+        # Additional validation: ensure outliers DataFrame is properly structured
+        if not dataset.outliersdf.empty:
+            outliers_df = dataset.outliersdf
+            # Check that all required columns exist and have consistent lengths
+            assert (
+                "value" in outliers_df.columns
+            ), "Outliers DataFrame missing 'value' column"
+            # Verify no duplicate indices exist in individual outlier records
+            for station in dataset.stations:
+                if "temp" in station.sensordata:
+                    sensor = station.sensordata["temp"]
+                    for outlier_info in sensor.outliers:
+                        outlier_df = outlier_info["df"]
+                        duplicated_indices = outlier_df.index.duplicated()
+                        assert (
+                            not duplicated_indices.any()
+                        ), f"Found duplicate indices in outlier data for {station.name}"
+
 
 if __name__ == "__main__":
     # pytest.main([__file__])
