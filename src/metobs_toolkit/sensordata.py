@@ -133,7 +133,7 @@ class SensorData:
             )
 
         # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
-        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+        # and a additional gap (inbetween) can occur. Outliers and Gaps are recomputed !!!
 
         # Think of what will happen if you merge two sensordata series, where
         # The first is QC'ed and at a hourly resolution. The second overlaps the
@@ -159,7 +159,7 @@ class SensorData:
         combined_series = selfrecords.combine_first(otherrecords)
 
         # NOTE! combining outliers and gaps is NOT TRIVIAL !! Frequency is not guaranteed equal
-        # and a additional gap (inbetween) can occure. Outliers and Gaps are recomputed !!!
+        # and a additional gap (inbetween) can occur. Outliers and Gaps are recomputed !!!
 
         # Think of what will happen if you merge two sensordata series, where
         # The first is QC'ed and at a hourly resolution. The second overlaps the
