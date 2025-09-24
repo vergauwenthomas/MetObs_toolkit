@@ -2020,7 +2020,20 @@ class Dataset:
         # timestamps to the original timestamps
 
         # convert to a dataframe
-        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+        alloutliersdf = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+
+        # Handle duplicates 
+        # Note: duplicates can occure when a specific record was part of more then one
+        # outlier group, and is flagged by more than one group. If so, keep the 
+        # first row, but concat the detail_msg's (since they describe the outlier group)
+        
+        if not alloutliersdf.empty:
+            # Group by name and datetime, concatenate detail_msg for duplicates
+            alloutliersdf = (
+                alloutliersdf.groupby(['name', 'datetime'], as_index=False)
+                .agg({'detail_msg': lambda x: ' | '.join(x)})
+                .reset_index(drop=True)
+            )
 
         # update all the sensordata
         for station in target_stations:
@@ -2028,7 +2041,7 @@ class Dataset:
             sensorddata = station.get_sensor(target_obstype)
 
             # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            outldt = pd.DatetimeIndex(alloutliersdf[alloutliersdf["name"] == station.name]["datetime"])
 
             if not outldt.empty:
                 # convert to original timestamps
@@ -2041,7 +2054,7 @@ class Dataset:
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
-                    "detail_msg": df[df["name"] == station.name][
+                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
                         "detail_msg"
                     ].to_numpy()
                 },
@@ -2218,7 +2231,20 @@ class Dataset:
         # timestamps to the original timestamps
 
         # convert to a dataframe
-        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+        alloutliersdf = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+
+        # Handle duplicates 
+        # Note: duplicates can occure when a specific record was part of more then one
+        # outlier group, and is flagged by more than one group. If so, keep the 
+        # first row, but concat the detail_msg's (since they describe the outlier group)
+        
+        if not alloutliersdf.empty:
+            # Group by name and datetime, concatenate detail_msg for duplicates
+            alloutliersdf = (
+                alloutliersdf.groupby(['name', 'datetime'], as_index=False)
+                .agg({'detail_msg': lambda x: ' | '.join(x)})
+                .reset_index(drop=True)
+            )
 
         # update all the sensordata
         for station in target_stations:
@@ -2226,7 +2252,7 @@ class Dataset:
             sensorddata = station.get_sensor(target_obstype)
 
             # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            outldt = pd.DatetimeIndex(alloutliersdf[alloutliersdf["name"] == station.name]["datetime"])
 
             if not outldt.empty:
                 # convert to original timestamps
@@ -2239,7 +2265,7 @@ class Dataset:
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
-                    "detail_msg": df[df["name"] == station.name][
+                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
                         "detail_msg"
                     ].to_numpy()
                 },
