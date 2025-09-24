@@ -453,10 +453,24 @@ class SensorData:
                     )
 
         outlier_values = self.series.loc[outliertimestamps]
-        outlier_values = outlier_values[~outlier_values.index.duplicated(keep="first")]
+        
+        # Track which timestamps were kept after deduplication
+        original_mask = ~outlier_values.index.duplicated(keep="first")
+        outlier_values = outlier_values[original_mask]
 
         datadict = {"value": outlier_values.to_numpy()}
-        datadict.update(extra_columns)
+        
+        # Filter extra_columns to match the deduplicated outlier_values
+        filtered_extra_columns = {}
+        for key, values in extra_columns.items():
+            if isinstance(values, (list, tuple, np.ndarray)):
+                # Apply the same mask to filter out entries corresponding to duplicate timestamps
+                filtered_extra_columns[key] = np.array(values)[original_mask]
+            else:
+                # If it's a scalar or other type, keep as is
+                filtered_extra_columns[key] = values
+        
+        datadict.update(filtered_extra_columns)
         df = pd.DataFrame(data=datadict, index=outlier_values.index)
 
         self.outliers.append(
