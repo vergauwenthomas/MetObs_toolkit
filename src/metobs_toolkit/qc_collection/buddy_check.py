@@ -604,6 +604,12 @@ value for 'altitude'"
             # again in the following iteration. (A different result can occure
             # if the spatial-/savetynet-sample is changed in the next iteration.
 
+        # Add reference to the iteration in the msg of the outliers
+        outliers = [
+            (station, timestamp, f'{msg} (iteration {i}/{N_iter})')
+            for station, timestamp, msg in outliers
+            ]
+           
         outliersbin.extend(outliers)
         i += 1
 
