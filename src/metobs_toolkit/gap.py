@@ -1009,4 +1009,4 @@ class Gap:
             return None, None, False
 
         logger.debug(f"Exiting _setup_lead_and_trail_for_debias_gapfill for {self}")
-        return lead_period, trail_perio
+        return lead_period, trail_period
