@@ -1555,21 +1555,20 @@ class Dataset:
 
         lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
-            overwrite=overwrite,
+            overwrite=False, #will be done below
             initialize_gee=initialize_gee,
         )
 
+        
         if apply_seamask_fix:
             lcz_water = default_datasets["LCZ"].class_map[17]  # LCZ-G water
-            # overwrite the site attribute
-            if overwrite:
-                seastations = lcz_df[lcz_df["LCZ"].isna()]
-                for station in seastations.index:
-                    self.get_station(station).site.set_geedata(
-                        default_datasets["LCZ"].name, lcz_water
-                    )
             # replace the lcz in the return df
             lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
+        
+        # overwrite the site attribute
+        if overwrite:
+            for station, lczval in lcz_df.iterrows():
+                self.get_station(station).site.set_LCZ(lczval["LCZ"])  
 
         return lcz_df
 
@@ -1593,12 +1592,18 @@ class Dataset:
             A DataFrame containing the altitude data for the stations, with the station names as index.
         """
 
-        return self.get_static_gee_point_data(
+        alt_df =  self.get_static_gee_point_data(
             default_datasets["altitude"],
-            overwrite=overwrite,
+            overwrite=False, #will be done below
             initialize_gee=initialize_gee,
         )
+        
+        if overwrite:
+            for staname, geedict in alt_df.to_dict(orient="index").items():
+                self.get_station(staname).site.set_altitude(geedict["altitude"])
 
+        return alt_df
+    
     @log_entry
     def get_landcover_fractions(
         self,

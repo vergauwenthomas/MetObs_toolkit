@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager
+from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager, global_LCZ_map
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsAdditionError,
@@ -43,6 +43,10 @@ class Site:
         self._lat = float(latitude)
         self._lon = float(longitude)
 
+        # Common/special physical properties
+        self._LCZ = np.nan #set by the setup
+        self._altitude = np.nan #set by the setup
+        
         # additional data
         self._extradata = dict(extradata)
 
@@ -51,6 +55,26 @@ class Site:
         self._gee_buffered_fractions = (
             {}
         )  # example: {100: {pervious: 0.8, impervious: 0.2}}
+        
+        self.setup()
+        
+        
+    def setup(self):
+        #transfer altitude to attr
+        if "altitude" in self.extradata.keys():
+            logger.debug(f'Setting altitude({float(self.extradata["altitude"])}) attribute for site {self.stationname} from extradata')
+            self._altitude = float(self.extradata["altitude"])
+        else:
+           self._altitude = np.nan
+           
+        #transfer LCZ to attr
+        if "LCZ" in self.extradata.keys():
+            logger.debug(f'Setting LCZ attribute for site {self.stationname} from extradata')
+            self._LCZ = str(self.extradata["LCZ"])
+        else:
+           self._LCZ = np.nan
+           
+        
 
     def _id(self) -> str:
         """A physical unique id.
@@ -71,11 +95,20 @@ class Site:
         lon_equal = (self.lon == other.lon) or (
             pd.isnull(self.lon) and pd.isnull(other.lon)
         )
+        alt_equal = (self.altitude == other.altitude) or (
+            pd.isnull(self.altitude) and pd.isnull(other.altitude)
+        )
+        lcz_equal = (self.LCZ == other.LCZ) or (
+            pd.isnull(self.LCZ) and pd.isnull(other.LCZ)
+        )
+
 
         return (
             self.stationname == other.stationname
             and lat_equal
             and lon_equal
+            and alt_equal
+            and lcz_equal
             and self.extradata == other.extradata
             and self._geedata == other._geedata
             and self._gee_buffered_fractions == other._gee_buffered_fractions
@@ -97,6 +130,9 @@ class Site:
                 f"Could not sum {self} and {other}, since the name or coordinates are not equal."
             )
 
+        new_alt = next((x for x in [self.altitude, other.altitude] if not pd.isna(x)), np.nan)
+        new_LCZ = next((x for x in [self.LCZ, other.LCZ] if not pd.isna(x)), np.nan)
+
         # Update metadata (dict-style)
         new_extradata = copy.copy(self.extradata)
         new_extradata.update(other.extradata)  # dictupdate
@@ -116,12 +152,15 @@ class Site:
         )
         newsite._geedata = new_geedata
         newsite._gee_buffered_fractions = new_gee_buffered
+
+        newsite.set_altitude(new_alt)
+        newsite.set_LCZ(new_LCZ)
         return newsite
 
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"{type(self).__name__}(id={self._id()})"
-
+    
     @property
     def stationname(self) -> str:
         """Return the station name."""
@@ -136,30 +175,16 @@ class Site:
     def lon(self) -> float:
         """Return the longitude."""
         return self._lon
-
+    
     @property
-    def altitude(self):
-        """Return the altitude if available, else NaN."""
-        if "altitude" in self.extradata.keys():
-            # if altitude info was extracted from the metadatafile
-            return self.extradata["altitude"]
-        elif "altitude" in self._geedata.keys():
-            # if altitude info was extracted from the GEE API
-            return self._geedata["altitude"]
-        else:
-            return np.nan
-
+    def altitude(self) -> Union[float, np.nan]:
+        """Return the altitude."""
+        return self._altitude
+    
     @property
-    def LCZ(self):
-        """Return the LCZ if available, else NaN."""
-        if "LCZ" in self.extradata.keys():
-            # if altitude info was extracted from the metadatafile
-            return self.extradata["LCZ"]
-        elif "LCZ" in self._geedata.keys():
-            # if altitude info was extracted from the GEE API
-            return self._geedata["LCZ"]
-        else:
-            return np.nan
+    def LCZ(self) -> Union[str, np.nan]:
+        """Return the LCZ."""
+        return self._LCZ
 
     @property
     def buffered_fractions(self):
@@ -178,6 +203,8 @@ class Site:
             data={
                 "lat": self.lat,
                 "lon": self.lon,
+                "altitude": self.altitude,
+                "LCZ": self.LCZ,
                 **self._geedata,  # unfold all gee extracted data
                 **self.extradata,
             },  # unfold all extra data
@@ -200,6 +227,39 @@ class Site:
     # ------------------------------------------
     #   Setters
     # ------------------------------------------
+    
+    @log_entry
+    def set_altitude(self, altitude: Union[float, np.nan]) -> None:
+        """
+        Set the altitude attribute.
+
+        Parameters
+        ----------
+        altitude : float
+            Altitude value to set.
+        """
+        self._altitude = float(altitude)
+        
+    @log_entry
+    def set_LCZ(self, LCZ: Union[str, np.nan]) -> None:
+        """
+        Set the LCZ attribute.
+
+        Parameters
+        ----------
+        LCZ : str
+            LCZ value to set.
+        """
+        #test if label is compatible with LCZ from global_LCZ_map
+        if pd.isna(LCZ):
+            self._LCZ = np.nan
+        else:
+            all_possible_labels = list(global_LCZ_map.class_map.values())
+            if LCZ not in all_possible_labels:
+                raise ValueError(f"LCZ should be one of {all_possible_labels}, not {LCZ}")
+            self._LCZ = str(LCZ)
+
+
 
     @log_entry
     def set_geedata(self, dataname: str, value: Union[str, float]) -> None:
@@ -268,17 +328,6 @@ class Site:
         """
         return not pd.isnull(self.altitude)
 
-    @log_entry
-    def flag_altitude_from_gee(self) -> bool:
-        """
-        Check if altitude information is from GEE.
-
-        Returns
-        -------
-        bool
-            True if altitude is from GEE, False otherwise.
-        """
-        return "altitude" in self._geedata.keys()
 
     @log_entry
     def flag_has_LCZ(self) -> bool:
@@ -292,17 +341,6 @@ class Site:
         """
         return not pd.isnull(self.LCZ)
 
-    @log_entry
-    def flag_LCZ_from_gee(self) -> bool:
-        """
-        Check if LCZ information is from GEE.
-
-        Returns
-        -------
-        bool
-            True if LCZ is from GEE, False otherwise.
-        """
-        return "LCZ" in self._geedata.keys()
 
     @log_entry
     def flag_has_landcoverfractions(self) -> bool:
@@ -466,25 +504,17 @@ class Site:
             infostr += printing.print_fmt_line("Coordinates are unknown", nident_root)
 
         # Altitude
-        if self.flag_has_altitude() & (not self.flag_altitude_from_gee()):
+        if self.flag_has_altitude():
             infostr += printing.print_fmt_line(
-                f"Altitude: {self.altitude} (m) (from metadata file)", nident_root
-            )
-        elif self.flag_has_altitude() & (self.flag_altitude_from_gee()):
-            infostr += printing.print_fmt_line(
-                f"Altitude: {self.altitude} (m) (from GEE extraction)", nident_root
+                f"Altitude: {self.altitude} (m)", nident_root
             )
         else:
             infostr += printing.print_fmt_line("Altitude is unknown", nident_root)
 
         # LCZ
-        if self.flag_has_LCZ() & (self.flag_LCZ_from_gee()):
+        if self.flag_has_LCZ():
             infostr += printing.print_fmt_line(
-                f"LCZ: {self.LCZ} (from GEE extraction)", nident_root
-            )
-        elif self.flag_has_LCZ():
-            infostr += printing.print_fmt_line(
-                f"LCZ: {self.LCZ} (from metadata file)", nident_root
+                f"LCZ: {self.LCZ}", nident_root
             )
         else:
             infostr += printing.print_fmt_line("LCZ is unknown", nident_root)
