@@ -311,7 +311,7 @@ class Gap:
             # warnings and gap attributes are already updated
             return
                 # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+        if (self.end_datetime - self.start_datetime) >= max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
                 f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
@@ -450,7 +450,7 @@ class Gap:
             # warnings and gap attributes are already been updated
             return
                 # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+        if (self.end_datetime - self.start_datetime) >= max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
                 f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
@@ -608,7 +608,7 @@ class Gap:
             # warnings and gap attributes are already been updated
             return
                 # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+        if (self.end_datetime - self.start_datetime) >= max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
                 f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
@@ -704,7 +704,7 @@ class Gap:
         if modelseries.index.tz != gapseries.index.tz:
             modelseries = modelseries.tz_convert(gapseries.index.tz)
                 # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+        if (self.end_datetime - self.start_datetime) >= max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
                 f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
@@ -804,8 +804,10 @@ class Gap:
 
         Note
         -------
-        The impact of `max_consec_fill` is highly dependent on the resolution
-        of your records.
+        The amount records that will be filled depends on the `max_gap_duration_to_fill` and the time-resolution of the gap.
+        For example, a gap of 2 hours with a time-resolution of 10 minutes contains 12 missing records. If the `max_gap_duration_to_fill` is set to 1 hour, none of these records will be filled.
+        If the `max_gap_duration_to_fill` is set to 3 hours, all 12 records will be filled.
+        
 
         Note
         ------
@@ -817,7 +819,6 @@ class Gap:
         self._fillkwargs = {
             "applied_gapfill_method": "interpolation",
             "method": method,
-            "max_consec_fill": max_consec_fill,
             "n_leading_anchors": n_leading_anchors,
             "n_trailing_anchors": n_trailing_anchors,
             "max_lead_to_gap_distance": max_lead_to_gap_distance,
@@ -864,7 +865,7 @@ class Gap:
             return
 
         # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+        if (self.end_datetime - self.start_datetime) >= max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
                 f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
@@ -884,7 +885,6 @@ class Gap:
         # Interpolate series
         tofill_series = tofill_series.interpolate(
             method=method,
-            limit=max_consec_fill,
             limit_area="inside",
             **method_kwargs,
         )
