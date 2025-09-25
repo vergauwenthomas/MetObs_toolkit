@@ -1784,6 +1784,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1806,6 +1807,9 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
 
         Returns
         -------
@@ -1833,7 +1837,7 @@ class Station:
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
-            modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill
+            modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill, max_gap_duration_to_fill=max_gap_duration_to_fill
         )
 
     @log_entry
@@ -1847,6 +1851,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1881,7 +1886,9 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         Returns
         -------
         None
@@ -1923,6 +1930,7 @@ class Station:
                 "min_trailing_records_total": min_trailing_records_total,
             },
             overwrite_fill=overwrite_fill,
+            max_gap_duration_to_fill=max_gap_duration_to_fill
         )
 
     @log_entry
@@ -1935,6 +1943,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -1967,6 +1976,9 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+         max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
 
         Returns
         -------
@@ -2016,6 +2028,7 @@ class Station:
                 "min_debias_sample_size": min_debias_sample_size,
             },
             overwrite_fill=overwrite_fill,
+            max_gap_duration_to_fill=max_gap_duration_to_fill
         )
 
     @log_entry
@@ -2029,6 +2042,7 @@ class Station:
         overwrite_fill=False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -2069,6 +2083,9 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+         max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
 
         Returns
         -------
@@ -2121,6 +2138,7 @@ class Station:
                 "min_lead_debias_sample_size": min_lead_debias_sample_size,
                 "min_trail_debias_sample_size": min_trail_debias_sample_size,
             },
+            max_gap_duration_to_fill=max_gap_duration_to_fill,
             overwrite_fill=overwrite_fill,
         )
 
@@ -2129,7 +2147,7 @@ class Station:
         self,
         target_obstype: str,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2154,9 +2172,9 @@ class Station:
             method argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
-        max_consec_fill: int, optional
-            The maximum number of consecutive timestamps to fill. The result is
-            dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
             The number of leading anchors to use for the interpolation. A leading anchor is
             a near record (not rejected by QC) just before the start of the gap, that is used for interpolation.
@@ -2213,7 +2231,7 @@ class Station:
         self.get_sensor(target_obstype).interpolate_gaps(
             overwrite_fill=overwrite_fill,
             method=method,
-            max_consec_fill=max_consec_fill,
+            max_gap_duration_to_fill=max_gap_duration_to_fill,
             n_leading_anchors=n_leading_anchors,
             n_trailing_anchors=n_trailing_anchors,
             max_lead_to_gap_distance=max_lead_to_gap_distance,

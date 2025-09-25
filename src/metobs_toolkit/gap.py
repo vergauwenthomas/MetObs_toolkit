@@ -115,7 +115,9 @@ class Gap:
         elif self.records.isna().all() and bool(self._fillkwargs):
             return _failed_label
         elif not self.records.isna().any() and bool(self._fillkwargs):
-            return _successful_label
+            raise NotImplementedError(
+                "This situation is unforeseen! Please notify developers."
+            )
         else:
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
@@ -220,6 +222,7 @@ class Gap:
         min_leading_records_total: int,
         trailing_period_duration: Union[str, pd.Timedelta],
         min_trailing_records_total: int,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -245,7 +248,10 @@ class Gap:
             The duration of the trailing period.
         min_trailing_records_total : int
             The minimum number of records required in the trailing period.
-
+                max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         Returns
         ----------
         None.
@@ -304,7 +310,16 @@ class Gap:
         if not continueflag:
             # warnings and gap attributes are already updated
             return
-
+                # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
+        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
+            )
+            return
         # 3. Fill the gap
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
@@ -341,6 +356,7 @@ class Gap:
         leading_period_duration: pd.Timedelta,
         trailing_period_duration: pd.Timedelta,
         min_debias_sample_size: int,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -367,7 +383,9 @@ class Gap:
         min_debias_sample_size : int
             The minimum number of samples required for bias estimation. If this condition is not met, the gap
             is not filled.
-
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         Returns
         ---------
         None.
@@ -431,7 +449,16 @@ class Gap:
         if not continueflag:
             # warnings and gap attributes are already been updated
             return
-
+                # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
+        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
+            )
+            return
         # 3. Fill the gap
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
@@ -471,6 +498,7 @@ class Gap:
         min_lead_debias_sample_size: int,
         trailing_period_duration: pd.Timedelta,
         min_trail_debias_sample_size: int,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -504,7 +532,10 @@ class Gap:
         min_trail_debias_sample_size : int
             The minimum number of trailing samples required for bias estimation. If this condition is not met, the gap
             is not filled.
-
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
         Returns
         --------
         None.
@@ -576,7 +607,16 @@ class Gap:
         if not continueflag:
             # warnings and gap attributes are already been updated
             return
-
+                # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
+        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
+            )
+            return
         # 3. Fill the gap
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
@@ -611,7 +651,7 @@ class Gap:
         self._extra_info = filleddf["msg"].rename("details")
 
     @log_entry
-    def raw_model_gapfill(self, modeltimeseries: ModelTimeSeries) -> None:
+    def raw_model_gapfill(self, modeltimeseries: ModelTimeSeries, max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))) -> None:
         """
         Fill the gap using model data without correction.
 
@@ -623,6 +663,9 @@ class Gap:
         modeltimeseries : ModelTimeSeries
             The model time series used to fill the gap records. The model data
             must be compatible (equivalent obstype and related to the same Station as the gap.)
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
 
         Returns
         -------
@@ -660,7 +703,16 @@ class Gap:
         # 2. Ensure both series have the same timezone
         if modelseries.index.tz != gapseries.index.tz:
             modelseries = modelseries.tz_convert(gapseries.index.tz)
-
+                # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
+        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
+            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._extra_info[:] = (
+                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
+            )
+            logger.warning(
+                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
+            )
+            return
         # 3. Fill the gap
         # 3. Reindex modelseries to match gapseries, interpolating if necessary
         modelseries_reindexed = (
@@ -697,7 +749,7 @@ class Gap:
         self,
         sensordata: "SensorData",  # type: ignore #noqa: F821
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -720,9 +772,9 @@ class Gap:
             'method' argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
-        max_consec_fill : int, optional
-            The maximum number of consecutive timestamps to fill. The result is
-            dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
             The number of leading anchors to use for the interpolation. A leading anchor is
             a near record (not rejected by QC) just before the start of the gap, that is used for interpolation.
@@ -811,14 +863,14 @@ class Gap:
             )
             return
 
-        # 3. Check if the gap records do not exceed the max_consec_fill
-        if self.records.shape[0] > max_consec_fill:
+        # 3. Check if the gap duration exceeds the max_gap_duration_to_fill
+        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = (
-                f"Gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill})."
+                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
             )
             logger.warning(
-                f"Cannot interpolate {self} because the gap is too large ({self.records.shape[0]} records) to be filled with interpolation (and max_consec_fill={max_consec_fill}). Increase the max_consec_fill or use another gapfill method."
+                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
             )
             return
 
@@ -959,4 +1011,4 @@ class Gap:
             return None, None, False
 
         logger.debug(f"Exiting _setup_lead_and_trail_for_debias_gapfill for {self}")
-        return lead_period, trail_period, True
+        return lead_period, trail_perio

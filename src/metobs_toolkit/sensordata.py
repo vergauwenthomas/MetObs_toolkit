@@ -990,6 +990,7 @@ class SensorData:
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
         ],
         overwrite_fill: bool = False,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         method_kwargs: dict = {},
     ) -> None:
         """
@@ -1003,8 +1004,12 @@ class SensorData:
             Gap filling method, by default "raw".
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         method_kwargs : dict, optional
             Additional keyword arguments for the method, by default {}.
+        
 
         Raises
         ------
@@ -1027,23 +1032,26 @@ class SensorData:
             logger.debug(f"Filling {gap} with {method} model data.")
 
             if method == "raw":
-                gap.raw_model_gapfill(modeltimeseries=modeltimeseries, **method_kwargs)
+                gap.raw_model_gapfill(modeltimeseries=modeltimeseries,max_gap_duration_to_fill=max_gap_duration_to_fill,  **method_kwargs)
             elif method == "debiased":
                 gap.debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             elif method == "diurnal_debiased":
                 gap.diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             elif method == "weighted_diurnal_debiased":
                 gap.weighted_diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             else:
@@ -1055,13 +1063,14 @@ class SensorData:
     def interpolate_gaps(
         self,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,
         max_trail_to_gap_distance: Union[pd.Timedelta, str, None] = None,
         method_kwargs: dict = {},
         overwrite_fill: bool = False,
+        
     ) -> None:
         """
         Interpolate gaps in the data.
@@ -1071,8 +1080,9 @@ class SensorData:
 
         method : str, optional
             Interpolation method, by default "time".
-        max_consec_fill : int, optional
-            Maximum consecutive fills, by default 10.
+        max_gap_duration_to_fill : pd.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
             Number of leading anchors, by default 1.
         n_trailing_anchors : int, optional
@@ -1101,7 +1111,7 @@ class SensorData:
             gap.interpolate(
                 sensordata=self,
                 method=method,
-                max_consec_fill=max_consec_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,

@@ -2364,7 +2364,7 @@ class Dataset:
         self,
         target_obstype: str,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2384,7 +2384,7 @@ class Dataset:
             sta.interpolate_gaps(
                 target_obstype=target_obstype,
                 method=method,
-                max_consec_fill=max_consec_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,
@@ -2396,7 +2396,7 @@ class Dataset:
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False
+        self, target_obstype: str, overwrite_fill: bool = False, max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
     ) -> None:
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2405,7 +2405,7 @@ class Dataset:
 
         for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype, overwrite_fill=overwrite_fill
+                target_obstype=target_obstype, overwrite_fill=overwrite_fill, max_gap_duration_to_fill=max_gap_duration_to_fill
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
@@ -2418,6 +2418,7 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2435,6 +2436,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
@@ -2445,7 +2447,9 @@ class Dataset:
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
-        overwrite_fill: bool = False,
+        overwrite_fill: bool = False,        
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
+
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2462,6 +2466,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
@@ -2473,7 +2478,9 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
-        overwrite_fill: bool = False,
+        overwrite_fill: bool = False,     
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
+
     ) -> None:
         logger.debug(
             "Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata"
@@ -2495,6 +2502,7 @@ class Dataset:
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill
             )
 
 
