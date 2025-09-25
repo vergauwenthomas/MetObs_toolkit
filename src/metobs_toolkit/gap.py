@@ -115,6 +115,7 @@ class Gap:
         elif self.records.isna().all() and bool(self._fillkwargs):
             return _failed_label
         elif not self.records.isna().any() and bool(self._fillkwargs):
+            print(self._fillkwargs)
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
             )
