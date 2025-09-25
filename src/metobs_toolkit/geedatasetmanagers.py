@@ -17,6 +17,7 @@ from time import sleep
 
 # Third-party imports
 import pandas as pd
+import numpy as np
 import ee
 
 # Local imports
@@ -588,8 +589,11 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 if vmax is None:
                     vmax = 1.0
             else:
-                obsmin = df[self.name].min()
-                obsmax = df[self.name].max()
+                obsmin = np.nanmin(metadf[self.name])
+                obsmax = np.nanmax(metadf[self.name])
+                if np.isnan(obsmin): obsmin = 0.0
+                if np.isnan(obsmax): obsmax = 1.0
+
                 if vmin is None:
                     vmin = obsmin - ((obsmax - obsmin) * 0.15)
                 if vmax is None:
