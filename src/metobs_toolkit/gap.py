@@ -114,11 +114,8 @@ class Gap:
             return _unfilled_label
         elif self.records.isna().all() and bool(self._fillkwargs):
             return _failed_label
-        elif not self.records.isna().any() and bool(self._fillkwargs):
-            print('printtest : ', self._fillkwargs)
-            raise NotImplementedError(
-                "This situation is unforeseen! Please notify developers."
-            )
+        elif not self.records.isna().all() and bool(self._fillkwargs):
+            return _successful_label
         else:
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
@@ -262,7 +259,7 @@ class Gap:
         A schematic description of the debiased modeldata gap fill:
 
         1. Check the compatibility of the `ModelTimeSeries` with the `gap`.
-        2. Construct a leading and trailing sample, and test if they meet the required conditions.
+        2. tainsstruct a leading and trailing sample, and test if they meet the required conditions.
         3. Compute the bias of the modeldata (combine leading and trailing samples).
         4. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
         5. Update the `gap` attributes with the interpolated values, labels, and details.

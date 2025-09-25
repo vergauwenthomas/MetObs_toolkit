@@ -1022,7 +1022,7 @@ class SensorData:
                 overwrite_fill
             ):  # if flag_can_be_filled returns False, Gaps won't be filled
                 logger.warning(
-                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled because it is already (completey) filled, and overwrite fill is {overwrite_fill}."
                 )
                 continue
             if overwrite_fill:
@@ -1100,7 +1100,7 @@ class SensorData:
         for gap in self.gaps:
             if not gap.flag_can_be_filled(overwrite_fill):
                 logger.warning(
-                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled because it is already (completetly) filled, and overwrite fill is {overwrite_fill}."
                 )
                 continue
 
