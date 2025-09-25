@@ -211,6 +211,11 @@ class Site:
             index=pd.Index(data=[self.stationname], name="name"),
         )
 
+        # Ensure lat, lon, and altitude columns are float64
+        for col in ['lat', 'lon', 'altitude']:
+            if col in metadf.columns:
+                metadf[col] = metadf[col].astype('float64')
+
         # add buffered fractions
         for bufradius, fracdict in self._gee_buffered_fractions.items():
             for covername, fraction in fracdict.items():
