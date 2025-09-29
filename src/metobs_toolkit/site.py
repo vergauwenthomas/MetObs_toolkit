@@ -2,7 +2,7 @@ import logging
 import copy
 from typing import Union
 
-import numpy as np
+from numpy import nan, float32
 import pandas as pd
 import geopandas as gpd
 
@@ -45,8 +45,8 @@ class Site:
         self._lon = float(longitude)
 
         # Common/special physical properties
-        self._LCZ = np.nan  # set by the setup
-        self._altitude = np.nan  # set by the setup
+        self._LCZ = nan  # set by the setup
+        self._altitude = nan  # set by the setup
 
         # additional data
         self._extradata = dict(extradata)
@@ -67,7 +67,7 @@ class Site:
             )
             self._altitude = float(self.extradata["altitude"])
         else:
-            self._altitude = np.nan
+            self._altitude = nan
 
         # transfer LCZ to attr
         if "LCZ" in self.extradata.keys():
@@ -76,7 +76,7 @@ class Site:
             )
             self._LCZ = str(self.extradata["LCZ"])
         else:
-            self._LCZ = np.nan
+            self._LCZ = nan
 
     def _id(self) -> str:
         """A physical unique id.
@@ -132,9 +132,9 @@ class Site:
             )
 
         new_alt = next(
-            (x for x in [self.altitude, other.altitude] if not pd.isna(x)), np.nan
+            (x for x in [self.altitude, other.altitude] if not pd.isna(x)), nan
         )
-        new_LCZ = next((x for x in [self.LCZ, other.LCZ] if not pd.isna(x)), np.nan)
+        new_LCZ = next((x for x in [self.LCZ, other.LCZ] if not pd.isna(x)), nan)
 
         # Update metadata (dict-style)
         new_extradata = copy.copy(self.extradata)
@@ -180,12 +180,12 @@ class Site:
         return self._lon
 
     @property
-    def altitude(self) -> Union[float, np.nan]:
+    def altitude(self) -> Union[float, type(nan)]:
         """Return the altitude."""
         return self._altitude
 
     @property
-    def LCZ(self) -> Union[str, np.nan]:
+    def LCZ(self) -> Union[str, type(nan)]:
         """Return the LCZ."""
         return self._LCZ
 
@@ -218,7 +218,7 @@ class Site:
         for col in ["lat", "lon", "altitude"]:
             if col in metadf.columns:
                 metadf[col] = convert_to_numeric_series(
-                    metadf[col], datadtype=np.float32
+                    metadf[col], datadtype=float32
                 ).values
 
         # add buffered fractions
@@ -239,7 +239,7 @@ class Site:
     # ------------------------------------------
 
     @log_entry
-    def set_altitude(self, altitude: Union[float, np.nan]) -> None:
+    def set_altitude(self, altitude: Union[float, type(nan)]) -> None:
         """
         Set the altitude attribute.
 
@@ -251,7 +251,7 @@ class Site:
         self._altitude = float(altitude)
 
     @log_entry
-    def set_LCZ(self, LCZ: Union[str, np.nan]) -> None:
+    def set_LCZ(self, LCZ: Union[str, type(nan)]) -> None:
         """
         Set the LCZ attribute.
 
@@ -262,7 +262,7 @@ class Site:
         """
         # test if label is compatible with LCZ from global_LCZ_map
         if pd.isna(LCZ):
-            self._LCZ = np.nan
+            self._LCZ = nan
         else:
             all_possible_labels = list(global_LCZ_map.class_map.values())
             if LCZ not in all_possible_labels:
@@ -421,7 +421,7 @@ class Site:
             logger.warning(
                 f"No data returned by GEE when point extraction on {self} for {geestaticdataset.name}"
             )
-            return np.nan
+            return nan
 
         return geedf[geestaticdataset.name].iloc[0]
 
