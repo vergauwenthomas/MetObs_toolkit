@@ -146,7 +146,10 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-        assert_equality(alt_data["altitude"].astype('float64'), solutionobj.metadf["altitude"].astype('float64'))
+        assert_equality(
+            alt_data["altitude"].astype("float64"),
+            solutionobj.metadf["altitude"].astype("float64"),
+        )
         # calling printout
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
         assert isinstance(dataset.get_station("vlinder18").site.altitude, float)

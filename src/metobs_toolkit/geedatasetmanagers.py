@@ -591,8 +591,10 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             else:
                 obsmin = np.nanmin(metadf[self.name])
                 obsmax = np.nanmax(metadf[self.name])
-                if np.isnan(obsmin): obsmin = 0.0
-                if np.isnan(obsmax): obsmax = 1.0
+                if np.isnan(obsmin):
+                    obsmin = 0.0
+                if np.isnan(obsmax):
+                    obsmax = 1.0
 
                 if vmin is None:
                     vmin = obsmin - ((obsmax - obsmin) * 0.15)

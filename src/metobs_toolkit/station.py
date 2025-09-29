@@ -924,25 +924,25 @@ class Station:
         """
         lcz = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["LCZ"],
-            overwrite=False, #overwrite is done in this method
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
-        
+
         if apply_seamask_fix:
             if isinstance(lcz, str):
-                pass # already a valid LCZ class
+                pass  # already a valid LCZ class
             elif np.isnan(lcz):
-                logger.warning(f'Seamask fix for LCZ applied for {self}')
+                logger.warning(f"Seamask fix for LCZ applied for {self}")
                 lcz = default_gee_datasets["LCZ"].class_map[17]  # LCZ-G water
             else:
                 raise ValueError("Unexpected LCZ value")
-            
-        #update the Site instance 
+
+        # update the Site instance
         if overwrite:
             self.site.set_LCZ(lcz)
         else:
             if self.site.flag_has_LCZ():
-                #LCZ is present and overwrite == False (-> do not update)
+                # LCZ is present and overwrite == False (-> do not update)
                 pass
             else:
                 self.site.set_LCZ(lcz)
@@ -961,7 +961,7 @@ class Station:
             If True, overwrite existing altitude data if stored in the Site attribute. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
-            
+
         apply_seamask_fix: bool, optional
             The LCZ map is only defined over land, and thus locations in sea
             will have a LCZ of Nan. If this argument is set to True, Nan values
@@ -979,22 +979,20 @@ class Station:
         """
         altitude = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["altitude"],
-            overwrite=False, #overwrite is done in this method
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
-        
-        #update the Site instance 
+
+        # update the Site instance
         if overwrite:
             self.site.set_altitude(altitude)
         else:
             if self.site.flag_has_altitude():
-                #altitude is present and overwrite == False (-> do not update)
+                # altitude is present and overwrite == False (-> do not update)
                 pass
             else:
                 self.site.set_altitude(altitude)
         return altitude
-
-        
 
     @log_entry
     def get_static_gee_buffer_fraction_data(

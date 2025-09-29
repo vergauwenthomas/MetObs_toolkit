@@ -44,9 +44,9 @@ class Site:
         self._lon = float(longitude)
 
         # Common/special physical properties
-        self._LCZ = np.nan #set by the setup
-        self._altitude = np.nan #set by the setup
-        
+        self._LCZ = np.nan  # set by the setup
+        self._altitude = np.nan  # set by the setup
+
         # additional data
         self._extradata = dict(extradata)
 
@@ -55,26 +55,27 @@ class Site:
         self._gee_buffered_fractions = (
             {}
         )  # example: {100: {pervious: 0.8, impervious: 0.2}}
-        
+
         self.setup()
-        
-        
+
     def setup(self):
-        #transfer altitude to attr
+        # transfer altitude to attr
         if "altitude" in self.extradata.keys():
-            logger.debug(f'Setting altitude({float(self.extradata["altitude"])}) attribute for site {self.stationname} from extradata')
+            logger.debug(
+                f'Setting altitude({float(self.extradata["altitude"])}) attribute for site {self.stationname} from extradata'
+            )
             self._altitude = float(self.extradata["altitude"])
         else:
-           self._altitude = np.nan
-           
-        #transfer LCZ to attr
+            self._altitude = np.nan
+
+        # transfer LCZ to attr
         if "LCZ" in self.extradata.keys():
-            logger.debug(f'Setting LCZ attribute for site {self.stationname} from extradata')
+            logger.debug(
+                f"Setting LCZ attribute for site {self.stationname} from extradata"
+            )
             self._LCZ = str(self.extradata["LCZ"])
         else:
-           self._LCZ = np.nan
-           
-        
+            self._LCZ = np.nan
 
     def _id(self) -> str:
         """A physical unique id.
@@ -101,7 +102,6 @@ class Site:
         lcz_equal = (self.LCZ == other.LCZ) or (
             pd.isnull(self.LCZ) and pd.isnull(other.LCZ)
         )
-
 
         return (
             self.stationname == other.stationname
@@ -130,7 +130,9 @@ class Site:
                 f"Could not sum {self} and {other}, since the name or coordinates are not equal."
             )
 
-        new_alt = next((x for x in [self.altitude, other.altitude] if not pd.isna(x)), np.nan)
+        new_alt = next(
+            (x for x in [self.altitude, other.altitude] if not pd.isna(x)), np.nan
+        )
         new_LCZ = next((x for x in [self.LCZ, other.LCZ] if not pd.isna(x)), np.nan)
 
         # Update metadata (dict-style)
@@ -160,7 +162,7 @@ class Site:
     def __repr__(self):
         """Return a string representation for debugging."""
         return f"{type(self).__name__}(id={self._id()})"
-    
+
     @property
     def stationname(self) -> str:
         """Return the station name."""
@@ -175,12 +177,12 @@ class Site:
     def lon(self) -> float:
         """Return the longitude."""
         return self._lon
-    
+
     @property
     def altitude(self) -> Union[float, np.nan]:
         """Return the altitude."""
         return self._altitude
-    
+
     @property
     def LCZ(self) -> Union[str, np.nan]:
         """Return the LCZ."""
@@ -212,9 +214,9 @@ class Site:
         )
 
         # Ensure lat, lon, and altitude columns are float64
-        for col in ['lat', 'lon', 'altitude']:
+        for col in ["lat", "lon", "altitude"]:
             if col in metadf.columns:
-                metadf[col] = metadf[col].astype('float64')
+                metadf[col] = metadf[col].astype("float64")
 
         # add buffered fractions
         for bufradius, fracdict in self._gee_buffered_fractions.items():
@@ -232,7 +234,7 @@ class Site:
     # ------------------------------------------
     #   Setters
     # ------------------------------------------
-    
+
     @log_entry
     def set_altitude(self, altitude: Union[float, np.nan]) -> None:
         """
@@ -244,7 +246,7 @@ class Site:
             Altitude value to set.
         """
         self._altitude = float(altitude)
-        
+
     @log_entry
     def set_LCZ(self, LCZ: Union[str, np.nan]) -> None:
         """
@@ -255,16 +257,16 @@ class Site:
         LCZ : str
             LCZ value to set.
         """
-        #test if label is compatible with LCZ from global_LCZ_map
+        # test if label is compatible with LCZ from global_LCZ_map
         if pd.isna(LCZ):
             self._LCZ = np.nan
         else:
             all_possible_labels = list(global_LCZ_map.class_map.values())
             if LCZ not in all_possible_labels:
-                raise ValueError(f"LCZ should be one of {all_possible_labels}, not {LCZ}")
+                raise ValueError(
+                    f"LCZ should be one of {all_possible_labels}, not {LCZ}"
+                )
             self._LCZ = str(LCZ)
-
-
 
     @log_entry
     def set_geedata(self, dataname: str, value: Union[str, float]) -> None:
@@ -333,7 +335,6 @@ class Site:
         """
         return not pd.isnull(self.altitude)
 
-
     @log_entry
     def flag_has_LCZ(self) -> bool:
         """
@@ -345,7 +346,6 @@ class Site:
             True if LCZ is available, False otherwise.
         """
         return not pd.isnull(self.LCZ)
-
 
     @log_entry
     def flag_has_landcoverfractions(self) -> bool:
@@ -518,9 +518,7 @@ class Site:
 
         # LCZ
         if self.flag_has_LCZ():
-            infostr += printing.print_fmt_line(
-                f"LCZ: {self.LCZ}", nident_root
-            )
+            infostr += printing.print_fmt_line(f"LCZ: {self.LCZ}", nident_root)
         else:
             infostr += printing.print_fmt_line("LCZ is unknown", nident_root)
 
