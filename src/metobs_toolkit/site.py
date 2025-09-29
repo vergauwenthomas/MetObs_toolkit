@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
+from metobs_toolkit.backend_collection.df_helpers import convert_to_numeric_series
 from metobs_toolkit.geedatasetmanagers import GEEStaticDatasetManager, global_LCZ_map
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.errorclasses import (
@@ -216,7 +217,7 @@ class Site:
         # Ensure lat, lon, and altitude columns are float64
         for col in ["lat", "lon", "altitude"]:
             if col in metadf.columns:
-                metadf[col] = metadf[col].astype("float64")
+                metadf[col] = convert_to_numeric_series(metadf[col], datadtype=np.float32).values
 
         # add buffered fractions
         for bufradius, fracdict in self._gee_buffered_fractions.items():
