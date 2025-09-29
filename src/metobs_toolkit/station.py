@@ -965,7 +965,7 @@ class Station:
         apply_seamask_fix: bool, optional
             The LCZ map is only defined over land, and thus locations in sea
             will have a LCZ of Nan. If this argument is set to True, Nan values
-            return by the GEE call are converted to the LCZ-G (water) category.
+            returned by the GEE call are converted to the LCZ-G (water) category.
 
         Returns
         -------
