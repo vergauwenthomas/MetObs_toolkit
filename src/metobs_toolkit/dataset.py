@@ -297,37 +297,8 @@ class Dataset:
                 ),
             )
         return combdf
-    @property
-    def singular_gaps(self) -> pd.DataFrame:
-        """
-        Construct a DataFrame representation of all the gaps with consolidated gap information per gap period.
-
-        Returns
-        -------
-        pandas.DataFrame
-            A DataFrame with columns ['gapend', 'gapsize', 'label', 'details'], with a MultiIndex
-            using 'gapstart', 'obstype', and 'name' as indices, representing the consolidated gap information.
-        """
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.singular_gaps.reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["gapstart", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["gapend", "gapsize", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["gapstart", "obstype", "name"],
-                ),
-            )
-        return combdf
+    
+    
     @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
@@ -2388,6 +2359,32 @@ class Dataset:
     # ------------------------------------------
     #    Gapfilling
     # ------------------------------------------
+    
+    @copy_doc(Station.gap_status_overview_df)
+    @log_entry
+    def gap_status_overview_df(self) -> pd.DataFrame:
+    
+        concatlist = []
+        for sta in self.stations:
+            stadf = sta.gap_status_overview_df().reset_index()
+            if stadf.empty:
+                continue
+            stadf["name"] = sta.name
+            concatlist.append(stadf.set_index(["gapstart", "obstype", "name"]))
+
+        combdf = save_concat((concatlist))
+        combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["gapend", "gapsize", "label", "details"],
+                index=pd.MultiIndex(
+                    levels=[[], [], []],
+                    codes=[[], [], []],
+                    names=["gapstart", "obstype", "name"],
+                ),
+            )
+        return combdf
+    
     @copy_doc(Station.interpolate_gaps)
     @log_entry
     def interpolate_gaps(
@@ -2404,6 +2401,7 @@ class Dataset:
     ) -> None:
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2426,8 +2424,11 @@ class Dataset:
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False, max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
+        self, target_obstype: str, overwrite_fill: bool = False, max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
     ) -> None:
+        
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+        
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2448,11 +2449,12 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
-
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+        
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2478,12 +2480,13 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,        
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
 
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
-
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+        
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2509,16 +2512,14 @@ class Dataset:
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,     
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h"))
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
 
     ) -> None:
-        logger.debug(
-            "Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata"
-        )
-
+    
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
-
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+        
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
