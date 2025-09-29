@@ -82,16 +82,3 @@ The `Site` class implements several Python special methods for convenience:
 - ``__eq__``: Test equality between two Site objects based on location and metadata.
 
 - ``__repr__``: String representation showing site name and key spatial information.
-
-
-
-Notes
------
-
-The Site class integrates with Google Earth Engine to extract environmental data such as:
-
-- Static point data (elevation, land cover)
-- Buffered fraction data (land cover fractions within specified radii)
-- Local Climate Zone classifications
-
-All spatial coordinates are stored in WGS84 coordinate system, and the ``metadf`` property returns a GeoDataFrame for spatial operations.
