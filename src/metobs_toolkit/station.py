@@ -924,19 +924,28 @@ class Station:
         """
         lcz = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["LCZ"],
-            overwrite=overwrite,
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
+
         if apply_seamask_fix:
             if isinstance(lcz, str):
-                # LCZ is a string, so no seamask fix needed
-                return lcz
+                pass  # already a valid LCZ class
             elif np.isnan(lcz):
+                logger.warning(f"Seamask fix for LCZ applied for {self}")
                 lcz = default_gee_datasets["LCZ"].class_map[17]  # LCZ-G water
-                if overwrite:
-                    self.site.set_geedata(default_gee_datasets["LCZ"].name, lcz)
             else:
                 raise ValueError("Unexpected LCZ value")
+
+        # update the Site instance
+        if overwrite:
+            self.site.set_LCZ(lcz)
+        else:
+            if self.site.flag_has_LCZ():
+                # LCZ is present and overwrite == False (-> do not update)
+                pass
+            else:
+                self.site.set_LCZ(lcz)
         return lcz
 
     @log_entry
@@ -953,6 +962,11 @@ class Station:
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
+        apply_seamask_fix: bool, optional
+            The LCZ map is only defined over land, and thus locations in sea
+            will have a LCZ of Nan. If this argument is set to True, Nan values
+            returned by the GEE call are converted to the LCZ-G (water) category.
+
         Returns
         -------
         float
@@ -963,11 +977,22 @@ class Station:
         This method relies on the `get_static_gee_point_data` function and the
         `default_gee_datasets` dictionary to fetch the altitude data.
         """
-        return self.get_static_gee_point_data(
+        altitude = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["altitude"],
-            overwrite=overwrite,
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
+
+        # update the Site instance
+        if overwrite:
+            self.site.set_altitude(altitude)
+        else:
+            if self.site.flag_has_altitude():
+                # altitude is present and overwrite == False (-> do not update)
+                pass
+            else:
+                self.site.set_altitude(altitude)
+        return altitude
 
     @log_entry
     def get_static_gee_buffer_fraction_data(

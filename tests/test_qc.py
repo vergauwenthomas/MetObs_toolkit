@@ -509,10 +509,10 @@ class TestDemoDataset:
 if __name__ == "__main__":
     # pytest.main([__file__])
     # Run all methods with overwrite_solution=True
-    # test_breaking_dataset = TestBreakingDataset()
-    # test_breaking_dataset.test_import_data(overwrite_solution=False)
-    # test_breaking_dataset.test_apply_qc(overwrite_solution=False)
-    # test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
+    test_breaking_dataset = TestBreakingDataset()
+    test_breaking_dataset.test_import_data(overwrite_solution=False)
+    test_breaking_dataset.test_apply_qc(overwrite_solution=False)
+    test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
 
     test_demo_dataset = TestDemoDataset()
     test_demo_dataset.test_import_data(overwrite_solution=False)

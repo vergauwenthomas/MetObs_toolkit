@@ -4,9 +4,12 @@
 Combining Datasets
 ***********************************************
 
-When working with observational data, it is common to encounter situations where measurements from different stations or periods are stored in separate files. The MetObs toolkit expects all observations to be in a single file for creating a `Dataset`, but you can then sum these `Dataset`s to construct one (big) Dataset.
+When working with observational data, it is common to encounter situations where
+measurements from different stations or periods are stored in separate files.
+The MetObs toolkit expects all observations to be in a single file for creating
+a ``Dataset``, but you can then sum these ``Dataset``\s to construct one (big) ``Dataset``.
 
-This example demonstrates how to use the sum functionality of the `Dataset` class to merge data from multiple files into a single dataset.
+This example demonstrates how to use the sum functionality of the ``Dataset`` class to merge data from multiple files into a single dataset.
 
 .. code-block:: python
 

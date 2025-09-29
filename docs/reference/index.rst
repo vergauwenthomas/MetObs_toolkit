@@ -15,6 +15,7 @@ the MetObs toolkit to be used by a user and developer.
   Gap <gap>
   SensorData <sensordata>
   Obstypes <obstype>
+  Site <site>
   ModelTimeSeries <modeltimeseries>
   GEEDatasetManagers <geedatasetmanagers>
 
