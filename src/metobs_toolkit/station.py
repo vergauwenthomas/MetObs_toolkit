@@ -551,15 +551,14 @@ class Station:
         return mindt
 
     @property
-    def modeldata(self) -> dict:
+    def modeldata(self) -> list["ModelTimeSeries"]:  # type: ignore #noqa: F821
         """
         Retrieve the model data associated with the station.
 
         Returns
         -------
-        dict
-            A dictionary with the observation type as key and the corresponding
-            ModelTimeSeries as values.
+        list[ModelTimeSeries]
+            A list of ModelTimeSeries instances associated with the station.
         """
         return self._modeldata
 
