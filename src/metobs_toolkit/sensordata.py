@@ -256,8 +256,8 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
-    @property
-    def singular_gaps(self) -> pd.DataFrame:
+
+    def gap_status_overview_df(self) -> pd.DataFrame:
         """Return a DataFrame with consolidated gap information per gap period."""
         gap_info_list = []
         
@@ -1053,7 +1053,6 @@ class SensorData:
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
         ],
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         method_kwargs: dict = {},
     ) -> None:
         """
@@ -1067,12 +1066,8 @@ class SensorData:
             Gap filling method, by default "raw".
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
-        max_gap_duration_to_fill : pd.Timedelta, optional
-            The maximum gap duration of to fill with interpolation. The result is
-            independent on the time-resolution of the gap. Defaults to 3 hours.
         method_kwargs : dict, optional
-            Additional keyword arguments for the method, by default {}.
-        
+            Additional keyword arguments for the method, by default {}.  
 
         Raises
         ------
@@ -1085,7 +1080,7 @@ class SensorData:
                 overwrite_fill
             ):  # if flag_can_be_filled returns False, Gaps won't be filled
                 logger.warning(
-                    f"{gap} cannot be filled because it is already (completey) filled, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled (because it has a fill status {gap.fillstatus}), and overwrite fill is {overwrite_fill}."
                 )
                 continue
             if overwrite_fill:
@@ -1095,26 +1090,24 @@ class SensorData:
             logger.debug(f"Filling {gap} with {method} model data.")
 
             if method == "raw":
-                gap.raw_model_gapfill(modeltimeseries=modeltimeseries,max_gap_duration_to_fill=max_gap_duration_to_fill,  **method_kwargs)
+                gap.raw_model_gapfill(modeltimeseries=modeltimeseries,
+                                      **method_kwargs)
             elif method == "debiased":
                 gap.debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
-                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             elif method == "diurnal_debiased":
                 gap.diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
-                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             elif method == "weighted_diurnal_debiased":
                 gap.weighted_diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
-                    max_gap_duration_to_fill=max_gap_duration_to_fill,
                     **method_kwargs,
                 )
             else:
@@ -1163,7 +1156,7 @@ class SensorData:
         for gap in self.gaps:
             if not gap.flag_can_be_filled(overwrite_fill):
                 logger.warning(
-                    f"{gap} cannot be filled because it is already (completetly) filled, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled (because it has a fill status {gap.fillstatus}), and overwrite fill is {overwrite_fill}."
                 )
                 continue
 
