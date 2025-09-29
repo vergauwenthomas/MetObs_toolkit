@@ -1264,9 +1264,9 @@ class Station:
         ----------
         target_obstype : str, optional
             The target observation to check. By default "temp"
-        timewindow : str or pd.Timedelta
+        timewindow : str or pandas.Timedelta
             The size of the rolling time window to check for persistence.
-            The default is pd.Timedelta("60min")
+            The default is pandas.Timedelta("60min")
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             The default is 5
@@ -1425,8 +1425,8 @@ class Station:
         ----------
         target_obstype : str, optional
             The target observation to check. By default "temp"
-        timewindow : pd.Timedelta
-            The duration of the moving window. This should be a pandas Timedelta object. The default is pd.Timedelta("1h")
+        timewindow : pandas.Timedelta
+            The duration of the moving window. This should be a pandas Timedelta object. The default is pandas.Timedelta("1h")
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             This is dependent on the time resolution of the records. The default is 3
@@ -1811,7 +1811,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1834,7 +1834,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : Union[str, pandas.Timedelta], optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
 
@@ -1882,7 +1882,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1898,11 +1898,11 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str or pd.Timedelta, optional
+        leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
         min_leading_records_total : int, optional
             The minimum number of records required in the leading period. The default is 60.
-        trailing_period_duration : str or pd.Timedelta, optional
+        trailing_period_duration : str or pandas.Timedelta, optional
             The duration of the trailing period. The default is "24h".
         min_trailing_records_total : int, optional
             The minimum number of records required in the trailing period. The default is 60.
@@ -1917,7 +1917,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         Returns
@@ -1975,7 +1975,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -1989,10 +1989,10 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration :  str or pd.Timedelta, optional
+        leading_period_duration :  str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration :  str or pd.Timedelta, optional
+        trailing_period_duration :  str or pandas.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_debias_sample_size : int, optional
@@ -2008,7 +2008,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : pd.Timedelta, optional
+         max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
 
@@ -2075,7 +2075,7 @@ class Station:
         overwrite_fill=False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -2093,10 +2093,10 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str or pd.Timedelta, optional
+        leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration : str or pd.Timedelta, optional
+        trailing_period_duration : str or pandas.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_lead_debias_sample_size : int, optional
@@ -2116,7 +2116,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : pd.Timedelta, optional
+         max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
 
@@ -2181,7 +2181,7 @@ class Station:
         self,
         target_obstype: str,
         method: str = "time",
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2206,7 +2206,7 @@ class Station:
             method argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
@@ -2217,10 +2217,10 @@ class Station:
             The number of trailing anchors to use for the interpolation. A trailing anchor is
             a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
-        max_lead_to_gap_distance:  pd.Timedelta or None, optional
+        max_lead_to_gap_distance:  pandas.Timedelta or None, optional
             The maximum time difference between the start of the gap and a
             leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
-        max_trail_to_gap_distance : pd.Timedelta or None, optional
+        max_trail_to_gap_distance : pandas.Timedelta or None, optional
             The maximum time difference between the end of the gap and a
             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
         overwrite_fill : bool, optional

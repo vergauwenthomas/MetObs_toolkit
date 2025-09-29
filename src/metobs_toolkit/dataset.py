@@ -2391,7 +2391,7 @@ class Dataset:
         self,
         target_obstype: str,
         method: str = "time",
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2424,7 +2424,10 @@ class Dataset:
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False, max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        self,
+        target_obstype: str,
+        overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
     ) -> None:
         
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
@@ -2449,7 +2452,7 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2479,8 +2482,8 @@ class Dataset:
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
-        overwrite_fill: bool = False,        
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
 
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
@@ -2511,8 +2514,8 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
-        overwrite_fill: bool = False,     
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h"))
+        overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
 
     ) -> None:
     

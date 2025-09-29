@@ -239,16 +239,16 @@ class Gap:
         modeltimeseries : ModelTimeSeries
             The model time series used to fill the gap records. The model data
             must be compatible (equivalent obstype and related to the same Station as the gap.)
-        leading_period_duration : str or pd.Timedelta
+        leading_period_duration : str or pandas.Timedelta
             The duration of the leading period.
         min_leading_records_total : int
             The minimum number of records required in the leading period.
-        trailing_period_duration : str or pd.Timedelta
+        trailing_period_duration : str or pandas.Timedelta
             The duration of the trailing period.
         min_trailing_records_total : int
             The minimum number of records required in the trailing period.
-                max_gap_duration_to_fill : pd.Timedelta, optional
-        max_gap_duration_to_fill : pd.Timedelta, optional
+                max_gap_duration_to_fill : pandas.Timedelta, optional
+        max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         Returns
@@ -372,16 +372,16 @@ class Gap:
         modeltimeseries : ModelTimeSeries
             The model time series used to fill the gap records. The model data
             must be compatible (equivalent obstype and related to the same Station as the gap.)
-        leading_period_duration : pd.Timedelta
+        leading_period_duration : pandas.Timedelta
             The duration of the leading period. That is the period before the gap, used
             for bias estimation.
-        trailing_period_duration : pd.Timedelta
+        trailing_period_duration : pandas.Timedelta
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation.
         min_debias_sample_size : int
             The minimum number of samples required for bias estimation. If this condition is not met, the gap
             is not filled.
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         Returns
@@ -517,19 +517,19 @@ class Gap:
         modeltimeseries : ModelTimeSeries
             The model time series used to fill the gap records. The model data
             must be compatible (equivalent obstype and related to the same Station as the gap.)
-        leading_period_duration : pd.Timedelta
+        leading_period_duration : pandas.Timedelta
             The duration of the leading period. That is the period before the gap, used
             for bias estimation.
         min_lead_debias_sample_size : int
             The minimum number of leading samples required for bias estimation. If this condition is not met, the gap
             is not filled.
-        trailing_period_duration : pd.Timedelta
+        trailing_period_duration : pandas.Timedelta
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation.
         min_trail_debias_sample_size : int
             The minimum number of trailing samples required for bias estimation. If this condition is not met, the gap
             is not filled.
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         Returns
@@ -660,7 +660,7 @@ class Gap:
         modeltimeseries : ModelTimeSeries
             The model time series used to fill the gap records. The model data
             must be compatible (equivalent obstype and related to the same Station as the gap.)
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
 
@@ -771,7 +771,7 @@ class Gap:
             'method' argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
@@ -782,10 +782,10 @@ class Gap:
             The number of trailing anchors to use for the interpolation. A trailing anchor is
             a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
-        max_lead_to_gap_distance : pd.Timedelta or None, optional
+        max_lead_to_gap_distance : pandas.Timedelta or None, optional
             The maximum time difference between the start of the gap and a
             leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
-        max_trail_to_gap_distance : pd.Timedelta or None, optional
+        max_trail_to_gap_distance : pandas.Timedelta or None, optional
             The maximum time difference between the end of the gap and a
             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
         method_kwargs : dict, optional

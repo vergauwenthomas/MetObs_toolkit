@@ -46,16 +46,16 @@ class SensorData:
         Observation type.
     datadtype : type, optional
         Data type of the records, by default np.float32.
-    timezone : str or pd.Timedelta, optional
+    timezone : str or pandas.Timedelta, optional
         Timezone of the timestamps, by default 'UTC'.
     freq_estimation_method : {'highest', 'median'}, optional
         Method to estimate frequency, by default 'median'.
-    freq_estimation_simplify_tolerance : pd.Timedelta or str, optional
-        Tolerance for frequency estimation simplification, by default pd.Timedelta('1min').
-    origin_simplify_tolerance : pd.Timedelta or str, optional
-        Tolerance for origin simplification, by default pd.Timedelta('1min').
-    timestamp_tolerance : pd.Timedelta or str, optional
-        Tolerance for timestamp matching, by default pd.Timedelta('4min').
+    freq_estimation_simplify_tolerance : pandas.Timedelta or str, optional
+        Tolerance for frequency estimation simplification, by default pandas.Timedelta('1min').
+    origin_simplify_tolerance : pandas.Timedelta or str, optional
+        Tolerance for origin simplification, by default pandas.Timedelta('1min').
+    timestamp_tolerance : pandas.Timedelta or str, optional
+        Tolerance for timestamp matching, by default pandas.Timedelta('4min').
     """
 
     def __init__(
@@ -380,11 +380,11 @@ class SensorData:
         ----------
         freq_estimation_method : str
             Method to estimate frequency.
-        freq_estimation_simplify_tolerance : pd.Timedelta or str
+        freq_estimation_simplify_tolerance : pandas.Timedelta or str
             Tolerance for frequency estimation simplification.
-        origin_simplify_tolerance : pd.Timedelta or str
+        origin_simplify_tolerance : pandas.Timedelta or str
             Tolerance for origin simplification.
-        timestamp_tolerance : pd.Timedelta or str
+        timestamp_tolerance : pandas.Timedelta or str
             Tolerance for timestamp matching.
         apply_invalid_check : bool, optional
             Whether to apply invalid value check, by default True.
@@ -466,7 +466,7 @@ class SensorData:
         ----------
         timestamps : np.ndarray
             Array of timestamps.
-        tz : str or pd.Timedelta
+        tz : str or pandas.Timedelta
             Timezone of the timestamps.
 
         Returns
@@ -540,7 +540,7 @@ class SensorData:
         ----------
         missingrecords : pd.Series
             A pandas Series containing the missing records with datetime index.
-        target_freq : pd.Timedelta
+        target_freq : pandas.Timedelta
             The target frequency to identify gaps.
 
         Returns
@@ -634,13 +634,13 @@ class SensorData:
 
         Parameters
         ----------
-        target_freq : str or pd.Timedelta
+        target_freq : str or pandas.Timedelta
             The target frequency to coarsen all records to.
-        shift_tolerance : pd.Timedelta, optional
+        shift_tolerance : pandas.Timedelta, optional
             The maximum translation (in time) to map a timestamp to a target timestamp.
         origin : datetime.datetime, optional
             Define the origin (first timestamp) for the observations.
-        origin_simplify_tolerance : pd.Timedelta, optional
+        origin_simplify_tolerance : pandas.Timedelta, optional
             Tolerance for origin simplification.
 
         Warning
@@ -1119,7 +1119,7 @@ class SensorData:
     def interpolate_gaps(
         self,
         method: str = "time",
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,
@@ -1136,7 +1136,7 @@ class SensorData:
 
         method : str, optional
             Interpolation method, by default "time".
-        max_gap_duration_to_fill : pd.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
