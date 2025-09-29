@@ -1029,12 +1029,12 @@ class Gap:
         return lead_period, trail_period, True
 
 
-def test_if_gf_is_suitable_with_gapsize(self, max_gapsize) -> tuple(bool, str):
+    def test_if_gf_is_suitable_with_gapsize(self, max_gapsize) -> tuple[bool, str]:
 
-    if (self.end_datetime - self.start_datetime) > max_gapsize:
-        detailstring = f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with max_gapsize={max_gapsize}."
-        logger.warning(
-            f"Cannot fill {self} because the gap is too large (gapsize: {(self.end_datetime - self.start_datetime)} > {max_gapsize} : max_gapsize). Increase the max_gapsize or use another gapfill method."
-        )
-        return False, detailstring
-    return True, ""
+        if (self.end_datetime - self.start_datetime) > max_gapsize:
+            detailstring = f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with max_gapsize={max_gapsize}."
+            logger.warning(
+                f"Cannot fill {self} because the gap is too large (gapsize: {(self.end_datetime - self.start_datetime)} > {max_gapsize} : max_gapsize). Increase the max_gapsize or use another gapfill method."
+            )
+            return False, detailstring
+        return True, ""
