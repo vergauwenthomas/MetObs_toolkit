@@ -264,34 +264,18 @@ class SensorData:
         if bool(self.gaps):
             for gap in self.gaps:
                 gap_df = gap.df
-                if gap_df.empty:
-                    continue
 
                 # Basic gap information using Gap object properties
                 gap_start = gap.start_datetime
                 gap_end = gap.end_datetime
                 gap_size = gap.end_datetime - gap.start_datetime
-
-                # Handle labels
-                unique_labels = gap_df["label"].unique()
-                if len(unique_labels) == 1:
-                    gap_label = f"unilabel gap: {unique_labels[0]}"
-                else:
-                    if False:
-                        logger.warning(
-                            f"Gap starting at {gap_start} in {self.stationname} {self.obstype.name} has different labels: {list(unique_labels)}"
-                        )
-                    gap_label = f'multilabal gap: {" -- ".join(sorted(unique_labels))}'
-
+                gap_label = gap.fillstatus
+                
                 # Handle details
                 unique_details = gap_df["details"].unique()
                 if len(unique_details) == 1:
                     gap_details = f"unidetail gap: {unique_details[0]}"
                 else:
-                    if False:
-                        logger.warning(
-                            f"Gap starting at {gap_start} in {self.stationname} {self.obstype.name} has different details: {list(unique_details)}"
-                        )
                     gap_details = (
                         f'multi_details gap: {" -- ".join(sorted(unique_details))}'
                     )
@@ -309,18 +293,18 @@ class SensorData:
 
             # Create DataFrame from gap info list
             if gap_info_list:
-                result_df = pd.DataFrame(gap_info_list)
-                result_df = result_df.reset_index(drop=True)
+                result_df = (pd.DataFrame(gap_info_list)
+                             .reset_index(drop=True)
+                             .set_index("gapstart")
+                             .sort_index()
+                             )
+
                 return result_df
-            else:
-                # All gaps were empty
-                return pd.DataFrame(
-                    columns=["gapstart", "gapend", "gapsize", "label", "details"]
-                )
         else:
             # No gaps present
             return pd.DataFrame(
-                columns=["gapstart", "gapend", "gapsize", "label", "details"]
+                columns=["gapend", "gapsize", "label", "details"],
+                index=["gapstart"]
             )
 
     @property
