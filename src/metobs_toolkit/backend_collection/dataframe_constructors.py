@@ -210,13 +210,19 @@ def modeltimeseries_df(modeltimeseries_instance) -> pd.DataFrame:
     pd.DataFrame
         A DataFrame with columns ['value', 'model'].
     """
+    # Check if the instance has the required modelobstype attribute
+    if not hasattr(modeltimeseries_instance, 'modelobstype'):
+        raise AttributeError(
+            f"ModelTimeSeries instance is missing 'modelobstype' attribute. "
+            f"This is likely due to incomplete initialization or deserialization."
+        )
+    
     # get all records
     df = (
         modeltimeseries_instance.series.to_frame()
         .rename(
             columns={
                 modeltimeseries_instance.modelobstype.name: "value",
-                modeltimeseries_instance.stationname: "value",
             }
         )
         .assign(model=modeltimeseries_instance.modelname)
