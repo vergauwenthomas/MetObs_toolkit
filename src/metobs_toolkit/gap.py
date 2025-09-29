@@ -162,18 +162,15 @@ class Gap:
         bool
             True if the gap can be filled, False otherwise.
         """
-        logger.debug(
-            f"Entering flag_can_be_filled for {self} with overwrite={overwrite}"
-        )
-        if not isinstance(overwrite, bool):
-            raise TypeError("Argument 'overwrite' must be of type bool.")
-
         if overwrite:
             return True
-        if self.fillstatus == _successful_label:
+        if self.fillstatus in [_unfilled_label, _failed_label]:
+            return True
+        if self.fillstatus in [_partially_successful_label, _successful_label]:
             return False
         else:
-            return True
+            raise NotImplementedError("This situation is unforeseen! Please notify developers.")
+        
 
     @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
