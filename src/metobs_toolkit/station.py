@@ -364,7 +364,37 @@ class Station:
             )
 
         return combdf
+    @property
+    def singular_gaps(self) -> pd.DataFrame:
+        """
+        Construct a DataFrame representation of all the gaps with consolidated gap information per gap period.
 
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame with columns ['gapend', 'gapsize', 'label', 'details'], with a MultiIndex
+            using 'gapstart' and 'obstype' as indices, representing the consolidated gap information.
+        """
+        concatlist = []
+        for sensordata in self.sensordata.values():
+            stadf = sensordata.singular_gaps
+            if not stadf.empty:
+                stadf = stadf.copy().reset_index()
+                stadf["obstype"] = sensordata.obstype.name
+                stadf = stadf.set_index(["gapstart", "obstype"])
+                concatlist.append(stadf)
+
+        combdf = save_concat(concatlist)
+        combdf.sort_index(inplace=True)
+        if combdf.empty:
+            combdf = pd.DataFrame(
+                columns=["gapend", "gapsize", "label", "details"],
+                index=pd.MultiIndex(
+                    levels=[[], []], codes=[[], []], names=["gapstart", "obstype"]
+                ),
+            )
+
+        return combdf
     @property
     def metadf(self) -> pd.DataFrame:
         """

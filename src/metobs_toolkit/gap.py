@@ -27,6 +27,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 _unfilled_label = "unfilled"
 _failed_label = "failed gapfill"
 _successful_label = "successful gapfill"
+_partially_successful_label = "partially successful gapfill" 
 
 
 class Gap:
@@ -108,14 +109,17 @@ class Gap:
             * 'unfilled'
             * 'failed gapfill'
             * 'successful gapfill'
+            * 'partially successful gapfill' (not implemented)
 
         """
         if self.records.isna().all() and not bool(self._fillkwargs):
             return _unfilled_label
         elif self.records.isna().all() and bool(self._fillkwargs):
             return _failed_label
-        elif not self.records.isna().all() and bool(self._fillkwargs):
+        elif not self.records.isna().any() and bool(self._fillkwargs):
             return _successful_label
+        elif self.records.isna().any() and bool(self._fillkwargs):
+            return _partially_successful_label
         else:
             raise NotImplementedError(
                 "This situation is unforeseen! Please notify developers."
