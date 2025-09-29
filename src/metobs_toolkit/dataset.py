@@ -10,7 +10,10 @@ import numpy as np
 from matplotlib.pyplot import Axes
 import concurrent.futures
 
-from metobs_toolkit.backend_collection.df_helpers import save_concat
+from metobs_toolkit.backend_collection.df_helpers import (
+    save_concat,
+    convert_to_numeric_series,
+)
 from metobs_toolkit.template import Template, update_known_obstype_with_original_data
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
@@ -1173,6 +1176,8 @@ class Dataset:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modelobstype: str = None,
+        modeldata_kwargs: dict = {},
         show_outliers: bool = True,
         show_gaps: bool = True,
         title: Union[str, None] = None,
@@ -1186,6 +1191,9 @@ class Dataset:
         ----------
         obstype : str, optional
             The type of observation to plot (e.g., "temp" for temperature). Default is "temp".
+        modelobstype: str, optional
+            The name of the ModelObstype to plot. It is only used if show_modeldata is True. If None, it is set equal to obstype.
+            The default is None.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1195,6 +1203,8 @@ class Dataset:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_kwargs: dict, optional
+            Additional keyword arguments passed to `Dataset.make_plot_of_modeldata()`, by default an empty dictionary. Use it for example to specify modelname if multiple model data is available.
         show_outliers : bool, optional
             If True, includes outliers (marked by the applied quality control) in the plot. Default is True.
         show_gaps : bool, optional
@@ -1230,15 +1240,19 @@ class Dataset:
 
         colormap = None
         if show_modeldata:
+            if modelobstype is None:
+                modelobstype = obstype
+
             colormap = plotting.create_categorical_color_map(
                 catlist=plotdf.index.get_level_values("name").unique()
             )
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modelobstype,
                 colormap=colormap,
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
+                **modeldata_kwargs,
             )
         if colorby == "station":
             if colormap is None:
@@ -1541,21 +1555,19 @@ class Dataset:
 
         lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
-            overwrite=overwrite,
+            overwrite=False,  # will be done below
             initialize_gee=initialize_gee,
         )
 
         if apply_seamask_fix:
             lcz_water = default_datasets["LCZ"].class_map[17]  # LCZ-G water
-            # overwrite the site attribute
-            if overwrite:
-                seastations = lcz_df[lcz_df["LCZ"].isna()]
-                for station in seastations.index:
-                    self.get_station(station).site.set_geedata(
-                        default_datasets["LCZ"].name, lcz_water
-                    )
             # replace the lcz in the return df
             lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
+
+        # overwrite the site attribute
+        if overwrite:
+            for station, lczval in lcz_df.iterrows():
+                self.get_station(station).site.set_LCZ(lczval["LCZ"])
 
         return lcz_df
 
@@ -1579,11 +1591,17 @@ class Dataset:
             A DataFrame containing the altitude data for the stations, with the station names as index.
         """
 
-        return self.get_static_gee_point_data(
+        alt_df = self.get_static_gee_point_data(
             default_datasets["altitude"],
-            overwrite=overwrite,
+            overwrite=False,  # will be done below
             initialize_gee=initialize_gee,
         )
+
+        if overwrite:
+            for staname, geedict in alt_df.to_dict(orient="index").items():
+                self.get_station(staname).site.set_altitude(geedict["altitude"])
+
+        return alt_df
 
     @log_entry
     def get_landcover_fractions(
@@ -2006,7 +2024,22 @@ class Dataset:
         # timestamps to the original timestamps
 
         # convert to a dataframe
-        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+        alloutliersdf = pd.DataFrame(
+            data=outlierslist, columns=["name", "datetime", "detail_msg"]
+        )
+
+        # Handle duplicates
+        # Note: duplicates can occur when a specific record was part of more than one
+        # outlier group, and is flagged by more than one group. If so, keep the
+        # first row, but concat the detail_msg's (since they describe the outlier group)
+
+        if not alloutliersdf.empty:
+            # Group by name and datetime, concatenate detail_msg for duplicates
+            alloutliersdf = (
+                alloutliersdf.groupby(["name", "datetime"], as_index=False)
+                .agg({"detail_msg": lambda x: " | ".join(x)})
+                .reset_index(drop=True)
+            )
 
         # update all the sensordata
         for station in target_stations:
@@ -2014,7 +2047,9 @@ class Dataset:
             sensorddata = station.get_sensor(target_obstype)
 
             # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            outldt = pd.DatetimeIndex(
+                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
+            )
 
             if not outldt.empty:
                 # convert to original timestamps
@@ -2027,7 +2062,7 @@ class Dataset:
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
-                    "detail_msg": df[df["name"] == station.name][
+                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
                         "detail_msg"
                     ].to_numpy()
                 },
@@ -2204,7 +2239,22 @@ class Dataset:
         # timestamps to the original timestamps
 
         # convert to a dataframe
-        df = pd.DataFrame(data=outlierslist, columns=["name", "datetime", "detail_msg"])
+        alloutliersdf = pd.DataFrame(
+            data=outlierslist, columns=["name", "datetime", "detail_msg"]
+        )
+
+        # Handle duplicates
+        # Note: duplicates can occur when a specific record was part of more than one
+        # outlier group, and is flagged by more than one group. If so, keep the
+        # first row, but concat the detail_msg's (since they describe the outlier group)
+
+        if not alloutliersdf.empty:
+            # Group by name and datetime, concatenate detail_msg for duplicates
+            alloutliersdf = (
+                alloutliersdf.groupby(["name", "datetime"], as_index=False)
+                .agg({"detail_msg": lambda x: " | ".join(x)})
+                .reset_index(drop=True)
+            )
 
         # update all the sensordata
         for station in target_stations:
@@ -2212,7 +2262,9 @@ class Dataset:
             sensorddata = station.get_sensor(target_obstype)
 
             # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(df[df["name"] == station.name]["datetime"])
+            outldt = pd.DatetimeIndex(
+                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
+            )
 
             if not outldt.empty:
                 # convert to original timestamps
@@ -2225,7 +2277,7 @@ class Dataset:
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
-                    "detail_msg": df[df["name"] == station.name][
+                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
                         "detail_msg"
                     ].to_numpy()
                 },
@@ -2599,6 +2651,9 @@ def createstations(
             obstype = known_obstypes[obstypename]
             records = stationdata[obstype.name]
 
+            # 4. convert to numeric
+            records = convert_to_numeric_series(arr=records)
+
             # 4. Test minimum number of notna values
             if records.notna().sum() < 1:
                 logger.warning(
@@ -2607,17 +2662,26 @@ def createstations(
                 continue
 
             # Get dataseries:
-            sensordata = SensorData(
-                stationname=stationname,
-                datarecords=records.to_numpy(),
-                timestamps=stationdata["datetime"].to_numpy(),
-                obstype=obstype,
-                timezone=timezone,
-                freq_estimation_method=freq_estimation_method,
-                freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
-                origin_simplify_tolerance=origin_simplify_tolerance,
-                timestamp_tolerance=timestamp_tolerance,
+            logger.debug(
+                f'Creating sensordata for station "{stationname}" -> {obstype}'
             )
+            try:
+                sensordata = SensorData(
+                    stationname=stationname,
+                    datarecords=records.to_numpy(),
+                    timestamps=stationdata["datetime"].to_numpy(),
+                    obstype=obstype,
+                    timezone=timezone,
+                    freq_estimation_method=freq_estimation_method,
+                    freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
+                    origin_simplify_tolerance=origin_simplify_tolerance,
+                    timestamp_tolerance=timestamp_tolerance,
+                )
+            except Exception as e:
+                e.add_note(
+                    f"This error occurs when creating SensorData for {stationname} -> {obstype}"
+                )
+                raise e
 
             # Add Sensordata:
             all_station_sensor_data.append(sensordata)

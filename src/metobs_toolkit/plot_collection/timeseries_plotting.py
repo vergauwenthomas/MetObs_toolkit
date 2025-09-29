@@ -384,11 +384,11 @@ def plot_timeseries_color_by_station(
             settings.label_def[trglab]["label"]
             for trglab in settings.gapfill_label_group
         ]
-        plotdf.loc[plotdf["value"].isin(all_gap_labels), "value"] = np.nan
+        plotdf.loc[plotdf["label"].isin(all_gap_labels), "value"] = np.nan
 
     # Handle outliers
     if not show_outliers:
-        plotdf.loc[plotdf["value"].isin(all_outlier_labels), "value"] = np.nan
+        plotdf.loc[plotdf["label"].isin(all_outlier_labels), "value"] = np.nan
 
     # Plot the data as a single color line
     # Iterate over stations to avoid interpolation over multiple stations

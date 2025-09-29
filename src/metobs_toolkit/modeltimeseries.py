@@ -6,7 +6,10 @@ import numpy as np
 from matplotlib.pyplot import Axes
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
-from metobs_toolkit.backend_collection.df_helpers import to_timedelta
+from metobs_toolkit.backend_collection.df_helpers import (
+    to_timedelta,
+    convert_to_numeric_series,
+)
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import ModelObstype
@@ -93,7 +96,7 @@ class ModelTimeSeries:
 
         # Data
         data = pd.Series(
-            data=pd.to_numeric(datarecords, errors="coerce").astype(datadtype),
+            data=convert_to_numeric_series(datarecords, datadtype=datadtype).values,
             index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
             name=modelobstype.name,
         )

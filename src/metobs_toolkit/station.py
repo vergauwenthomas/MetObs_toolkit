@@ -924,19 +924,28 @@ class Station:
         """
         lcz = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["LCZ"],
-            overwrite=overwrite,
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
+
         if apply_seamask_fix:
             if isinstance(lcz, str):
-                # LCZ is a string, so no seamask fix needed
-                return lcz
+                pass  # already a valid LCZ class
             elif np.isnan(lcz):
+                logger.warning(f"Seamask fix for LCZ applied for {self}")
                 lcz = default_gee_datasets["LCZ"].class_map[17]  # LCZ-G water
-                if overwrite:
-                    self.site.set_geedata(default_gee_datasets["LCZ"].name, lcz)
             else:
                 raise ValueError("Unexpected LCZ value")
+
+        # update the Site instance
+        if overwrite:
+            self.site.set_LCZ(lcz)
+        else:
+            if self.site.flag_has_LCZ():
+                # LCZ is present and overwrite == False (-> do not update)
+                pass
+            else:
+                self.site.set_LCZ(lcz)
         return lcz
 
     @log_entry
@@ -953,6 +962,11 @@ class Station:
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
+        apply_seamask_fix: bool, optional
+            The LCZ map is only defined over land, and thus locations in sea
+            will have a LCZ of Nan. If this argument is set to True, Nan values
+            returned by the GEE call are converted to the LCZ-G (water) category.
+
         Returns
         -------
         float
@@ -963,11 +977,22 @@ class Station:
         This method relies on the `get_static_gee_point_data` function and the
         `default_gee_datasets` dictionary to fetch the altitude data.
         """
-        return self.get_static_gee_point_data(
+        altitude = self.get_static_gee_point_data(
             geestaticdatasetmanager=default_gee_datasets["altitude"],
-            overwrite=overwrite,
+            overwrite=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
+
+        # update the Site instance
+        if overwrite:
+            self.site.set_altitude(altitude)
+        else:
+            if self.site.flag_has_altitude():
+                # altitude is present and overwrite == False (-> do not update)
+                pass
+            else:
+                self.site.set_altitude(altitude)
+        return altitude
 
     @log_entry
     def get_static_gee_buffer_fraction_data(
@@ -1632,6 +1657,8 @@ class Station:
         obstype: str = "temp",
         colorby: Literal["station", "label"] = "label",
         show_modeldata: bool = False,
+        modelobstype: str = None,
+        modeldata_kwargs: dict = {},
         linecolor: Union[str, None] = None,
         show_outliers=True,
         show_gaps=True,
@@ -1646,6 +1673,9 @@ class Station:
         ----------
         obstype : str, optional
             The type of observation to plot. Default is "temp".
+        modelobstype: str, optional
+            The name of the ModelObstype to plot. It is only used if show_modeldata is True. If None, it is set equal to obstype.
+            The default is None.
         colorby : {"station", "label"}, optional
             Determines how the data is colored in the plot.
 
@@ -1655,6 +1685,8 @@ class Station:
             Default is "label".
         show_modeldata : bool, optional
             If True, includes model data (of the same obstype) if present, in the plot. Default is False.
+        modeldata_kwargs: dict, optional
+            Additional keyword arguments passed to make_plot_of_modeldata(), by default an empty dictionary. Use it for example to specify modelname if multiple model data is available.
         linecolor : str or None, optional
             The color of the line for the model data. If None, a default categorical color map is used. Default is None.
         show_outliers : bool, optional
@@ -1690,17 +1722,20 @@ class Station:
             ax = plotting.create_axes(**figkwargs)
 
         if show_modeldata:
+            if modelobstype is None:
+                modelobstype = obstype
             if linecolor is None:
                 colormap = plotting.create_categorical_color_map([self.name])
             else:
                 colormap = {self.name: linecolor}
 
             ax = self.make_plot_of_modeldata(
-                obstype=obstype,
+                obstype=modelobstype,
                 linecolor=linecolor,
                 ax=ax,
                 figkwargs=figkwargs,
                 title=title,
+                **modeldata_kwargs,
             )
 
         # Create plotdf

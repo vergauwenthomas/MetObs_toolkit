@@ -601,8 +601,14 @@ value for 'altitude'"
                 min_std=min_std,
             )
             # NOTE: The records that were saved by the safety net, will be tested
-            # again in the following iteration. (A different result can occure
+            # again in the following iteration. (A different result can occur
             # if the spatial-/savetynet-sample is changed in the next iteration.
+
+        # Add reference to the iteration in the msg of the outliers
+        outliers = [
+            (station, timestamp, f"{msg} (iteration {i}/{N_iter})")
+            for station, timestamp, msg in outliers
+        ]
 
         outliersbin.extend(outliers)
         i += 1
