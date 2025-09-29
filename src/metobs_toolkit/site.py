@@ -217,7 +217,9 @@ class Site:
         # Ensure lat, lon, and altitude columns are float64
         for col in ["lat", "lon", "altitude"]:
             if col in metadf.columns:
-                metadf[col] = convert_to_numeric_series(metadf[col], datadtype=np.float32).values
+                metadf[col] = convert_to_numeric_series(
+                    metadf[col], datadtype=np.float32
+                ).values
 
         # add buffered fractions
         for bufradius, fracdict in self._gee_buffered_fractions.items():

@@ -70,7 +70,7 @@ class Gap:
     @property
     def records(self) -> pd.Series:
         """Return the records of the gap."""
-        
+
         return convert_to_numeric_series(self._records, datadtype=np.float32)
 
     @property
