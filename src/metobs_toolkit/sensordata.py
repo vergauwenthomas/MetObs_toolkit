@@ -260,51 +260,53 @@ class SensorData:
     def gap_status_overview_df(self) -> pd.DataFrame:
         """Return a DataFrame with consolidated gap information per gap period."""
         gap_info_list = []
-        
+
         if bool(self.gaps):
             for gap in self.gaps:
                 gap_df = gap.df
                 if gap_df.empty:
                     continue
-                    
+
                 # Basic gap information using Gap object properties
                 gap_start = gap.start_datetime
                 gap_end = gap.end_datetime
                 gap_size = gap.end_datetime - gap.start_datetime
-                
+
                 # Handle labels
-                unique_labels = gap_df['label'].unique()
+                unique_labels = gap_df["label"].unique()
                 if len(unique_labels) == 1:
-                    gap_label = f'unilabel gap: {unique_labels[0]}'
+                    gap_label = f"unilabel gap: {unique_labels[0]}"
                 else:
                     if False:
                         logger.warning(
                             f"Gap starting at {gap_start} in {self.stationname} {self.obstype.name} has different labels: {list(unique_labels)}"
                         )
                     gap_label = f'multilabal gap: {" -- ".join(sorted(unique_labels))}'
-                
+
                 # Handle details
-                unique_details = gap_df['details'].unique()
+                unique_details = gap_df["details"].unique()
                 if len(unique_details) == 1:
-                    gap_details =f'unidetail gap: {unique_details[0]}'
+                    gap_details = f"unidetail gap: {unique_details[0]}"
                 else:
                     if False:
                         logger.warning(
                             f"Gap starting at {gap_start} in {self.stationname} {self.obstype.name} has different details: {list(unique_details)}"
                         )
-                    gap_details = f'multi_details gap: {" -- ".join(sorted(unique_details))}'
-                
+                    gap_details = (
+                        f'multi_details gap: {" -- ".join(sorted(unique_details))}'
+                    )
+
                 # Create gap info dictionary
                 gap_info = {
-                    'gapstart': gap_start,
-                    'gapend': gap_end,
-                    'gapsize': gap_size,
-                    'label': gap_label,
-                    'details': gap_details
+                    "gapstart": gap_start,
+                    "gapend": gap_end,
+                    "gapsize": gap_size,
+                    "label": gap_label,
+                    "details": gap_details,
                 }
-                
+
                 gap_info_list.append(gap_info)
-            
+
             # Create DataFrame from gap info list
             if gap_info_list:
                 result_df = pd.DataFrame(gap_info_list)
@@ -313,13 +315,14 @@ class SensorData:
             else:
                 # All gaps were empty
                 return pd.DataFrame(
-                    columns=['gapstart', 'gapend', 'gapsize', 'label', 'details']
+                    columns=["gapstart", "gapend", "gapsize", "label", "details"]
                 )
         else:
             # No gaps present
             return pd.DataFrame(
-                columns=['gapstart', 'gapend', 'gapsize', 'label', 'details']
+                columns=["gapstart", "gapend", "gapsize", "label", "details"]
             )
+
     @property
     def stationname(self) -> str:
         """Return the name of the station this SensorData belongs to."""
@@ -1067,7 +1070,7 @@ class SensorData:
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
         method_kwargs : dict, optional
-            Additional keyword arguments for the method, by default {}.  
+            Additional keyword arguments for the method, by default {}.
 
         Raises
         ------
@@ -1090,8 +1093,7 @@ class SensorData:
             logger.debug(f"Filling {gap} with {method} model data.")
 
             if method == "raw":
-                gap.raw_model_gapfill(modeltimeseries=modeltimeseries,
-                                      **method_kwargs)
+                gap.raw_model_gapfill(modeltimeseries=modeltimeseries, **method_kwargs)
             elif method == "debiased":
                 gap.debiased_model_gapfill(
                     sensordata=self,
@@ -1126,7 +1128,6 @@ class SensorData:
         max_trail_to_gap_distance: Union[pd.Timedelta, str, None] = None,
         method_kwargs: dict = {},
         overwrite_fill: bool = False,
-        
     ) -> None:
         """
         Interpolate gaps in the data.

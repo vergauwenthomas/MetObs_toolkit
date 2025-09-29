@@ -297,8 +297,7 @@ class Dataset:
                 ),
             )
         return combdf
-    
-    
+
     @copy_doc(Station.modeldatadf)
     @property
     def modeldatadf(self) -> pd.DataFrame:
@@ -2359,11 +2358,11 @@ class Dataset:
     # ------------------------------------------
     #    Gapfilling
     # ------------------------------------------
-    
+
     @copy_doc(Station.gap_status_overview_df)
     @log_entry
     def gap_status_overview_df(self) -> pd.DataFrame:
-    
+
         concatlist = []
         for sta in self.stations:
             stadf = sta.gap_status_overview_df().reset_index()
@@ -2384,7 +2383,7 @@ class Dataset:
                 ),
             )
         return combdf
-    
+
     @copy_doc(Station.interpolate_gaps)
     @log_entry
     def interpolate_gaps(
@@ -2427,11 +2426,11 @@ class Dataset:
         self,
         target_obstype: str,
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
-        
+
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2439,7 +2438,9 @@ class Dataset:
 
         for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype, overwrite_fill=overwrite_fill, max_gap_duration_to_fill=max_gap_duration_to_fill
+                target_obstype=target_obstype,
+                overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
@@ -2457,7 +2458,7 @@ class Dataset:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2471,7 +2472,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
-                max_gap_duration_to_fill=max_gap_duration_to_fill
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
@@ -2483,13 +2484,12 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
-
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2502,7 +2502,7 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
-                max_gap_duration_to_fill=max_gap_duration_to_fill
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
@@ -2515,14 +2515,13 @@ class Dataset:
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
-
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
-    
+
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2536,7 +2535,7 @@ class Dataset:
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
-                max_gap_duration_to_fill=max_gap_duration_to_fill
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
             )
 
 

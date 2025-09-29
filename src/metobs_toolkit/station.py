@@ -364,7 +364,7 @@ class Station:
             )
 
         return combdf
-    
+
     @property
     def metadf(self) -> pd.DataFrame:
         """
@@ -1803,7 +1803,7 @@ class Station:
             )
 
         return combdf
-    
+
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
@@ -1811,7 +1811,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1854,9 +1854,9 @@ class Station:
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
-        #special formatters
+        # special formatters
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -1867,8 +1867,10 @@ class Station:
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
-            modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill,
-            method_kwargs={"max_gap_duration_to_fill": max_gap_duration_to_fill}
+            modeltimeseries=modeltimeseries,
+            method="raw",
+            overwrite_fill=overwrite_fill,
+            method_kwargs={"max_gap_duration_to_fill": max_gap_duration_to_fill},
         )
 
     @log_entry
@@ -1882,7 +1884,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1942,7 +1944,7 @@ class Station:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -1975,7 +1977,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h"))
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -2042,7 +2044,7 @@ class Station:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -2153,7 +2155,7 @@ class Station:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -2259,7 +2261,7 @@ class Station:
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
-        
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
