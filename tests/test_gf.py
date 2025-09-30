@@ -547,7 +547,7 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
         
-        assert 'partially successful gapfill' in dataset.gap_status_overview_df()['label'].values
+        assert 'partially successful gapfill' in dataset.gap_overview_df()['label'].values
         
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
@@ -604,7 +604,7 @@ class TestDataWithGaps:
         assert len(sta.modeldata) == 3
 
     def test_gap_status_df(self, overwrite_solution=False):
-        """Test gap_status_overview_df methods on Dataset, Station, and SensorData classes."""
+        """Test gap_overview_df methods on Dataset, Station, and SensorData classes."""
         # 0. Get info of the current check
         _method_name = "test_gap_status_df"
 
@@ -614,30 +614,30 @@ class TestDataWithGaps:
         )
 
         # Test 1: Dataset without gaps (original data)
-        gap_status_dataset_no_gaps = dataset_original.gap_status_overview_df()
+        gap_status_dataset_no_gaps = dataset_original.gap_overview_df()
         
         # Test 2: Station without gaps (original data) 
         station_original = dataset_original.get_station("vlinder01")
-        gap_status_station_no_gaps = station_original.gap_status_overview_df()
+        gap_status_station_no_gaps = station_original.gap_overview_df()
         
         # Test 3: SensorData without gaps (original data)
         sensordata_original = station_original.get_sensor("temp")
-        gap_status_sensordata_no_gaps = sensordata_original.gap_status_overview_df()
+        gap_status_sensordata_no_gaps = sensordata_original.gap_overview_df()
 
         # 2. Get data with gaps (after creating gaps)
         dataset_with_gaps = copy.deepcopy(dataset_original)
         dataset_with_gaps.convert_outliers_to_gaps(all_observations=True)
         
         # Test 4: Dataset with gaps (no gap filling)
-        gap_status_dataset_with_gaps = dataset_with_gaps.gap_status_overview_df()
+        gap_status_dataset_with_gaps = dataset_with_gaps.gap_overview_df()
         
         # Test 5: Station with gaps (no gap filling)
         station_with_gaps = dataset_with_gaps.get_station("vlinder01") 
-        gap_status_station_with_gaps = station_with_gaps.gap_status_overview_df()
+        gap_status_station_with_gaps = station_with_gaps.gap_overview_df()
         
         # Test 6: SensorData with gaps (no gap filling)
         sensordata_with_gaps = station_with_gaps.get_sensor("temp")
-        gap_status_sensordata_with_gaps = sensordata_with_gaps.gap_status_overview_df()
+        gap_status_sensordata_with_gaps = sensordata_with_gaps.gap_overview_df()
 
         # 3. Get data with gap filling applied
         dataset_filled = TestDataWithGaps.solutionfixer.get_solution(
@@ -645,15 +645,15 @@ class TestDataWithGaps:
         )
         
         # Test 7: Dataset with gap filling
-        gap_status_dataset_filled = dataset_filled.gap_status_overview_df()
+        gap_status_dataset_filled = dataset_filled.gap_overview_df()
         
         # Test 8: Station with gap filling  
         station_filled = dataset_filled.get_station("vlinder01")
-        gap_status_station_filled = station_filled.gap_status_overview_df()
+        gap_status_station_filled = station_filled.gap_overview_df()
         
         # Test 9: SensorData with gap filling
         sensordata_filled = station_filled.get_sensor("temp")
-        gap_status_sensordata_filled = sensordata_filled.gap_status_overview_df()
+        gap_status_sensordata_filled = sensordata_filled.gap_overview_df()
 
         # 4. Combine all results for solution comparison
         test_results = {

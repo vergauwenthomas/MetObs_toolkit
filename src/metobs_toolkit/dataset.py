@@ -2362,7 +2362,7 @@ class Dataset:
 
     @copy_doc(dataset_gap_status_overview_df)
     @log_entry
-    def gap_status_overview_df(self) -> pd.DataFrame:
+    def gap_overview_df(self) -> pd.DataFrame:
         return dataset_gap_status_overview_df(self)
 
     @copy_doc(Station.interpolate_gaps)

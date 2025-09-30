@@ -1784,7 +1784,7 @@ class Station:
 
     @copy_doc(station_gap_status_overview_df)
     @log_entry
-    def gap_status_overview_df(self) -> pd.DataFrame:
+    def gap_overview_df(self) -> pd.DataFrame:
         return station_gap_status_overview_df(self)
 
     @log_entry

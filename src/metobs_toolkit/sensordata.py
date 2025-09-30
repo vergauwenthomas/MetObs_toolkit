@@ -259,7 +259,7 @@ class SensorData:
                 index=pd.DatetimeIndex([], name="datetime"),
             )
     @copy_doc(sensordata_gap_status_overview_df)
-    def gap_status_overview_df(self) -> pd.DataFrame:
+    def gap_overview_df(self) -> pd.DataFrame:
         return sensordata_gap_status_overview_df(self)
 
     @property

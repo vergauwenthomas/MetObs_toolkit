@@ -1,17 +1,15 @@
-""" Collection of DF constructing functions on various levels
-    (sensordata, station, dataset) for overviews and summaries of Gaps."""
+"""Collection of DF constructing functions on various levels
+(sensordata, station, dataset) for overviews and summaries of Gaps."""
 
 import pandas as pd
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 
 
-
-
 def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
     """Return a DataFrame with consolidated gap information per gap period."""
-    #TODO write a docstring
-    
+    # TODO write a docstring
+
     gap_info_list = []
 
     if bool(sensordata.gaps):
@@ -23,7 +21,7 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
             gap_end = gap.end_datetime
             gap_size = gap.end_datetime - gap.start_datetime
             gap_label = gap.fillstatus
-            
+
             # Handle details
             unique_details = gap_df["details"].unique()
             if len(unique_details) == 1:
@@ -46,18 +44,19 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
 
         # Create DataFrame from gap info list
         if gap_info_list:
-            result_df = (pd.DataFrame(gap_info_list)
-                            .reset_index(drop=True)
-                            .set_index("gapstart")
-                            .sort_index()
-                            )
+            result_df = (
+                pd.DataFrame(gap_info_list)
+                .reset_index(drop=True)
+                .set_index("gapstart")
+                .sort_index()
+            )
 
             return result_df
     else:
         # No gaps present
         return pd.DataFrame(
             columns=["gapend", "gapsize", "label", "details"],
-            index=pd.Index([], name='gapstart')
+            index=pd.Index([], name="gapstart"),
         )
 
 
@@ -82,28 +81,28 @@ def station_gap_status_overview_df(station) -> pd.DataFrame:
         )
 
     return combdf
-    
-    
+
+
 @copy_doc(sensordata_gap_status_overview_df)
 def dataset_gap_status_overview_df(dataset) -> pd.DataFrame:
 
-        concatlist = []
-        for sta in dataset.stations:
-            stadf = sta.gap_status_overview_df().reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["gapstart", "obstype", "name"]))
+    concatlist = []
+    for sta in dataset.stations:
+        stadf = sta.gap_status_overview_df().reset_index()
+        if stadf.empty:
+            continue
+        stadf["name"] = sta.name
+        concatlist.append(stadf.set_index(["gapstart", "obstype", "name"]))
 
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["gapend", "gapsize", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["gapstart", "obstype", "name"],
-                ),
-            )
-        return combdf
+    combdf = save_concat((concatlist))
+    combdf.sort_index(inplace=True)
+    if combdf.empty:
+        combdf = pd.DataFrame(
+            columns=["gapend", "gapsize", "label", "details"],
+            index=pd.MultiIndex(
+                levels=[[], [], []],
+                codes=[[], [], []],
+                names=["gapstart", "obstype", "name"],
+            ),
+        )
+    return combdf
