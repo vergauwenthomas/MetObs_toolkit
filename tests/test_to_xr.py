@@ -94,7 +94,7 @@ class TestDemoData:
         # Test presence of GF labels
         station.convert_outliers_to_gaps(obstype="temp")
         station.interpolate_gaps(
-            target_obstype="temp", max_consec_fill=500, overwrite_fill=True
+            target_obstype="temp", max_gap_duration_to_fill='2d', overwrite_fill=True
         )
         ds = station.to_xr()
 
@@ -102,7 +102,7 @@ class TestDemoData:
         assert 12 in ds["temp"].sel(kind="label").data  # interpolated
         assert "interpolation" in ds["temp"].attrs["GF methods"]
         assert ds["temp"].attrs["GF:interpolation.method"] == "time"
-        assert ds["temp"].attrs["GF:interpolation.max_consec_fill"] == 500
+        assert '2 days' in ds["temp"].attrs["GF:interpolation.max_gap_duration_to_fill"]
         assert (
             ds["temp"].attrs["GF:interpolation.n_leading_anchors"] == 1
         )  # test if default arguments are present
