@@ -168,7 +168,10 @@ class Gap:
             return True
         if self.fillstatus in [_unfilled_label, _failed_label]:
             return True
-        if self.fillstatus in [_partially_successful_label, _successful_label]:
+        if self.fillstatus in [_partially_successful_label]:
+            #required for sequential GF, this is the intuitive approach
+            return True
+        if self.fillstatus in [_successful_label]:
             return False
         else:
             raise NotImplementedError(
