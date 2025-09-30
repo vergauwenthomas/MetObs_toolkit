@@ -224,4 +224,4 @@ if __name__ == "__main__":
     # pytest.main([__file__])
 
     testobstype = TestObstype()
-    testobstype.test_import_demo_data(overwrite_solution=False)
+    testobstype.test_import_demo_data(overwrite_solution=True)

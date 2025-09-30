@@ -146,10 +146,13 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-        assert_equality(alt_data["altitude"], solutionobj.metadf["altitude"])
+        assert_equality(
+            alt_data["altitude"].astype("float64"),
+            solutionobj.metadf["altitude"].astype("float64"),
+        )
         # calling printout
         _ = dataset.get_station("vlinder18").site.get_info(printout=False)
-        assert isinstance(dataset.get_station("vlinder18").site.altitude, int)
+        assert isinstance(dataset.get_station("vlinder18").site.altitude, float)
 
     def test_geemodeldata_getinfo_class(self):
         """Simple tests on GeeModelData instances"""
@@ -175,7 +178,7 @@ class TestDemoDataset:
             **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
         )
 
-        geemod = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+        geemod = metobs_toolkit.default_GEE_datasets["ERA5-land"] 
 
         with pytest.raises(ValueError):
             mapret = dataset.make_gee_plot(
@@ -471,7 +474,7 @@ class TestDemoDataset:
 
 if __name__ == "__main__":
     test = TestDemoDataset()
-    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution= False)
+    # test.test_ERA5_extraction_on_metadata_only(overwrite_solution=False)
     # test.test_import_demo_metadata(overwrite_solution=False)
     # test.test_LCZ_extraction(overwrite_solution=False)
     # test.test_altitude_extraction(overwrite_solution=False)

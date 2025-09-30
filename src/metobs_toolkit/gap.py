@@ -9,6 +9,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
 )
 
+from metobs_toolkit.backend_collection.df_helpers import convert_to_numeric_series
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.settings_collection import label_def
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
@@ -70,7 +71,8 @@ class Gap:
     @property
     def records(self) -> pd.Series:
         """Return the records of the gap."""
-        return self._records.astype(np.float32)
+
+        return convert_to_numeric_series(self._records, datadtype=np.float32)
 
     @property
     def obstype(self) -> Obstype:

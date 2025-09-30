@@ -17,10 +17,11 @@ def modeltimeseries_to_xr(
     The returned Dataset contains a single variable named after the
     observation type (e.g. 'temperature'). Its DataArray has three
     dimensions:
-      - kind: distinguishes the nature of the stacked data. For model
-              time series this contains a single value: 'model'.
-      - models: the model name (length 1 here, prepared for concatenation).
-      - datetime: timestamps of the model output.
+
+    * kind: distinguishes the nature of the stacked data. For model
+      time series this contains a single value: 'model'.
+    * models: the model name (length 1 here, prepared for concatenation).
+    * datetime: timestamps of the model output.
 
     Attributes on the variable describe the observation type and model
     metadata.
@@ -72,10 +73,13 @@ def sensordata_to_xr(
 
     The returned Dataset contains one variable named after the observation
     type (e.g. 'temperature'). Its DataArray has:
-      - kind dimension with two entries:
-          'obs'   -> the measured (and possibly processed) numerical values
-          'label' -> the associated integer / categorical QC or gap labels
-      - datetime dimension with the observation timestamps.
+
+    * kind dimension with two entries:
+
+      * 'obs'   -> the measured (and possibly processed) numerical values
+      * 'label' -> the associated integer / categorical QC or gap labels
+
+    * datetime dimension with the observation timestamps.
 
     The 'obs' slice holds the physical observation values. The 'label'
     slice holds the label codes; QC and gap-fill method metadata are stored
@@ -154,9 +158,10 @@ def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Datase
 
     Each variable (per observation type) preserves its internal 'kind'
     dimension, which may include:
-      - 'obs'   : sensor values
-      - 'label' : sensor labels
-      - 'model' : model time series (if present for that type)
+
+    * 'obs'   : sensor values
+    * 'label' : sensor labels
+    * 'model' : model time series (if present for that type)
 
     Datetimes from all contributing sources (sensors and model series) are
     unioned to build a common 'datetime' coordinate; individual variables
