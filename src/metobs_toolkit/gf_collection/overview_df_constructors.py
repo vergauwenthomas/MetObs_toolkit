@@ -7,8 +7,29 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat
 
 
 def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
-    """Return a DataFrame with consolidated gap information per gap period."""
-    # TODO write a docstring
+    """
+    Create gap status overview DataFrame with one row per gap period.
+
+    Parameters
+    ----------
+    sensordata : SensorData
+        SensorData instance containing gap information.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with gap periods indexed by gap start time. Contains columns:
+        
+        * gapend : pandas.Timestamp - End time of the gap
+        * gapsize : pandas.Timedelta - Duration of the gap  
+        * label : str - Gap fill status (e.g., 'not filled', 'interpolated')
+        * details : str - Gap creation details and methods used
+
+    Notes
+    -----
+    Unlike gapsdf which lists all missing records, this provides one summary
+    row per continuous gap period.
+    """
 
     gap_info_list = []
 
@@ -64,7 +85,7 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
 def station_gap_status_overview_df(station) -> pd.DataFrame:
     concatlist = []
     for sensordata in station.sensordata.values():
-        stadf = sensordata.gap_status_overview_df().reset_index()
+        stadf = sensordata_gap_status_overview_df(sensordata).reset_index()
         if not stadf.empty:
             stadf["obstype"] = sensordata.obstype.name
             stadf = stadf.set_index(["gapstart", "obstype"])
@@ -88,7 +109,7 @@ def dataset_gap_status_overview_df(dataset) -> pd.DataFrame:
 
     concatlist = []
     for sta in dataset.stations:
-        stadf = sta.gap_status_overview_df().reset_index()
+        stadf = station_gap_status_overview_df(sta).reset_index()
         if stadf.empty:
             continue
         stadf["name"] = sta.name
