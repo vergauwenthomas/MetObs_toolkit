@@ -31,7 +31,9 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
-from metobs_toolkit.gf_collection.overview_df_constructors import dataset_gap_status_overview_df
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    dataset_gap_status_overview_df,
+)
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype

@@ -1028,7 +1028,6 @@ class Gap:
         logger.debug(f"Exiting _setup_lead_and_trail_for_debias_gapfill for {self}")
         return lead_period, trail_period, True
 
-
     def test_if_gf_is_suitable_with_gapsize(self, max_gapsize) -> tuple[bool, str]:
 
         if (self.end_datetime - self.start_datetime) > max_gapsize:

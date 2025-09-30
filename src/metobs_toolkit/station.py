@@ -31,7 +31,9 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
 )
-from metobs_toolkit.gf_collection.overview_df_constructors import station_gap_status_overview_df
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    station_gap_status_overview_df,
+)
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries

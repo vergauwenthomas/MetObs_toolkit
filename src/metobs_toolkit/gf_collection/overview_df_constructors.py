@@ -19,9 +19,9 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
     -------
     pandas.DataFrame
         DataFrame with gap periods indexed by gap start time. Contains columns:
-        
+
         * gapend : pandas.Timestamp - End time of the gap
-        * gapsize : pandas.Timedelta - Duration of the gap  
+        * gapsize : pandas.Timedelta - Duration of the gap
         * label : str - Gap fill status (e.g., 'not filled', 'interpolated')
         * details : str - Gap creation details and methods used
 

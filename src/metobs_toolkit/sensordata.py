@@ -12,7 +12,9 @@ from metobs_toolkit.backend_collection.df_helpers import (
     to_timedelta,
     convert_to_numeric_series,
 )
-from metobs_toolkit.gf_collection.overview_df_constructors import sensordata_gap_status_overview_df
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    sensordata_gap_status_overview_df,
+)
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
@@ -23,7 +25,9 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
 )
-from metobs_toolkit.gf_collection.overview_df_constructors import sensordata_gap_status_overview_df
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    sensordata_gap_status_overview_df,
+)
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -258,6 +262,7 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
+
     @copy_doc(sensordata_gap_status_overview_df)
     def gap_overview_df(self) -> pd.DataFrame:
         return sensordata_gap_status_overview_df(self)
