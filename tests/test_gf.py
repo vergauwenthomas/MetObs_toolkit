@@ -564,42 +564,40 @@ class TestDataWithGaps:
 
         assert_equality(dataset, solutionobj)  # dataset comparison
         dataset.stations[0].make_plot(colorby="label")
-        
-        #Test chaining after partially filled gaps:
-        #Choice: when force=False, a partially filled gap will BE filled again when chaining !!
-        
+
+        # Test chaining after partially filled gaps:
+        # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
+
         dataset.stations[0].interpolate_gaps(
             target_obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("25h"),
-            overwrite_fill=False)
+            overwrite_fill=False,
+        )
         dataset.stations[0].make_plot(colorby="label")
-        
+
     def test_chaining_on_partially_filled_gaps(self):
-        
+
         dataset = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname="test_partially_filled_gaps"
         )
         assert (
             "partially successful gapfill" in dataset.gap_overview_df()["label"].values
         )
-        
-        #Test chaining after partially filled gaps:
-        #Choice: when force=False, a partially filled gap will BE filled again when chaining !!
-        
+
+        # Test chaining after partially filled gaps:
+        # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
+
         dataset.stations[0].interpolate_gaps(
             target_obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("25h"),
-            overwrite_fill=False)
-        
-        # dataset.stations[0].make_plot(colorby="label")
-        
-        assert (
-            not ("partially successful gapfill" in dataset.gap_overview_df()["label"].values)
+            overwrite_fill=False,
         )
-        
-        
-        
-        
+
+        # dataset.stations[0].make_plot(colorby="label")
+
+        assert not (
+            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
+        )
 
     def test_add_modeldata_to_station(self):
         #   get_startpoint data
