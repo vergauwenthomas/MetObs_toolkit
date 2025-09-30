@@ -86,6 +86,7 @@ Gaps related methods
    :toctree: api/
 
    Station.gapsdf
+   Station.gap_overview_df
    Station.convert_outliers_to_gaps
    Station.interpolate_gaps
    Station.fill_gaps_with_raw_modeldata

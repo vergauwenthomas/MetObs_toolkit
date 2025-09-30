@@ -118,7 +118,9 @@ class ModelTimeSeries:
     #    Specials
     # ------------------------------------------
     def __repr__(self):
-        return f"<ModelTimeSeries(id={self._id()},modelobstype={self.modelobstype.name})>"
+        return (
+            f"<ModelTimeSeries(id={self._id()},modelobstype={self.modelobstype.name})>"
+        )
 
     def _id(self) -> str:
         """A physical unique id.

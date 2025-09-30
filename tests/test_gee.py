@@ -178,7 +178,7 @@ class TestDemoDataset:
             **TestDemoDataset.solkwargs, methodname="test_import_demo_metadata"
         )
 
-        geemod = metobs_toolkit.default_GEE_datasets["ERA5-land"] 
+        geemod = metobs_toolkit.default_GEE_datasets["ERA5-land"]
 
         with pytest.raises(ValueError):
             mapret = dataset.make_gee_plot(
