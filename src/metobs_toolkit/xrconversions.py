@@ -351,6 +351,10 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
         return val
     elif isinstance(val, (str, int, float)):
         return val
+    elif isinstance(val, pd.Timedelta):
+        return str(val)
+    elif isinstance(val, pd.Timestamp):
+        return str(val)
     else:
         raise ValueError(f"Unsupported attribute type found: {type(val)}")
 
