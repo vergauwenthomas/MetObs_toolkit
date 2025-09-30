@@ -394,7 +394,7 @@ class Dataset:
         -----
         This method is an export method. It is not possible to convert a netCDF
         to a metobs_toolkit.Dataset object.
-        
+
         The method uses the 'netcdf4' engine by default for better Unicode string
         compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
@@ -404,9 +404,8 @@ class Dataset:
 
         # Use netcdf4 engine by default for better Unicode string support
         # unless explicitly overridden by user
-        if 'engine' not in kwargs:
-            kwargs['engine'] = 'netcdf4'
-        
+        if "engine" not in kwargs:
+            kwargs["engine"] = "netcdf4"
 
         # Save to netCDF
         ds.to_netcdf(filepath, **kwargs)
