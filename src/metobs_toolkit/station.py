@@ -34,6 +34,7 @@ from metobs_toolkit.geedatasetmanagers import (
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     station_gap_status_overview_df,
 )
+from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
@@ -1600,22 +1601,38 @@ class Station:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        # test if the obstype has model data
-        trg_modeltimeseries = self.get_modeltimeseries(
-            obstype=obstype, modelname=modelname, modelvariable=modelvariable
-        )
+        #filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(modeldatadf=self.modeldatadf,
+                                             trgobstype=obstype,
+                                             modelname=modelname,
+                                             modelvariable=modelvariable)
 
+        # Get the final model metadata for display
+        modelname = trg_modeldatadf["modelname"].iloc[0]
+        modelvar = trg_modeldatadf["modelvariable"].iloc[0]
+        modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
+        #get ModelObstypeinstance
+        for modts in self.modeldata:
+            if (
+                modts.modelobstype.name == modelobstypename
+                and (modelname is None or modts.modelname == modelname)
+                and (modelvariable is None or modts.modelvariable == modelvariable)
+            ):
+                trg_modeltimeseries = modts
+                break
+
+        modelobstypeinstance = trg_modeltimeseries.modelobstype
         # Create new axes if needed
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
         plotdf = (
-            self.modeldatadf.xs(obstype, level="obstype", drop_level=False)
+            trg_modeldatadf.reset_index()
             .assign(name=self.name)
-            .reset_index()
             .set_index(["name", "obstype", "datetime"])
             .sort_index()
         )
+
 
         plotdf = plotdf[["value"]]
         plotdf["label"] = label_def["goodrecord"][
@@ -1634,21 +1651,21 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
+            legend_prefix=f"{modelname}:{modelvar}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.modelobstype
+        
 
         # Set title:
         if title is None:
             plotting.set_title(
-                ax, f"{obstypeinstance.name} data for station {self.name}"
+                ax, f"{modelobstypeinstance.name} data for station {self.name}"
             )
         else:
             plotting.set_title(ax, title)
 
         # Set ylabel
-        plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
+        plotting.set_ylabel(ax, modelobstypeinstance._get_plot_y_label())
 
         # Set xlabel
         cur_tz = plotdf.index.get_level_values("datetime").tz
