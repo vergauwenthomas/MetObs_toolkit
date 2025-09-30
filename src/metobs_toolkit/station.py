@@ -31,6 +31,7 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
 )
+from metobs_toolkit.gf_collection.overview_df_constructors import station_gap_status_overview_df
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
@@ -1781,28 +1782,10 @@ class Station:
     #    Gap filling
     # ------------------------------------------
 
-    @copy_doc(SensorData.gap_status_overview_df)
+    @copy_doc(station_gap_status_overview_df)
     @log_entry
     def gap_status_overview_df(self) -> pd.DataFrame:
-        concatlist = []
-        for sensordata in self.sensordata.values():
-            stadf = sensordata.gap_status_overview_df().reset_index()
-            if not stadf.empty:
-                stadf["obstype"] = sensordata.obstype.name
-                stadf = stadf.set_index(["gapstart", "obstype"])
-                concatlist.append(stadf)
-
-        combdf = save_concat(concatlist)
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["gapend", "gapsize", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], []], codes=[[], []], names=["gapstart", "obstype"]
-                ),
-            )
-
-        return combdf
+        return station_gap_status_overview_df(self)
 
     @log_entry
     def fill_gaps_with_raw_modeldata(

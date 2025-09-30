@@ -31,6 +31,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
+from metobs_toolkit.gf_collection.overview_df_constructors import dataset_gap_status_overview_df
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -2359,30 +2360,10 @@ class Dataset:
     #    Gapfilling
     # ------------------------------------------
 
-    @copy_doc(Station.gap_status_overview_df)
+    @copy_doc(dataset_gap_status_overview_df)
     @log_entry
     def gap_status_overview_df(self) -> pd.DataFrame:
-
-        concatlist = []
-        for sta in self.stations:
-            stadf = sta.gap_status_overview_df().reset_index()
-            if stadf.empty:
-                continue
-            stadf["name"] = sta.name
-            concatlist.append(stadf.set_index(["gapstart", "obstype", "name"]))
-
-        combdf = save_concat((concatlist))
-        combdf.sort_index(inplace=True)
-        if combdf.empty:
-            combdf = pd.DataFrame(
-                columns=["gapend", "gapsize", "label", "details"],
-                index=pd.MultiIndex(
-                    levels=[[], [], []],
-                    codes=[[], [], []],
-                    names=["gapstart", "obstype", "name"],
-                ),
-            )
-        return combdf
+        return dataset_gap_status_overview_df(self)
 
     @copy_doc(Station.interpolate_gaps)
     @log_entry

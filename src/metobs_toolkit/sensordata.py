@@ -12,6 +12,7 @@ from metobs_toolkit.backend_collection.df_helpers import (
     to_timedelta,
     convert_to_numeric_series,
 )
+from metobs_toolkit.gf_collection.overview_df_constructors import sensordata_gap_status_overview_df
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
@@ -22,6 +23,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
 )
+from metobs_toolkit.gf_collection.overview_df_constructors import sensordata_gap_status_overview_df
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -256,56 +258,9 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
-
+    @copy_doc(sensordata_gap_status_overview_df)
     def gap_status_overview_df(self) -> pd.DataFrame:
-        """Return a DataFrame with consolidated gap information per gap period."""
-        gap_info_list = []
-
-        if bool(self.gaps):
-            for gap in self.gaps:
-                gap_df = gap.df
-
-                # Basic gap information using Gap object properties
-                gap_start = gap.start_datetime
-                gap_end = gap.end_datetime
-                gap_size = gap.end_datetime - gap.start_datetime
-                gap_label = gap.fillstatus
-                
-                # Handle details
-                unique_details = gap_df["details"].unique()
-                if len(unique_details) == 1:
-                    gap_details = f"unidetail gap: {unique_details[0]}"
-                else:
-                    gap_details = (
-                        f'multi_details gap: {" -- ".join(sorted(unique_details))}'
-                    )
-
-                # Create gap info dictionary
-                gap_info = {
-                    "gapstart": gap_start,
-                    "gapend": gap_end,
-                    "gapsize": gap_size,
-                    "label": gap_label,
-                    "details": gap_details,
-                }
-
-                gap_info_list.append(gap_info)
-
-            # Create DataFrame from gap info list
-            if gap_info_list:
-                result_df = (pd.DataFrame(gap_info_list)
-                             .reset_index(drop=True)
-                             .set_index("gapstart")
-                             .sort_index()
-                             )
-
-                return result_df
-        else:
-            # No gaps present
-            return pd.DataFrame(
-                columns=["gapend", "gapsize", "label", "details"],
-                index=["gapstart"]
-            )
+        return sensordata_gap_status_overview_df(self)
 
     @property
     def stationname(self) -> str:
