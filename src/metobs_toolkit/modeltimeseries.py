@@ -269,6 +269,7 @@ class ModelTimeSeries:
         linecolor: str = None,
         ax: Union[Axes, None] = None,
         figkwargs: dict = {},
+        linekwargs: dict = {},
         title: Union[str, None] = None,
     ) -> Axes:
         """
@@ -278,10 +279,13 @@ class ModelTimeSeries:
         ----------
         linecolor : str, optional
             Color of the line, by default None.
+            Note: This is overridden by linekwargs['color'] if provided.
         ax : Axes, optional
             Matplotlib Axes to plot on, by default None.
         figkwargs : dict, optional
             Additional keyword arguments for figure creation, by default {}.
+        linekwargs : dict, optional
+            Additional keyword arguments for line styling (e.g., 'color', 'ls', 'linewidth', 'zorder'), by default {}.
         title : str or None, optional
             Title for the plot, by default None.
 
@@ -304,13 +308,22 @@ class ModelTimeSeries:
 
         legendname = f"{self.modelname}:{self.modelvariable}@{self.stationname}"
 
-        ax = add_lines_to_axes(
-            ax=ax,
-            series=self.series,
-            legend_label=legendname,
-            linestyle="--",
-            color=color,
-        )
+        # Prepare kwargs for add_lines_to_axes
+        # Allow linekwargs to override color and linestyle
+        line_plot_kwargs = {
+            "ax": ax,
+            "series": self.series,
+            "legend_label": legendname,
+            "linestyle": linekwargs.get("ls", linekwargs.get("linestyle", "--")),
+            "color": linekwargs.get("color", color),
+        }
+
+        # Add any other valid kwargs (linewidth, zorder)
+        for key in ["linewidth", "zorder"]:
+            if key in linekwargs:
+                line_plot_kwargs[key] = linekwargs[key]
+
+        ax = add_lines_to_axes(**line_plot_kwargs)
 
         # Add Styling attributes
         # Set title:
