@@ -1601,17 +1601,20 @@ class Station:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        #filter the modeldatadf to target obstype, modelname, modelvariable
-        trg_modeldatadf = filter_modeldatadf(modeldatadf=self.modeldatadf,
-                                             trgobstype=obstype,
-                                             modelname=modelname,
-                                             modelvariable=modelvariable)
+        # Filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(
+            modeldatadf=self.modeldatadf,
+            trgobstype=obstype,
+            modelname=modelname,
+            modelvariable=modelvariable,
+        )
 
         # Get the final model metadata for display
         modelname = trg_modeldatadf["modelname"].iloc[0]
         modelvar = trg_modeldatadf["modelvariable"].iloc[0]
         modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
-         # Find the matching model timeseries instance
+
+        # Find the matching model timeseries instance
         def _find_model_timeseries():
             """Find the first model timeseries matching the criteria."""
             for modts in self.modeldata:
@@ -1622,20 +1625,18 @@ class Station:
                 ):
                     return modts
             return None
-        
+
         trg_modeltimeseries = _find_model_timeseries()
         # Create new axes if needed
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
         plotdf = (
-            trg_modeldatadf
-            .reset_index()
+            trg_modeldatadf.reset_index()
             .assign(name=self.name)
             .set_index(["name", "obstype", "datetime"])
             .sort_index()
         )
-
 
         plotdf = plotdf[["value"]]
         plotdf["label"] = label_def["goodrecord"][
@@ -1657,12 +1658,12 @@ class Station:
             legend_prefix=f"{modelname}:{modelvar}@",
         )
         # Styling
-        
 
         # Set title:
         if title is None:
             plotting.set_title(
-                ax, f"{trg_modeltimeseries.modelobstype.name} data for station {self.name}"
+                ax,
+                f"{trg_modeltimeseries.modelobstype.name} data for station {self.name}",
             )
         else:
             plotting.set_title(ax, title)

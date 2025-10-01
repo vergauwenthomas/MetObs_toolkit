@@ -1084,18 +1084,20 @@ class Dataset:
             The axes object containing the plot.
         """
 
-        #filter the modeldatadf to target obstype, modelname, modelvariable
-        trg_modeldatadf = filter_modeldatadf(modeldatadf=self.modeldatadf,
-                                             trgobstype=obstype,
-                                             modelname=modelname,
-                                             modelvariable=modelvariable)
+        # Filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(
+            modeldatadf=self.modeldatadf,
+            trgobstype=obstype,
+            modelname=modelname,
+            modelvariable=modelvariable,
+        )
 
         # Get the final model metadata for display
         modelname = trg_modeldatadf["modelname"].iloc[0]
         modelvar = trg_modeldatadf["modelvariable"].iloc[0]
         # modelobstype = self.obstypes[obstype]
         modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
-        
+
         # Find the matching model timeseries instance
         def _find_model_timeseries():
             """Find the first model timeseries matching the criteria."""
@@ -1104,20 +1106,23 @@ class Dataset:
                     if (
                         modts.modelobstype.name == modelobstypename
                         and (modelname is None or modts.modelname == modelname)
-                        and (modelvariable is None or modts.modelvariable == modelvariable)
+                        and (
+                            modelvariable is None
+                            or modts.modelvariable == modelvariable
+                        )
                     ):
                         return modts
             return None
-        
+
         trg_modeltimeseries = _find_model_timeseries()
         if trg_modeltimeseries is None:
             raise MetObsModelDataError(
                 f"No model timeseries found for {modelobstypename} with "
                 f"modelname={modelname} and modelvariable={modelvariable}"
             )
-        
+
         modelobstypeinstance = trg_modeltimeseries.modelobstype
-        
+
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
@@ -1147,7 +1152,8 @@ class Dataset:
 
         if title is None:
             plotting.set_title(
-                ax, f"{modelobstypeinstance.name} data of {modelname} at stations locations."
+                ax,
+                f"{modelobstypeinstance.name} data of {modelname} at stations locations.",
             )
         else:
             plotting.set_title(ax, title)

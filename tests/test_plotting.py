@@ -154,7 +154,6 @@ class TestDemoDataset:
         ax = station.make_plot_of_modeldata(obstype="temp")
         fig = ax.get_figure()
         return fig
-    
 
     @pytest.mark.mpl_image_compare
     def test_station_plot_of_modeldata_with_modelname(self):
@@ -169,7 +168,7 @@ class TestDemoDataset:
         ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
         fig = ax.get_figure()
         return fig
-    
+
     @pytest.mark.mpl_image_compare
     def test_dataset_plot_of_modeldata_with_modelname(self):
         """Test station.make_plot_of_modeldata with modelname argument."""
@@ -179,8 +178,9 @@ class TestDemoDataset:
             methodname="test_ERA5_extraction",
         )
 
-
-        ax = dataset_with_era.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
+        ax = dataset_with_era.make_plot_of_modeldata(
+            obstype="temp", modelname="ERA5-land"
+        )
         fig = ax.get_figure()
         return fig
 
