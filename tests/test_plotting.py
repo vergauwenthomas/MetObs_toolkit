@@ -299,6 +299,94 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
+    def test_linekwargs_in_make_plot_of_modeldata(self):
+        """Test that linekwargs works properly in make_plot_of_modeldata."""
+        # Get a dataset with model data
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder05")
+
+        # Test 1: Station.make_plot_of_modeldata with linekwargs
+        fig, ax = plt.subplots()
+        try:
+            ax = station.make_plot_of_modeldata(
+                ax=ax,
+                obstype="temp",
+                modelname="ERA5-land",
+                linekwargs={"ls": ":", "color": "red"},
+            )
+            # Check that the line was actually added
+            lines = ax.get_lines()
+            assert len(lines) > 0, "No lines were plotted"
+            # Check that at least one line has the specified properties
+            has_red_dotted = False
+            for line in lines:
+                if line.get_color() == "red" and line.get_linestyle() == ":":
+                    has_red_dotted = True
+                    break
+            assert has_red_dotted, "No line with red color and dotted style found"
+        finally:
+            plt.close(fig)
+
+        # Test 2: Dataset.make_plot_of_modeldata with linekwargs
+        fig, ax = plt.subplots()
+        try:
+            ax = dataset_with_era.make_plot_of_modeldata(
+                ax=ax,
+                obstype="temp",
+                modelname="ERA5-land",
+                linekwargs={"ls": "--", "color": "blue"},
+            )
+            # Check that lines were added
+            lines = ax.get_lines()
+            assert len(lines) > 0, "No lines were plotted"
+            # Check that at least one line has the specified properties
+            has_blue_dashed = False
+            for line in lines:
+                if line.get_color() == "blue" and line.get_linestyle() == "--":
+                    has_blue_dashed = True
+                    break
+            assert has_blue_dashed, "No line with blue color and dashed style found"
+        finally:
+            plt.close(fig)
+
+        # Test 3: Multiple models with different styles on same axes
+        fig, ax = plt.subplots()
+        try:
+            # This is the use case from the original issue
+            ax = station.make_plot(obstype="temp", show_outliers=False, ax=ax)
+            
+            # Note: Since we only have ERA5-land in the test data, we can't test 
+            # multiple different models, but we can verify the mechanism works
+            ax = station.make_plot_of_modeldata(
+                ax=ax,
+                obstype="temp",
+                modelname="ERA5-land",
+                linekwargs={"ls": ":", "color": "red"},
+            )
+            
+            lines = ax.get_lines()
+            assert len(lines) > 0, "No lines were plotted"
+        finally:
+            plt.close(fig)
+
+        # Test 4: Verify that invalid figkwargs in make_plot doesn't cause issues
+        # This used to cause an AttributeError
+        try:
+            # figkwargs should only be used for figure creation, not passed down
+            ax = station.make_plot(
+                obstype="temp",
+                show_modeldata=False,
+                figkwargs={"figsize": (10, 4)},
+            )
+            plt.close(ax.get_figure())
+        except AttributeError as e:
+            pytest.fail(f"make_plot raised AttributeError with figkwargs: {e}")
+
 
 # ------------------------------------------
 #    test plotting timeseries with GF labels
