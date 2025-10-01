@@ -1,17 +1,18 @@
-
 import logging
 import pandas as pd
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsObstypeNotFound,
     MetObsModelDataError,
 )
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-def filter_modeldatadf(modeldatadf:pd.DataFrame,
-                       trgobstype: str,
-                       modelname: str,
-                       modelvariable: str) -> pd.DataFrame:
+
+@log_entry
+def filter_modeldatadf(
+    modeldatadf: pd.DataFrame, trgobstype: str, modelname: str, modelvariable: str
+) -> pd.DataFrame:
     """
     Filter model data DataFrame by observation type, model name, and variable.
 
@@ -36,7 +37,7 @@ def filter_modeldatadf(modeldatadf:pd.DataFrame,
     If multiple model names or variables remain after filtering, the function
     logs a warning and uses the first occurrence.
     """
-    
+
     # filter on obstype
     if trgobstype not in modeldatadf.index.get_level_values("obstype"):
         raise MetObsObstypeNotFound(f"There is no modeldata present of {trgobstype}")
@@ -45,13 +46,9 @@ def filter_modeldatadf(modeldatadf:pd.DataFrame,
     # filter on modelname
     if modelname is not None:
         if modelname not in modeldatadf["modelname"].values:
-            raise MetObsModelDataError(
-                f"There is no modeldata present of {modelname}"
-            )
+            raise MetObsModelDataError(f"There is no modeldata present of {modelname}")
         else:
-            modeldatadf = modeldatadf[
-                modeldatadf["modelname"] == modelname
-            ]
+            modeldatadf = modeldatadf[modeldatadf["modelname"] == modelname]
 
     # filter on modelvariable
     if modelvariable is not None:
@@ -60,9 +57,7 @@ def filter_modeldatadf(modeldatadf:pd.DataFrame,
                 f"There is no modeldata present of {modelvariable}"
             )
         else:
-            modeldatadf = modeldatadf[
-                modeldatadf["modelvariable"] == modelvariable
-            ]
+            modeldatadf = modeldatadf[modeldatadf["modelvariable"] == modelvariable]
 
     # If there are multiple model names or variables, warn and take first occurrence
     if len(modeldatadf["modelname"].unique()) > 1:
@@ -70,17 +65,13 @@ def filter_modeldatadf(modeldatadf:pd.DataFrame,
         logger.warning(
             f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}"
         )
-        modeldatadf = modeldatadf[
-            modeldatadf["modelname"] == unique_models[0]
-        ]
+        modeldatadf = modeldatadf[modeldatadf["modelname"] == unique_models[0]]
 
     if len(modeldatadf["modelvariable"].unique()) > 1:
         unique_vars = modeldatadf["modelvariable"].unique()
         logger.warning(
             f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}"
         )
-        modeldatadf = modeldatadf[
-            modeldatadf["modelvariable"] == unique_vars[0]
-        ]
-        
+        modeldatadf = modeldatadf[modeldatadf["modelvariable"] == unique_vars[0]]
+
     return modeldatadf
