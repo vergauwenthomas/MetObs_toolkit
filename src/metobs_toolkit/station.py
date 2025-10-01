@@ -1569,6 +1569,7 @@ class Station:
         linestyle: str = "--",
         ax: Union[None, Axes] = None,
         figkwargs: dict = {},
+        linekwargs: dict = {},
     ) -> Axes:
         """
         Generate a time series plot of model data for a specific observation type.
@@ -1587,14 +1588,19 @@ class Station:
             model variable is applied. The default is None.
         linecolor : str or None, optional
             The color of the line in the plot. If None, a default color map is used.
+            Note: This is overridden by linekwargs['color'] if provided.
         title : str or None, optional
             The title of the plot. If None, a default title is generated, by default None.
         linestyle : str, optional
             The style of the line in the plot, by default "--".
+            Note: This is overridden by linekwargs['ls'] or linekwargs['linestyle'] if provided.
         ax : matplotlib.axes.Axes, optional
             The axes on which to plot. If None, a new axes object is created.
         figkwargs : dict, optional
-            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+            Additional keyword arguments passed to matplotlib.pyplot.subplots() when creating a new figure, by default an empty dictionary.
+        linekwargs : dict, optional
+            Additional keyword arguments passed to the line plotting function (e.g., 'color', 'ls', 'linewidth', 'zorder'), by default an empty dictionary.
+            Use 'ls' or 'linestyle' for line style, and 'color' for line color.
 
         Returns
         -------
@@ -1656,6 +1662,7 @@ class Station:
             ax=ax,
             linestyle=linestyle,
             legend_prefix=f"{modelname}:{modelvar}@",
+            **linekwargs,
         )
         # Styling
 
@@ -1765,7 +1772,6 @@ class Station:
                 obstype=modelobstype,
                 linecolor=linecolor,
                 ax=ax,
-                figkwargs=figkwargs,
                 title=title,
                 **modeldata_kwargs,
             )

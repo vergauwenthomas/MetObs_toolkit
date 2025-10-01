@@ -1048,6 +1048,7 @@ class Dataset:
         linestyle: str = "--",
         ax: Union[Axes, None] = None,
         figkwargs: dict = {},
+        linekwargs: dict = {},
         modelname: str | None = None,
         modelvariable: str | None = None,
     ) -> Axes:
@@ -1065,10 +1066,14 @@ class Dataset:
             The title of the plot. If None, a default title is generated, by default None.
         linestyle : str, optional
             The style of the line in the plot, by default "--".
+            Note: This is overridden by linekwargs['ls'] or linekwargs['linestyle'] if provided.
         ax : matplotlib.axes.Axes, optional
             The axes on which to plot. If None, a new axes object is created.
         figkwargs : dict, optional
-            Additional keyword arguments passed to matplotlib.pyplot.subplots(), by default an empty dictionary.
+            Additional keyword arguments passed to matplotlib.pyplot.subplots() when creating a new figure, by default an empty dictionary.
+        linekwargs : dict, optional
+            Additional keyword arguments passed to the line plotting function (e.g., 'color', 'ls', 'linewidth', 'zorder'), by default an empty dictionary.
+            Use 'ls' or 'linestyle' for line style, and 'color' for line color.
         modelname : str, optional
             The model name to filter by when multiple model data sources exist
             for the same observation type. If None, no filtering by model name
@@ -1148,6 +1153,7 @@ class Dataset:
             ax=ax,
             linestyle=linestyle,
             legend_prefix=f"{modelname}:{modelvar}@",
+            **linekwargs,
         )
 
         if title is None:
@@ -1249,7 +1255,6 @@ class Dataset:
                 obstype=modelobstype,
                 colormap=colormap,
                 ax=ax,
-                figkwargs=figkwargs,
                 title=title,
                 **modeldata_kwargs,
             )

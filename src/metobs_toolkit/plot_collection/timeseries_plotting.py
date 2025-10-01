@@ -337,6 +337,7 @@ def plot_timeseries_color_by_station(
     show_outliers: bool,
     linestyle: str = "-",
     legend_prefix: str = "",
+    **linekwargs,
 ) -> plt.Axes:
     """
     Plot a timeseries with data points colored by station.
@@ -357,6 +358,9 @@ def plot_timeseries_color_by_station(
         The style of the line. Default is '-'.
     legend_prefix : str, optional
         A prefix to add to the legend labels. Default is an empty string.
+    **linekwargs : dict, optional
+        Additional keyword arguments passed to the line plotting function (e.g., 'linewidth', 'zorder').
+        Note: 'color' and 'linestyle' from linekwargs will override the colormap and linestyle parameters.
 
     Returns
     -------
@@ -397,12 +401,21 @@ def plot_timeseries_color_by_station(
         plotseries = stadf["value"]
         plotseries.index = plotseries.index.droplevel("name")
 
-        ax = add_lines_to_axes(
-            ax=ax,
-            series=plotseries,
-            legend_label=f"{legend_prefix}{staname}",
-            linestyle=linestyle,
-            color=colormap[staname],
-        )
+        # Prepare kwargs for add_lines_to_axes
+        # Allow linekwargs to override color and linestyle
+        line_plot_kwargs = {
+            "ax": ax,
+            "series": plotseries,
+            "legend_label": f"{legend_prefix}{staname}",
+            "linestyle": linekwargs.get("ls", linekwargs.get("linestyle", linestyle)),
+            "color": linekwargs.get("color", colormap[staname]),
+        }
+
+        # Add any other valid kwargs (linewidth, zorder, etc.)
+        for key in ["linewidth", "zorder"]:
+            if key in linekwargs:
+                line_plot_kwargs[key] = linekwargs[key]
+
+        ax = add_lines_to_axes(**line_plot_kwargs)
 
     return ax
