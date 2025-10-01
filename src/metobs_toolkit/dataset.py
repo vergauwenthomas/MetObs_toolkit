@@ -1095,22 +1095,27 @@ class Dataset:
         modelvar = trg_modeldatadf["modelvariable"].iloc[0]
         # modelobstype = self.obstypes[obstype]
         modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
-        #get ModelObstypeinstance
-        breakout = False
-        for sta in self.stations:
-            if breakout:
-                break
-            for modts in sta.modeldata:
-                if (
-                    modts.modelobstype.name == modelobstypename
-                    and (modelname is None or modts.modelname == modelname)
-                    and (modelvariable is None or modts.modelvariable == modelvariable)
-                ):
-            
-                    trg_modeltimeseries = modts
-                    breakout = True
-                    break
-
+        
+        # Find the matching model timeseries instance
+        def _find_model_timeseries():
+            """Find the first model timeseries matching the criteria."""
+            for sta in self.stations:
+                for modts in sta.modeldata:
+                    if (
+                        modts.modelobstype.name == modelobstypename
+                        and (modelname is None or modts.modelname == modelname)
+                        and (modelvariable is None or modts.modelvariable == modelvariable)
+                    ):
+                        return modts
+            return None
+        
+        trg_modeltimeseries = _find_model_timeseries()
+        if trg_modeltimeseries is None:
+            raise MetObsModelDataError(
+                f"No model timeseries found for {modelobstypename} with "
+                f"modelname={modelname} and modelvariable={modelvariable}"
+            )
+        
         modelobstypeinstance = trg_modeltimeseries.modelobstype
         
         if ax is None:
