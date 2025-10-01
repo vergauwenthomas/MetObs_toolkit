@@ -34,6 +34,7 @@ from metobs_toolkit.xrconversions import dataset_to_xr
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     dataset_gap_status_overview_df,
 )
+from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -1083,58 +1084,44 @@ class Dataset:
             The axes object containing the plot.
         """
 
-        trg_modeldatadf = self.modeldatadf
-
-        # filter on obstype
-        if obstype not in trg_modeldatadf.index.get_level_values("obstype"):
-            raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
-        trg_modeldatadf = trg_modeldatadf.xs(obstype, level="obstype", drop_level=False)
-
-        # filter on modelname
-        if modelname is not None:
-            if modelname not in trg_modeldatadf["modelname"].values:
-                raise MetObsModelDataError(
-                    f"There is no modeldata present of {modelname}"
-                )
-            else:
-                trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelname"] == modelname
-                ]
-
-        # filter on modelvariable
-        if modelvariable is not None:
-            if modelvariable not in trg_modeldatadf["modelvariable"].values:
-                raise MetObsModelDataError(
-                    f"There is no modeldata present of {modelvariable}"
-                )
-            else:
-                trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelvariable"] == modelvariable
-                ]
-
-        # If there are multiple model names or variables, warn and take first occurrence
-        if len(trg_modeldatadf["modelname"].unique()) > 1:
-            unique_models = trg_modeldatadf["modelname"].unique()
-            logger.warning(
-                f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}"
-            )
-            trg_modeldatadf = trg_modeldatadf[
-                trg_modeldatadf["modelname"] == unique_models[0]
-            ]
-
-        if len(trg_modeldatadf["modelvariable"].unique()) > 1:
-            unique_vars = trg_modeldatadf["modelvariable"].unique()
-            logger.warning(
-                f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}"
-            )
-            trg_modeldatadf = trg_modeldatadf[
-                trg_modeldatadf["modelvariable"] == unique_vars[0]
-            ]
+        # Filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(
+            modeldatadf=self.modeldatadf,
+            trgobstype=obstype,
+            modelname=modelname,
+            modelvariable=modelvariable,
+        )
 
         # Get the final model metadata for display
         modelname = trg_modeldatadf["modelname"].iloc[0]
         modelvar = trg_modeldatadf["modelvariable"].iloc[0]
-        modelobstype = self.obstypes[obstype]
+        # modelobstype = self.obstypes[obstype]
+        modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
+
+        # Find the matching model timeseries instance
+        def _find_model_timeseries():
+            """Find the first model timeseries matching the criteria."""
+            for sta in self.stations:
+                for modts in sta.modeldata:
+                    if (
+                        modts.modelobstype.name == modelobstypename
+                        and (modelname is None or modts.modelname == modelname)
+                        and (
+                            modelvariable is None
+                            or modts.modelvariable == modelvariable
+                        )
+                    ):
+                        return modts
+            return None
+
+        trg_modeltimeseries = _find_model_timeseries()
+        if trg_modeltimeseries is None:
+            raise MetObsModelDataError(
+                f"No model timeseries found for {modelobstypename} with "
+                f"modelname={modelname} and modelvariable={modelvariable}"
+            )
+
+        modelobstypeinstance = trg_modeltimeseries.modelobstype
 
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
@@ -1165,12 +1152,13 @@ class Dataset:
 
         if title is None:
             plotting.set_title(
-                ax, f"{modelobstype.name} data of {modelname} at stations locations."
+                ax,
+                f"{modelobstypeinstance.name} data of {modelname} at stations locations.",
             )
         else:
             plotting.set_title(ax, title)
 
-        plotting.set_ylabel(ax, modelobstype._get_plot_y_label())
+        plotting.set_ylabel(ax, modelobstypeinstance._get_plot_y_label())
 
         cur_tz = plotdf.index.get_level_values("datetime").tz
         plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
