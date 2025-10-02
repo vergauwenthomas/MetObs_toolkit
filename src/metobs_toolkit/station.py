@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Literal, Union
 from datetime import datetime
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 from pathlib import Path
 
 from metobs_toolkit.site import Site
@@ -212,7 +213,7 @@ class Station:
 
     @copy_doc(station_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return station_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry

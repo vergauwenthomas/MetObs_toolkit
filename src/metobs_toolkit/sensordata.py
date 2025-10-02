@@ -4,6 +4,8 @@ from typing import Literal, Union
 import copy
 import numpy as np
 import pandas as pd
+from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -28,6 +30,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     sensordata_gap_status_overview_df,
 )
+from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -222,7 +225,7 @@ class SensorData:
 
     @copy_doc(sensordata_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
     @property
@@ -747,6 +750,10 @@ class SensorData:
     # ------------------------------------------
 
     # plots are defined on station and dataset level
+
+    @copy_doc(sensordata_simple_pd_plot)
+    def pd_plot(self, show_labels: list = ["ok"], **pdplotkwargs) -> Axes:
+        return sensordata_simple_pd_plot(self, show_labels=show_labels, **pdplotkwargs)
 
     # ------------------------------------------
     #    Quality Control (technical qc + value-based qc)

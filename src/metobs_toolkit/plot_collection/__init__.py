@@ -23,4 +23,9 @@ from .timeseries_plotting import (
     plot_timeseries_color_by_station,
 )
 
+from .pd_basic_plotting import (
+    modeldata_simple_pd_plot,
+    sensordata_simple_pd_plot,
+)
+
 from .cycle_plotting import make_diurnal_plot
