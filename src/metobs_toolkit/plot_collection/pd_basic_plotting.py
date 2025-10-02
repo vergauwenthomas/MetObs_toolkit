@@ -2,10 +2,33 @@ import numpy as np
 from matplotlib.pyplot import Axes
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
+
+
+def modeldata_simple_pd_plot(modeltimeseries, **pdplotkwargs) -> Axes:
+    """
+    A wrapper on the pandas.series.plot function for ModelTimeSeries.
+
+    Parameters
+    ----------
+    **pdplotkwargs
+        Additional keyword arguments passed to pandas.Series.plot().
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The axes object containing the plot.
+        
+    """
+    #set name (so that labels match the id)
+    plot_series = modeltimeseries.series
+    plot_series.name = modeltimeseries._id()
+    return plot_series.plot(**pdplotkwargs)
+
+
 @log_entry
 def sensordata_simple_pd_plot(sensordata, show_labels: list=['ok'], **pdplotkwargs) -> Axes:
     """
-    Create a pandas plot of the sensor data with optional label filtering.
+    A wrapper on the pandas.series.plot function for SensorData.
 
     Parameters
     ----------

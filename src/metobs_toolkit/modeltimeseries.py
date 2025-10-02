@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
@@ -13,13 +14,14 @@ from metobs_toolkit.backend_collection.df_helpers import (
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import ModelObstype
-from metobs_toolkit.plot_collection.general_functions import (
+from metobs_toolkit.plot_collection import (
     create_axes,
     set_legend,
     set_xlabel,
     set_ylabel,
     set_title,
     create_categorical_color_map,
+    modeldata_simple_pd_plot,
 )
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
@@ -211,7 +213,7 @@ class ModelTimeSeries:
 
     @copy_doc(modeltimeseries_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return modeltimeseries_to_xr(self, fmt_datetime_coordinate=True)
 
     def _get_info_core(self, nident_root=1) -> dict:
@@ -262,6 +264,12 @@ class ModelTimeSeries:
             print(infostr)
         else:
             return infostr
+
+
+    @copy_doc(modeldata_simple_pd_plot)
+    def pd_plot(self, **pdplotkwargs) -> Axes:
+        return modeldata_simple_pd_plot(self, **pdplotkwargs)
+        
 
     @log_entry
     def make_plot(

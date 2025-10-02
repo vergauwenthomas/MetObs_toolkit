@@ -24,7 +24,8 @@ from .timeseries_plotting import (
 )
 
 from .pd_basic_plotting import (
-    sensordata_simple_pd_plot
+    modeldata_simple_pd_plot,
+    sensordata_simple_pd_plot,
 )
 
 from .cycle_plotting import make_diurnal_plot
