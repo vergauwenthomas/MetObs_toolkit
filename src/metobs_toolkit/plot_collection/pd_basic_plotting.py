@@ -63,7 +63,7 @@ def sensordata_simple_pd_plot(sensordata, show_labels: list=['ok'], **pdplotkwar
     #convert to pandas series
     df.index = df.index.droplevel('obstype') #drop obstype level
     series = df['value']
-    series.name = f'{sensordata.stationname}:{sensordata.obstype.name}'
+    series.name = sensordata._id()
     #make plot
     axs = series.plot(**pdplotkwargs)
     
