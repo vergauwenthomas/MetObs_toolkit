@@ -750,11 +750,10 @@ class SensorData:
     # ------------------------------------------
 
     # plots are defined on station and dataset level
-    
+
     @copy_doc(sensordata_simple_pd_plot)
-    def pd_plot(self, show_labels: list=['ok'], **pdplotkwargs) -> Axes:
+    def pd_plot(self, show_labels: list = ["ok"], **pdplotkwargs) -> Axes:
         return sensordata_simple_pd_plot(self, show_labels=show_labels, **pdplotkwargs)
-        
 
     # ------------------------------------------
     #    Quality Control (technical qc + value-based qc)

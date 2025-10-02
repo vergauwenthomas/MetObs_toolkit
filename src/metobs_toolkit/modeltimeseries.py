@@ -265,11 +265,9 @@ class ModelTimeSeries:
         else:
             return infostr
 
-
     @copy_doc(modeldata_simple_pd_plot)
     def pd_plot(self, **pdplotkwargs) -> Axes:
         return modeldata_simple_pd_plot(self, **pdplotkwargs)
-        
 
     @log_entry
     def make_plot(
