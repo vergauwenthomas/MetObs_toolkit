@@ -50,8 +50,8 @@ def sensordata_simple_pd_plot(
     * Tip: You can inspect all the present labels (and their counts) by using: `sensordata.df['label'].value_counts()`.
 
     * The plot excludes records that don't match the specified labels by
-     converting them to NaN rather than subsetting, which prevents unwanted
-     interpolation between valid data points.
+      converting them to NaN rather than subsetting, which prevents unwanted
+      interpolation between valid data points.
      
     """
 
