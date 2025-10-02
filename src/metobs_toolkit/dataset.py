@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import (
@@ -364,7 +365,7 @@ class Dataset:
     # ------------------------------------------
     @copy_doc(dataset_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return dataset_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry

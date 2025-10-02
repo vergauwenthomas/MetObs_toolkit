@@ -5,6 +5,7 @@ import copy
 import numpy as np
 import pandas as pd
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -224,7 +225,7 @@ class SensorData:
 
     @copy_doc(sensordata_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
     @property
