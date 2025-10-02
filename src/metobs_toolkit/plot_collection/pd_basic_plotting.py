@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib.pyplot import Axes
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
+
 @log_entry
 def modeldata_simple_pd_plot(modeltimeseries, **pdplotkwargs) -> Axes:
     """
@@ -52,7 +53,7 @@ def sensordata_simple_pd_plot(
     * The plot excludes records that don't match the specified labels by
       converting them to NaN rather than subsetting, which prevents unwanted
       interpolation between valid data points.
-     
+
     """
 
     df = sensordata.df
