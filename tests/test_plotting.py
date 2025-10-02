@@ -299,6 +299,87 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
+    @pytest.mark.mpl_image_compare
+    def test_sensordata_pd_plot(self):
+        """Test SensorData.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        
+        station = dataset_with_era.get_station("vlinder01")
+        sensordata = station.get_sensor("temp")
+        
+        # Test with specific pandas plot kwargs
+        ax = sensordata.pd_plot(
+            show_labels=['ok'],
+            color='red',
+            linewidth=2,
+            linestyle='-.',
+            alpha=0.8,
+            figsize=(10, 6)
+        )
+        ax.legend()
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_sensordata_pd_plot_with_filters(self):
+        """Test SensorData.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        
+        station = dataset_with_era.get_station("vlinder01")
+        station.repetitions_check()
+        sensordata = station.get_sensor("temp")
+        
+        # Test with specific pandas plot kwargs
+        ax = sensordata.pd_plot(
+            show_labels=['ok'], #outliers are not present
+            color='red',
+            linewidth=2,
+            linestyle='-.',
+            alpha=0.8,
+            figsize=(10, 6)
+        )
+        ax.legend()
+        fig = ax.get_figure()
+        return fig
+
+
+
+    @pytest.mark.mpl_image_compare  
+    def test_modeltimeseries_pd_plot(self):
+        """Test ModelTimeSeries.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+        
+        station = dataset_with_era.get_station("vlinder05")
+        modeltimeseries = station.get_modeltimeseries("temp")
+        
+        # Test with specific pandas plot kwargs  
+        ax = modeltimeseries.pd_plot(
+            color='blue',
+            linewidth=3,
+            linestyle='--',
+            marker='o',
+            markersize=4,
+            alpha=0.7,
+            figsize=(12, 8)
+        )
+        ax.legend()
+        fig = ax.get_figure()
+        return fig
+
 
 # ------------------------------------------
 #    test plotting timeseries with GF labels
