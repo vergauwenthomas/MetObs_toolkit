@@ -48,6 +48,7 @@ A summary of all methods in the SensorData class.
    SensorData.fill_gap_with_modeldata
    SensorData.interpolate_gaps
    SensorData.convert_to_standard_units
+   SensorData.pd_plot
    SensorData.gross_value_check
    SensorData.persistence_check
    SensorData.repetitions_check
