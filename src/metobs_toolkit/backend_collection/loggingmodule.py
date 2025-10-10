@@ -57,10 +57,38 @@ def add_FileHandler(
     Returns
     -------
     None
+    
+    Notes
+    -----
+    This function checks existing handlers to avoid duplicate FileHandlers for the same file.
+    If a FileHandler already exists for the same file path with the same or more restrictive 
+    (higher) log level, no new handler is added. Log levels in order of restrictiveness:
+    DEBUG < INFO < WARNING < ERROR < CRITICAL.
     """
     if clearlog:
         if os.path.isfile(trglogfile):
             os.remove(trglogfile)
+
+    rootlog = logging.getLogger("<metobs_toolkit>")
+    
+    # Convert target level to numeric value for comparison
+    target_level = getattr(logging, setlvl.upper())
+    
+    # Normalize the target file path for comparison
+    target_path = os.path.abspath(trglogfile)
+    
+    # Check if FileHandler already exists for same file at same or higher level
+    for handler in rootlog.handlers:
+        if isinstance(handler, logging.FileHandler):
+            # Compare normalized file paths
+            existing_path = os.path.abspath(handler.baseFilename)
+            if existing_path == target_path and handler.level <= target_level:
+                rootlog.debug(f"FileHandler already exists for file '{trglogfile}' "
+                            f"at level {logging.getLevelName(handler.level)} "
+                            f"(<= {setlvl.upper()}). No new FileHandler added.")
+                return
+
+
 
     # Create the Handler for logging data to a file - will be inherited for children
     file_handler = logging.FileHandler(filename=trglogfile)
@@ -69,7 +97,7 @@ def add_FileHandler(
     file_logger_formatter = logging.Formatter(logformat)
     file_handler.setFormatter(file_logger_formatter)
     # Add the Handler to the Logger
-    rootlog = logging.getLogger("<metobs_toolkit>")
+    
     rootlog.addHandler(file_handler)
 
     rootlog.debug(f"FileHandler set at {datetime.now()}")
@@ -95,10 +123,29 @@ def add_StreamHandler(
     Returns
     -------
     None
+    
+    Notes
+    -----
+    This function checks existing handlers to avoid duplicate StreamHandlers.
+    If a StreamHandler already exists with the same or more restrictive (higher) log level,
+    no new handler is added. Log levels in order of restrictiveness:
+    DEBUG < INFO < WARNING < ERROR < CRITICAL.
     """
     # Get rootlogger
     rootlog = logging.getLogger("<metobs_toolkit>")
     rootlog.setLevel(logging.DEBUG)  # set rootlogger on debug
+
+    # Convert target level to numeric value for comparison
+    target_level = getattr(logging, setlvl.upper())
+    
+    # Check if StreamHandler already exists at same or higher level
+    for handler in rootlog.handlers:
+        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+            if handler.level <= target_level:
+                rootlog.debug(f"StreamHandler already exists at level {logging.getLevelName(handler.level)} "
+                            f"(<= {setlvl.upper()}). No new StreamHandler added.")
+                return
+
 
     # Create StreamHandler
     streamhandler = logging.StreamHandler()
@@ -110,3 +157,5 @@ def add_StreamHandler(
     rootlog.addHandler(streamhandler)
 
     rootlog.info(f"StreamHandler set at {datetime.now()}")
+
+
