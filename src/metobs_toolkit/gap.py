@@ -345,7 +345,9 @@ class Gap:
             combineddf=combdf, modeltimeseries=modeltimeseries
         )
         # Fill the missing records
-        filleddf = fill_regular_debias(df=combdf, min_value=min_value, max_value=max_value)
+        filleddf = fill_regular_debias(
+            df=combdf, min_value=min_value, max_value=max_value
+        )
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
 
         # 4. Update attributes
@@ -496,7 +498,10 @@ class Gap:
         )
         # Fill the missing records
         filleddf = fill_with_diurnal_debias(
-            df=combdf, min_sample_size=int(min_debias_sample_size), min_value=min_value, max_value=max_value
+            df=combdf,
+            min_sample_size=int(min_debias_sample_size),
+            min_value=min_value,
+            max_value=max_value,
         )
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
 
@@ -787,7 +792,7 @@ class Gap:
         self._records = modelseries_reindexed.loc[
             self.records.index
         ]  # (save) set the new filled records
-        
+
         # Apply min/max constraints if provided
         if min_value is not None:
             self._records = self._records.clip(lower=min_value)
@@ -961,7 +966,6 @@ class Gap:
         self._records = tofill_series.loc[
             self.records.index
         ]  # set the new filled records
-        
 
         # set labels
         self._labels.loc[self.records.notna()] = label_def["interpolated_gap"]["label"]

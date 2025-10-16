@@ -44,7 +44,9 @@ def compute_diurnal_biases(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @log_entry
-def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int, min_value=None, max_value=None) -> pd.DataFrame:
+def fill_with_diurnal_debias(
+    df: pd.DataFrame, min_sample_size: int, min_value=None, max_value=None
+) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame using diurnal debiasing.
 
@@ -90,13 +92,13 @@ def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int, min_value=N
     df["correction"] = -1.0 * df["diurnalbias"]
 
     df["fillvalue"] = df["modelvalue"] + df["correction"]
-    
+
     # Apply min/max constraints if provided
     if min_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(lower=min_value)
     if max_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(upper=max_value)
-    
+
     df["msg"] = df.apply(
         lambda x: f"diurnal bias corrected: {x['modelvalue']:.2f} + {x['correction']:.2f} based on sample of {x['samplesize']}.",
         axis=1,
@@ -117,7 +119,11 @@ def fill_with_diurnal_debias(df: pd.DataFrame, min_sample_size: int, min_value=N
 
 @log_entry
 def fill_with_weighted_diurnal_debias(
-    df: pd.DataFrame, min_lead_sample_size: int, min_trail_sample_size: int, min_value=None, max_value=None
+    df: pd.DataFrame,
+    min_lead_sample_size: int,
+    min_trail_sample_size: int,
+    min_value=None,
+    max_value=None,
 ) -> pd.DataFrame:
     """
     Fill missing values using weighted diurnal debiasing.
@@ -203,13 +209,13 @@ def fill_with_weighted_diurnal_debias(
 
     # Compute fill values
     df["fillvalue"] = df["modelvalue"] + df["correction"]
-    
+
     # Apply min/max constraints if provided
     if min_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(lower=min_value)
     if max_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(upper=max_value)
-    
+
     # overwrite fill value and msg for too small sample sizes
     df.loc[df["samplesize_lead"] < min_lead_sample_size, "fillvalue"] = np.nan
     df.loc[df["samplesize_trail"] < min_trail_sample_size, "fillvalue"] = np.nan

@@ -1008,7 +1008,6 @@ class SensorData:
         ],
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
-
     ) -> None:
         """
         Fill gaps using model data.

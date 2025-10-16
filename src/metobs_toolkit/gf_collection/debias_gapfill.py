@@ -7,7 +7,9 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 @log_entry
-def fill_regular_debias(df: pd.DataFrame, min_value=None, max_value=None) -> pd.DataFrame:
+def fill_regular_debias(
+    df: pd.DataFrame, min_value=None, max_value=None
+) -> pd.DataFrame:
     """
     Fill missing values in a DataFrame by applying a regular debiasing correction.
 
@@ -37,13 +39,13 @@ def fill_regular_debias(df: pd.DataFrame, min_value=None, max_value=None) -> pd.
 
     df["correction"] = -1.0 * biasvalue
     df["fillvalue"] = df["modelvalue"] + df["correction"]
-    
+
     # Apply min/max constraints if provided
     if min_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(lower=min_value)
     if max_value is not None:
         df["fillvalue"] = df["fillvalue"].clip(upper=max_value)
-    
+
     df["msg"] = df.apply(
         lambda x: f"bias corrected: {x['modelvalue']:.2f} + {x['correction']:.2f}",
         axis=1,
