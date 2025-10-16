@@ -1852,6 +1852,8 @@ class Station:
         modelname: str | None = None,
         modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1877,6 +1879,14 @@ class Station:
         max_gap_duration_to_fill : Union[str, pandas.Timedelta], optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -1910,7 +1920,11 @@ class Station:
             modeltimeseries=modeltimeseries,
             method="raw",
             overwrite_fill=overwrite_fill,
-            method_kwargs={"max_gap_duration_to_fill": max_gap_duration_to_fill},
+            method_kwargs={
+                "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
+            },
         )
 
     @log_entry
@@ -1925,6 +1939,8 @@ class Station:
         modelname: str | None = None,
         modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1962,6 +1978,14 @@ class Station:
         max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
         Returns
         -------
         None
@@ -1997,14 +2021,16 @@ class Station:
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="debiased",
+            overwrite_fill=overwrite_fill,
             method_kwargs={
                 "leading_period_duration": leading_period_duration,
                 "min_leading_records_total": min_leading_records_total,
                 "trailing_period_duration": trailing_period_duration,
                 "min_trailing_records_total": min_trailing_records_total,
                 "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
-            overwrite_fill=overwrite_fill,
         )
 
     @log_entry
@@ -2018,6 +2044,8 @@ class Station:
         modelname: str | None = None,
         modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -2053,6 +2081,14 @@ class Station:
          max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -2102,6 +2138,8 @@ class Station:
                 "trailing_period_duration": trailing_period_duration,
                 "min_debias_sample_size": min_debias_sample_size,
                 "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
             overwrite_fill=overwrite_fill,
         )
@@ -2118,6 +2156,8 @@ class Station:
         modelname: str | None = None,
         modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -2161,6 +2201,14 @@ class Station:
          max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -2214,6 +2262,8 @@ class Station:
                 "min_lead_debias_sample_size": min_lead_debias_sample_size,
                 "min_trail_debias_sample_size": min_trail_debias_sample_size,
                 "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
             overwrite_fill=overwrite_fill,
         )
