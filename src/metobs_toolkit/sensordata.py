@@ -1008,6 +1008,8 @@ class SensorData:
         ],
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill gaps using model data.
@@ -1022,6 +1024,12 @@ class SensorData:
             Whether to overwrite existing fills, by default False.
         method_kwargs : dict, optional
             Additional keyword arguments for the method, by default {}.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
 
         Raises
         ------
@@ -1044,23 +1052,29 @@ class SensorData:
             logger.debug(f"Filling {gap} with {method} model data.")
 
             if method == "raw":
-                gap.raw_model_gapfill(modeltimeseries=modeltimeseries, **method_kwargs)
+                gap.raw_model_gapfill(modeltimeseries=modeltimeseries, min_value=min_value, max_value=max_value, **method_kwargs)
             elif method == "debiased":
                 gap.debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    min_value=min_value,
+                    max_value=max_value,
                     **method_kwargs,
                 )
             elif method == "diurnal_debiased":
                 gap.diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    min_value=min_value,
+                    max_value=max_value,
                     **method_kwargs,
                 )
             elif method == "weighted_diurnal_debiased":
                 gap.weighted_diurnal_debiased_model_gapfill(
                     sensordata=self,
                     modeltimeseries=modeltimeseries,
+                    min_value=min_value,
+                    max_value=max_value,
                     **method_kwargs,
                 )
             else:
@@ -1079,6 +1093,8 @@ class SensorData:
         max_trail_to_gap_distance: Union[pd.Timedelta, str, None] = None,
         method_kwargs: dict = {},
         overwrite_fill: bool = False,
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Interpolate gaps in the data.
@@ -1103,6 +1119,12 @@ class SensorData:
             Additional keyword arguments for the interpolation method, by default {}.
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
         """
 
         for gap in self.gaps:
@@ -1125,4 +1147,6 @@ class SensorData:
                 max_lead_to_gap_distance=max_lead_to_gap_distance,
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
+                min_value=min_value,
+                max_value=max_value,
             )

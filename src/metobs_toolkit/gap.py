@@ -228,6 +228,8 @@ class Gap:
         trailing_period_duration: Union[str, pd.Timedelta],
         min_trailing_records_total: int,
         max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -257,6 +259,12 @@ class Gap:
         max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
         Returns
         ----------
         None.
@@ -283,6 +291,8 @@ class Gap:
             "trailing_period_duration": trailing_period_duration,
             "min_trailing_records_total": min_trailing_records_total,
             "max_gap_duration_to_fill": max_gap_duration_to_fill,
+            "min_value": min_value,
+            "max_value": max_value,
         }
 
         # 1. Check if the gap duration exceeds the max_gap_duration_to_fill
@@ -335,7 +345,7 @@ class Gap:
             combineddf=combdf, modeltimeseries=modeltimeseries
         )
         # Fill the missing records
-        filleddf = fill_regular_debias(df=combdf)
+        filleddf = fill_regular_debias(df=combdf, min_value=min_value, max_value=max_value)
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
 
         # 4. Update attributes
@@ -363,6 +373,8 @@ class Gap:
         trailing_period_duration: pd.Timedelta,
         min_debias_sample_size: int,
         max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -392,6 +404,12 @@ class Gap:
         max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
         Returns
         ---------
         None.
@@ -423,6 +441,8 @@ class Gap:
             "trailing_period_duration": trailing_period_duration,
             "min_debias_sample_size": min_debias_sample_size,
             "max_gap_duration_to_fill": max_gap_duration_to_fill,
+            "min_value": min_value,
+            "max_value": max_value,
         }
 
         # 1. Check if the gap duration exceeds the max_gap_duration_to_fill
@@ -476,7 +496,7 @@ class Gap:
         )
         # Fill the missing records
         filleddf = fill_with_diurnal_debias(
-            df=combdf, min_sample_size=int(min_debias_sample_size)
+            df=combdf, min_sample_size=int(min_debias_sample_size), min_value=min_value, max_value=max_value
         )
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
 
@@ -506,6 +526,8 @@ class Gap:
         trailing_period_duration: pd.Timedelta,
         min_trail_debias_sample_size: int,
         max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -542,6 +564,12 @@ class Gap:
         max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
         Returns
         --------
         None.
@@ -577,6 +605,8 @@ class Gap:
             "min_lead_debias_sample_size": min_lead_debias_sample_size,
             "min_trail_debias_sample_size": min_trail_debias_sample_size,
             "max_gap_duration_to_fill": max_gap_duration_to_fill,
+            "min_value": min_value,
+            "max_value": max_value,
         }
 
         # 1. Check if the gap duration exceeds the max_gap_duration_to_fill
@@ -639,6 +669,8 @@ class Gap:
             df=combdf,
             min_lead_sample_size=min_lead_debias_sample_size,
             min_trail_sample_size=min_trail_debias_sample_size,
+            min_value=min_value,
+            max_value=max_value,
         )
 
         filleddf = filleddf.loc[self.records.index]  # subset to gap records
@@ -664,6 +696,8 @@ class Gap:
         self,
         modeltimeseries: ModelTimeSeries,
         max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill the gap using model data without correction.
@@ -679,6 +713,12 @@ class Gap:
         max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
 
         Returns
         -------
@@ -697,6 +737,8 @@ class Gap:
         self._fillkwargs = {
             "applied_gapfill_method": "raw_model_gapfill",
             "max_gap_duration_to_fill": max_gap_duration_to_fill,
+            "min_value": min_value,
+            "max_value": max_value,
         }
 
         # 1. Check if the gap duration exceeds the max_gap_duration_to_fill
@@ -745,6 +787,12 @@ class Gap:
         self._records = modelseries_reindexed.loc[
             self.records.index
         ]  # (save) set the new filled records
+        
+        # Apply min/max constraints if provided
+        if min_value is not None:
+            self._records = self._records.clip(lower=min_value)
+        if max_value is not None:
+            self._records = self._records.clip(upper=max_value)
 
         # set labels
         self._labels.loc[self.records.notna()] = label_def["raw_modeldata_fill"][
@@ -771,6 +819,8 @@ class Gap:
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
         max_trail_to_gap_distance: Union[pd.Timedelta, None] = None,
         method_kwargs: dict = {},
+        min_value=None,
+        max_value=None,
     ) -> None:
         """
         Fill the gap using interpolation of SensorData.
@@ -807,6 +857,12 @@ class Gap:
             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
         method_kwargs : dict, optional
             Extra arguments that are passed to pandas.DataFrame.interpolate() structured in a dict. Defaults to {}.
+        min_value : float, optional
+            Minimum allowed value for filled data. If provided, filled values below this threshold
+            will be clipped to this value. Default is None (no minimum limit).
+        max_value : float, optional
+            Maximum allowed value for filled data. If provided, filled values above this threshold
+            will be clipped to this value. Default is None (no maximum limit).
 
         Notes
         -----
@@ -834,6 +890,8 @@ class Gap:
             "max_lead_to_gap_distance": max_lead_to_gap_distance,
             "max_trail_to_gap_distance": max_trail_to_gap_distance,
             "max_gap_duration_to_fill": max_gap_duration_to_fill,
+            "min_value": min_value,
+            "max_value": max_value,
             **method_kwargs,
         }
 
@@ -913,6 +971,12 @@ class Gap:
         self._records = tofill_series.loc[
             self.records.index
         ]  # set the new filled records
+        
+        # Apply min/max constraints if provided
+        if min_value is not None:
+            self._records = self._records.clip(lower=min_value)
+        if max_value is not None:
+            self._records = self._records.clip(upper=max_value)
 
         # set labels
         self._labels.loc[self.records.notna()] = label_def["interpolated_gap"]["label"]
