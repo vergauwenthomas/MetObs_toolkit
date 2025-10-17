@@ -2411,6 +2411,8 @@ class Dataset:
         target_obstype: str,
         overwrite_fill: bool = False,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
 
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
@@ -2425,6 +2427,8 @@ class Dataset:
                 target_obstype=target_obstype,
                 overwrite_fill=overwrite_fill,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
@@ -2438,6 +2442,8 @@ class Dataset:
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2457,6 +2463,8 @@ class Dataset:
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
@@ -2469,6 +2477,8 @@ class Dataset:
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
@@ -2487,6 +2497,8 @@ class Dataset:
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
@@ -2500,6 +2512,8 @@ class Dataset:
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
@@ -2520,6 +2534,8 @@ class Dataset:
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
 

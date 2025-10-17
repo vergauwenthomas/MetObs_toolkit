@@ -81,7 +81,18 @@ def connect_to_gee(**kwargs) -> None:
         ee.Initialize()
         return
 
-    if not ee.data._credentials:  # check if ee connection is initialized
+    # Try to initialize with existing credentials
+    try:
+        # Try to initialize (will use default credentials location)
+        ee.Initialize()
+        logger.info("Successfully initialized GEE with default credentials")
+        return
+    except Exception as e:
+        logger.warning(f"Failed to initialize GEE with default credentials: {e}")
+        # Fall through to authentication
+
+    # If initialization failed, try to authenticate
+    if not ee.data._credentials:
         ee.Authenticate()
         ee.Initialize()
     return

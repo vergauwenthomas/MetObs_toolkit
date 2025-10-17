@@ -717,6 +717,113 @@ class TestDataWithGaps:
         for key in test_results:
             assert_equality(test_results[key], solutionobj[key])
 
+    def test_min_max_value_clipping(self):
+        """Test that min_value and max_value parameters work for all model-based gap filling methods."""
+        # Get test data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+
+        # Test parameters
+        target_obstype = "temp"
+        min_threshold = 11.0
+        max_threshold = 16.0
+
+        # Test 1: Raw model data gap fill with min/max clipping
+        dataset_raw = copy.deepcopy(dataset)
+        dataset_raw.fill_gaps_with_raw_modeldata(
+            target_obstype=target_obstype,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=max_threshold,
+        )
+
+        # Verify that filled values are within bounds
+        assert (
+            dataset_raw.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+        assert (
+            dataset_raw.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 2: Debiased model data gap fill with min/max clipping
+        dataset_debiased = copy.deepcopy(dataset)
+        dataset_debiased.fill_gaps_with_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_leading_records_total=10,
+            min_trailing_records_total=10,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=None,
+            max_value=max_threshold,
+        )
+
+        # Verify that filled values are within bounds
+        assert (
+            dataset_debiased.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 3: Diurnal debiased model data gap fill with min/max clipping
+        dataset_diurnal = copy.deepcopy(dataset)
+        dataset_diurnal.fill_gaps_with_diurnal_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_debias_sample_size=2,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=None,
+        )
+        assert (
+            dataset_diurnal.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+
+        # Test 4: Weighted diurnal debiased model data gap fill with min/max clipping
+        dataset_weighted = copy.deepcopy(dataset)
+        dataset_weighted.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_lead_debias_sample_size=1,
+            min_trail_debias_sample_size=1,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=max_threshold,
+        )
+
+        assert (
+            dataset_weighted.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+        assert (
+            dataset_weighted.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 5: Test on individual Station (not Dataset)
+        station = dataset.get_station("vlinder01")
+        station.fill_gaps_with_raw_modeldata(
+            target_obstype=target_obstype,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=12.90,
+            max_value=max_threshold,
+        )
+
+        assert station.gapsdf.xs("temp", level="obstype")["value"].min() == 12.90
+        assert (
+            station.gapsdf.xs("temp", level="obstype")["value"].max() == max_threshold
+        )
+
     # ------------------------------------------
     #    Plotting tests are present in the test_plotting.py
     # ------------------------------------------
@@ -742,3 +849,4 @@ if __name__ == "__main__":
     # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
     # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
     # tester.test_gap_status_df(overwrite_solution=False)
+    # tester.test_min_max_value_clipping()
