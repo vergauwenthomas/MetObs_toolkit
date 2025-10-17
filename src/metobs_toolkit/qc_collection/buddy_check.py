@@ -14,8 +14,6 @@ from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_m
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
-
 @log_entry
 def synchronize_series(
     series_list: List[pd.Series], max_shift: pd.Timedelta
@@ -421,24 +419,31 @@ def toolkit_buddy_check(
 
     # -----  Part 1: construct buddy groups ------
     # compute distance metric
-    logger.debug('Calculating distance matrix with Haversine formula')
+    logger.debug("Calculating distance matrix with Haversine formula")
     dist_matrix = generate_distance_matrix(metadf)
 
     # find potential buddies by distance
-    logger.debug('Finding spatial buddies within radius of %s meters', spatial_buddy_radius)
+    logger.debug(
+        "Finding spatial buddies within radius of %s meters", spatial_buddy_radius
+    )
     spatial_buddies = _find_spatial_buddies(
         distance_df=dist_matrix, buddy_radius=spatial_buddy_radius
     )
 
     if use_LCZ_safetynet:
-        logger.debug('Finding LCZ buddies within radius of %s meters', max_LCZ_buddy_dist)
+        logger.debug(
+            "Finding LCZ buddies within radius of %s meters", max_LCZ_buddy_dist
+        )
         LCZ_buddies = _find_LCZ_buddies(
             metadf=metadf, max_dist=max_LCZ_buddy_dist, distance_df=dist_matrix
         )
 
     # filter buddies by altitude difference
     if max_alt_diff is not None:
-        logger.debug('Filtering buddies by maximum altitude difference of %s meters', max_alt_diff)
+        logger.debug(
+            "Filtering buddies by maximum altitude difference of %s meters",
+            max_alt_diff,
+        )
         if metadf["altitude"].isna().any():
             raise ValueError(
                 "At least one station has a NaN \
@@ -458,20 +463,22 @@ value for 'altitude'"
             )
 
     # Filter by sample size (based on the number of buddy stations)
-    logger.debug('Filtering buddies by minimum sample size of %s', spatial_min_sample_size)
+    logger.debug(
+        "Filtering buddies by minimum sample size of %s", spatial_min_sample_size
+    )
     spatial_buddies = _filter_to_minimum_samplesize(
         buddydict=spatial_buddies, min_sample_size=spatial_min_sample_size
     )
 
     # create unique groups of buddies (list of tuples)
-    logger.debug('Creating groups of buddies')
+    logger.debug("Creating groups of buddies")
     buddygroups = create_groups_of_buddies(spatial_buddies)
-    logger.debug('Number of buddy groups created: %s', len(buddygroups))
+    logger.debug("Number of buddy groups created: %s", len(buddygroups))
 
     # ---- Part 2: Preparing the records  -----
 
     # construct a wide observation dataframe
-    logger.debug('Constructing wide observation DataFrame for obstype: %s', obstype)
+    logger.debug("Constructing wide observation DataFrame for obstype: %s", obstype)
     concatlist = []
     for sta in target_stations:
         if obstype in sta.sensordata.keys():
@@ -480,14 +487,14 @@ value for 'altitude'"
             concatlist.append(records)
 
     # synchronize the timestamps
-    logger.debug('Synchronizing timestamps')
+    logger.debug("Synchronizing timestamps")
     combdf, timestamp_map = synchronize_series(
         series_list=concatlist, max_shift=instantaneous_tolerance
     )
 
     # lapse rate correction
     if lapserate is not None:
-        logger.debug('Applying lapse rate correction with rate: %s', lapserate)
+        logger.debug("Applying lapse rate correction with rate: %s", lapserate)
         # get altitude dataframe
         altdict = {sta.name: sta.site.altitude for sta in target_stations}
         altseries = pd.Series(altdict)
@@ -499,11 +506,11 @@ value for 'altitude'"
 
     outliersbin = []
     for i in range(N_iter):
-        logger.debug('Starting iteration %s of %s', i + 1, N_iter)
+        logger.debug("Starting iteration %s of %s", i + 1, N_iter)
         # convert values to NaN, if they are labeled as outlier in
         #  previous iteration
         if bool(outliersbin):
-            logger.debug('Converting previous-iteration outliers to NaN')
+            logger.debug("Converting previous-iteration outliers to NaN")
             for outlier_station, outlier_time, _msg in outliersbin:
                 if outlier_station in combdf.columns:
                     combdf.loc[outlier_time, outlier_station] = np.nan
@@ -545,7 +552,7 @@ value for 'altitude'"
                 for buddygroup in buddygroups
             ]
 
-            logger.debug('Finding outliers in each buddy group')
+            logger.debug("Finding outliers in each buddy group")
             outliers = list(map(find_buddy_group_outlier, inputargs))
 
         # unpack double nested list
@@ -553,7 +560,7 @@ value for 'altitude'"
 
         # apply LCZ safety net
         if use_LCZ_safetynet:
-            logger.debug('Applying LCZ safety net to %s outliers', len(outliers))
+            logger.debug("Applying LCZ safety net to %s outliers", len(outliers))
             outliers = apply_LCZ_safety_net(
                 outliers=outliers,
                 LCZ_buddies=LCZ_buddies,
