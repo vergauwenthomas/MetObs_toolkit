@@ -255,7 +255,6 @@ class Gap:
             The duration of the trailing period.
         min_trailing_records_total : int
             The minimum number of records required in the trailing period.
-                max_gap_duration_to_fill : pandas.Timedelta, optional
         max_gap_duration_to_fill : pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
@@ -941,16 +940,6 @@ class Gap:
             )
             return
 
-        # 4. Check if the gap duration exceeds the max_gap_duration_to_fill
-        if (self.end_datetime - self.start_datetime) > max_gap_duration_to_fill:
-            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
-            self._extra_info[:] = (
-                f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill})."
-            )
-            logger.warning(
-                f"Cannot interpolate {self} because the gap is too large ({(self.end_datetime - self.start_datetime)}) to be filled with interpolation (and max_gap_duration_to_fill={max_gap_duration_to_fill}). Increase the max_gap_duration_to_fill or use another gapfill method."
-            )
-            return
 
         # 5. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(

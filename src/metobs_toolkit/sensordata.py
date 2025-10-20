@@ -27,9 +27,6 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
 )
-from metobs_toolkit.gf_collection.overview_df_constructors import (
-    sensordata_gap_status_overview_df,
-)
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
@@ -1104,6 +1101,8 @@ class SensorData:
         overwrite_fill : bool, optional
             Whether to overwrite existing fills, by default False.
         """
+
+        max_gap_duration_to_fill = to_timedelta(max_gap_duration_to_fill)
 
         for gap in self.gaps:
             if not gap.flag_can_be_filled(overwrite_fill):

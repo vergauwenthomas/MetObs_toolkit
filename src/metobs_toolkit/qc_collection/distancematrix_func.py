@@ -1,5 +1,5 @@
 """
-Distance matrix generation using KBallTree with haversine distance metric.
+Distance matrix generation using BallTree with haversine distance metric.
 """
 
 import pandas as pd
@@ -14,7 +14,7 @@ def generate_distance_matrix(
     metadf: pd.DataFrame, lat_col: str = "lat", lon_col: str = "lon"
 ) -> pd.DataFrame:
     """
-    Generate a distance matrix using KBallTree with haversine distance metric.
+    Generate a distance matrix using BallTree with haversine distance metric.
 
     This function calculates great-circle distances between stations using the
     haversine formula, which is appropriate for calculating distances on the
@@ -87,13 +87,13 @@ def generate_distance_matrix(
     # Calculate pairwise distances between all points
     n_stations = len(metadf)
 
-    # Earth's radius in kilometers
+    # Earth's radius in meters
     earth_radius_m = 6371000.0
 
     # Use tree to calculate distances from all points to all points
     distances_rad, indices = tree.query(coords_rad, k=n_stations, return_distance=True)
 
-    # Convert distances from radians to kilometers
+    # Convert distances from radians to meters
     distances_km = distances_rad * earth_radius_m
 
     # Reorder the distances matrix to match the original order
