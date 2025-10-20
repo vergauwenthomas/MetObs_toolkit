@@ -940,7 +940,6 @@ class Gap:
             )
             return
 
-
         # 5. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(
             leadseries=lead_period, trailseries=trail_period, gap=self
