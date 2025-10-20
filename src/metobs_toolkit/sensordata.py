@@ -4,6 +4,8 @@ from typing import Literal, Union
 import copy
 import numpy as np
 import pandas as pd
+from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -11,6 +13,9 @@ from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
     to_timedelta,
     convert_to_numeric_series,
+)
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    sensordata_gap_status_overview_df,
 )
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.xrconversions import sensordata_to_xr
@@ -22,6 +27,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
 )
+from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
@@ -46,16 +52,16 @@ class SensorData:
         Observation type.
     datadtype : type, optional
         Data type of the records, by default np.float32.
-    timezone : str or pd.Timedelta, optional
-        Timezone of the timestamps, by default 'UTC'.
+    timezone : str or tzinfo, optional
+        Timezone identifier for the timestamps (e.g., 'UTC', 'Europe/Amsterdam'), by default 'UTC'.
     freq_estimation_method : {'highest', 'median'}, optional
         Method to estimate frequency, by default 'median'.
-    freq_estimation_simplify_tolerance : pd.Timedelta or str, optional
-        Tolerance for frequency estimation simplification, by default pd.Timedelta('1min').
-    origin_simplify_tolerance : pd.Timedelta or str, optional
-        Tolerance for origin simplification, by default pd.Timedelta('1min').
-    timestamp_tolerance : pd.Timedelta or str, optional
-        Tolerance for timestamp matching, by default pd.Timedelta('4min').
+    freq_estimation_simplify_tolerance : pandas.Timedelta or str, optional
+        Tolerance for frequency estimation simplification, by default pandas.Timedelta('1min').
+    origin_simplify_tolerance : pandas.Timedelta or str, optional
+        Tolerance for origin simplification, by default pandas.Timedelta('1min').
+    timestamp_tolerance : pandas.Timedelta or str, optional
+        Tolerance for timestamp matching, by default pandas.Timedelta('4min').
     """
 
     def __init__(
@@ -216,7 +222,7 @@ class SensorData:
 
     @copy_doc(sensordata_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
     @property
@@ -256,6 +262,10 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
+
+    @copy_doc(sensordata_gap_status_overview_df)
+    def gap_overview_df(self) -> pd.DataFrame:
+        return sensordata_gap_status_overview_df(self)
 
     @property
     def stationname(self) -> str:
@@ -317,11 +327,11 @@ class SensorData:
         ----------
         freq_estimation_method : str
             Method to estimate frequency.
-        freq_estimation_simplify_tolerance : pd.Timedelta or str
+        freq_estimation_simplify_tolerance : pandas.Timedelta or str
             Tolerance for frequency estimation simplification.
-        origin_simplify_tolerance : pd.Timedelta or str
+        origin_simplify_tolerance : pandas.Timedelta or str
             Tolerance for origin simplification.
-        timestamp_tolerance : pd.Timedelta or str
+        timestamp_tolerance : pandas.Timedelta or str
             Tolerance for timestamp matching.
         apply_invalid_check : bool, optional
             Whether to apply invalid value check, by default True.
@@ -403,7 +413,7 @@ class SensorData:
         ----------
         timestamps : np.ndarray
             Array of timestamps.
-        tz : str or pd.Timedelta
+        tz : str or pandas.Timedelta
             Timezone of the timestamps.
 
         Returns
@@ -477,7 +487,7 @@ class SensorData:
         ----------
         missingrecords : pd.Series
             A pandas Series containing the missing records with datetime index.
-        target_freq : pd.Timedelta
+        target_freq : pandas.Timedelta
             The target frequency to identify gaps.
 
         Returns
@@ -571,13 +581,13 @@ class SensorData:
 
         Parameters
         ----------
-        target_freq : str or pd.Timedelta
+        target_freq : str or pandas.Timedelta
             The target frequency to coarsen all records to.
-        shift_tolerance : pd.Timedelta, optional
+        shift_tolerance : pandas.Timedelta, optional
             The maximum translation (in time) to map a timestamp to a target timestamp.
         origin : datetime.datetime, optional
             Define the origin (first timestamp) for the observations.
-        origin_simplify_tolerance : pd.Timedelta, optional
+        origin_simplify_tolerance : pandas.Timedelta, optional
             Tolerance for origin simplification.
 
         Warning
@@ -737,6 +747,10 @@ class SensorData:
     # ------------------------------------------
 
     # plots are defined on station and dataset level
+
+    @copy_doc(sensordata_simple_pd_plot)
+    def pd_plot(self, show_labels: list = ["ok"], **pdplotkwargs) -> Axes:
+        return sensordata_simple_pd_plot(self, show_labels=show_labels, **pdplotkwargs)
 
     # ------------------------------------------
     #    Quality Control (technical qc + value-based qc)
@@ -1017,7 +1031,7 @@ class SensorData:
                 overwrite_fill
             ):  # if flag_can_be_filled returns False, Gaps won't be filled
                 logger.warning(
-                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled (because it has a fill status {gap.fillstatus}), and overwrite fill is {overwrite_fill}."
                 )
                 continue
             if overwrite_fill:
@@ -1055,7 +1069,7 @@ class SensorData:
     def interpolate_gaps(
         self,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,
@@ -1071,8 +1085,9 @@ class SensorData:
 
         method : str, optional
             Interpolation method, by default "time".
-        max_consec_fill : int, optional
-            Maximum consecutive fills, by default 10.
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
             Number of leading anchors, by default 1.
         n_trailing_anchors : int, optional
@@ -1087,10 +1102,12 @@ class SensorData:
             Whether to overwrite existing fills, by default False.
         """
 
+        max_gap_duration_to_fill = to_timedelta(max_gap_duration_to_fill)
+
         for gap in self.gaps:
             if not gap.flag_can_be_filled(overwrite_fill):
                 logger.warning(
-                    f"{gap} cannot be filled because it already contains filled values, and overwrite fill is {overwrite_fill}."
+                    f"{gap} cannot be filled (because it has a fill status {gap.fillstatus}), and overwrite fill is {overwrite_fill}."
                 )
                 continue
 
@@ -1101,7 +1118,7 @@ class SensorData:
             gap.interpolate(
                 sensordata=self,
                 method=method,
-                max_consec_fill=max_consec_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,

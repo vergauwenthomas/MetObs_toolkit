@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 import concurrent.futures
 
 from metobs_toolkit.backend_collection.df_helpers import (
@@ -31,6 +32,10 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    dataset_gap_status_overview_df,
+)
+from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.timestampmatcher import simplify_time
 from metobs_toolkit.obstypes import tlk_obstypes
 from metobs_toolkit.obstypes import Obstype
@@ -360,7 +365,7 @@ class Dataset:
     # ------------------------------------------
     @copy_doc(dataset_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return dataset_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
@@ -391,10 +396,18 @@ class Dataset:
         -----
         This method is an export method. It is not possible to convert a netCDF
         to a metobs_toolkit.Dataset object.
+
+        The method uses the 'netcdf4' engine by default for better Unicode string
+        compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
 
         # Convert to xarray Dataset
         ds = self.to_xr()
+
+        # Use netcdf4 engine by default for better Unicode string support
+        # unless explicitly overridden by user
+        if "engine" not in kwargs:
+            kwargs["engine"] = "netcdf4"
 
         # Save to netCDF
         ds.to_netcdf(filepath, **kwargs)
@@ -1072,58 +1085,44 @@ class Dataset:
             The axes object containing the plot.
         """
 
-        trg_modeldatadf = self.modeldatadf
-
-        # filter on obstype
-        if obstype not in trg_modeldatadf.index.get_level_values("obstype"):
-            raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
-        trg_modeldatadf = trg_modeldatadf.xs(obstype, level="obstype", drop_level=False)
-
-        # filter on modelname
-        if modelname is not None:
-            if modelname not in trg_modeldatadf["modelname"].values:
-                raise MetObsModelDataError(
-                    f"There is no modeldata present of {modelname}"
-                )
-            else:
-                trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelname"] == modelname
-                ]
-
-        # filter on modelvariable
-        if modelvariable is not None:
-            if modelvariable not in trg_modeldatadf["modelvariable"].values:
-                raise MetObsModelDataError(
-                    f"There is no modeldata present of {modelvariable}"
-                )
-            else:
-                trg_modeldatadf = trg_modeldatadf[
-                    trg_modeldatadf["modelvariable"] == modelvariable
-                ]
-
-        # If there are multiple model names or variables, warn and take first occurrence
-        if len(trg_modeldatadf["modelname"].unique()) > 1:
-            unique_models = trg_modeldatadf["modelname"].unique()
-            logger.warning(
-                f"Multiple model names found: {unique_models}. Using first occurrence: {unique_models[0]}"
-            )
-            trg_modeldatadf = trg_modeldatadf[
-                trg_modeldatadf["modelname"] == unique_models[0]
-            ]
-
-        if len(trg_modeldatadf["modelvariable"].unique()) > 1:
-            unique_vars = trg_modeldatadf["modelvariable"].unique()
-            logger.warning(
-                f"Multiple model variables found: {unique_vars}. Using first occurrence: {unique_vars[0]}"
-            )
-            trg_modeldatadf = trg_modeldatadf[
-                trg_modeldatadf["modelvariable"] == unique_vars[0]
-            ]
+        # Filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(
+            modeldatadf=self.modeldatadf,
+            trgobstype=obstype,
+            modelname=modelname,
+            modelvariable=modelvariable,
+        )
 
         # Get the final model metadata for display
         modelname = trg_modeldatadf["modelname"].iloc[0]
         modelvar = trg_modeldatadf["modelvariable"].iloc[0]
-        modelobstype = self.obstypes[obstype]
+        # modelobstype = self.obstypes[obstype]
+        modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
+
+        # Find the matching model timeseries instance
+        def _find_model_timeseries():
+            """Find the first model timeseries matching the criteria."""
+            for sta in self.stations:
+                for modts in sta.modeldata:
+                    if (
+                        modts.modelobstype.name == modelobstypename
+                        and (modelname is None or modts.modelname == modelname)
+                        and (
+                            modelvariable is None
+                            or modts.modelvariable == modelvariable
+                        )
+                    ):
+                        return modts
+            return None
+
+        trg_modeltimeseries = _find_model_timeseries()
+        if trg_modeltimeseries is None:
+            raise MetObsModelDataError(
+                f"No model timeseries found for {modelobstypename} with "
+                f"modelname={modelname} and modelvariable={modelvariable}"
+            )
+
+        modelobstypeinstance = trg_modeltimeseries.modelobstype
 
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
@@ -1154,12 +1153,13 @@ class Dataset:
 
         if title is None:
             plotting.set_title(
-                ax, f"{modelobstype.name} data of {modelname} at stations locations."
+                ax,
+                f"{modelobstypeinstance.name} data of {modelname} at stations locations.",
             )
         else:
             plotting.set_title(ax, title)
 
-        plotting.set_ylabel(ax, modelobstype._get_plot_y_label())
+        plotting.set_ylabel(ax, modelobstypeinstance._get_plot_y_label())
 
         cur_tz = plotdf.index.get_level_values("datetime").tz
         plotting.set_xlabel(ax, f"Timestamps (in {cur_tz})")
@@ -2362,13 +2362,19 @@ class Dataset:
     # ------------------------------------------
     #    Gapfilling
     # ------------------------------------------
+
+    @copy_doc(dataset_gap_status_overview_df)
+    @log_entry
+    def gap_overview_df(self) -> pd.DataFrame:
+        return dataset_gap_status_overview_df(self)
+
     @copy_doc(Station.interpolate_gaps)
     @log_entry
     def interpolate_gaps(
         self,
         target_obstype: str,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2378,6 +2384,7 @@ class Dataset:
     ) -> None:
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2388,7 +2395,7 @@ class Dataset:
             sta.interpolate_gaps(
                 target_obstype=target_obstype,
                 method=method,
-                max_consec_fill=max_consec_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
                 n_trailing_anchors=n_trailing_anchors,
                 max_lead_to_gap_distance=max_lead_to_gap_distance,
@@ -2400,8 +2407,16 @@ class Dataset:
     @copy_doc(Station.fill_gaps_with_raw_modeldata)
     @log_entry
     def fill_gaps_with_raw_modeldata(
-        self, target_obstype: str, overwrite_fill: bool = False
+        self,
+        target_obstype: str,
+        overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
+
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, target_obstype=target_obstype
@@ -2409,7 +2424,11 @@ class Dataset:
 
         for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype, overwrite_fill=overwrite_fill
+                target_obstype=target_obstype,
+                overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_debiased_modeldata)
@@ -2422,9 +2441,13 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2439,6 +2462,9 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_diurnal_debiased_modeldata)
@@ -2450,9 +2476,13 @@ class Dataset:
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2466,6 +2496,9 @@ class Dataset:
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
     @copy_doc(Station.fill_gaps_with_weighted_diurnal_debiased_modeldata)
@@ -2478,13 +2511,14 @@ class Dataset:
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
-        logger.debug(
-            "Entering Dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata"
-        )
 
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
@@ -2499,6 +2533,9 @@ class Dataset:
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                max_gap_duration_to_fill=max_gap_duration_to_fill,
+                min_value=min_value,
+                max_value=max_value,
             )
 
 

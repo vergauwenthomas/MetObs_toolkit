@@ -2,6 +2,7 @@ import pytest
 import sys
 from pathlib import Path
 import copy
+
 import matplotlib.pyplot as plt
 
 # import metobs_toolkit
@@ -22,6 +23,17 @@ import shutil
 print(
     "To Overwrite the solutions, run: \n pytest test_plotting.py --mpl-generate-path=baseline"
 )
+
+
+# Fixture to ensure matplotlib figures are cleaned up after each test
+@pytest.fixture(autouse=True)
+def cleanup_figures():
+    """Close all matplotlib figures before and after each test to prevent state leakage."""
+    # Close any figures that might exist before the test
+    plt.close("all")
+    yield
+    # Close all figures created during the test
+    plt.close("all")
 
 
 class TestDemoDataset:
@@ -155,8 +167,9 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
-    def test_argtest_modeldata_args(self):
-        #  1. get_startpoint data
+    @pytest.mark.mpl_image_compare
+    def test_station_plot_of_modeldata_with_modelname(self):
+        """Test station.make_plot_of_modeldata with modelname argument."""
         dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
             testfile="test_gee",  # OTHER TEST FILE!
             classname="TestDemoDataset",
@@ -164,9 +177,36 @@ class TestDemoDataset:
         )
 
         station = dataset_with_era.get_station("vlinder05")
-        # Test passing the modelnamearg
-        station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
-        station.make_plot(
+        ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_dataset_plot_of_modeldata_with_modelname(self):
+        """Test Dataset.make_plot_of_modeldata with modelname argument."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        ax = dataset_with_era.make_plot_of_modeldata(
+            obstype="temp", modelname="ERA5-land"
+        )
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_station_plot_humidity_with_temp_modeldata(self):
+        """Test station.make_plot with humidity obstype and temp modeldata."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder05")
+        ax = station.make_plot(
             obstype="humidity",
             modelobstype="temp",
             show_modeldata=True,
@@ -175,7 +215,20 @@ class TestDemoDataset:
                 "modelvariable": "temperature_2m",
             },
         )
-        station.make_plot(
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_station_plot_temp_with_modeldata_kwargs(self):
+        """Test station.make_plot with temp obstype and modeldata kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder05")
+        ax = station.make_plot(
             obstype="temp",
             show_modeldata=True,
             modeldata_kwargs={
@@ -183,7 +236,19 @@ class TestDemoDataset:
                 "modelvariable": "temperature_2m",
             },
         )
-        dataset_with_era.make_plot(
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_dataset_plot_humidity_with_modelvariable(self):
+        """Test dataset.make_plot with humidity obstype and modelvariable."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        ax = dataset_with_era.make_plot(
             obstype="humidity",
             show_modeldata=True,
             modelobstype="temp",
@@ -191,6 +256,8 @@ class TestDemoDataset:
                 "modelvariable": "temperature_2m",
             },
         )
+        fig = ax.get_figure()
+        return fig
 
     @pytest.mark.mpl_image_compare
     def test_modeldatatimeseries_timeseries(self):
@@ -242,6 +309,83 @@ class TestDemoDataset:
 
         ax = dataset_with_era.make_plot(colorby="label", show_modeldata=True)
         fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_sensordata_pd_plot(self):
+        """Test SensorData.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder01")
+        sensordata = station.get_sensor("temp")
+
+        # Test with specific pandas plot kwargs
+        ax = sensordata.pd_plot(
+            show_labels=["ok"],
+            color="red",
+            linewidth=2,
+            linestyle="-.",
+            alpha=0.8,
+            figsize=(10, 6),
+        )
+        ax.legend()
+        fig = plt.gcf()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_sensordata_pd_plot_with_filters(self):
+        """Test SensorData.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder01")
+        station.repetitions_check()
+        sensordata = station.get_sensor("temp")
+
+        # Test with specific pandas plot kwargs
+        ax = sensordata.pd_plot(
+            show_labels=["ok"],  # outliers are not present
+            color="red",
+            linewidth=2,
+            linestyle="-.",
+            alpha=0.8,
+            figsize=(10, 6),
+        )
+        ax.legend()
+        fig = plt.gcf()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_modeltimeseries_pd_plot(self):
+        """Test ModelTimeSeries.pd_plot() method with specific pandas plot kwargs."""
+        dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
+            testfile="test_gee",  # OTHER TEST FILE!
+            classname="TestDemoDataset",
+            methodname="test_ERA5_extraction",
+        )
+
+        station = dataset_with_era.get_station("vlinder05")
+        modeltimeseries = station.get_modeltimeseries("temp")
+
+        # Test with specific pandas plot kwargs
+        ax = modeltimeseries.pd_plot(
+            color="blue",
+            linewidth=3,
+            linestyle="--",
+            marker="o",
+            markersize=4,
+            alpha=0.7,
+            figsize=(12, 8),
+        )
+        ax.legend()
+        fig = plt.gcf()
         return fig
 
 

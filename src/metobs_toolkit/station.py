@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Literal, Union
 from datetime import datetime
 from matplotlib.pyplot import Axes
+from xarray import Dataset as xrDataset
 from pathlib import Path
 
 from metobs_toolkit.site import Site
@@ -31,6 +32,10 @@ from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
 )
+from metobs_toolkit.gf_collection.overview_df_constructors import (
+    station_gap_status_overview_df,
+)
+from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
@@ -208,7 +213,7 @@ class Station:
 
     @copy_doc(station_to_xr)
     @log_entry
-    def to_xr(self) -> "xarray.Dataset":
+    def to_xr(self) -> xrDataset:
         return station_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
@@ -239,10 +244,19 @@ class Station:
         -----
         This method is an export method. It is not possible to convert a netCDF
         to a metobs_toolkit.Station object.
+
+        The method uses the 'netcdf4' engine by default for better Unicode string
+        compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
 
         # Convert to xarray Dataset
         ds = self.to_xr()
+
+        # Use netcdf4 engine by default for better Unicode string support
+        # unless explicitly overridden by user
+        if "engine" not in kwargs:
+            kwargs["engine"] = "netcdf4"
+
         # Save to netCDF
         ds.to_netcdf(filepath, **kwargs)
 
@@ -551,15 +565,14 @@ class Station:
         return mindt
 
     @property
-    def modeldata(self) -> dict:
+    def modeldata(self) -> list["ModelTimeSeries"]:  # type: ignore #noqa: F821
         """
         Retrieve the model data associated with the station.
 
         Returns
         -------
-        dict
-            A dictionary with the observation type as key and the corresponding
-            ModelTimeSeries as values.
+        list[ModelTimeSeries]
+            A list of ModelTimeSeries instances associated with the station.
         """
         return self._modeldata
 
@@ -1289,9 +1302,9 @@ class Station:
         ----------
         target_obstype : str, optional
             The target observation to check. By default "temp"
-        timewindow : str or pd.Timedelta
+        timewindow : str or pandas.Timedelta
             The size of the rolling time window to check for persistence.
-            The default is pd.Timedelta("60min")
+            The default is pandas.Timedelta("60min")
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             The default is 5
@@ -1450,8 +1463,8 @@ class Station:
         ----------
         target_obstype : str, optional
             The target observation to check. By default "temp"
-        timewindow : pd.Timedelta
-            The duration of the moving window. This should be a pandas Timedelta object. The default is pd.Timedelta("1h")
+        timewindow : pandas.Timedelta
+            The duration of the moving window. This should be a pandas Timedelta object. The default is pandas.Timedelta("1h")
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             This is dependent on the time resolution of the records. The default is 3
@@ -1589,19 +1602,39 @@ class Station:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        # test if the obstype has model data
-        trg_modeltimeseries = self.get_modeltimeseries(
-            obstype=obstype, modelname=modelname, modelvariable=modelvariable
+        # Filter the modeldatadf to target obstype, modelname, modelvariable
+        trg_modeldatadf = filter_modeldatadf(
+            modeldatadf=self.modeldatadf,
+            trgobstype=obstype,
+            modelname=modelname,
+            modelvariable=modelvariable,
         )
 
+        # Get the final model metadata for display
+        modelname = trg_modeldatadf["modelname"].iloc[0]
+        modelvar = trg_modeldatadf["modelvariable"].iloc[0]
+        modelobstypename = trg_modeldatadf.index.get_level_values("obstype")[0]
+
+        # Find the matching model timeseries instance
+        def _find_model_timeseries():
+            """Find the first model timeseries matching the criteria."""
+            for modts in self.modeldata:
+                if (
+                    modts.modelobstype.name == modelobstypename
+                    and (modelname is None or modts.modelname == modelname)
+                    and (modelvariable is None or modts.modelvariable == modelvariable)
+                ):
+                    return modts
+            return None
+
+        trg_modeltimeseries = _find_model_timeseries()
         # Create new axes if needed
         if ax is None:
             ax = plotting.create_axes(**figkwargs)
 
         plotdf = (
-            self.modeldatadf.xs(obstype, level="obstype", drop_level=False)
+            trg_modeldatadf.reset_index()
             .assign(name=self.name)
-            .reset_index()
             .set_index(["name", "obstype", "datetime"])
             .sort_index()
         )
@@ -1623,21 +1656,21 @@ class Station:
             show_gaps=False,  # will not be used
             ax=ax,
             linestyle=linestyle,
-            legend_prefix=f"{trg_modeltimeseries.modelname}:{trg_modeltimeseries.modelvariable}@",
+            legend_prefix=f"{modelname}:{modelvar}@",
         )
         # Styling
-        obstypeinstance = trg_modeltimeseries.modelobstype
 
         # Set title:
         if title is None:
             plotting.set_title(
-                ax, f"{obstypeinstance.name} data for station {self.name}"
+                ax,
+                f"{trg_modeltimeseries.modelobstype.name} data for station {self.name}",
             )
         else:
             plotting.set_title(ax, title)
 
         # Set ylabel
-        plotting.set_ylabel(ax, obstypeinstance._get_plot_y_label())
+        plotting.set_ylabel(ax, trg_modeltimeseries.modelobstype._get_plot_y_label())
 
         # Set xlabel
         cur_tz = plotdf.index.get_level_values("datetime").tz
@@ -1802,6 +1835,15 @@ class Station:
 
         return ax
 
+    # ------------------------------------------
+    #    Gap filling
+    # ------------------------------------------
+
+    @copy_doc(station_gap_status_overview_df)
+    @log_entry
+    def gap_overview_df(self) -> pd.DataFrame:
+        return station_gap_status_overview_df(self)
+
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
@@ -1809,6 +1851,9 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
@@ -1831,6 +1876,17 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+        max_gap_duration_to_fill : Union[str, pandas.Timedelta], optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -1845,9 +1901,13 @@ class Station:
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
         #. Interpolate the model data to match the missing records in the gap.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
+        # special formatters
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -1858,7 +1918,14 @@ class Station:
 
         # fill the gaps
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
-            modeltimeseries=modeltimeseries, method="raw", overwrite_fill=overwrite_fill
+            modeltimeseries=modeltimeseries,
+            method="raw",
+            overwrite_fill=overwrite_fill,
+            method_kwargs={
+                "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
+            },
         )
 
     @log_entry
@@ -1872,6 +1939,9 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the bias.
@@ -1887,11 +1957,11 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str or pd.Timedelta, optional
+        leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
         min_leading_records_total : int, optional
             The minimum number of records required in the leading period. The default is 60.
-        trailing_period_duration : str or pd.Timedelta, optional
+        trailing_period_duration : str or pandas.Timedelta, optional
             The duration of the trailing period. The default is "24h".
         min_trailing_records_total : int, optional
             The minimum number of records required in the trailing period. The default is 60.
@@ -1906,7 +1976,17 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
         Returns
         -------
         None
@@ -1921,6 +2001,7 @@ class Station:
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
         #. Compute the bias of the modeldata (combine leading and trailing samples).
         #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
@@ -1928,6 +2009,7 @@ class Station:
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
@@ -1941,13 +2023,16 @@ class Station:
         self.get_sensor(target_obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="debiased",
+            overwrite_fill=overwrite_fill,
             method_kwargs={
                 "leading_period_duration": leading_period_duration,
                 "min_leading_records_total": min_leading_records_total,
                 "trailing_period_duration": trailing_period_duration,
                 "min_trailing_records_total": min_trailing_records_total,
+                "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
-            overwrite_fill=overwrite_fill,
         )
 
     @log_entry
@@ -1960,6 +2045,9 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> None:
         """
         Fill the gaps using model data corrected for the diurnal bias.
@@ -1973,10 +2061,10 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration :  str or pd.Timedelta, optional
+        leading_period_duration :  str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration :  str or pd.Timedelta, optional
+        trailing_period_duration :  str or pandas.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_debias_sample_size : int, optional
@@ -1992,6 +2080,17 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -2008,6 +2107,7 @@ class Station:
            The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
         #. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
         #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
@@ -2022,6 +2122,7 @@ class Station:
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
@@ -2039,6 +2140,9 @@ class Station:
                 "leading_period_duration": leading_period_duration,
                 "trailing_period_duration": trailing_period_duration,
                 "min_debias_sample_size": min_debias_sample_size,
+                "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
             overwrite_fill=overwrite_fill,
         )
@@ -2054,6 +2158,9 @@ class Station:
         overwrite_fill=False,
         modelname: str | None = None,
         modelvariable: str | None = None,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        min_value: float | None = None,
+        max_value: float | None = None,
     ):
         """
         Fill the gaps using a weighted sum of model data corrected for the diurnal bias and weights with respect to the start of the gap.
@@ -2071,10 +2178,10 @@ class Station:
         ----------
         target_obstype :  str
             The target obstype to fill the gaps for.
-        leading_period_duration : str or pd.Timedelta, optional
+        leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
             for bias estimation. The default is "24h".
-        trailing_period_duration : str or pd.Timedelta, optional
+        trailing_period_duration : str or pandas.Timedelta, optional
             The duration of the trailing period. That is the period after the gap, used
             for bias estimation. The default is "24h".
         min_lead_debias_sample_size : int, optional
@@ -2094,6 +2201,17 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
+         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 12 hours.
+        min_value : float, optional
+            Minimum threshold for the filled values. Values below this threshold
+            will be clipped to this minimum. If None, no minimum threshold is applied.
+            The default is None.
+        max_value : float, optional
+            Maximum threshold for the filled values. Values above this threshold
+            will be clipped to this maximum. If None, no maximum threshold is applied.
+            The default is None.
 
         Returns
         -------
@@ -2110,6 +2228,7 @@ class Station:
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
         #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
         #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
@@ -2127,6 +2246,7 @@ class Station:
         # special formatters
         leading_period_duration = fmt_timedelta_arg(leading_period_duration)
         trailing_period_duration = fmt_timedelta_arg(trailing_period_duration)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
@@ -2145,6 +2265,9 @@ class Station:
                 "trailing_period_duration": trailing_period_duration,
                 "min_lead_debias_sample_size": min_lead_debias_sample_size,
                 "min_trail_debias_sample_size": min_trail_debias_sample_size,
+                "max_gap_duration_to_fill": max_gap_duration_to_fill,
+                "min_value": min_value,
+                "max_value": max_value,
             },
             overwrite_fill=overwrite_fill,
         )
@@ -2154,7 +2277,7 @@ class Station:
         self,
         target_obstype: str,
         method: str = "time",
-        max_consec_fill: int = 10,
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2179,9 +2302,9 @@ class Station:
             method argument for possible values. Make sure that
             `n_leading_anchors`, `n_trailing_anchors` and `method_kwargs` are
             set accordingly to the method (higher order interpolation techniques require more leading and trailing anchors). The default is "time".
-        max_consec_fill: int, optional
-            The maximum number of consecutive timestamps to fill. The result is
-            dependent on the time-resolution of the gap (=equal to that of the related SensorData). Defaults to 10.
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
+            The maximum gap duration of to fill with interpolation. The result is
+            independent on the time-resolution of the gap. Defaults to 3 hours.
         n_leading_anchors : int, optional
             The number of leading anchors to use for the interpolation. A leading anchor is
             a near record (not rejected by QC) just before the start of the gap, that is used for interpolation.
@@ -2190,10 +2313,10 @@ class Station:
             The number of trailing anchors to use for the interpolation. A trailing anchor is
             a near record (not rejected by QC) just after the end of the gap, that is used for interpolation.
             Higher-order interpolation techniques require multiple leading anchors. Defaults to 1.
-        max_lead_to_gap_distance:  pd.Timedelta or None, optional
+        max_lead_to_gap_distance:  pandas.Timedelta or None, optional
             The maximum time difference between the start of the gap and a
             leading anchor(s). If None, no time restriction is applied on the leading anchors. The default is None.
-        max_trail_to_gap_distance : pd.Timedelta or None, optional
+        max_trail_to_gap_distance : pandas.Timedelta or None, optional
             The maximum time difference between the end of the gap and a
             trailing anchor(s). If None, no time restriction is applied on the trailing anchors. Defaults to None.
         overwrite_fill : bool, optional
@@ -2217,10 +2340,6 @@ class Station:
         #. Interpolate the missing records using the specified method.
         #. Update the gap attributes with the interpolated values, labels, and details.
 
-        Note
-        -----
-        The impact of `max_consec_fill` is highly dependent on the resolution
-        of your records.
 
         Note
         -----
@@ -2231,6 +2350,8 @@ class Station:
         # special formatters
         max_lead_to_gap_distance = fmt_timedelta_arg(max_lead_to_gap_distance)
         max_trail_to_gap_distance = fmt_timedelta_arg(max_trail_to_gap_distance)
+        max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
+
         # obstype check
         self._obstype_is_known_check(obstype=target_obstype)
 
@@ -2238,7 +2359,7 @@ class Station:
         self.get_sensor(target_obstype).interpolate_gaps(
             overwrite_fill=overwrite_fill,
             method=method,
-            max_consec_fill=max_consec_fill,
+            max_gap_duration_to_fill=max_gap_duration_to_fill,
             n_leading_anchors=n_leading_anchors,
             n_trailing_anchors=n_trailing_anchors,
             max_lead_to_gap_distance=max_lead_to_gap_distance,

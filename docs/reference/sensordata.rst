@@ -42,11 +42,13 @@ A summary of all methods in the SensorData class.
 
    SensorData.get_info
    SensorData.convert_outliers_to_gaps
+   SensorData.gap_overview_df
    SensorData.resample
    SensorData.get_qc_freq_statistics
    SensorData.fill_gap_with_modeldata
    SensorData.interpolate_gaps
    SensorData.convert_to_standard_units
+   SensorData.pd_plot
    SensorData.gross_value_check
    SensorData.persistence_check
    SensorData.repetitions_check

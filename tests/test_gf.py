@@ -98,7 +98,7 @@ class TestDataWithGaps:
         sta.interpolate_gaps(
             target_obstype="temp",
             method="cubicspline",
-            max_consec_fill=20,  # is 5 hours at 15min
+            max_gap_duration_to_fill="5h",
             n_leading_anchors=3,
             n_trailing_anchors=2,  # only 1 is used
             max_lead_to_gap_distance=pd.Timedelta("3h"),
@@ -107,8 +107,9 @@ class TestDataWithGaps:
             method_kwargs={"order": 4},
         )
 
-        # regular interpolation iwht overwrite_fill == false -> should only try to fill the failed filled gaps
+        # regular interpolation with overwrite_fill == false -> should only try to fill the failed filled gaps
         sta.interpolate_gaps(
+            max_gap_duration_to_fill="5h",
             target_obstype="temp",
             overwrite_fill=False,
         )
@@ -148,7 +149,7 @@ class TestDataWithGaps:
         dataset.interpolate_gaps(
             target_obstype="temp",
             method="cubicspline",
-            max_consec_fill=20,  # is 5 hours at 15min
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
             n_leading_anchors=3,
             n_trailing_anchors=2,  # only 1 is used
             max_lead_to_gap_distance=pd.Timedelta("3h"),
@@ -180,7 +181,7 @@ class TestDataWithGaps:
         dataset.interpolate_gaps(
             target_obstype="temp",
             method="spline",
-            max_consec_fill=20,  # is 5 hours at 15min
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
             n_leading_anchors=3,
             n_trailing_anchors=2,  # only 1 is used
             max_lead_to_gap_distance=pd.Timedelta("3h"),
@@ -251,7 +252,9 @@ class TestDataWithGaps:
 
         # test raw gapfill on dataset
         dataset.fill_gaps_with_raw_modeldata(
-            target_obstype="temp", overwrite_fill=False
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
         )
 
         #  overwrite solution?
@@ -283,7 +286,11 @@ class TestDataWithGaps:
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
         )
         sta = dataset.get_station("vlinder01")
-        sta.fill_gaps_with_raw_modeldata(target_obstype="temp", overwrite_fill=False)
+        sta.fill_gaps_with_raw_modeldata(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+        )
 
         assert_equality(
             sta, solutionobj_A.get_station("vlinder01")
@@ -294,12 +301,54 @@ class TestDataWithGaps:
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
         )
         dataset.interpolate_gaps(target_obstype="temp", overwrite_fill=False)
-        dataset.fill_gaps_with_raw_modeldata(target_obstype="temp", overwrite_fill=True)
+        dataset.fill_gaps_with_raw_modeldata(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=True,
+        )
 
         assert_equality(dataset, solutionobj_A)  # dataset comparison
 
         # test the plot
         dataset.make_plot()
+
+    def test_chaining_gapfill_methods(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = "test_chaining_gapfill_methods"
+        #   get_startpoint data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+
+        dataset.interpolate_gaps(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            overwrite_fill=False,
+        )
+
+        # test raw gapfill on dataset
+        dataset.fill_gaps_with_raw_modeldata(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("10h"),
+            overwrite_fill=False,
+        )
+
+        dataset.make_plot(colorby="label")
+
+        #  overwrite solution?
+        if overwrite_solution:
+            TestDataWithGaps.solutionfixer.create_solution(
+                solutiondata=dataset,
+                **TestDataWithGaps.solkwargs,
+                methodname=f"{_method_name}",
+            )
+
+        #  Get solution
+        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
+        )
+
+        assert_equality(dataset, solutionobj_A)  # dataset comparison
 
     def test_debias_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -317,6 +366,7 @@ class TestDataWithGaps:
             min_leading_records_total=5,
             trailing_period_duration=pd.Timedelta("24h"),
             min_trailing_records_total=8,
+            max_gap_duration_to_fill=pd.Timedelta("12h"),
             overwrite_fill=False,
         )
 
@@ -347,6 +397,7 @@ class TestDataWithGaps:
             min_leading_records_total=5,
             trailing_period_duration=pd.Timedelta("24h"),
             min_trailing_records_total=8,
+            max_gap_duration_to_fill=pd.Timedelta("12h"),
             overwrite_fill=False,
         )
 
@@ -393,6 +444,7 @@ class TestDataWithGaps:
             target_obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
+            max_gap_duration_to_fill=pd.Timedelta("12h"),
             min_debias_sample_size=2,
             overwrite_fill=False,
         )
@@ -470,6 +522,83 @@ class TestDataWithGaps:
             sta, solutionobj_A.get_station("vlinder01")
         )  # station comparison
 
+    def test_partially_filled_gaps(self, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = "test_partially_filled_gaps"
+
+        #   get_startpoint data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+
+        # create outliers
+        dataset.repetitions_check(max_N_repetitions=8)
+        dataset.gross_value_check(upper_threshold=16.1)
+
+        # test diurnal debias gapfill on dataset
+        dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+            target_obstype="temp",
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_lead_debias_sample_size=1,  # This condition is not always met
+            min_trail_debias_sample_size=1,  # This condition is not always met
+            overwrite_fill=False,
+            max_gap_duration_to_fill=pd.Timedelta("48h"),
+        )
+
+        assert (
+            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
+        )
+
+        if overwrite_solution:
+            TestDataWithGaps.solutionfixer.create_solution(
+                solutiondata=dataset,
+                **TestDataWithGaps.solkwargs,
+                methodname=f"{_method_name}",
+            )
+
+        #  Get solution
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
+        )
+
+        assert_equality(dataset, solutionobj)  # dataset comparison
+        dataset.stations[0].make_plot(colorby="label")
+
+        # Test chaining after partially filled gaps:
+        # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
+
+        dataset.stations[0].interpolate_gaps(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("25h"),
+            overwrite_fill=False,
+        )
+        dataset.stations[0].make_plot(colorby="label")
+
+    def test_chaining_on_partially_filled_gaps(self):
+
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_partially_filled_gaps"
+        )
+        assert (
+            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
+        )
+
+        # Test chaining after partially filled gaps:
+        # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
+
+        dataset.stations[0].interpolate_gaps(
+            target_obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("25h"),
+            overwrite_fill=False,
+        )
+
+        # dataset.stations[0].make_plot(colorby="label")
+
+        assert not (
+            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
+        )
+
     def test_add_modeldata_to_station(self):
         #   get_startpoint data
         dataset = TestDataWithGaps.solutionfixer.get_solution(
@@ -506,6 +635,195 @@ class TestDataWithGaps:
 
         assert len(sta.modeldata) == 3
 
+    def test_gap_status_df(self, overwrite_solution=False):
+        """Test gap_overview_df methods on Dataset, Station, and SensorData classes."""
+        # 0. Get info of the current check
+        _method_name = "test_gap_status_df"
+
+        # 1. Get starting data without gaps/fills
+        dataset_original = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+
+        # Test 1: Dataset without gaps (original data)
+        gap_status_dataset_no_gaps = dataset_original.gap_overview_df()
+
+        # Test 2: Station without gaps (original data)
+        station_original = dataset_original.get_station("vlinder01")
+        gap_status_station_no_gaps = station_original.gap_overview_df()
+
+        # Test 3: SensorData without gaps (original data)
+        sensordata_original = station_original.get_sensor("temp")
+        gap_status_sensordata_no_gaps = sensordata_original.gap_overview_df()
+
+        # 2. Get data with gaps (after creating gaps)
+        dataset_with_gaps = copy.deepcopy(dataset_original)
+        dataset_with_gaps.convert_outliers_to_gaps(all_observations=True)
+
+        # Test 4: Dataset with gaps (no gap filling)
+        gap_status_dataset_with_gaps = dataset_with_gaps.gap_overview_df()
+
+        # Test 5: Station with gaps (no gap filling)
+        station_with_gaps = dataset_with_gaps.get_station("vlinder01")
+        gap_status_station_with_gaps = station_with_gaps.gap_overview_df()
+
+        # Test 6: SensorData with gaps (no gap filling)
+        sensordata_with_gaps = station_with_gaps.get_sensor("temp")
+        gap_status_sensordata_with_gaps = sensordata_with_gaps.gap_overview_df()
+
+        # 3. Get data with gap filling applied
+        dataset_filled = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_interpolation_on_dataset_A"
+        )
+
+        # Test 7: Dataset with gap filling
+        gap_status_dataset_filled = dataset_filled.gap_overview_df()
+
+        # Test 8: Station with gap filling
+        station_filled = dataset_filled.get_station("vlinder01")
+        gap_status_station_filled = station_filled.gap_overview_df()
+
+        # Test 9: SensorData with gap filling
+        sensordata_filled = station_filled.get_sensor("temp")
+        gap_status_sensordata_filled = sensordata_filled.gap_overview_df()
+
+        # 4. Combine all results for solution comparison
+        test_results = {
+            "dataset_no_gaps": gap_status_dataset_no_gaps,
+            "station_no_gaps": gap_status_station_no_gaps,
+            "sensordata_no_gaps": gap_status_sensordata_no_gaps,
+            "dataset_with_gaps": gap_status_dataset_with_gaps,
+            "station_with_gaps": gap_status_station_with_gaps,
+            "sensordata_with_gaps": gap_status_sensordata_with_gaps,
+            "dataset_filled": gap_status_dataset_filled,
+            "station_filled": gap_status_station_filled,
+            "sensordata_filled": gap_status_sensordata_filled,
+        }
+
+        # 5. Overwrite solution if requested
+        if overwrite_solution:
+            TestDataWithGaps.solutionfixer.create_solution(
+                solutiondata=test_results,
+                **TestDataWithGaps.solkwargs,
+                methodname=_method_name,
+            )
+
+        # 6. Get solution and test equality
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
+        )
+
+        # 7. Assert equality for all test cases
+        for key in test_results:
+            assert_equality(test_results[key], solutionobj[key])
+
+    def test_min_max_value_clipping(self):
+        """Test that min_value and max_value parameters work for all model-based gap filling methods."""
+        # Get test data
+        dataset = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname="test_import_data"
+        )
+
+        # Test parameters
+        target_obstype = "temp"
+        min_threshold = 11.0
+        max_threshold = 16.0
+
+        # Test 1: Raw model data gap fill with min/max clipping
+        dataset_raw = copy.deepcopy(dataset)
+        dataset_raw.fill_gaps_with_raw_modeldata(
+            target_obstype=target_obstype,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=max_threshold,
+        )
+
+        # Verify that filled values are within bounds
+        assert (
+            dataset_raw.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+        assert (
+            dataset_raw.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 2: Debiased model data gap fill with min/max clipping
+        dataset_debiased = copy.deepcopy(dataset)
+        dataset_debiased.fill_gaps_with_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_leading_records_total=10,
+            min_trailing_records_total=10,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=None,
+            max_value=max_threshold,
+        )
+
+        # Verify that filled values are within bounds
+        assert (
+            dataset_debiased.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 3: Diurnal debiased model data gap fill with min/max clipping
+        dataset_diurnal = copy.deepcopy(dataset)
+        dataset_diurnal.fill_gaps_with_diurnal_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_debias_sample_size=2,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=None,
+        )
+        assert (
+            dataset_diurnal.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+
+        # Test 4: Weighted diurnal debiased model data gap fill with min/max clipping
+        dataset_weighted = copy.deepcopy(dataset)
+        dataset_weighted.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+            target_obstype=target_obstype,
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_lead_debias_sample_size=1,
+            min_trail_debias_sample_size=1,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=min_threshold,
+            max_value=max_threshold,
+        )
+
+        assert (
+            dataset_weighted.gapsdf.xs("temp", level="obstype")["value"].min()
+            == min_threshold
+        )
+        assert (
+            dataset_weighted.gapsdf.xs("temp", level="obstype")["value"].max()
+            == max_threshold
+        )
+
+        # Test 5: Test on individual Station (not Dataset)
+        station = dataset.get_station("vlinder01")
+        station.fill_gaps_with_raw_modeldata(
+            target_obstype=target_obstype,
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+            min_value=12.90,
+            max_value=max_threshold,
+        )
+
+        assert station.gapsdf.xs("temp", level="obstype")["value"].min() == 12.90
+        assert (
+            station.gapsdf.xs("temp", level="obstype")["value"].max() == max_threshold
+        )
+
     # ------------------------------------------
     #    Plotting tests are present in the test_plotting.py
     # ------------------------------------------
@@ -525,6 +843,10 @@ if __name__ == "__main__":
     # tester.test_interpolation_on_station(overwrite_solution=False)
     # tester.test_interpolation_on_dataset(overwrite_solution=False)
     # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_partially_filled_gaps(overwrite_solution=False)
+    # tester.test_chaining_gapfill_methods(overwrite_solution=False)
     # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
     # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
     # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
+    # tester.test_gap_status_df(overwrite_solution=False)
+    # tester.test_min_max_value_clipping()

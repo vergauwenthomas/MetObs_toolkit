@@ -8,64 +8,10 @@ import numpy as np
 import pandas as pd
 
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
-
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 
 logger = logging.getLogger("<metobs_toolkit>")
-
-
-def _calculate_distance_matrix_with_haverine(metadf: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculate a distance matrix between points using the Haversine formula.
-
-    This function computes the great circle distance between all pairs of
-    geographical points in the given DataFrame using the Haversine formula.
-    The distances are returned in a pandas DataFrame.
-
-    Parameters
-    ----------
-    metadf : pandas.DataFrame
-        DataFrame containing metadata for geographical points. Each row
-        represents a point, and the `geometry` column must contain shapely
-        Point objects with `x` (longitude) and `y` (latitude) attributes.
-
-    Returns
-    -------
-    pandas.DataFrame
-        DataFrame representing the distance matrix. The rows and columns
-        are indexed by the same station identifiers as in `metadf`, and the
-        values represent the distances (in meters) between the corresponding
-        points.
-
-    Notes
-    -----
-    The radius of the Earth is assumed to be 6,367,000 meters.
-    The Haversine formula calculates the great circle distance, which is
-    the shortest distance over the Earth's surface.
-    """
-
-    @log_entry
-    def haversine(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
-        """Calculate the great circle distance between two points."""
-        # convert decimal degrees to radians
-        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-
-        # haversine formula
-        dlon = lon2 - lon1
-        dlat = lat2 - lat1
-        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-        c = 2 * asin(sqrt(a))
-        r = 6367000  # Radius of earth in meter.
-        return c * r
-
-    distance_matrix = {}
-    for sta1, row1 in metadf.iterrows():
-        distance_matrix[sta1] = {}
-        for sta2, row2 in metadf.iterrows():
-            distance_matrix[sta1][sta2] = haversine(
-                row1.geometry.x, row1.geometry.y, row2.geometry.x, row2.geometry.y
-            )
-    return pd.DataFrame(distance_matrix)
 
 
 @log_entry
@@ -473,20 +419,31 @@ def toolkit_buddy_check(
 
     # -----  Part 1: construct buddy groups ------
     # compute distance metric
-    dist_matrix = _calculate_distance_matrix_with_haverine(metadf)
+    logger.debug("Calculating distance matrix with Haversine formula")
+    dist_matrix = generate_distance_matrix(metadf)
 
     # find potential buddies by distance
+    logger.debug(
+        "Finding spatial buddies within radius of %s meters", spatial_buddy_radius
+    )
     spatial_buddies = _find_spatial_buddies(
         distance_df=dist_matrix, buddy_radius=spatial_buddy_radius
     )
 
     if use_LCZ_safetynet:
+        logger.debug(
+            "Finding LCZ buddies within radius of %s meters", max_LCZ_buddy_dist
+        )
         LCZ_buddies = _find_LCZ_buddies(
             metadf=metadf, max_dist=max_LCZ_buddy_dist, distance_df=dist_matrix
         )
 
     # filter buddies by altitude difference
     if max_alt_diff is not None:
+        logger.debug(
+            "Filtering buddies by maximum altitude difference of %s meters",
+            max_alt_diff,
+        )
         if metadf["altitude"].isna().any():
             raise ValueError(
                 "At least one station has a NaN \
@@ -506,16 +463,22 @@ value for 'altitude'"
             )
 
     # Filter by sample size (based on the number of buddy stations)
+    logger.debug(
+        "Filtering buddies by minimum sample size of %s", spatial_min_sample_size
+    )
     spatial_buddies = _filter_to_minimum_samplesize(
         buddydict=spatial_buddies, min_sample_size=spatial_min_sample_size
     )
 
     # create unique groups of buddies (list of tuples)
+    logger.debug("Creating groups of buddies")
     buddygroups = create_groups_of_buddies(spatial_buddies)
+    logger.debug("Number of buddy groups created: %s", len(buddygroups))
 
     # ---- Part 2: Preparing the records  -----
 
     # construct a wide observation dataframe
+    logger.debug("Constructing wide observation DataFrame for obstype: %s", obstype)
     concatlist = []
     for sta in target_stations:
         if obstype in sta.sensordata.keys():
@@ -524,12 +487,14 @@ value for 'altitude'"
             concatlist.append(records)
 
     # synchronize the timestamps
+    logger.debug("Synchronizing timestamps")
     combdf, timestamp_map = synchronize_series(
         series_list=concatlist, max_shift=instantaneous_tolerance
     )
 
     # lapse rate correction
     if lapserate is not None:
+        logger.debug("Applying lapse rate correction with rate: %s", lapserate)
         # get altitude dataframe
         altdict = {sta.name: sta.site.altitude for sta in target_stations}
         altseries = pd.Series(altdict)
@@ -541,9 +506,11 @@ value for 'altitude'"
 
     outliersbin = []
     for i in range(N_iter):
+        logger.debug("Starting iteration %s of %s", i + 1, N_iter)
         # convert values to NaN, if they are labeled as outlier in
         #  previous iteration
         if bool(outliersbin):
+            logger.debug("Converting previous-iteration outliers to NaN")
             for outlier_station, outlier_time, _msg in outliersbin:
                 if outlier_station in combdf.columns:
                     combdf.loc[outlier_time, outlier_station] = np.nan
@@ -585,6 +552,7 @@ value for 'altitude'"
                 for buddygroup in buddygroups
             ]
 
+            logger.debug("Finding outliers in each buddy group")
             outliers = list(map(find_buddy_group_outlier, inputargs))
 
         # unpack double nested list
@@ -592,6 +560,7 @@ value for 'altitude'"
 
         # apply LCZ safety net
         if use_LCZ_safetynet:
+            logger.debug("Applying LCZ safety net to %s outliers", len(outliers))
             outliers = apply_LCZ_safety_net(
                 outliers=outliers,
                 LCZ_buddies=LCZ_buddies,
