@@ -55,8 +55,8 @@ class SensorData:
         Observation type.
     datadtype : type, optional
         Data type of the records, by default np.float32.
-    timezone : str or pandas.Timedelta, optional
-        Timezone of the timestamps, by default 'UTC'.
+    timezone : str or tzinfo, optional
+        Timezone identifier for the timestamps (e.g., 'UTC', 'Europe/Amsterdam'), by default 'UTC'.
     freq_estimation_method : {'highest', 'median'}, optional
         Method to estimate frequency, by default 'median'.
     freq_estimation_simplify_tolerance : pandas.Timedelta or str, optional
