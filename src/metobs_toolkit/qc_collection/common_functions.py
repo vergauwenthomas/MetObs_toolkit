@@ -50,3 +50,24 @@ def test_moving_window_condition(
     ismet = (windowsize / freq) >= min_records_per_window
     logger.debug("Exiting function test_moving_window_condition.")
     return ismet
+
+
+def catch_white_records(outliers_idx: pd.DatetimeIndex,
+                        white_records: pd.DatetimeIndex) -> pd.DatetimeIndex:
+    """Remove white record timestamps from outliers index.
+    
+    Parameters
+    ----------
+    outliers_idx : pd.DatetimeIndex
+        Index of outlier timestamps to filter
+    white_records : pd.DatetimeIndex  
+        Index of white record timestamps to exclude
+        
+    Returns
+    -------
+    pd.DatetimeIndex
+        Filtered outliers index with white records removed
+    """
+    outliers = outliers_idx.difference(white_records)
+    outliers.name = 'datetime'
+    return outliers
