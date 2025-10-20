@@ -127,8 +127,8 @@ touch ${BIG_LOG}
 cat ${BLACK_LOG} ${TEST_LOG} ${NB_LOG} ${DOCS_LOG} >> ${BIG_LOG}
 
 
-echo "open logs in geany"
-geany ${BIG_LOG} &
+echo "Opening logs in default text viewer..."
+xdg-open ${BIG_LOG} &
 
 cd ${REPODIR}
 
