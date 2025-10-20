@@ -183,7 +183,7 @@ class TestDemoDataset:
 
     @pytest.mark.mpl_image_compare
     def test_dataset_plot_of_modeldata_with_modelname(self):
-        """Test station.make_plot_of_modeldata with modelname argument."""
+        """Test Dataset.make_plot_of_modeldata with modelname argument."""
         dataset_with_era = TestDemoDataset.solutionfixer.get_solution(
             testfile="test_gee",  # OTHER TEST FILE!
             classname="TestDemoDataset",
