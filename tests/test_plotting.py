@@ -2,6 +2,7 @@ import pytest
 import sys
 from pathlib import Path
 import copy
+
 import matplotlib.pyplot as plt
 
 # import metobs_toolkit
@@ -22,6 +23,17 @@ import shutil
 print(
     "To Overwrite the solutions, run: \n pytest test_plotting.py --mpl-generate-path=baseline"
 )
+
+
+# Fixture to ensure matplotlib figures are cleaned up after each test
+@pytest.fixture(autouse=True)
+def cleanup_figures():
+    """Close all matplotlib figures before and after each test to prevent state leakage."""
+    # Close any figures that might exist before the test
+    plt.close("all")
+    yield
+    # Close all figures created during the test
+    plt.close("all")
 
 
 class TestDemoDataset:
@@ -321,7 +333,7 @@ class TestDemoDataset:
             figsize=(10, 6),
         )
         ax.legend()
-        fig = ax.get_figure()
+        fig = plt.gcf()
         return fig
 
     @pytest.mark.mpl_image_compare
@@ -347,7 +359,7 @@ class TestDemoDataset:
             figsize=(10, 6),
         )
         ax.legend()
-        fig = ax.get_figure()
+        fig = plt.gcf()
         return fig
 
     @pytest.mark.mpl_image_compare
@@ -373,7 +385,7 @@ class TestDemoDataset:
             figsize=(12, 8),
         )
         ax.legend()
-        fig = ax.get_figure()
+        fig = plt.gcf()
         return fig
 
 
