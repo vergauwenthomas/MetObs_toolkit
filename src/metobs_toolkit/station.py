@@ -1901,6 +1901,7 @@ class Station:
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
         #. Interpolate the model data to match the missing records in the gap.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
@@ -2000,6 +2001,7 @@ class Station:
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
         #. Compute the bias of the modeldata (combine leading and trailing samples).
         #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the bias.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         """
@@ -2105,6 +2107,7 @@ class Station:
            The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
         #. A diurnal bias is computed by grouping to hour, minute and second, and averaging the biases.
         #. Fill the gap records by using raw (interpolated) modeldata that is corrected by subtracting the coresponding diurnal bias.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
@@ -2225,6 +2228,7 @@ class Station:
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
         #. A weight is computed for each gap record, that is the normalized distance to the start and end of the gap.
         #. Fill the gap records by using raw (interpolated) modeldata is corrected by a weighted sum the coresponding diurnal bias for the lead and trail periods.
+        #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
         Notes
