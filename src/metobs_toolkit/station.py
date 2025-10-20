@@ -2340,10 +2340,6 @@ class Station:
         #. Interpolate the missing records using the specified method.
         #. Update the gap attributes with the interpolated values, labels, and details.
 
-        Note
-        -----
-        The impact of `max_consec_fill` is highly dependent on the resolution
-        of your records.
 
         Note
         -----
