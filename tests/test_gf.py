@@ -107,7 +107,7 @@ class TestDataWithGaps:
             method_kwargs={"order": 4},
         )
 
-        # regular interpolation iwht overwrite_fill == false -> should only try to fill the failed filled gaps
+        # regular interpolation with overwrite_fill == false -> should only try to fill the failed filled gaps
         sta.interpolate_gaps(
             max_gap_duration_to_fill="5h",
             target_obstype="temp",
