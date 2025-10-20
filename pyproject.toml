@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "0.4.6a4"
+version = "0.4.7"
 license = "LICENSE"
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@meteo.be"}]
 description = "A Meteorological observations toolkit for scientists"
