@@ -1256,6 +1256,7 @@ class Station:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
+        white_records: Union[pd.Index, None] = None,
     ) -> None:
         """
         Identify outliers based on thresholds.
@@ -1268,6 +1269,11 @@ class Station:
            Thresholds to flag records below as outliers. The default is -15.0.
         upper_threshold : float, optional
             Thresholds to flag records above as outliers. The default is 39.0.
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the gross value check. The default is None.
 
         Returns
         -------
@@ -1281,9 +1287,15 @@ class Station:
         # argument validity checks
         self._obstype_is_known_check(target_obstype)
 
-        self.get_sensor(target_obstype).gross_value_check(
-            lower_threshold=lower_threshold, upper_threshold=upper_threshold
-        )
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {'lower_threshold': lower_threshold, 'upper_threshold': upper_threshold}
+        if white_records is not None:
+            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
+                white_records, trg_obstype=target_obstype, trg_station=self.name
+            )
+
+        # apply check on the sensordata
+        self.get_sensor(target_obstype).gross_value_check(**qc_kwargs)
 
     @log_entry
     def persistence_check(

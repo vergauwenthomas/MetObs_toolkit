@@ -1736,6 +1736,7 @@ class Dataset:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1748,6 +1749,7 @@ class Dataset:
             target_obstype=target_obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
+            white_records=white_records,
         )
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:
