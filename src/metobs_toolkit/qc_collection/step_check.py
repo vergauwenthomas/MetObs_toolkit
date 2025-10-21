@@ -2,6 +2,7 @@ import logging
 from typing import Union
 import pandas as pd
 
+from .common_functions import catch_white_records
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -12,6 +13,7 @@ def step_check(
     records: pd.Series,
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
+    white_records: Union[pd.DatetimeIndex, None] = None,
 ) -> pd.DatetimeIndex:
     """
     Check for 'spikes' and 'dips' in a time series.
@@ -33,6 +35,10 @@ def step_check(
     max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
         This value must be negative.
+    white_records : pd.DatetimeIndex, optional
+        A DatetimeIndex containing timestamps that should be excluded from outlier detection.
+        These "white records" are known valid steps and will not be flagged as outliers
+        even if they exceed the step threshold. The default is None.
 
     Returns
     -------
@@ -73,5 +79,11 @@ def step_check(
         )
     )
 
+    outliers_idx = step_filter[step_filter].index
+    
+    # Catch the white records
+    if white_records is not None:
+        outliers_idx = catch_white_records(outliers_idx, white_records)
+    
     logger.debug("Exiting function step_check")
-    return step_filter[step_filter].index
+    return outliers_idx

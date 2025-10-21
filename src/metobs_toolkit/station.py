@@ -1428,6 +1428,7 @@ class Station:
         target_obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
+        white_records: Union[pd.Index, None] = None,
     ) -> None:
         """
         Check for 'spikes' and 'dips' in a time series.
@@ -1449,6 +1450,11 @@ class Station:
         max_decrease_per_second : int or float, <0, optional
             The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
             This value must be negative! The default is -10.0/3600.0
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the step check. The default is None.
 
         Returns
         -------
@@ -1467,11 +1473,18 @@ class Station:
         # argument checks
         self._obstype_is_known_check(target_obstype)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            'max_increase_per_second': max_increase_per_second,
+            'max_decrease_per_second': max_decrease_per_second
+        }
+        if white_records is not None:
+            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
+                white_records, trg_obstype=target_obstype, trg_station=self.name
+            )
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).step_check(
-            max_increase_per_second=max_increase_per_second,
-            max_decrease_per_second=max_decrease_per_second,
-        )
+        self.get_sensor(target_obstype).step_check(**qc_kwargs)
 
     @log_entry
     def window_variation_check(
@@ -1481,6 +1494,7 @@ class Station:
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 8.0 / 3600,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600,
+        white_records: Union[pd.Index, None] = None,
     ) -> None:
         """
         Test if the increase/decrease in a time window exceeds a threshold.
@@ -1509,6 +1523,11 @@ class Station:
         max_decrease_per_second : int or float, <0
             The maximum allowed decrease (per second). This value is extrapolated to the window duration.
             This value must be negative! The default is -10.0/3600
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the window variation check. The default is None.
 
         Returns
         -------
@@ -1532,13 +1551,20 @@ class Station:
         self._obstype_is_known_check(target_obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            'timewindow': timewindow,
+            'min_records_per_window': min_records_per_window,
+            'max_increase_per_second': max_increase_per_second,
+            'max_decrease_per_second': max_decrease_per_second
+        }
+        if white_records is not None:
+            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
+                white_records, trg_obstype=target_obstype, trg_station=self.name
+            )
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).window_variation_check(
-            timewindow=timewindow,
-            min_records_per_window=min_records_per_window,
-            max_increase_per_second=max_increase_per_second,
-            max_decrease_per_second=max_decrease_per_second,
-        )
+        self.get_sensor(target_obstype).window_variation_check(**qc_kwargs)
 
     @log_entry
     def get_qc_stats(

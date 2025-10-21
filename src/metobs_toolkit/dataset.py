@@ -1836,6 +1836,7 @@ class Dataset:
         target_obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1848,6 +1849,7 @@ class Dataset:
             target_obstype=target_obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
+            white_records=white_records,
         )
 
         if use_mp:
@@ -1870,6 +1872,7 @@ class Dataset:
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 0.0022,
         max_decrease_per_second: Union[int, float] = -0.0027,
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1886,6 +1889,7 @@ class Dataset:
             min_records_per_window=min_records_per_window,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
+            white_records=white_records,
         )
 
         if use_mp:
