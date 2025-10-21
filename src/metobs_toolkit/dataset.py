@@ -1767,6 +1767,7 @@ class Dataset:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
+        white_records: pd.Index = None,
         use_mp: bool = True,
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
@@ -1781,6 +1782,7 @@ class Dataset:
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
+            white_records=white_records,
         )
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:

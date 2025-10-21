@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from .common_functions import test_moving_window_condition
+from .common_functions import test_moving_window_condition, catch_white_records
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
@@ -15,6 +15,7 @@ def persistence_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
     min_records_per_window: int,
+    white_records: pd.DatetimeIndex = None,
 ) -> pd.DatetimeIndex:
     """
     Check if values are not constant in a moving time window.
@@ -31,6 +32,10 @@ def persistence_check(
         The size of the rolling time window to check for persistence.
     min_records_per_window : int
         The minimum number of non-NaN records required within the time window for the check to be valid.
+    white_records : pd.DatetimeIndex, optional
+        A DatetimeIndex containing timestamps that should be excluded from outlier detection.
+        These "white records" are known valid persistent values and will not be flagged as outliers
+        even if they meet the persistence criteria. The default is None.
 
     Returns
     -------
@@ -98,5 +103,11 @@ def persistence_check(
     # The returns are numeric values (0 --> False, NaN --> not checked (members/window condition not met), 1 --> outlier)
     window_is_constant = window_is_constant.map({0.0: False, np.nan: False, 1.0: True})
 
+    outliers_idx = window_is_constant[window_is_constant].index
+    
+    # Catch the white records
+    if white_records is not None:
+        outliers_idx = catch_white_records(outliers_idx, white_records)
+    
     logger.debug("Exiting function persistence_check")
-    return window_is_constant[window_is_constant].index
+    return outliers_idx

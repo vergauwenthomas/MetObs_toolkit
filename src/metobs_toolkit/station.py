@@ -1291,6 +1291,7 @@ class Station:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
+        white_records: pd.Index = None,
     ) -> None:
         """
         Check if values are not constant in a moving time window.
@@ -1309,6 +1310,11 @@ class Station:
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             The default is 5
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the persistence check. The default is None.
 
         Returns
         -------
@@ -1335,10 +1341,15 @@ class Station:
         self._obstype_is_known_check(target_obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {'timewindow': timewindow, 'min_records_per_window': min_records_per_window}
+        if white_records is not None:
+            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
+                white_records, trg_obstype=target_obstype, trg_station=self.name
+            )
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).persistence_check(
-            timewindow=timewindow, min_records_per_window=min_records_per_window
-        )
+        self.get_sensor(target_obstype).persistence_check(**qc_kwargs)
 
     @log_entry
     def repetitions_check(
@@ -1392,7 +1403,9 @@ class Station:
         # Prepare kwargs for the sensor method
         qc_kwargs = {'max_N_repetitions': max_N_repetitions}
         if white_records is not None:
-            qc_kwargs['white_records'] =  fmt_white_records_for_station_qc(white_records)
+            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
+                white_records, trg_obstype=target_obstype, trg_station=self.name
+            )
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).repetitions_check(**qc_kwargs)
