@@ -1767,7 +1767,7 @@ class Dataset:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
-        white_records: pd.Index = None,
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
@@ -1801,7 +1801,7 @@ class Dataset:
         self,
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
-        white_records: pd.DatetimeIndex = None,
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype

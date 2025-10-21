@@ -1291,7 +1291,7 @@ class Station:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
-        white_records: pd.Index = None,
+        white_records: Union[pd.Index, None] = None,
     ) -> None:
         """
         Check if values are not constant in a moving time window.
@@ -1354,7 +1354,7 @@ class Station:
     @log_entry
     def repetitions_check(
         self, target_obstype: str = "temp", max_N_repetitions: int = 5,
-        white_records: pd.Index = None
+        white_records: Union[pd.Index, None] = None
     ) -> None:
         """
         Test if an observation changes after a number of repetitions.
