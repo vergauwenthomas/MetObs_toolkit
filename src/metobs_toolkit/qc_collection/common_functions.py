@@ -71,3 +71,70 @@ def catch_white_records(outliers_idx: pd.DatetimeIndex,
     outliers = outliers_idx.difference(white_records)
     outliers.name = 'datetime'
     return outliers
+
+def fmt_white_records_for_station_qc(white_records: pd.Index,
+                                     trg_obstype: str,
+                                     trg_station: str) -> pd.DatetimeIndex:
+    """Format and filter white records for station-level QC methods.
+    
+    This function processes a white_records index (which may be a MultiIndex with 
+    'name', 'datetime', and 'obstype' levels) and extracts only the datetime values 
+    that correspond to the specified station and observation type. This is necessary 
+    because station-level QC methods only need datetime information, not the full 
+    MultiIndex structure.
+    
+    Parameters
+    ----------
+    white_records : pd.Index
+        Input white records index. Can be a DatetimeIndex or a MultiIndex containing
+        'name', 'datetime', and/or 'obstype' levels. If MultiIndex, it will be filtered
+        to the target station and observation type.
+    trg_obstype : str
+        The target observation type to filter for (e.g., 'temp', 'humidity').
+    trg_station : str
+        The target station name to filter for.
+        
+    Returns
+    -------
+    pd.DatetimeIndex
+        A 1-dimensional DatetimeIndex with name 'datetime' containing only the 
+        timestamps relevant for the specified station and observation type.
+        
+    Raises
+    ------
+    TypeError
+        If white_records is not a pd.Index.
+    ValueError
+        If after filtering by station and obstype, the resulting index still has
+        multiple levels (indicating an unexpected structure).
+        
+    Notes
+    -----
+    The function performs the following operations:
+    
+    1. Filters by 'name' level if present, keeping only rows matching trg_station
+    2. Filters by 'obstype' level if present, keeping only rows matching trg_obstype
+    3. Drops the 'name' and 'obstype' levels if they existed
+    4. Ensures the final result is a 1D DatetimeIndex named 'datetime'
+    """
+    if not isinstance(white_records, pd.Index):
+        raise TypeError("white_records must be a pd.Index")
+    
+    #Filter multi-index levels if present
+    if 'name' in white_records.names:
+        white_records = white_records[white_records.get_level_values('name') == trg_station]
+        white_records = white_records.droplevel('name')
+        
+    if 'obstype' in white_records.names:
+        white_records = white_records[white_records.get_level_values('obstype') == trg_obstype]
+        white_records = white_records.droplevel('obstype')
+
+    #at this point, the index must be 1D representing 'datetime'
+    #Only the datetime index level is relevant for stations-related QC methods
+    if white_records.nlevels == 1:
+        white_records.name = 'datetime'
+        #TODO: make sure it is a datetime index
+    else:
+        raise ValueError("white_records must only contain 'datetime' (or possibly also 'name' and 'obstype' levels) after filtering.")
+    
+    return white_records    

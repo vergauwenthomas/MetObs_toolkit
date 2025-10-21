@@ -1799,6 +1799,7 @@ class Dataset:
         self,
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
+        white_records: pd.DatetimeIndex = None,
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1810,6 +1811,7 @@ class Dataset:
             stations=target_stations,
             target_obstype=target_obstype,
             max_N_repetitions=max_N_repetitions,
+            white_records=white_records,
         )
 
         if use_mp:

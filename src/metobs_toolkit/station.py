@@ -27,6 +27,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
+from metobs_toolkit.qc_collection.common_functions import fmt_white_records_for_station_qc
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
@@ -1341,7 +1342,8 @@ class Station:
 
     @log_entry
     def repetitions_check(
-        self, target_obstype: str = "temp", max_N_repetitions: int = 5
+        self, target_obstype: str = "temp", max_N_repetitions: int = 5,
+        white_records: pd.Index = None
     ) -> None:
         """
         Test if an observation changes after a number of repetitions.
@@ -1360,6 +1362,11 @@ class Station:
         max_N_repetitions : int
             The maximum number of repetitions allowed before the records are flagged as outliers.
             If the number of repetitions exceeds this value, all repeated records are flagged as outliers. The default is 5.
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the repetitions check. The default is None.
 
         Returns
         -------
@@ -1382,10 +1389,13 @@ class Station:
         # argument checks
         self._obstype_is_known_check(target_obstype)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {'max_N_repetitions': max_N_repetitions}
+        if white_records is not None:
+            qc_kwargs['white_records'] =  fmt_white_records_for_station_qc(white_records)
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).repetitions_check(
-            max_N_repetitions=max_N_repetitions
-        )
+        self.get_sensor(target_obstype).repetitions_check(**qc_kwargs)
 
     @log_entry
     def step_check(
