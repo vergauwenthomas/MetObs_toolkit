@@ -1915,6 +1915,7 @@ class Dataset:
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ):
         """Spatial buddy check.
@@ -1957,6 +1958,10 @@ class Dataset:
               * For each timestamp the record with the highest Chi is tested if
                 it is larger then spatial_z_threshold. If so, that record is
                 flagged as an outlier. It will be ignored in the next iteration.
+           #. If `white_records` is provided, any outliers that match the white-listed
+              timestamps (and optionally name and obstype) are removed from the outlier set
+              for the current iteration. White-listed records participate in all buddy
+              check calculations but are not flagged as outliers in the final results.
 
 
         Parameters
@@ -1979,6 +1984,12 @@ class Dataset:
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the buddy check. The white_records undergo the buddy check iterations as if they are regular records. 
+            Outlier records in the white_records are saved in each iteration. The default is None.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -1991,6 +2002,7 @@ class Dataset:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+        * White-listed records participate in all buddy check calculations but are not flagged as outliers in the final results.
 
         """
 
@@ -2011,6 +2023,7 @@ class Dataset:
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
+            white_records=white_records,
             # LCZ-safety net
             max_LCZ_buddy_dist=None,  # without LCZ safetynet
             min_LCZ_safetynet_sample_size=None,  # without LCZ safetynet
@@ -2092,6 +2105,7 @@ class Dataset:
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
+        white_records: Union[pd.Index, None] = None,
         use_mp: bool = True,
     ):
         """Spatial buddy check with LCZ saftey net.
@@ -2160,6 +2174,11 @@ class Dataset:
                   tested outlier is "saved", and is removed from the set of outliers
                   for the current iteration.
 
+           #. If `white_records` is provided, any outliers that match the white-listed
+              timestamps (and optionally name and obstype) are removed from the outlier set
+              for the current iteration. White-listed records participate in all buddy
+              check and safety net calculations but are not flagged as outliers in the final results.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -2187,6 +2206,12 @@ class Dataset:
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
+        white_records : pd.Index, optional
+            An Index containing timestamps that should be excluded from outlier detection. The index must have 
+            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+            the white_records are filtered to only include those matching the target_obstype and station name before
+            applying the buddy check. The white_records undergo the buddy check and LCZ safety net iterations as if they are regular records. 
+            Outlier records in the white_records are saved in each iteration. The default is None.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2200,6 +2225,7 @@ class Dataset:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+        * White-listed records participate in all buddy check and safety net calculations but are not flagged as outliers in the final results.
 
         """
 
@@ -2225,6 +2251,7 @@ class Dataset:
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
+            white_records=white_records,
             # LCZ safety net related
             max_LCZ_buddy_dist=LCZ_buddy_radius,
             min_LCZ_safetynet_sample_size=min_sample_size,  # same as for spatial samples
