@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from .common_functions import test_moving_window_condition, catch_white_records
-
+from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -15,7 +15,7 @@ def persistence_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
     min_records_per_window: int,
-    white_records: pd.DatetimeIndex = None,
+    sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
 ) -> pd.DatetimeIndex:
     """
     Check if values are not constant in a moving time window.
@@ -32,10 +32,10 @@ def persistence_check(
         The size of the rolling time window to check for persistence.
     min_records_per_window : int
         The minimum number of non-NaN records required within the time window for the check to be valid.
-    white_records : pd.DatetimeIndex, optional
-        A DatetimeIndex containing timestamps that should be excluded from outlier detection.
-        These "white records" are known valid persistent values and will not be flagged as outliers
-        even if they meet the persistence criteria. The default is None.
+    sensorwhiteset : SensorWhiteSet, optional
+        A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the 
+        persistence criteria. The default is an empty SensorWhiteSet().
 
     Returns
     -------
@@ -106,8 +106,7 @@ def persistence_check(
     outliers_idx = window_is_constant[window_is_constant].index
     
     # Catch the white records
-    if white_records is not None:
-        outliers_idx = catch_white_records(outliers_idx, white_records)
+    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
     
     logger.debug("Exiting function persistence_check")
     return outliers_idx
