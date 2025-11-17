@@ -55,6 +55,19 @@ The ``white_records`` index can have one or more of the following levels:
 
 If the 'datetime' level is absent, all timestamps for matching station/obstype combinations are whitelisted.
 
+Timezone Handling
+-----------------
+
+.. important::
+   When the ``white_records`` index contains a 'datetime' level, timestamps are automatically 
+   handled during WhiteSet initialization:
+   
+   * **Timezone-aware timestamps** are converted to UTC
+   * **Timezone-naive timestamps** are localized to UTC (with a warning)
+   
+   It is **strongly recommended** to provide timezone-aware timestamps to avoid ambiguity and 
+   ensure correct matching during quality control operations.
+
 
 Examples
 --------
@@ -67,7 +80,7 @@ Examples
    import metobs_toolkit
    
    # Whitelist specific timestamps across all stations
-   timestamps = pd.date_range('2022-09-01 00:00', periods=10, freq='1h')
+   timestamps = pd.date_range('2022-09-01 00:00', periods=10, freq='1h', tz='UTC')
    whiteset = metobs_toolkit.WhiteSet(
        pd.Index(timestamps, name='datetime')
    )
