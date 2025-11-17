@@ -3,13 +3,14 @@ import pandas as pd
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.qc_collection.common_functions import catch_white_records
+from .whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 
 
 @log_entry
 def repetitions_check(records: pd.Series, max_N_repetitions: int,
-                      white_records: pd.DatetimeIndex) -> pd.DatetimeIndex:
+                      sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),) -> pd.DatetimeIndex:
     """
     Test if an observation changes after a number of repetitions.
 
@@ -27,10 +28,10 @@ def repetitions_check(records: pd.Series, max_N_repetitions: int,
     max_N_repetitions : int
         The maximum number of repetitions allowed before the records are flagged as outliers.
         If the number of repetitions exceeds this value, all repeated records are flagged as outliers.
-    white_records : pd.DatetimeIndex
-        A DatetimeIndex containing timestamps that should be excluded from outlier detection.
-        These "white records" will not be flagged as outliers even if they
-        exceed the max_N_repetitions threshold.
+    sensorwhiteset : SensorWhiteSet, optional
+        A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
+        Records matching the whiteset criteria will not be flagged as outliers even if they exceed the 
+        max_N_repetitions threshold. The default is an empty SensorWhiteSet().
 
     Returns
     -------
@@ -75,8 +76,8 @@ def repetitions_check(records: pd.Series, max_N_repetitions: int,
     )
     logger.debug("Outliers detected. Exiting repetitions_check function.")
     
-    #catch the white records
-    outliers_idx = catch_white_records(outliers.index, white_records)
+    # Catch the white records
+    outliers_idx = sensorwhiteset.catch_white_records(outliers.index)
     return outliers_idx
 
 
