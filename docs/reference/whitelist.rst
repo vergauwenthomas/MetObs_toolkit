@@ -9,7 +9,7 @@ The WhiteSet class manages whitelisted records for quality control operations. I
 A regular user interacts with WhiteSet instances when calling QC methods on ``Dataset`` and ``Station`` classes, providing fine-grained control over which records should be protected from being flagged as outliers.
 
 .. important::
-   In practice, users only create WhiteSet instances to pass them as parameters to QC methods.
+   In practice, users only create WhiteSet instances to pass them as parameters to QC methods. A user does generally not need to interact with this class through its methods.
 
 .. currentmodule:: metobs_toolkit.qc_collection.whitelist
 
