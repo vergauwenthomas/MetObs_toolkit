@@ -3,7 +3,7 @@ from typing import Union
 import pandas as pd
 
 from .common_functions import test_moving_window_condition, catch_white_records
-
+from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -16,7 +16,8 @@ def window_variation_check(
     min_records_per_window: int,
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
-    white_records: Union[pd.DatetimeIndex, None] = None,
+    sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
+    
 ) -> pd.DatetimeIndex:
     """
     Test if the increase or decrease in a time window exceeds a threshold.
@@ -45,10 +46,10 @@ def window_variation_check(
     max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the window duration.
         This value must be negative.
-    white_records : pd.DatetimeIndex, optional
-        A DatetimeIndex containing timestamps that should be excluded from outlier detection.
-        These "white records" are known valid variations and will not be flagged as outliers
-        even if they exceed the variation threshold. The default is None.
+    sensorwhiteset : SensorWhiteSet, optional
+        A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the 
+        window variation check criteria. The default is an empty SensorWhiteSet().
 
     Returns
     -------
@@ -133,8 +134,7 @@ def window_variation_check(
     outliers_idx = window_outliers.loc[window_outliers == 1].index
     
     # Catch the white records
-    if white_records is not None:
-        outliers_idx = catch_white_records(outliers_idx, white_records)
+    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
     
     logger.debug("Exiting function window_variation_check")
     return outliers_idx
