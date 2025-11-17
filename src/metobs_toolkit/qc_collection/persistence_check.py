@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from .common_functions import test_moving_window_condition, catch_white_records
+from .common_functions import test_moving_window_condition
 from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 

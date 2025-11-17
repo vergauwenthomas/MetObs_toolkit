@@ -2,7 +2,7 @@ import logging
 from typing import Union
 import pandas as pd
 
-from .common_functions import catch_white_records
+
 from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 

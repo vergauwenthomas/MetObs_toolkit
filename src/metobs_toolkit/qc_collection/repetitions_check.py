@@ -2,7 +2,6 @@ import logging
 import pandas as pd
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
-from metobs_toolkit.qc_collection.common_functions import catch_white_records
 from .whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")

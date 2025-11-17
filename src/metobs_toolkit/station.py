@@ -27,7 +27,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.qc_collection.common_functions import fmt_white_records_for_station_qc
+from metobs_toolkit.qc_collection.whitelist import WhiteSet, SensorWhiteSet
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
@@ -1256,7 +1256,7 @@ class Station:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
-        white_records: Union[pd.Index, None] = None,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Identify outliers based on thresholds.
@@ -1269,11 +1269,9 @@ class Station:
            Thresholds to flag records below as outliers. The default is -15.0.
         upper_threshold : float, optional
             Thresholds to flag records above as outliers. The default is 39.0.
-        white_records : pd.Index, optional
-            An Index containing timestamps that should be excluded from outlier detection. The index must have 
-            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
-            the white_records are filtered to only include those matching the target_obstype and station name before
-            applying the gross value check. The default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1288,12 +1286,12 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'lower_threshold': lower_threshold, 'upper_threshold': upper_threshold}
-        if white_records is not None:
-            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
-                white_records, trg_obstype=target_obstype, trg_station=self.name
-            )
-
+        qc_kwargs = {'lower_threshold': lower_threshold,
+                     'upper_threshold': upper_threshold,
+                     'sensorwhiteset': whiteset.create_sensorwhitelist(
+                         trg_station=self.name, trg_obstype=target_obstype)
+                     }
+        
         # apply check on the sensordata
         self.get_sensor(target_obstype).gross_value_check(**qc_kwargs)
 
@@ -1303,7 +1301,7 @@ class Station:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
-        white_records: Union[pd.Index, None] = None,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Check if values are not constant in a moving time window.
@@ -1322,11 +1320,9 @@ class Station:
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             The default is 5
-        white_records : pd.Index, optional
-            An Index containing timestamps that should be excluded from outlier detection. The index must have 
-            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
-            the white_records are filtered to only include those matching the target_obstype and station name before
-            applying the persistence check. The default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1354,11 +1350,11 @@ class Station:
         timewindow = fmt_timedelta_arg(timewindow)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'timewindow': timewindow, 'min_records_per_window': min_records_per_window}
-        if white_records is not None:
-            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
-                white_records, trg_obstype=target_obstype, trg_station=self.name
-            )
+        qc_kwargs = {'timewindow': timewindow,
+                     'min_records_per_window': min_records_per_window,
+                     'sensorwhiteset': whiteset.create_sensorwhitelist(
+                         trg_station=self.name, trg_obstype=target_obstype)
+                     }
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).persistence_check(**qc_kwargs)
@@ -1366,7 +1362,7 @@ class Station:
     @log_entry
     def repetitions_check(
         self, target_obstype: str = "temp", max_N_repetitions: int = 5,
-        white_records: Union[pd.Index, None] = None
+        whiteset: WhiteSet = WhiteSet()
     ) -> None:
         """
         Test if an observation changes after a number of repetitions.
@@ -1385,11 +1381,9 @@ class Station:
         max_N_repetitions : int
             The maximum number of repetitions allowed before the records are flagged as outliers.
             If the number of repetitions exceeds this value, all repeated records are flagged as outliers. The default is 5.
-        white_records : pd.Index, optional
-            An Index containing timestamps that should be excluded from outlier detection. The index must have 
-            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
-            the white_records are filtered to only include those matching the target_obstype and station name before
-            applying the repetitions check. The default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1413,11 +1407,10 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'max_N_repetitions': max_N_repetitions, 'white_records': white_records}
-        if white_records is not None:
-            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
-                white_records, trg_obstype=target_obstype, trg_station=self.name
-            )
+        qc_kwargs = {'max_N_repetitions': max_N_repetitions,
+                     'sensorwhiteset': whiteset.create_sensorwhitelist(
+                         trg_station=self.name, trg_obstype=target_obstype)
+                     }
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).repetitions_check(**qc_kwargs)
@@ -1428,7 +1421,7 @@ class Station:
         target_obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
-        white_records: Union[pd.Index, None] = None,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Check for 'spikes' and 'dips' in a time series.
@@ -1450,11 +1443,9 @@ class Station:
         max_decrease_per_second : int or float, <0, optional
             The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
             This value must be negative! The default is -10.0/3600.0
-        white_records : pd.Index, optional
-            An Index containing timestamps that should be excluded from outlier detection. The index must have 
-            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
-            the white_records are filtered to only include those matching the target_obstype and station name before
-            applying the step check. The default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1476,12 +1467,10 @@ class Station:
         # Prepare kwargs for the sensor method
         qc_kwargs = {
             'max_increase_per_second': max_increase_per_second,
-            'max_decrease_per_second': max_decrease_per_second
+            'max_decrease_per_second': max_decrease_per_second,
+            'sensorwhiteset': whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype)
         }
-        if white_records is not None:
-            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
-                white_records, trg_obstype=target_obstype, trg_station=self.name
-            )
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).step_check(**qc_kwargs)
@@ -1494,7 +1483,7 @@ class Station:
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 8.0 / 3600,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600,
-        white_records: Union[pd.Index, None] = None,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Test if the increase/decrease in a time window exceeds a threshold.
@@ -1523,11 +1512,9 @@ class Station:
         max_decrease_per_second : int or float, <0
             The maximum allowed decrease (per second). This value is extrapolated to the window duration.
             This value must be negative! The default is -10.0/3600
-        white_records : pd.Index, optional
-            An Index containing timestamps that should be excluded from outlier detection. The index must have 
-            at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
-            the white_records are filtered to only include those matching the target_obstype and station name before
-            applying the window variation check. The default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1556,13 +1543,11 @@ class Station:
             'timewindow': timewindow,
             'min_records_per_window': min_records_per_window,
             'max_increase_per_second': max_increase_per_second,
-            'max_decrease_per_second': max_decrease_per_second
+            'max_decrease_per_second': max_decrease_per_second,
+            'sensorwhiteset': whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype)
         }
-        if white_records is not None:
-            qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
-                white_records, trg_obstype=target_obstype, trg_station=self.name
-            )
-
+            
         # apply check on the sensordata
         self.get_sensor(target_obstype).window_variation_check(**qc_kwargs)
 

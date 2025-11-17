@@ -103,13 +103,13 @@ class WhiteSet:
         """
         return self.white_records.empty
 
-    def create_sesorwhitelist(self, trg_station: str, trg_obstype: str) -> 'SensorWhiteSet':
+    def create_sensorwhitelist(self, trg_station: str, trg_obstype: str) -> 'SensorWhiteSet':
         """
         Create a SensorWhiteList object for a specific station and obstype
         based on the white_records MultiIndex.
         """
         if self.is_empty():
-            return SensorWhiteSet(white_timestamps=None,
+            return SensorWhiteSet(white_timestamps=[],
                                    all_timestamps=False)
         
         # Filter white_records for the target station and obstype
@@ -121,7 +121,7 @@ class WhiteSet:
                     (trg_whitelist.get_level_values('name') == trg_station)]
             else: 
                 #name is specified, but no matches in whitelist
-                return SensorWhiteSet(white_timestamps=None,
+                return SensorWhiteSet(white_timestamps=[],
                                        all_timestamps=False)
             
         #filter on obstype if present
@@ -131,7 +131,7 @@ class WhiteSet:
                     (trg_whitelist.get_level_values('obstype') == trg_obstype)]
             else:
                 #obstype is specified, but no matches in whitelist
-                return SensorWhiteSet(white_timestamps=None,
+                return SensorWhiteSet(white_timestamps=[],
                                        all_timestamps=False)
         
         if 'datetime' in trg_whitelist.names:
@@ -140,5 +140,5 @@ class WhiteSet:
             return SensorWhiteSet(white_timestamps=white_datetimes, all_timestamps=False)
         else:
             #if no datetime level is set, and name and/or obstype match, all timestamps are white
-            return SensorWhiteSet(white_timestamps=None, 
+            return SensorWhiteSet(white_timestamps=[], 
                                    all_timestamps=True)
