@@ -1413,7 +1413,7 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'max_N_repetitions': max_N_repetitions}
+        qc_kwargs = {'max_N_repetitions': max_N_repetitions, 'white_records': white_records}
         if white_records is not None:
             qc_kwargs['white_records'] = fmt_white_records_for_station_qc(
                 white_records, trg_obstype=target_obstype, trg_station=self.name
