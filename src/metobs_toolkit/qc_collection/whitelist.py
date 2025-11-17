@@ -55,7 +55,7 @@ class SensorWhiteSet:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def has_whites(self) -> bool:
+    def _flag_has_whites(self) -> bool:
         """Check if any timestamps are whitelisted.
 
         Returns
@@ -69,7 +69,7 @@ class SensorWhiteSet:
             return True
         return False
 
-    def all_timestamps_white(self) -> bool:
+    def _flag_all_timestamps_are_whites(self) -> bool:
         """Check if all timestamps are whitelisted.
 
         Returns
@@ -79,7 +79,7 @@ class SensorWhiteSet:
         """
         return self.all_timestamps
 
-    def get_white_timestamps(self) -> pd.DatetimeIndex:
+    def _get_white_timestamps(self) -> pd.DatetimeIndex:
         """Get whitelisted timestamps as a DatetimeIndex.
 
         Returns
@@ -108,12 +108,12 @@ class SensorWhiteSet:
         logger.debug(
             "Filtering %s outliers with SensorWhiteSet (has_whites=%s)",
             len(outliers_idx),
-            self.has_whites(),
+            self._flag_has_whites(),
         )
 
-        if self.has_whites():
+        if self._flag_has_whites():
 
-            if self.all_timestamps_white():
+            if self._flag_all_timestamps_are_whites():
                 # all timestamps are white, return empty index
                 logger.debug(
                     "All timestamps whitelisted, removing all %s outliers",
@@ -122,7 +122,7 @@ class SensorWhiteSet:
                 outliers = pd.DatetimeIndex([], name="datetime")
             else:
                 # Get the white timestamps
-                white_records = self.get_white_timestamps()
+                white_records = self._get_white_timestamps()
                 # Remove white records from outliers
                 outliers = outliers_idx.difference(white_records)
                 n_filtered = len(outliers_idx) - len(outliers)
@@ -171,9 +171,9 @@ class WhiteSet:
         self.white_records = white_records
 
         # Validate white_records structure
-        self.test_white_records()
+        self._self_test_white_records()
 
-        if not self.is_empty():
+        if not self._flag_is_empty():
             logger.debug(
                 "Initialized WhiteSet: n_records=%s, levels=%s",
                 len(white_records),
@@ -183,7 +183,7 @@ class WhiteSet:
             logger.debug("Initialized empty WhiteSet")
 
     def __repr__(self) -> str:
-        if self.is_empty():
+        if self._flag_is_empty():
             return f"{type(self).__name__}(empty)"
         levels = list(self.white_records.names)
         n_records = len(self.white_records)
@@ -192,7 +192,7 @@ class WhiteSet:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def test_white_records(self) -> None:
+    def _self_test_white_records(self) -> None:
         """Validate the structure and content of white_records index.
 
         Validates that white_records has a valid structure for use in QC methods.
@@ -207,7 +207,7 @@ class WhiteSet:
         ValueError
             If white_records contains unexpected index levels.
         """
-        if self.is_empty():
+        if self._flag_is_empty():
             return
 
         logger.debug(
@@ -237,7 +237,7 @@ class WhiteSet:
 
         logger.debug("WhiteSet validation passed")
 
-    def is_empty(self) -> bool:
+    def _flag_is_empty(self) -> bool:
         """Check if white_records is empty.
 
         Returns
@@ -266,7 +266,7 @@ class WhiteSet:
         infostr = ""
         infostr += printing.print_fmt_title("General info of WhiteSet")
 
-        if self.is_empty():
+        if self._flag_is_empty():
             infostr += printing.print_fmt_section("Whitelist details")
             infostr += printing.print_fmt_line(
                 "Empty WhiteSet (no whitelisted records)"
@@ -351,7 +351,7 @@ class WhiteSet:
             trg_obstype,
         )
 
-        if self.is_empty():
+        if self._flag_is_empty():
             logger.debug("WhiteSet is empty, returning empty SensorWhiteSet")
             return SensorWhiteSet(white_timestamps=[], all_timestamps=False)
 
