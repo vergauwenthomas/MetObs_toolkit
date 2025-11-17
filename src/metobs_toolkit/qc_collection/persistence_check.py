@@ -34,7 +34,7 @@ def persistence_check(
         The minimum number of non-NaN records required within the time window for the check to be valid.
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
-        Records matching the whiteset criteria will not be flagged as outliers even if they meet the 
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the
         persistence criteria. The default is an empty SensorWhiteSet().
 
     Returns
@@ -104,9 +104,9 @@ def persistence_check(
     window_is_constant = window_is_constant.map({0.0: False, np.nan: False, 1.0: True})
 
     outliers_idx = window_is_constant[window_is_constant].index
-    
+
     # Catch the white records
     outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
-    
+
     logger.debug("Exiting function persistence_check")
     return outliers_idx

@@ -1286,12 +1286,14 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'lower_threshold': lower_threshold,
-                     'upper_threshold': upper_threshold,
-                     'sensorwhiteset': whiteset.create_sensorwhitelist(
-                         trg_station=self.name, trg_obstype=target_obstype)
-                     }
-        
+        qc_kwargs = {
+            "lower_threshold": lower_threshold,
+            "upper_threshold": upper_threshold,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype
+            ),
+        }
+
         # apply check on the sensordata
         self.get_sensor(target_obstype).gross_value_check(**qc_kwargs)
 
@@ -1350,19 +1352,23 @@ class Station:
         timewindow = fmt_timedelta_arg(timewindow)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'timewindow': timewindow,
-                     'min_records_per_window': min_records_per_window,
-                     'sensorwhiteset': whiteset.create_sensorwhitelist(
-                         trg_station=self.name, trg_obstype=target_obstype)
-                     }
+        qc_kwargs = {
+            "timewindow": timewindow,
+            "min_records_per_window": min_records_per_window,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype
+            ),
+        }
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).persistence_check(**qc_kwargs)
 
     @log_entry
     def repetitions_check(
-        self, target_obstype: str = "temp", max_N_repetitions: int = 5,
-        whiteset: WhiteSet = WhiteSet()
+        self,
+        target_obstype: str = "temp",
+        max_N_repetitions: int = 5,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Test if an observation changes after a number of repetitions.
@@ -1407,10 +1413,12 @@ class Station:
         self._obstype_is_known_check(target_obstype)
 
         # Prepare kwargs for the sensor method
-        qc_kwargs = {'max_N_repetitions': max_N_repetitions,
-                     'sensorwhiteset': whiteset.create_sensorwhitelist(
-                         trg_station=self.name, trg_obstype=target_obstype)
-                     }
+        qc_kwargs = {
+            "max_N_repetitions": max_N_repetitions,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype
+            ),
+        }
 
         # apply check on the sensordata
         self.get_sensor(target_obstype).repetitions_check(**qc_kwargs)
@@ -1466,10 +1474,11 @@ class Station:
 
         # Prepare kwargs for the sensor method
         qc_kwargs = {
-            'max_increase_per_second': max_increase_per_second,
-            'max_decrease_per_second': max_decrease_per_second,
-            'sensorwhiteset': whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype)
+            "max_increase_per_second": max_increase_per_second,
+            "max_decrease_per_second": max_decrease_per_second,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype
+            ),
         }
 
         # apply check on the sensordata
@@ -1540,14 +1549,15 @@ class Station:
 
         # Prepare kwargs for the sensor method
         qc_kwargs = {
-            'timewindow': timewindow,
-            'min_records_per_window': min_records_per_window,
-            'max_increase_per_second': max_increase_per_second,
-            'max_decrease_per_second': max_decrease_per_second,
-            'sensorwhiteset': whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype)
+            "timewindow": timewindow,
+            "min_records_per_window": min_records_per_window,
+            "max_increase_per_second": max_increase_per_second,
+            "max_decrease_per_second": max_decrease_per_second,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                trg_station=self.name, trg_obstype=target_obstype
+            ),
         }
-            
+
         # apply check on the sensordata
         self.get_sensor(target_obstype).window_variation_check(**qc_kwargs)
 

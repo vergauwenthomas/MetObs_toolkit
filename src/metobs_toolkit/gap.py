@@ -1087,4 +1087,3 @@ class Gap:
             )
             return False, detailstring
         return True, ""
-

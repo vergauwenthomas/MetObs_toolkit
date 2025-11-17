@@ -37,7 +37,7 @@ def step_check(
         This value must be negative.
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
-        Records matching the whiteset criteria will not be flagged as outliers even if they meet the 
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the
         step check criteria. The default is an empty SensorWhiteSet().
 
     Returns
@@ -80,9 +80,9 @@ def step_check(
     )
 
     outliers_idx = step_filter[step_filter].index
-    
+
     # Catch the white records
     outliers_idx = sensorwhiteset.catch_white_records(outliers_idx)
-    
+
     logger.debug("Exiting function step_check")
     return outliers_idx

@@ -17,7 +17,6 @@ def window_variation_check(
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
     sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
-    
 ) -> pd.DatetimeIndex:
     """
     Test if the increase or decrease in a time window exceeds a threshold.
@@ -48,7 +47,7 @@ def window_variation_check(
         This value must be negative.
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
-        Records matching the whiteset criteria will not be flagged as outliers even if they meet the 
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the
         window variation check criteria. The default is an empty SensorWhiteSet().
 
     Returns
@@ -130,11 +129,11 @@ def window_variation_check(
         center=True,
         min_periods=min_records_per_window,
     ).apply(variation_test)
-    
+
     outliers_idx = window_outliers.loc[window_outliers == 1].index
-    
+
     # Catch the white records
     outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
-    
+
     logger.debug("Exiting function window_variation_check")
     return outliers_idx

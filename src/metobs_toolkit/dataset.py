@@ -1960,8 +1960,8 @@ class Dataset:
                 it is larger then spatial_z_threshold. If so, that record is
                 flagged as an outlier. It will be ignored in the next iteration.
            #. If `whiteset` is provided, any outliers that match the white-listed
-              timestamps are removed from the outlier set for the current iteration. 
-              White-listed records participate in all buddy check calculations but are 
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check calculations but are
               not flagged as outliers in the final results.
 
 
@@ -1986,10 +1986,10 @@ class Dataset:
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
         whiteset : WhiteSet, optional
-            A WhiteSet instance containing timestamps that should be excluded from outlier detection. 
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
             The WhiteSet is used to create station-specific and obstype-specific whitelists before
-            applying the buddy check. White-listed records participate in all buddy check iterations 
-            as regular records but are not flagged as outliers in the final results. 
+            applying the buddy check. White-listed records participate in all buddy check iterations
+            as regular records but are not flagged as outliers in the final results.
             The default is an empty WhiteSet().
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
@@ -2176,8 +2176,8 @@ class Dataset:
                   for the current iteration.
 
            #. If `whiteset` is provided, any outliers that match the white-listed
-              timestamps are removed from the outlier set for the current iteration. 
-              White-listed records participate in all buddy check and safety net 
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check and safety net
               calculations but are not flagged as outliers in the final results.
 
         Parameters
@@ -2208,10 +2208,10 @@ class Dataset:
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
         whiteset : WhiteSet, optional
-            A WhiteSet instance containing timestamps that should be excluded from outlier detection. 
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
             The WhiteSet is used to create station-specific and obstype-specific whitelists before
-            applying the buddy check. White-listed records participate in all buddy check and LCZ 
-            safety net iterations as regular records but are not flagged as outliers in the final results. 
+            applying the buddy check. White-listed records participate in all buddy check and LCZ
+            safety net iterations as regular records but are not flagged as outliers in the final results.
             The default is an empty WhiteSet().
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.

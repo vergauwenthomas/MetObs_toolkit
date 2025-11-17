@@ -50,5 +50,3 @@ def test_moving_window_condition(
     ismet = (windowsize / freq) >= min_records_per_window
     logger.debug("Exiting function test_moving_window_condition.")
     return ismet
-
-

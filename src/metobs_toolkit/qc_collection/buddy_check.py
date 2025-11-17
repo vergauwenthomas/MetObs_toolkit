@@ -373,10 +373,10 @@ def toolkit_buddy_check(
     instantaneous_tolerance : pandas.Timedelta
         The maximum time difference allowed for synchronizing observations.
     white_records : pd.Index, optional
-        An Index containing timestamps that should be excluded from outlier detection. The index must have 
+        An Index containing timestamps that should be excluded from outlier detection. The index must have
         at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
         the white_records are filtered to only include those matching the target_obstype and station name before
-        applying the buddy check. The white_records undergo the buddy check iterations as if they are regular records. 
+        applying the buddy check. The white_records undergo the buddy check iterations as if they are regular records.
         Outlier records in the white_records are saved in each iteration. The default is None.
     max_LCZ_buddy_dist:  int or float or None
         The radius to look for LCZ buddies (= same LCZ as a reference station).
@@ -735,7 +735,7 @@ def save_whitelist_records(
     outliers : list of tuple
         List of detected outliers, each as a tuple (station_name, timestamp, message).
     white_records : pd.Index or None
-        An Index containing timestamps that should be excluded from outlier detection. The index must have 
+        An Index containing timestamps that should be excluded from outlier detection. The index must have
         at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
         the white_records are filtered to only include those matching the target obstype and station name.
         If None, no filtering is applied and all outliers are returned.
@@ -754,82 +754,80 @@ def save_whitelist_records(
     - Only at the end of each iteration are they filtered out from the outliers list.
     - This allows white-listed records to still influence the statistics of their buddy groups.
     """
-    
-    outldf = pd.DataFrame(outliers, columns=['name', 'datetime', 'message'])
-    
-    for outlsta in outldf['name'].unique():
+
+    outldf = pd.DataFrame(outliers, columns=["name", "datetime", "message"])
+
+    for outlsta in outldf["name"].unique():
         # Create a sensorwhiteset for each station
         sensorwhiteset = whiteset.create_sensorwhitelist(
-                                trg_station=outlsta,
-                                trg_obstype=obstype)
+            trg_station=outlsta, trg_obstype=obstype
+        )
         outliers_dts = sensorwhiteset.catch_white_records(
-            outliers_idx = pd.DatetimeIndex(
-                data = outldf[outldf['name'] == outlsta]['datetime'],
-                name='datetime')
+            outliers_idx=pd.DatetimeIndex(
+                data=outldf[outldf["name"] == outlsta]["datetime"], name="datetime"
             )
-        
-        #replace the message by np.nan for the saved outliers (later a nan filtering)
+        )
+
+        # replace the message by np.nan for the saved outliers (later a nan filtering)
         outldf.loc[
-            (outldf['name'] == outlsta) &
-            (~outldf['datetime'].isin(outliers_dts)),
-            'message'
+            (outldf["name"] == outlsta) & (~outldf["datetime"].isin(outliers_dts)),
+            "message",
         ] = np.nan
-        
-        #subset to the saved outliers
+
+        # subset to the saved outliers
         outldf = outldf.drop(
             outldf[
-                (outldf['name'] == outlsta) &
-                (~outldf['datetime'].isin(outliers_dts))
+                (outldf["name"] == outlsta) & (~outldf["datetime"].isin(outliers_dts))
             ].index
         )
-        
-    #convert back to a list of tuples (name, datetime, message)
+
+    # convert back to a list of tuples (name, datetime, message)
     outliers = list(outldf.itertuples(index=False, name=None))
     return outliers
     # if white_records is None:
     #     return outliers
-    
+
     # # Filter white_records by obstype if the level exists
     # if 'obstype' in white_records.names:
     #     white_records = white_records[white_records.get_level_values('obstype') == obstype]
     #     white_records = white_records.droplevel('obstype')
-    
+
     # # Create a set of (station, timestamp) tuples from white_records for faster lookup
     # white_set = set()
     # if 'name' in white_records.names and 'datetime' in white_records.names:
     #     white_set = set(tuple(zip(white_records.get_level_values('name'),
     #                               white_records.get_level_values('datetime'))))
-        
+
     #     # Filter outliers
     #     filtered_outliers = [
-    #         (name, dt, msg) for name, dt, msg in outliers 
+    #         (name, dt, msg) for name, dt, msg in outliers
     #         if (name, dt) not in white_set]
-        
+
     #     logger.debug(f"Filtered out {len(outliers) - len(filtered_outliers)} white-listed outliers.")
     #     return filtered_outliers
-    
+
     # # Only a name is present (no datetime)
     # if 'name' in white_records.names:
     #     white_set = set(white_records.get_level_values('name'))
     #     # Filter outliers
     #     filtered_outliers = [
-    #         (name, dt, msg) for name, dt, msg in outliers 
+    #         (name, dt, msg) for name, dt, msg in outliers
     #         if name not in white_set]
-        
+
     #     logger.debug(f"Filtered out {len(outliers) - len(filtered_outliers)} white-listed outliers (no datetime info in whitelist).")
     #     return filtered_outliers
-    
+
     # # Only a datetime is present (no name)
     # if 'datetime' in white_records.names:
     #     white_set = set(white_records.get_level_values('datetime'))
     #     # Filter outliers
     #     filtered_outliers = [
-    #         (name, dt, msg) for name, dt, msg in outliers 
+    #         (name, dt, msg) for name, dt, msg in outliers
     #         if dt not in white_set]
-        
+
     #     logger.debug(f"Filtered out {len(outliers) - len(filtered_outliers)} white-listed outliers (no name info in whitelist).")
     #     return filtered_outliers
-        
+
     # # No recognizable structure, return all outliers
     # logger.warning("white_records does not have expected index structure, no filtering applied.")
     # return outliers
