@@ -142,6 +142,7 @@ jobs:
             - docs/examples/filling_example.ipynb
             - docs/examples/analysis_example.ipynb
             - docs/topics/log_example.ipynb
+            - docs/topics/using_whitesets.ipynb
             - docs/topics/metadata_only.ipynb
             - docs/topics/template_doc.ipynb
             - docs/topics/to_xarray.ipynb
