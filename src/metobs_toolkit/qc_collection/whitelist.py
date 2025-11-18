@@ -22,16 +22,20 @@ class SensorWhiteSet:
 
     Attributes
     ----------
-    white_timestamps : list
-        List of whitelisted datetime objects.
+    white_timestamps : list or None
+        List of whitelisted datetime objects. If None, an empty list is used.
     all_timestamps : bool
         Whether all timestamps are whitelisted.
     """
 
     def __init__(
-        self, white_timestamps: List = [], all_timestamps: bool = False
+        self, white_timestamps: Union[None, List] = None, all_timestamps: bool = False
     ) -> None:
-
+        
+        if white_timestamps is None:
+            #None as a default is more convenient
+            white_timestamps = []
+        
         if all_timestamps:
             assert (
                 len(white_timestamps) == 0
@@ -411,7 +415,7 @@ class WhiteSet:
 
         if self._flag_is_empty():
             logger.debug("WhiteSet is empty, returning empty SensorWhiteSet")
-            return SensorWhiteSet(white_timestamps=[], all_timestamps=False)
+            return SensorWhiteSet(white_timestamps=None, all_timestamps=False)
 
         # Filter white_records for the target station and obstype
         trg_whitelist = self.white_records
@@ -431,7 +435,7 @@ class WhiteSet:
                     "Station '%s' not found in whitelist, returning empty SensorWhiteSet",
                     trg_station,
                 )
-                return SensorWhiteSet(white_timestamps=[], all_timestamps=False)
+                return SensorWhiteSet(white_timestamps=None, all_timestamps=False)
 
         # filter on obstype if present
         if "obstype" in trg_whitelist.names:
@@ -449,7 +453,7 @@ class WhiteSet:
                     "Obstype '%s' not found in whitelist, returning empty SensorWhiteSet",
                     trg_obstype,
                 )
-                return SensorWhiteSet(white_timestamps=[], all_timestamps=False)
+                return SensorWhiteSet(white_timestamps=None, all_timestamps=False)
 
         if "datetime" in trg_whitelist.names:
             # Get the white datetimes
@@ -467,4 +471,4 @@ class WhiteSet:
             logger.debug(
                 "No datetime level in whitelist, all timestamps whitelisted for this sensor"
             )
-            return SensorWhiteSet(white_timestamps=[], all_timestamps=True)
+            return SensorWhiteSet(white_timestamps=None, all_timestamps=True)
