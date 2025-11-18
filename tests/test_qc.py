@@ -519,7 +519,7 @@ class TestWhiteRecords:
         white_records = pd.date_range(
             start="2023-01-01 00:00",
             periods=10,
-            freq="H",
+            freq="h",
             tz="UTC",
         )
         multi_index = pd.MultiIndex.from_product(
@@ -559,7 +559,7 @@ class TestWhiteRecords:
         white_records = pd.date_range(
             start="2023-01-01 00:00",
             periods=10,
-            freq="H",
+            freq="h",
             tz="UTC",
         )
         multi_index = pd.MultiIndex.from_product(
