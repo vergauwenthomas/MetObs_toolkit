@@ -27,7 +27,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.qc_collection.whitelist import WhiteSet, SensorWhiteSet
+from metobs_toolkit.qc_collection.whitelist import WhiteSet
 from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
