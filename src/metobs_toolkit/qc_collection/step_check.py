@@ -13,7 +13,7 @@ def step_check(
     records: pd.Series,
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
-    sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
+    sensorwhiteset: SensorWhiteSet,
 ) -> pd.DatetimeIndex:
     """
     Check for 'spikes' and 'dips' in a time series.
@@ -38,7 +38,7 @@ def step_check(
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they meet the
-        step check criteria. The default is an empty SensorWhiteSet().
+        step check criteria.
 
     Returns
     -------

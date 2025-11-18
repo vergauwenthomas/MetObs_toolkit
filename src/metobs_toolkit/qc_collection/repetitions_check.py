@@ -11,7 +11,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 def repetitions_check(
     records: pd.Series,
     max_N_repetitions: int,
-    sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
+    sensorwhiteset: SensorWhiteSet,
 ) -> pd.DatetimeIndex:
     """
     Test if an observation changes after a number of repetitions.
@@ -33,7 +33,7 @@ def repetitions_check(
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they exceed the
-        max_N_repetitions threshold. The default is an empty SensorWhiteSet().
+        max_N_repetitions threshold.
 
     Returns
     -------

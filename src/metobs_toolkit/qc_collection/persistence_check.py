@@ -15,7 +15,7 @@ def persistence_check(
     records: pd.Series,
     timewindow: pd.Timedelta,
     min_records_per_window: int,
-    sensorwhiteset: SensorWhiteSet = SensorWhiteSet(),
+    sensorwhiteset: SensorWhiteSet,
 ) -> pd.DatetimeIndex:
     """
     Check if values are not constant in a moving time window.
@@ -35,7 +35,7 @@ def persistence_check(
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they meet the
-        persistence criteria. The default is an empty SensorWhiteSet().
+        persistence criteria..
 
     Returns
     -------
