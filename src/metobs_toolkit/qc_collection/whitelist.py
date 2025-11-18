@@ -165,12 +165,12 @@ class WhiteSet:
     * The white_records index must contain at least one of: 'name', 'obstype', or
       'datetime' as level names. If 'datetime' is not present, all timestamps for
       matching station/obstype combinations are whitelisted.
-    
+
     * **Timezone handling**: If a 'datetime' level is present:
-      
+
       - Timezone-aware timestamps are automatically converted to UTC
       - Timezone-naive timestamps are localized to UTC with a warning
-      - It is strongly recommended to provide timezone-aware timestamps to avoid 
+      - It is strongly recommended to provide timezone-aware timestamps to avoid
         ambiguity
     """
 
@@ -179,10 +179,9 @@ class WhiteSet:
 
         # Validate white_records structure
         self._self_test_white_records()
-        
+
         # Format datetime values to UTC
         self._fmt_datetimes()
-    
 
     def __repr__(self) -> str:
         if self._flag_is_empty():
@@ -193,26 +192,26 @@ class WhiteSet:
 
     def __str__(self) -> str:
         return self.__repr__()
-    
+
     def _fmt_datetimes(self) -> None:
         """Format datetime index level to ensure UTC timezone.
-        
+
         Checks if 'datetime' is present in the white_records index. If so:
         - If timestamps are timezone-aware, converts them to UTC
         - If timestamps are timezone-naive, localizes them to UTC with a warning
-        
+
         This method modifies self.white_records in-place.
         """
         if self._flag_is_empty():
             return
-        
+
         # Check if datetime level exists
-        if 'datetime' not in self.white_records.names:
+        if "datetime" not in self.white_records.names:
             return
-        
+
         # Get the datetime values
-        dt_values = self.white_records.get_level_values('datetime')
-        
+        dt_values = self.white_records.get_level_values("datetime")
+
         # Check if timezone-aware
         if dt_values.tz is None:
             # Timezone-naive: localize to UTC with warning
@@ -221,29 +220,34 @@ class WhiteSet:
                 "Setting timezone to UTC. It is recommended to provide "
                 "timezone-aware timestamps."
             )
-            dt_values = dt_values.tz_localize('UTC')
+            dt_values = dt_values.tz_localize("UTC")
             logger.debug("Localized %s naive timestamps to UTC", len(dt_values))
         else:
             # Timezone-aware: convert to UTC if not already
-            if str(dt_values.tz) != 'UTC':
+            if str(dt_values.tz) != "UTC":
                 logger.debug(
                     "Converting %s timestamps from %s to UTC",
                     len(dt_values),
-                    dt_values.tz
+                    dt_values.tz,
                 )
-                dt_values = dt_values.tz_convert('UTC')
+                dt_values = dt_values.tz_convert("UTC")
             else:
                 logger.debug("Datetime values already in UTC")
-        
+
         # Reconstruct the index with formatted datetimes
         if isinstance(self.white_records, pd.MultiIndex):
             # Drop the existing 'datetime' level and add it back with formatted values
-            temp_index = self.white_records.droplevel('datetime')
-            self.white_records = temp_index.to_frame().assign(datetime=dt_values).set_index('datetime', append=True).index
+            temp_index = self.white_records.droplevel("datetime")
+            self.white_records = (
+                temp_index.to_frame()
+                .assign(datetime=dt_values)
+                .set_index("datetime", append=True)
+                .index
+            )
         else:
             # For simple Index with only datetime
-            self.white_records = pd.Index(dt_values, name='datetime')
-        
+            self.white_records = pd.Index(dt_values, name="datetime")
+
         logger.debug("Datetime formatting completed")
 
     def _self_test_white_records(self) -> None:
