@@ -795,20 +795,14 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         A tuple containing:
 
         * buddygroup : list
-
-        * buddygroup : list
             List of station names that form the buddy group.
         * combdf : pandas.DataFrame
-        * combdf : pandas.DataFrame
             DataFrame containing the combined data for all stations.
-        * min_sample_size : int
         * min_sample_size : int
             Minimum number of non-NaN values required in the buddy group for a
             valid comparison.
         * min_std : float
-        * min_std : float
             Minimum standard deviation to use when calculating z-scores.
-        * outlier_threshold : float
         * outlier_threshold : float
             Threshold for identifying outliers in terms of z-scores.
 
@@ -821,29 +815,20 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         * pandas.Timestamp : The timestamp of the outlier.
         * str : A detailed message describing the outlier.
 
-        * str : The station name of the most extreme outlier.
-        * pandas.Timestamp : The timestamp of the outlier.
-        * str : A detailed message describing the outlier.
-
     Notes
     -----
     This function performs the following steps:
 
-
     1. Subsets the data to the buddy group.
     2. Calculates the mean, standard deviation, and count of non-NaN values
        for each timestamp.
-       for each timestamp.
     3. Filters out timestamps with insufficient data.
     4. Replaces standard deviations below the minimum threshold with the
-       minimum value.
        minimum value.
     5. Converts station values to z-scores.
     6. Identifies timestamps with at least one outlier.
     7. Locates the most extreme outlier for each timestamp.
     8. Generates a detailed message for each outlier.
-
-
     """
 
     buddygroup, combdf = inputarg[0], inputarg[1]
@@ -881,6 +866,21 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
     @log_entry
     def msgcreator(row):
+        """
+        Create a detailed message describing an outlier.
+
+        Parameters
+        ----------
+        row : pandas.Series
+            A row from the buddy DataFrame containing outlier information,
+            including 'is_the_most_extreme_outlier', 'mean', and 'std' columns.
+
+        Returns
+        -------
+        str
+            Formatted message describing the outlier with its z-score and
+            buddy group statistics.
+        """
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
         retstr += f" with chi value \
 {row[row['is_the_most_extreme_outlier']]:.2f},"

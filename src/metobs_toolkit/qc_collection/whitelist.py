@@ -52,12 +52,25 @@ class SensorWhiteSet:
         )
 
     def __repr__(self) -> str:
-        """Return a string representation for debugging."""
+        """Return a string representation for debugging.
+        
+        Returns
+        -------
+        str
+            String representation showing whitelist status.
+        """
         if self.all_timestamps:
             return f"{type(self).__name__}(all_timestamps=True)"
         return f"{type(self).__name__}(n_timestamps={len(self.white_timestamps)})"
 
     def __str__(self) -> str:
+        """Return a string representation for printing.
+        
+        Returns
+        -------
+        str
+            String representation of the SensorWhiteSet.
+        """
         return self.__repr__()
 
     def _fmt_for_xr_attr(self) -> str:
@@ -204,6 +217,14 @@ class WhiteSet:
         self._fmt_datetimes()
 
     def __repr__(self) -> str:
+        """Return a string representation for debugging.
+        
+        Returns
+        -------
+        str
+            String representation showing the number of records and index levels,
+            or '(empty)' if no records are present.
+        """
         if self._flag_is_empty():
             return f"{type(self).__name__}(empty)"
         levels = list(self.white_records.names)
@@ -211,6 +232,13 @@ class WhiteSet:
         return f"{type(self).__name__}(n_records={n_records}, levels={levels})"
 
     def __str__(self) -> str:
+        """Return a string representation for printing.
+        
+        Returns
+        -------
+        str
+            String representation of the WhiteSet.
+        """
         return self.__repr__()
 
     def _fmt_for_xr_attr(self) -> str:
