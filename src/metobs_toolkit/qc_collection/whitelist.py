@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from typing import List, Union
 import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -309,6 +310,7 @@ class WhiteSet:
         """
         return self.white_records.empty
 
+    @log_entry
     def get_info(self, printout: bool = True) -> Union[str, None]:
         """
         Retrieve and optionally print detailed information about the WhiteSet.
@@ -380,7 +382,7 @@ class WhiteSet:
             print(infostr)
         else:
             return infostr
-
+    @log_entry
     def create_sensorwhitelist(
         self, trg_station: str, trg_obstype: str
     ) -> SensorWhiteSet:
