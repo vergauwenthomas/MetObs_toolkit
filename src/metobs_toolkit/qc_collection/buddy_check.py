@@ -10,6 +10,7 @@ import pandas as pd
 from metobs_toolkit.backend_collection.df_helpers import to_timedelta
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
+from .whitelist import WhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -260,6 +261,8 @@ def toolkit_buddy_check(
     spatial_z_threshold: Union[int, float],
     N_iter: int,
     instantaneous_tolerance: pd.Timedelta,
+    # Whitelist arguments
+    whiteset: WhiteSet,
     # LCZ safety net
     max_LCZ_buddy_dist: Union[int, float, None],
     min_LCZ_safetynet_sample_size: Union[int, None],
@@ -337,6 +340,11 @@ def toolkit_buddy_check(
               tested outlier is "saved", and is removed from the set of outliers
               for the current iteration.
 
+       #. If `white_records` is provided, any outliers that match the white-listed
+          timestamps (and optionally station names) are removed from the outlier set
+          for the current iteration. White-listed records participate in all buddy
+          check calculations but are not flagged as outliers in the final results.
+
     Parameters
     ----------
     target_stations : list[Station]
@@ -364,6 +372,12 @@ def toolkit_buddy_check(
         The number of iterations to perform the buddy check.
     instantaneous_tolerance : pandas.Timedelta
         The maximum time difference allowed for synchronizing observations.
+    white_records : pd.Index, optional
+        An Index containing timestamps that should be excluded from outlier detection. The index must have
+        at least a 'datetime' level. If a 'obstype' and/or 'name' level is present,
+        the white_records are filtered to only include those matching the target_obstype and station name before
+        applying the buddy check. The white_records undergo the buddy check iterations as if they are regular records.
+        Outlier records in the white_records are saved in each iteration. The default is None.
     max_LCZ_buddy_dist:  int or float or None
         The radius to look for LCZ buddies (= same LCZ as a reference station).
         Typically this is set larger than the buddy_radius (= radius used for
@@ -573,6 +587,16 @@ value for 'altitude'"
             # again in the following iteration. (A different result can occur
             # if the spatial-/savetynet-sample is changed in the next iteration.
 
+        # Save white-listed records
+        outliers = save_whitelist_records(
+            outliers=outliers,
+            whiteset=whiteset,
+            obstype=obstype,
+        )
+        # NOTE: The white-listed records are removed from the outliers at the end
+        # of each iteration, similar to the LCZ safety net. They participate in
+        # the buddy check calculations but are not flagged as outliers.
+
         # Add reference to the iteration in the msg of the outliers
         outliers = [
             (station, timestamp, f"{msg} (iteration {i}/{N_iter})")
@@ -694,6 +718,73 @@ def apply_LCZ_safety_net(
 
 
 @log_entry
+def save_whitelist_records(
+    outliers: list,
+    whiteset: WhiteSet,
+    obstype: str,
+) -> list:
+    """Remove whitelisted records from the outlier list.
+
+    This function filters out any outliers that are present in the WhiteSet.
+    Whitelisted records are known valid observations that should not be flagged
+    as outliers, even if they are detected by the buddy check.
+
+    Parameters
+    ----------
+    outliers : list of tuple
+        List of detected outliers, each as a tuple (station_name, timestamp, message).
+    whiteset : WhiteSet
+        A WhiteSet instance containing records that should be excluded from outlier
+        detection. The WhiteSet is converted to station-specific and obstype-specific
+        SensorWhiteSet instances for each station in the outliers list.
+    obstype : str
+        The observation type being checked. Used to filter the whiteset for the
+        target obstype.
+
+    Returns
+    -------
+    list of tuple
+        List of outliers excluding those that are whitelisted. Each tuple contains
+        (station_name, timestamp, message).
+
+    Notes
+    -----
+    * Whitelisted records undergo the buddy check iterations as if they are regular
+      records.
+    * Only at the end of each iteration are they filtered out from the outliers list.
+    * This allows whitelisted records to still influence the statistics of their
+      buddy groups.
+    * The function processes each station separately by creating a SensorWhiteSet
+      for each station-obstype combination.
+    """
+
+    outldf = pd.DataFrame(outliers, columns=["name", "datetime", "message"])
+
+    for outlsta in outldf["name"].unique():
+        # Create a sensorwhiteset for each station
+        sensorwhiteset = whiteset.create_sensorwhitelist(
+            trg_station=outlsta, trg_obstype=obstype
+        )
+        # get the white-listed datetimes for the station
+        outliers_dts = sensorwhiteset.catch_white_records(
+            outliers_idx=pd.DatetimeIndex(
+                data=outldf[outldf["name"] == outlsta]["datetime"], name="datetime"
+            )
+        )
+
+        # subset to the saved outliers
+        outldf = outldf.drop(
+            outldf[
+                (outldf["name"] == outlsta) & (~outldf["datetime"].isin(outliers_dts))
+            ].index
+        )
+
+    # convert back to a list of tuples (name, datetime, message)
+    outliers = list(outldf.itertuples(index=False, name=None))
+    return outliers
+
+
+@log_entry
 def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     """
     Apply a buddy check on a group to identify outliers.
@@ -704,20 +795,14 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         A tuple containing:
 
         * buddygroup : list
-
-        * buddygroup : list
             List of station names that form the buddy group.
         * combdf : pandas.DataFrame
-        * combdf : pandas.DataFrame
             DataFrame containing the combined data for all stations.
-        * min_sample_size : int
         * min_sample_size : int
             Minimum number of non-NaN values required in the buddy group for a
             valid comparison.
         * min_std : float
-        * min_std : float
             Minimum standard deviation to use when calculating z-scores.
-        * outlier_threshold : float
         * outlier_threshold : float
             Threshold for identifying outliers in terms of z-scores.
 
@@ -730,29 +815,20 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         * pandas.Timestamp : The timestamp of the outlier.
         * str : A detailed message describing the outlier.
 
-        * str : The station name of the most extreme outlier.
-        * pandas.Timestamp : The timestamp of the outlier.
-        * str : A detailed message describing the outlier.
-
     Notes
     -----
     This function performs the following steps:
 
-
     1. Subsets the data to the buddy group.
     2. Calculates the mean, standard deviation, and count of non-NaN values
        for each timestamp.
-       for each timestamp.
     3. Filters out timestamps with insufficient data.
     4. Replaces standard deviations below the minimum threshold with the
-       minimum value.
        minimum value.
     5. Converts station values to z-scores.
     6. Identifies timestamps with at least one outlier.
     7. Locates the most extreme outlier for each timestamp.
     8. Generates a detailed message for each outlier.
-
-
     """
 
     buddygroup, combdf = inputarg[0], inputarg[1]
@@ -790,6 +866,21 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
 
     @log_entry
     def msgcreator(row):
+        """
+        Create a detailed message describing an outlier.
+
+        Parameters
+        ----------
+        row : pandas.Series
+            A row from the buddy DataFrame containing outlier information,
+            including 'is_the_most_extreme_outlier', 'mean', and 'std' columns.
+
+        Returns
+        -------
+        str
+            Formatted message describing the outlier with its z-score and
+            buddy group statistics.
+        """
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
         retstr += f" with chi value \
 {row[row['is_the_most_extreme_outlier']]:.2f},"

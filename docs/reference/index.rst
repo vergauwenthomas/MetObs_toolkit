@@ -16,6 +16,7 @@ the MetObs toolkit to be used by a user and developer.
   SensorData <sensordata>
   Obstypes <obstype>
   Site <site>
+  WhiteSet <whitelist>
   ModelTimeSeries <modeltimeseries>
   GEEDatasetManagers <geedatasetmanagers>
 

@@ -44,6 +44,7 @@ import metobs_toolkit.plot_collection as plotting
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.qc_collection import toolkit_buddy_check
+from metobs_toolkit.qc_collection.whitelist import WhiteSet
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import dataset_df
 from metobs_toolkit.backend_collection.errorclasses import (
@@ -1736,6 +1737,7 @@ class Dataset:
         target_obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1748,6 +1750,7 @@ class Dataset:
             target_obstype=target_obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
+            whiteset=whiteset,
         )
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -1767,6 +1770,7 @@ class Dataset:
         target_obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
@@ -1781,6 +1785,7 @@ class Dataset:
             target_obstype=target_obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
+            whiteset=whiteset,
         )
         if use_mp:
             with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -1799,6 +1804,7 @@ class Dataset:
         self,
         target_obstype: str = "temp",
         max_N_repetitions: int = 5,
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1810,6 +1816,7 @@ class Dataset:
             stations=target_stations,
             target_obstype=target_obstype,
             max_N_repetitions=max_N_repetitions,
+            whiteset=whiteset,
         )
 
         if use_mp:
@@ -1830,6 +1837,7 @@ class Dataset:
         target_obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1842,6 +1850,7 @@ class Dataset:
             target_obstype=target_obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
+            whiteset=whiteset,
         )
 
         if use_mp:
@@ -1864,6 +1873,7 @@ class Dataset:
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 0.0022,
         max_decrease_per_second: Union[int, float] = -0.0027,
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the target_obstype
@@ -1880,6 +1890,7 @@ class Dataset:
             min_records_per_window=min_records_per_window,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
+            whiteset=whiteset,
         )
 
         if use_mp:
@@ -1905,6 +1916,7 @@ class Dataset:
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ):
         """Spatial buddy check.
@@ -1947,6 +1959,10 @@ class Dataset:
               * For each timestamp the record with the highest Chi is tested if
                 it is larger then spatial_z_threshold. If so, that record is
                 flagged as an outlier. It will be ignored in the next iteration.
+           #. If `whiteset` is provided, any outliers that match the white-listed
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check calculations but are
+              not flagged as outliers in the final results.
 
 
         Parameters
@@ -1969,6 +1985,12 @@ class Dataset:
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            The WhiteSet is used to create station-specific and obstype-specific whitelists before
+            applying the buddy check. White-listed records participate in all buddy check iterations
+            as regular records but are not flagged as outliers in the final results.
+            The default is an empty WhiteSet().
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -1981,6 +2003,7 @@ class Dataset:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+        * White-listed records from the WhiteSet participate in all buddy check calculations but are not flagged as outliers in the final results.
 
         """
 
@@ -2001,6 +2024,7 @@ class Dataset:
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
+            whiteset=whiteset,
             # LCZ-safety net
             max_LCZ_buddy_dist=None,  # without LCZ safetynet
             min_LCZ_safetynet_sample_size=None,  # without LCZ safetynet
@@ -2082,6 +2106,7 @@ class Dataset:
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
+        whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ):
         """Spatial buddy check with LCZ saftey net.
@@ -2150,6 +2175,11 @@ class Dataset:
                   tested outlier is "saved", and is removed from the set of outliers
                   for the current iteration.
 
+           #. If `whiteset` is provided, any outliers that match the white-listed
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check and safety net
+              calculations but are not flagged as outliers in the final results.
+
         Parameters
         ----------
         target_obstype : str, optional
@@ -2177,6 +2207,12 @@ class Dataset:
             The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
         lapserate : int | float | None, optional
             Describe how the obstype changes with altitude (in meters). Default is None.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            The WhiteSet is used to create station-specific and obstype-specific whitelists before
+            applying the buddy check. White-listed records participate in all buddy check and LCZ
+            safety net iterations as regular records but are not flagged as outliers in the final results.
+            The default is an empty WhiteSet().
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2190,6 +2226,7 @@ class Dataset:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
+        * White-listed records participate in all buddy check and safety net calculations but are not flagged as outliers in the final results.
 
         """
 
@@ -2215,6 +2252,7 @@ class Dataset:
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
+            whiteset=whiteset,
             # LCZ safety net related
             max_LCZ_buddy_dist=LCZ_buddy_radius,
             min_LCZ_safetynet_sample_size=min_sample_size,  # same as for spatial samples
