@@ -726,7 +726,7 @@ def save_whitelist_records(
     """Remove whitelisted records from the outlier list.
 
     This function filters out any outliers that are present in the WhiteSet.
-    Whitelisted records are known valid observations that should not be flagged 
+    Whitelisted records are known valid observations that should not be flagged
     as outliers, even if they are detected by the buddy check.
 
     Parameters
@@ -734,11 +734,11 @@ def save_whitelist_records(
     outliers : list of tuple
         List of detected outliers, each as a tuple (station_name, timestamp, message).
     whiteset : WhiteSet
-        A WhiteSet instance containing records that should be excluded from outlier 
+        A WhiteSet instance containing records that should be excluded from outlier
         detection. The WhiteSet is converted to station-specific and obstype-specific
         SensorWhiteSet instances for each station in the outliers list.
     obstype : str
-        The observation type being checked. Used to filter the whiteset for the 
+        The observation type being checked. Used to filter the whiteset for the
         target obstype.
 
     Returns
@@ -749,12 +749,12 @@ def save_whitelist_records(
 
     Notes
     -----
-    * Whitelisted records undergo the buddy check iterations as if they are regular 
+    * Whitelisted records undergo the buddy check iterations as if they are regular
       records.
     * Only at the end of each iteration are they filtered out from the outliers list.
-    * This allows whitelisted records to still influence the statistics of their 
+    * This allows whitelisted records to still influence the statistics of their
       buddy groups.
-    * The function processes each station separately by creating a SensorWhiteSet 
+    * The function processes each station separately by creating a SensorWhiteSet
       for each station-obstype combination.
     """
 
@@ -782,7 +782,8 @@ def save_whitelist_records(
     # convert back to a list of tuples (name, datetime, message)
     outliers = list(outldf.itertuples(index=False, name=None))
     return outliers
-   
+
+
 @log_entry
 def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
     """

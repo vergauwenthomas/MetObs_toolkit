@@ -361,9 +361,9 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
         return str(val)
     elif isinstance(val, pd.Timestamp):
         return str(val)
-    elif (isinstance(val, SensorWhiteSet)) or (isinstance(val, WhiteSet)) :
+    elif (isinstance(val, SensorWhiteSet)) or (isinstance(val, WhiteSet)):
         return val._fmt_for_xr_attr()
-        
+
     else:
         raise ValueError(f"Unsupported attribute type found: {type(val)}")
 

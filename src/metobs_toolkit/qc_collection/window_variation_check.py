@@ -48,7 +48,7 @@ def window_variation_check(
     sensorwhiteset : SensorWhiteSet, optional
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they meet the
-        window variation check criteria. 
+        window variation check criteria.
 
     Returns
     -------

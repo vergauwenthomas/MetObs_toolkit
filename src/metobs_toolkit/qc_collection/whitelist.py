@@ -32,11 +32,11 @@ class SensorWhiteSet:
     def __init__(
         self, white_timestamps: Union[None, List] = None, all_timestamps: bool = False
     ) -> None:
-        
+
         if white_timestamps is None:
-            #None as a default is more convenient
+            # None as a default is more convenient
             white_timestamps = []
-        
+
         if all_timestamps:
             assert (
                 len(white_timestamps) == 0
@@ -59,7 +59,7 @@ class SensorWhiteSet:
 
     def __str__(self) -> str:
         return self.__repr__()
-    
+
     def _fmt_for_xr_attr(self) -> str:
         """Format whitelist information for inclusion in xarray attributes.
 
@@ -69,12 +69,11 @@ class SensorWhiteSet:
             Formatted string summarizing the whitelist status.
         """
         if self._flag_has_whites():
-            return 'Empty SensorWhiteSet (no whitelisted timestamps)'
+            return "Empty SensorWhiteSet (no whitelisted timestamps)"
         if self.all_timestamps:
             return "All timestamps whitelisted"
         else:
             return f"{len(self.white_timestamps)} whitelisted timestamps"
-       
 
     def _flag_has_whites(self) -> bool:
         """Check if any timestamps are whitelisted.
@@ -225,8 +224,8 @@ class WhiteSet:
         if self._flag_is_empty():
             return "Empty WhiteSet (no whitelisted records)"
         else:
-           return self.__repr__()
-       
+            return self.__repr__()
+
     def _fmt_datetimes(self) -> None:
         """Format datetime index level to ensure UTC timezone.
 
@@ -411,6 +410,7 @@ class WhiteSet:
             print(infostr)
         else:
             return infostr
+
     @log_entry
     def create_sensorwhitelist(
         self, trg_station: str, trg_obstype: str
