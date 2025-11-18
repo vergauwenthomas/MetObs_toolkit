@@ -1003,7 +1003,7 @@ class TestWhiteRecords:
         assert True
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # pytest.main([__file__])
     # Run all methods with overwrite_solution=False
     # test_breaking_dataset = TestBreakingDataset()
