@@ -4,6 +4,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet, WhiteSet
 from metobs_toolkit.settings_collection import __version__
 from metobs_toolkit.settings_collection.label_defenitions import label_to_numeric_map
 
@@ -360,6 +361,9 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
         return str(val)
     elif isinstance(val, pd.Timestamp):
         return str(val)
+    elif (isinstance(val, SensorWhiteSet)) or (isinstance(val, WhiteSet)) :
+        return val._fmt_for_xr_attr()
+        
     else:
         raise ValueError(f"Unsupported attribute type found: {type(val)}")
 
