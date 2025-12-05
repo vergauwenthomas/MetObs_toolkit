@@ -82,6 +82,48 @@ def synchronize_series(
     return pd.concat(synchronized_series, axis=1), timestamp_mapping
 
 
+def _validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
+    """
+    Validate that all required keys are present in safety_net_configs.
+
+    Parameters
+    ----------
+    safety_net_configs : list of dict
+        List of safety net configuration dictionaries.
+
+    Raises
+    ------
+    ValueError
+        If safety_net_configs is not a list or contains non-dict elements.
+    KeyError
+        If any required key is missing from a safety net configuration.
+    """
+    if safety_net_configs is None:
+        return
+
+    required_keys = {"category", "buddy_radius", "z_threshold", "min_sample_size"}
+
+    if not isinstance(safety_net_configs, list):
+        raise ValueError(
+            f"safety_net_configs must be a list, got {type(safety_net_configs).__name__}"
+        )
+
+    for i, config in enumerate(safety_net_configs):
+        if not isinstance(config, dict):
+            raise ValueError(
+                f"Each safety net config must be a dict, but config at index {i} "
+                f"is {type(config).__name__}"
+            )
+
+        missing_keys = required_keys - set(config.keys())
+        if missing_keys:
+            raise KeyError(
+                f"Safety net config at index {i} is missing required key(s): "
+                f"{', '.join(sorted(missing_keys))}. "
+                f"Required keys are: {', '.join(sorted(required_keys))}"
+            )
+
+
 def _find_buddies_by_distance(
     distance_df: pd.DataFrame, buddy_radius: Union[int, float]
 ) -> Dict:
@@ -492,6 +534,9 @@ def toolkit_buddy_check(
 
     """
 
+    # Validate safety net configs if provided
+    _validate_safety_net_configs(safety_net_configs)
+
     # -----  Part 1: construct buddy groups ------
     # compute distance metric
     logger.debug("Calculating distance matrix with Haversine formula")
@@ -651,7 +696,7 @@ value for 'altitude'"
 
         # Add reference to the iteration in the msg of the outliers
         outliers = [
-            (station, timestamp, f"{msg} (iteration {i}/{N_iter})")
+            (station, timestamp, f"{msg} (iteration {i+1}/{N_iter})")
             for station, timestamp, msg in outliers
         ]
 
@@ -1050,8 +1095,8 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
         retstr += f" with chi value \
 {row[row['is_the_most_extreme_outlier']]:.2f},"
-        retstr += f" is part of {buddygroup}, with mean: {row['mean']:.2f}, \
-std: {row['std']:.2f}. "
+        retstr += f" is part of {sorted(buddygroup)}, with mean: {row['mean']:.2f}, \
+    std: {row['std']:.2f}. "
         return retstr
 
     # detail info string
