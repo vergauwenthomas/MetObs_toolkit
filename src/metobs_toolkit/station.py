@@ -330,13 +330,13 @@ class Station:
         Returns
         -------
         pandas.DataFrame
-            A DataFrame with two columns ['value', 'label'], representing
-            the value and details of the flagged observation.
+            A DataFrame with columns ['value', 'label', 'details'], representing
+            the value, label and details of the flagged observation.
         """
 
         concatlist = []
         for sensordata in self.sensordata.values():
-            stadf = sensordata.outliersdf[["value", "label"]].reset_index()
+            stadf = sensordata.outliersdf[["value", "label", "details"]].reset_index()
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
 
@@ -344,7 +344,7 @@ class Station:
         combdf.sort_index(inplace=True)
         if combdf.empty:
             combdf = pd.DataFrame(
-                columns=["value", "label"],
+                columns=["value", "label", "details"],
                 index=pd.MultiIndex(
                     levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
                 ),

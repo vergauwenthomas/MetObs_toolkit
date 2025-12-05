@@ -232,8 +232,29 @@ class SensorData:
         to_concat = []
         for outlierinfo in self.outliers:
             checkname = outlierinfo["checkname"]
-            checkdf = outlierinfo["df"]
+            checkdf = outlierinfo["df"].copy()
             checkdf["label"] = label_def[checkname]["label"]
+
+            # Create details column from all columns except 'value' and 'label'
+            detail_cols = [
+                col for col in checkdf.columns if col not in ["value", "label"]
+            ]
+            if detail_cols:
+                # Build details string for each row
+                details_list = []
+                for _, row in checkdf.iterrows():
+                    parts = [
+                        f"{col}: {row[col]}"
+                        for col in detail_cols
+                        if pd.notna(row[col])
+                    ]
+                    details_list.append(", ".join(parts))
+                checkdf["details"] = details_list
+                # Drop the original detail columns
+                checkdf = checkdf.drop(columns=detail_cols)
+            else:
+                checkdf["details"] = ""
+
             to_concat.append(checkdf)
 
         totaldf = save_concat(to_concat)
@@ -241,7 +262,8 @@ class SensorData:
         if totaldf.empty:
             # return empty dataframe
             totaldf = pd.DataFrame(
-                columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name="datetime"),
             )
         else:
             totaldf.sort_index(inplace=True)
