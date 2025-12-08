@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 import numpy as np
 import xarray as xr
+import tempfile
 
 
 # Add the local source directory to Python path for development
@@ -268,3 +269,111 @@ class TestDemoData:
             assert "humidity" in ds_from_file.data_vars
 
             ds_from_file.close()
+
+
+    def test_qc_dataset_to_xr_and_netcdf(self):
+        """Test to_xr() and to_netcdf() on a quality-controlled dataset with whiteset.
+
+        This test applies multiple QC checks including buddy_check_with_safetynets
+        with a non-empty whitelist, then verifies the dataset can be converted to
+        xarray format and written to netCDF without errors.
+        """
+        # 1. Import demo dataset
+        # Get dataset
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        
+
+
+        # Ensure LCZ data is present
+        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
+            dataset.get_LCZ()
+    
+        # 2. Create a whiteset with some timestamps
+        white_timestamps = pd.date_range(
+            start="2022-09-01 00:00",
+            periods=10,
+            freq="h",
+            tz="UTC",
+        )
+        white_index = pd.MultiIndex.from_product(
+            [
+                ["vlinder05", "vlinder06"],
+                white_timestamps,
+            ],
+            names=["name", "datetime"],
+        )
+        whiteset = metobs_toolkit.WhiteSet(white_index)
+
+        # 3. Apply multiple QC checks
+        # Gross value check
+        dataset.gross_value_check(
+            target_obstype="temp",
+            lower_threshold=-10,
+            upper_threshold=25,
+        )
+
+        # Persistence check
+        dataset.persistence_check(
+            target_obstype="temp",
+            timewindow="4h",
+        )
+
+        # Repetitions check
+        dataset.repetitions_check(
+            target_obstype="temp",
+            max_N_repetitions=5,
+        )
+
+        # Buddy check with safety nets and whiteset
+        dataset.buddy_check_with_safetynets(
+            target_obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[
+                {
+                    "category": "LCZ",
+                    "buddy_radius": 40000,
+                    "z_threshold": 1.8,
+                    "min_sample_size": 3,
+                }
+            ],
+            min_sample_size=3,
+            spatial_z_threshold=1.8,
+            N_iter=2,
+            whiteset=whiteset,
+            use_mp=False, #Keep this a boolean! (so bool formatting is tested)
+        )
+
+        # 4. Convert to xarray - test should fail if this raises an exception
+        try:
+            xr_dataset = dataset.to_xr()
+        except Exception as e:
+            pytest.fail(f"to_xr() failed on QC'd dataset with whiteset: {e}")
+
+        # Basic validation of xarray dataset
+        assert xr_dataset is not None
+        assert "datetime" in xr_dataset.dims
+        assert "name" in xr_dataset.dims
+        assert "temp" in xr_dataset.data_vars
+
+        # 5. Write to netCDF - test should fail if this raises an exception
+        with tempfile.TemporaryDirectory() as tmpdir:
+            netcdf_path = Path(tmpdir) / "test_qc_dataset.nc"
+            try:
+                dataset.to_netcdf(filepath=netcdf_path)
+            except Exception as e:
+                pytest.fail(f"to_netcdf() failed on QC'd dataset with whiteset: {e}")
+
+            # Verify the file was created
+            assert netcdf_path.exists(), "NetCDF file was not created"
+
+            # 6. Verify we can read the netCDF file back
+            try:
+                read_back = xr.open_dataset(netcdf_path)
+                read_back.close()
+            except Exception as e:
+                pytest.fail(f"Could not read back netCDF file: {e}")
