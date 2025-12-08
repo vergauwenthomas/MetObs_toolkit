@@ -53,7 +53,6 @@ class SensorWhiteSet:
 
     def __repr__(self) -> str:
         """Return a string representation for debugging.
-
         Returns
         -------
         str
@@ -65,7 +64,6 @@ class SensorWhiteSet:
 
     def __str__(self) -> str:
         """Return a string representation for printing.
-
         Returns
         -------
         str
@@ -218,7 +216,6 @@ class WhiteSet:
 
     def __repr__(self) -> str:
         """Return a string representation for debugging.
-
         Returns
         -------
         str
@@ -233,7 +230,6 @@ class WhiteSet:
 
     def __str__(self) -> str:
         """Return a string representation for printing.
-
         Returns
         -------
         str

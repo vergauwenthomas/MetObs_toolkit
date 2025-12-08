@@ -694,6 +694,16 @@ value for 'altitude'"
         # of each iteration, similar to the safety nets. They participate in
         # the buddy check calculations but are not flagged as outliers.
 
+        # Save white-listed records
+        outliers = save_whitelist_records(
+            outliers=outliers,
+            whiteset=whiteset,
+            obstype=obstype,
+        )
+        # NOTE: The white-listed records are removed from the outliers at the end
+        # of each iteration, similar to the LCZ safety net. They participate in
+        # the buddy check calculations but are not flagged as outliers.
+
         # Add reference to the iteration in the msg of the outliers
         outliers = [
             (station, timestamp, f"{msg} (iteration {i+1}/{N_iter})")

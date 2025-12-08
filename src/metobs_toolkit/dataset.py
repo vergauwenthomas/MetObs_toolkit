@@ -2107,7 +2107,7 @@ class Dataset:
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
-        lapserate: Union[float, None] = None,
+        lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ):
@@ -2179,6 +2179,11 @@ class Dataset:
                 * If the z-value is smaller than the safety net's `z_threshold`,
                   the tested outlier is "saved" and removed from the set of
                   outliers for the current iteration.
+
+           #. If `whiteset` is provided, any outliers that match the white-listed
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check and safety net
+              calculations but are not flagged as outliers in the final results.
 
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
