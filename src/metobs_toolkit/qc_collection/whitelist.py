@@ -20,13 +20,6 @@ class SensorWhiteSet:
         List of datetime objects to whitelist. Default is empty list.
     all_timestamps : bool, optional
         If True, all timestamps are whitelisted. Default is False.
-
-    Attributes
-    ----------
-    white_timestamps : list or None
-        List of whitelisted datetime objects. If None, an empty list is used.
-    all_timestamps : bool
-        Whether all timestamps are whitelisted.
     """
 
     def __init__(
@@ -185,11 +178,6 @@ class WhiteSet:
     white_records : pd.Index, optional
         Index with levels 'name', 'obstype', and/or 'datetime' defining whitelisted
         records. Default is an empty Index.
-
-    Attributes
-    ----------
-    white_records : pd.Index
-        The whitelist index containing whitelisted record identifiers.
 
     Notes
     -----
