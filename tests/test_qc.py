@@ -11,7 +11,7 @@ import xarray as xr
 
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
-sys.path.insert(0, str(libfolder / "src"))  
+sys.path.insert(0, str(libfolder / "src"))
 import metobs_toolkit
 
 # solutionfolder
@@ -791,7 +791,7 @@ class TestWhiteRecords:
         self, overwrite_solution=False
     ):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-        _method_name = 'test_white_records_buddy_check_with_safety_nets_dataset'
+        _method_name = "test_white_records_buddy_check_with_safety_nets_dataset"
 
         dataset = TestWhiteRecords.solutionfixer.get_solution(
             **TestWhiteRecords.solkwargs, methodname="test_import_data"
@@ -1060,9 +1060,6 @@ class TestWhiteRecords:
         for key in results:
             assert_equality(results[key], solutionobj[key])
 
-   
-
-
     def test_all_qc_methods_with_whiteset(self):
         """Test all QC methods on Dataset and Station with non-default whiteset.
 
@@ -1205,9 +1202,6 @@ class TestWhiteRecords:
 
         # If we get here, all methods executed successfully
         assert True
-
-
-
 
 
 # if __name__ == "__main__":

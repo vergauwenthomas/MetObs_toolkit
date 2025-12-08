@@ -270,7 +270,6 @@ class TestDemoData:
 
             ds_from_file.close()
 
-
     def test_qc_dataset_to_xr_and_netcdf(self):
         """Test to_xr() and to_netcdf() on a quality-controlled dataset with whiteset.
 
@@ -286,13 +285,11 @@ class TestDemoData:
             input_metadata_file=metobs_toolkit.demo_metadatafile,
             input_data_file=metobs_toolkit.demo_datafile,
         )
-        
-
 
         # Ensure LCZ data is present
         if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
             dataset.get_LCZ()
-    
+
         # 2. Create a whiteset with some timestamps
         white_timestamps = pd.date_range(
             start="2022-09-01 00:00",
@@ -345,7 +342,7 @@ class TestDemoData:
             spatial_z_threshold=1.8,
             N_iter=2,
             whiteset=whiteset,
-            use_mp=False, #Keep this a boolean! (so bool formatting is tested)
+            use_mp=False,  # Keep this a boolean! (so bool formatting is tested)
         )
 
         # 4. Convert to xarray - test should fail if this raises an exception
