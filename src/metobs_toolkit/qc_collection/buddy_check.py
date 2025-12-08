@@ -769,7 +769,7 @@ def apply_safety_net(
 
         # Check if sample size is sufficient
         if len(outl_category_buddies) < min_sample_size:
-            msg = f" Too few {category_name} buddies to apply safety net ({len(outl_category_buddies)} < {min_sample_size})."
+            msg = f"Too few {category_name} buddies to apply safety net ({len(outl_category_buddies)} < {min_sample_size})."
             logger.debug(
                 "Skip %s safety net for %s: too few buddies (%s < %s).",
                 category_name,
@@ -795,7 +795,7 @@ def apply_safety_net(
 
         # Instantaneous sample size check
         if sample_non_nan_count < min_sample_size:
-            msg = f" Too few non-NaN {category_name} buddies ({sample_non_nan_count} < {min_sample_size})."
+            msg = f"Too few non-NaN {category_name} buddies ({sample_non_nan_count} < {min_sample_size})."
             logger.debug(
                 "Skip %s safety net for %s: too few non-NaN buddies (%s < %s).",
                 category_name,
@@ -824,7 +824,7 @@ def apply_safety_net(
             # Do not append the current outl to checked (it's saved)
         else:
             # Not saved by the safety net
-            msg = f" {category_name} safety net applied but not saved (z={z_value:.2f} > {safety_z_threshold})."
+            msg = f"{category_name} safety net applied but not saved (z={z_value:.2f} > {safety_z_threshold})."
             checked_outliers.append((outlstation, outltimestamp, outl_msg + msg))
             continue
 
