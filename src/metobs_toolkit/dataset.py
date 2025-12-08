@@ -2093,7 +2093,6 @@ class Dataset:
         raise DeprecationWarning(
             "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safetynets instead."
         )
-        
 
     @log_entry
     def buddy_check_with_safetynets(
