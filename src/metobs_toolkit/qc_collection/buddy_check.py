@@ -671,7 +671,7 @@ value for 'altitude'"
                 len(safety_net_configs),
                 len(outliers),
             )
-            outliers = apply_safety_nets(
+            outliers = apply_safetynets(
                 outliers=outliers,
                 safety_net_configs=safety_net_configs,
                 wideobsds=combdf,
@@ -846,7 +846,7 @@ def apply_safety_net(
 
 
 @log_entry
-def apply_safety_nets(
+def apply_safetynets(
     outliers: list,
     safety_net_configs: List[Dict],
     wideobsds: pd.DataFrame,

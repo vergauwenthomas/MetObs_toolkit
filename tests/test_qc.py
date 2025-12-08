@@ -421,7 +421,7 @@ class TestDemoDataset:
 
         # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
         dataset1 = copy.deepcopy(dataset)
-        dataset1.buddy_check_with_safety_nets(
+        dataset1.buddy_check_with_safetynets(
             target_obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -474,7 +474,7 @@ class TestDemoDataset:
 
         # Test that missing min_sample_size raises an error
         with pytest.raises(KeyError):
-            dataset.buddy_check_with_safety_nets(
+            dataset.buddy_check_with_safetynets(
                 target_obstype="temp",
                 spatial_buddy_radius=25000,
                 safety_net_configs=[
@@ -800,7 +800,7 @@ class TestWhiteRecords:
 
         # First run without whiteset
         test_dataset = copy.deepcopy(dataset)
-        test_dataset.buddy_check_with_safety_nets(
+        test_dataset.buddy_check_withsafetynets(
             target_obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -827,7 +827,7 @@ class TestWhiteRecords:
             outliers.reset_index()["datetime"].sample(n=33, random_state=42),
             name="datetime",
         )
-        dataset1.buddy_check_with_safety_nets(
+        dataset1.buddy_check_with_safetynets(
             target_obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -852,7 +852,7 @@ class TestWhiteRecords:
             .set_index(["name", "datetime"])
             .index
         )
-        dataset2.buddy_check_with_safety_nets(
+        dataset2.buddy_check_with_safetynets(
             target_obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[

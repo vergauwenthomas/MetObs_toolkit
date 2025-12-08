@@ -2091,12 +2091,12 @@ class Dataset:
     @log_entry
     def buddy_check_with_LCZ_safety_net(*args):
         raise DeprecationWarning(
-            "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safety_nets instead."
+            "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safetynets instead."
         )
         
 
     @log_entry
-    def buddy_check_with_safety_nets(
+    def buddy_check_with_safetynets(
         self,
         target_obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
@@ -2280,7 +2280,7 @@ class Dataset:
         --------
         Apply buddy check with an LCZ safety net:
 
-        >>> dataset.buddy_check_with_safety_nets(
+        >>> dataset.buddy_check_with_safetynets(
         ...     target_obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4}
@@ -2289,7 +2289,7 @@ class Dataset:
 
         Apply buddy check with multiple safety nets (LCZ first, then network):
 
-        >>> dataset.buddy_check_with_safety_nets(
+        >>> dataset.buddy_check_with_safetynets(
         ...     target_obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
@@ -2390,7 +2390,7 @@ class Dataset:
 
             # update the sensordata
             sensorddata._update_outliers(
-                qccheckname="buddy_check_with_safety_nets",
+                qccheckname="buddy_check_with_safetynets",
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
