@@ -22,16 +22,6 @@ Constructor
    WhiteSet
 
 
-Attributes
-----------------
-A summary of all the attributes (and properties) of the WhiteSet class.
-
-.. autosummary::
-   :toctree: api/
-
-   WhiteSet.white_records
-
-
 Methods
 ----------
 A summary of all methods in the WhiteSet class.

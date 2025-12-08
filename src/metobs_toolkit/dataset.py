@@ -2,7 +2,7 @@ import os
 import copy
 import pickle
 import logging
-from typing import Literal, Union, Tuple
+from typing import Literal, Union, Tuple, List, Dict
 from pathlib import Path
 
 import pandas as pd
@@ -271,7 +271,7 @@ class Dataset:
         combdf.sort_index(inplace=True)
         if combdf.empty:
             combdf = pd.DataFrame(
-                columns=["value", "label"],
+                columns=["value", "label", "details"],
                 index=pd.MultiIndex(
                     levels=[[], [], []],
                     codes=[[], [], []],
@@ -2025,11 +2025,7 @@ class Dataset:
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             whiteset=whiteset,
-            # LCZ-safety net
-            max_LCZ_buddy_dist=None,  # without LCZ safetynet
-            min_LCZ_safetynet_sample_size=None,  # without LCZ safetynet
-            safetynet_z_threshold=None,  # without LCZ safetynet
-            use_LCZ_safetynet=False,  # without LCZ safetynet
+            safety_net_configs=None,  # No safety nets for basic buddy_check
             # technical
             use_mp=use_mp,
         )
@@ -2093,41 +2089,47 @@ class Dataset:
             )
 
     @log_entry
-    def buddy_check_with_LCZ_safety_net(
+    def buddy_check_with_LCZ_safety_net(*args):
+        raise DeprecationWarning(
+            "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safetynets instead."
+        )
+
+    @log_entry
+    def buddy_check_with_safetynets(
         self,
         target_obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
-        LCZ_buddy_radius: Union[int, float] = 40000,
+        safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
         min_std: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
-        safetynet_z_threshold: Union[int, float] = 2.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ):
-        """Spatial buddy check with LCZ saftey net.
+        """Spatial buddy check with configurable safety nets.
 
         The buddy check compares an observation against its neighbors
-        (i.e. spatial buddies). The check loops over all the groups, which are stations
-        within a radius of each other. For each group, the z-value of the reference
-        observation is computed given the sample of spatial buddies. If one (or more)
-        exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
-        that group is labeled as an outlier.
+        (i.e. spatial buddies). The check loops over all the groups, which are
+        stations within a radius of each other. For each group, the z-value of
+        the reference observation is computed given the sample of spatial
+        buddies. If one (or more) exceeds the `spatial_z_threshold`, the most
+        extreme (=baddest) observation of that group is labeled as an outlier.
 
-        Multiple iterations of this checks can be done using the N_iter.
+        Multiple iterations of this check can be done using `N_iter`.
 
-        The (potential) outliers, per iteration, are tested with another
-        sample. This sample contains the LCZ-buddies, that are stations with the
-        same LCZ as the reference station, and with a maximum distance of
-        `max_LCZ_buddy_dist`. If a `max_alt_diff` is specified, a altitude-difference
-        filtering is applied on these buddies aswell.  If a test is sucsesfull, that
-        is if the z-value is smaller than the `safetynet_z_threshold`, the
-        outlier is saved. It will be removed from the outliers, and will pass to the
-        next iteration or the end of this function.
+        Optionally, one or more safety nets can be applied. A safety net tests
+        potential outliers against a sample of stations that share a categorical
+        attribute (e.g., LCZ, network). If the z-value computed using the safety
+        net sample is below the specified threshold, the outlier is "saved" and
+        removed from the outlier set for the current iteration.
+
+        Safety nets are applied in the order they are specified in
+        `safety_net_configs`, allowing for multi-level filtering (e.g., first
+        test against LCZ buddies, then against network buddies).
 
         A schematic step-by-step description of the buddy check:
 
@@ -2147,33 +2149,40 @@ class Dataset:
            altitude differences.
         #. The following steps are repeated for `N-iter` iterations:
 
-           #. The values of outliers flaged by a previous iteration are converted to
-              NaN's. Therefore they are not used in any following score or sample.
+           #. The values of outliers flagged by a previous iteration are
+              converted to NaN's. Therefore they are not used in any following
+              score or sample.
            #. For each buddy group:
 
               * The mean, standard deviation (std), and sample size are computed.
-              * If the std is lower than the `minimum_std`, it is replaced by the
-                minimum std.
+              * If the std is lower than the `minimum_std`, it is replaced by
+                the minimum std.
               * Chi values are calculated for all records.
-              * For each timestamp the record with the highest Chi is tested if
-                it is larger then spatial_z_threshold.
+              * For each timestamp the record with the highest Chi is tested
+                if it is larger then spatial_z_threshold.
                 If so, that record is flagged as an outlier. It will be ignored
                 in the next iteration.
 
-           #. The following steps are applied on
-              the outliers flagged by the current iteration.
+           #. For each safety net in `safety_net_configs` (in order):
 
-              * The LCZ-buddy sample is tested in size (samplesize must be bigger
-                then `min_LCZ_safetynet_sample_size`). If the condition is not met,
-                the safetynet test is not applied.
-              * The safetynet test is applied:
+              * Category buddies (stations sharing the same category value
+                within the specified radius) are identified.
+              * The category-buddy sample is tested in size (sample size must
+                be at least `min_sample_size`). If the condition is not met,
+                the safety net test is not applied.
+              * The safety net test is applied:
 
-                * The mean and std are computed of the LCZ-buddy sample. If the
-                  std is smaller then `min_std`, then the latter is used.
+                * The mean and std are computed of the category-buddy sample.
+                  If the std is smaller than `min_std`, the latter is used.
                 * The z-value is computed for the target record (= flagged outlier).
-                * If the z-value is smaller than `safetynet_z_threshold`, the
-                  tested outlier is "saved", and is removed from the set of outliers
-                  for the current iteration.
+                * If the z-value is smaller than the safety net's `z_threshold`,
+                  the tested outlier is "saved" and removed from the set of
+                  outliers for the current iteration.
+
+           #. If `whiteset` is provided, any outliers that match the white-listed
+              timestamps are removed from the outlier set for the current iteration.
+              White-listed records participate in all buddy check and safety net
+              calculations but are not flagged as outliers in the final results.
 
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
@@ -2184,35 +2193,65 @@ class Dataset:
         ----------
         target_obstype : str, optional
             The target observation to check. Default is "temp".
-        spatial_buddy_radius : int | float, optional
+        spatial_buddy_radius : int or float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
+        safety_net_configs : list of dict, optional
+            List of safety net configurations to apply in order. Each dict must
+            contain:
+
+            * 'category': str, the metadata column name to group by (e.g., 'LCZ',
+              'network')
+            * 'buddy_radius': int or float, maximum distance for category buddies
+              (in meters)
+            * 'z_threshold': int or float, z-value threshold for saving outliers
+            * 'min_sample_size': int, minimum number of buddies required for the
+              safety net test
+
+            Example::
+
+                safety_net_configs = [
+                    {
+                        "category": "LCZ",
+                        "buddy_radius": 40000,
+                        "z_threshold": 2.1,
+                        "min_sample_size": 4
+                    },
+                    {
+                        "category": "network",
+                        "buddy_radius": 50000,
+                        "z_threshold": 2.5,
+                        "min_sample_size": 3
+                    }
+                ]
+
+            The default is None.
         min_sample_size : int, optional
-            The minimum sample size to calculate statistics on. Use for
-            spatial-buddy samples and LCZ-safetynet samples. Default is 4.
-        max_alt_diff : int | float | None, optional
+            The minimum sample size to calculate statistics on. Used for
+            spatial-buddy samples. Default is 4.
+        max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_std : int | float, optional
+        min_std : int or float, optional
             The minimum standard deviation for sample statistics. This is used
-            in spatial and LCZ samples. Default is 1.0.
-        spatial_z_threshold : int | float, optional
-            The threshold, tested with z-scores, for flagging observations as outliers. Default is 3.1.
-        safetynet_z_threshold: int or float or None
-            The threshold for a succesfull safety net test. If the z-value is
-            less than `safetynet_z_threshold`, the test is succesfull and the
-            outlier is "saved". It can proceed as a regular observation in the
-            next iteration.
+            in spatial and safety net samples. Default is 1.0.
+        spatial_z_threshold : int or float, optional
+            The threshold, tested with z-scores, for flagging observations as
+            outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
-        instantaneous_tolerance : str | pd.Timedelta, optional
-            The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
-        lapserate : int | float | None, optional
-            Describe how the obstype changes with altitude (in meters). Default is None.
+        instantaneous_tolerance : str or pd.Timedelta, optional
+            The maximum time difference allowed for synchronizing observations.
+            Default is pd.Timedelta("4min").
+        lapserate : float or None, optional
+            Describe how the obstype changes with altitude (in meters).
+            Default is None.
         whiteset : WhiteSet, optional
-            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
-            The WhiteSet is used to create station-specific and obstype-specific whitelists before
-            applying the buddy check. White-listed records participate in all buddy check and LCZ
-            safety net iterations as regular records but are not flagged as outliers in the final results.
-            The default is an empty WhiteSet().
+            A WhiteSet instance containing timestamps that should be excluded
+            from outlier detection. The WhiteSet is used to create
+            station-specific and obstype-specific whitelists before applying
+            the buddy check. White-listed records participate in all buddy
+            check and safety net iterations as regular records but are not
+            flagged as outliers in the final results. The default is an empty
+            WhiteSet().
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2225,18 +2264,60 @@ class Dataset:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-        * White-listed records participate in all buddy check and safety net calculations but are not flagged as outliers in the final results.
+        * The altitude of the stations can be extracted from GEE by using the
+          `Dataset.get_altitude()` method.
+        * The LCZ of the stations can be extracted from GEE by using the
+          `Dataset.get_LCZ()` method.
+        * White-listed records participate in all buddy check and safety net
+          calculations but are not flagged as outliers in the final results.
+
+        See Also
+        --------
+        buddy_check : Buddy check without safety nets.
+
+        Examples
+        --------
+        Apply buddy check with an LCZ safety net:
+
+        >>> dataset.buddy_check_with_safetynets(
+        ...     target_obstype="temp",
+        ...     safety_net_configs=[
+        ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4}
+        ...     ]
+        ... )
+
+        Apply buddy check with multiple safety nets (LCZ first, then network):
+
+        >>> dataset.buddy_check_with_safetynets(
+        ...     target_obstype="temp",
+        ...     safety_net_configs=[
+        ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
+        ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3}
+        ...     ]
+        ... )
 
         """
-
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
-        if not all(sta.site.flag_has_LCZ() for sta in self.stations):
-            raise MetObsMetadataNotFound(
-                "Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method, or use the buddy check (without LCZ safety net)."
-            )
 
-        if (lapserate is not None) | (max_alt_diff is not None):
+        # Validate that the required metadata columns exist
+        if safety_net_configs:
+            required_categories = set(cfg["category"] for cfg in safety_net_configs)
+            for category in required_categories:
+                if category == "LCZ":
+                    if not all(sta.site.flag_has_LCZ() for sta in self.stations):
+                        raise MetObsMetadataNotFound(
+                            f"Not all stations have LCZ data, buddy check with LCZ safety net could not be applied. "
+                            f"You may add LCZ data by using the `metobs_toolkit.Dataset.get_LCZ()` method."
+                        )
+                else:
+                    # Check if category exists in metadf
+                    if category not in self.metadf.columns:
+                        raise MetObsMetadataNotFound(
+                            f"The category '{category}' is not present in the metadata. "
+                            f"Available columns are: {list(self.metadf.columns)}"
+                        )
+
+        if (lapserate is not None) or (max_alt_diff is not None):
             if not all([sta.site.flag_has_altitude() for sta in self.stations]):
                 raise MetObsMetadataNotFound(
                     "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
@@ -2253,11 +2334,8 @@ class Dataset:
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             whiteset=whiteset,
-            # LCZ safety net related
-            max_LCZ_buddy_dist=LCZ_buddy_radius,
-            min_LCZ_safetynet_sample_size=min_sample_size,  # same as for spatial samples
-            safetynet_z_threshold=safetynet_z_threshold,
-            use_LCZ_safetynet=True,
+            # Generalized safety net configuration
+            safety_net_configs=safety_net_configs,
             # technical
             use_mp=use_mp,
         )
@@ -2311,7 +2389,7 @@ class Dataset:
 
             # update the sensordata
             sensorddata._update_outliers(
-                qccheckname="buddy_check_with_LCZ_safety_net",
+                qccheckname="buddy_check_with_safetynets",
                 outliertimestamps=outldt,
                 check_kwargs=qc_kwargs,
                 extra_columns={
