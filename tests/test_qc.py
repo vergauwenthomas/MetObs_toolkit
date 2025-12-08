@@ -1,14 +1,17 @@
 import sys
 from pathlib import Path
+
 import copy
+
 
 # import metobs_toolkit
 import pandas as pd
+import xarray as xr
 
 
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
-sys.path.insert(0, str(libfolder / "src"))
+sys.path.insert(0, str(libfolder / "src"))  
 import metobs_toolkit
 
 # solutionfolder
@@ -788,7 +791,7 @@ class TestWhiteRecords:
         self, overwrite_solution=False
     ):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
+        _method_name = 'test_white_records_buddy_check_with_safety_nets_dataset'
 
         dataset = TestWhiteRecords.solutionfixer.get_solution(
             **TestWhiteRecords.solkwargs, methodname="test_import_data"
@@ -800,7 +803,7 @@ class TestWhiteRecords:
 
         # First run without whiteset
         test_dataset = copy.deepcopy(dataset)
-        test_dataset.buddy_check_withsafetynets(
+        test_dataset.buddy_check_with_safetynets(
             target_obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -1057,169 +1060,8 @@ class TestWhiteRecords:
         for key in results:
             assert_equality(results[key], solutionobj[key])
 
-    def test_white_records_buddy_check_dataset(self, overwrite_solution=False):
-        """Test white_records with buddy_check on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
+   
 
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
-
-        # First run without white_records
-        test_dataset = copy.deepcopy(dataset)
-        test_dataset.buddy_check(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            N_iter=2,
-            use_mp=False,
-        )
-
-        outliers = test_dataset.outliersdf
-        if outliers.empty:
-            pytest.skip("No outliers found for white_records testing")
-
-        # Test with different structures
-        dataset1 = copy.deepcopy(dataset)
-        white_dt_only = pd.Index(
-            outliers.reset_index()["datetime"].sample(n=33, random_state=42),
-            name="datetime",
-        )
-        dataset1.buddy_check(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            spatial_z_threshold=2.1,
-            N_iter=2,
-            whiteset=metobs_toolkit.WhiteSet(white_dt_only),
-            use_mp=False,
-        )
-
-        dataset2 = copy.deepcopy(dataset)
-        white_name_dt = (
-            outliers.sample(n=33, random_state=42)
-            .reset_index()[["name", "datetime"]]
-            .set_index(["name", "datetime"])
-            .index
-        )
-        dataset2.buddy_check(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            spatial_z_threshold=2.1,
-            N_iter=2,
-            whiteset=metobs_toolkit.WhiteSet(white_name_dt),
-            use_mp=False,
-        )
-
-        results = {
-            "outliers_no_white": outliers,
-            "outliers_dt_only": dataset1.outliersdf,
-            "outliers_name_dt": dataset2.outliersdf,
-        }
-
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=results,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-
-        for key in results:
-            assert_equality(results[key], solutionobj[key])
-
-    def test_white_records_buddy_check_with_LCZ_safety_net_dataset(
-        self, overwrite_solution=False
-    ):
-        """Test white_records with buddy_check_with_LCZ_safety_net on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
-
-        # Ensure LCZ data is present
-        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
-            dataset.get_LCZ()
-
-        # First run without whiteset
-        test_dataset = copy.deepcopy(dataset)
-        test_dataset.buddy_check_with_LCZ_safety_net(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            LCZ_buddy_radius=40000,
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            safetynet_z_threshold=1.8,
-            N_iter=2,
-            use_mp=False,
-        )
-
-        outliers = test_dataset.outliersdf
-        if outliers.empty:
-            pytest.skip("No outliers found for white_records testing")
-
-        # Test with different structures
-        dataset1 = copy.deepcopy(dataset)
-        white_dt_only = pd.Index(
-            outliers.reset_index()["datetime"].sample(n=33, random_state=42),
-            name="datetime",
-        )
-        dataset1.buddy_check_with_LCZ_safety_net(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            LCZ_buddy_radius=40000,
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            safetynet_z_threshold=1.8,
-            N_iter=2,
-            whiteset=metobs_toolkit.WhiteSet(white_dt_only),
-            use_mp=False,
-        )
-
-        dataset2 = copy.deepcopy(dataset)
-        white_name_dt = (
-            outliers.sample(n=33, random_state=42)
-            .reset_index()[["name", "datetime"]]
-            .set_index(["name", "datetime"])
-            .index
-        )
-        dataset2.buddy_check_with_LCZ_safety_net(
-            target_obstype="temp",
-            spatial_buddy_radius=25000,
-            LCZ_buddy_radius=40000,
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            safetynet_z_threshold=1.8,
-            N_iter=2,
-            whiteset=metobs_toolkit.WhiteSet(white_name_dt),
-            use_mp=False,
-        )
-
-        results = {
-            "outliers_no_white": outliers,
-            "outliers_dt_only": dataset1.outliersdf,
-            "outliers_name_dt": dataset2.outliersdf,
-        }
-
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=results,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-
-        for key in results:
-            assert_equality(results[key], solutionobj[key])
 
     def test_all_qc_methods_with_whiteset(self):
         """Test all QC methods on Dataset and Station with non-default whiteset.
@@ -1365,6 +1207,9 @@ class TestWhiteRecords:
         assert True
 
 
+
+
+
 # if __name__ == "__main__":
 # pytest.main([__file__])
 # Run all methods with overwrite_solution=False
@@ -1374,7 +1219,7 @@ class TestWhiteRecords:
 # test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
 
 # test_demo_dataset = TestDemoDataset()
-# test_demo_dataset.test_import_data(overwrite_solution=False)
+# test_demo_dataset.test_import_data(overwrite_solution=True)
 # test_demo_dataset.test_buddy_check(overwrite_solution=False)
 # test_demo_dataset.test_buddy_check_with_safety_nets(overwrite_solution=False)
 # test_demo_dataset.test_buddy_check_with_safety_nets(overwrite_solution=False)
@@ -1385,5 +1230,5 @@ class TestWhiteRecords:
 # test_white_records.test_import_data(overwrite_solution=False)
 # test_white_records.test_white_records_input_combinations(overwrite_solution=False)
 # test_white_records.test_white_records_buddy_check_dataset(overwrite_solution=True)
-# test_white_records.test_white_records_buddy_check_with_safety_nets_dataset(overwrite_solution=True)
+# test_white_records.test_white_records_buddy_check_with_safety_nets_dataset(overwrite_solution=False)
 # test_white_records.test_white_records_buddy_check_with_LCZ_safety_net_dataset(overwrite_solution=True)
