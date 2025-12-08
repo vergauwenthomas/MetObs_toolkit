@@ -2089,6 +2089,13 @@ class Dataset:
             )
 
     @log_entry
+    def buddy_check_with_LCZ_safety_net(*args):
+        raise DeprecationWarning(
+            "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safety_nets instead."
+        )
+        
+
+    @log_entry
     def buddy_check_with_safety_nets(
         self,
         target_obstype: str = "temp",
