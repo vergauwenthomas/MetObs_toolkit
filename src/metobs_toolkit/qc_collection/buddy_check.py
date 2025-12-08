@@ -1095,8 +1095,10 @@ def find_buddy_group_outlier(inputarg: Tuple) -> List[Tuple]:
         retstr = f"Outlier at {row['is_the_most_extreme_outlier']}"
         retstr += f" with chi value \
 {row[row['is_the_most_extreme_outlier']]:.2f},"
-        retstr += f" is part of {sorted(buddygroup)}, with mean: {row['mean']:.2f}, \
-    std: {row['std']:.2f}. "
+        retstr += (
+            f" is part of {sorted(buddygroup)}, with mean: {row['mean']:.2f}, "
+            f"std: {row['std']:.2f}. "
+        )
         return retstr
 
     # detail info string
