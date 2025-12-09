@@ -2895,7 +2895,7 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     return picklereader.read_as_local_file()
 
 
-def filter_to_stations_with_obstype(
+def filter_to_stations_with_target_obstype(
     stations: list[Station], obstype: str
 ) -> Tuple[list[Station], list[Station]]:
     """
