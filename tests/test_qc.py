@@ -531,7 +531,7 @@ class TestWhiteRecords:
 
         # Create a SensorWhiteSet
         sensor_whiteset = whiteset.create_sensorwhitelist(
-            trg_station="vlinder06", trg_obstype="temp"
+            trg_station="vlinder06", obstype="temp"
         )
         # Check repr and str
         repr_sensor = repr(sensor_whiteset)

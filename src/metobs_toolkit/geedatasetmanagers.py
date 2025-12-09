@@ -804,7 +804,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         modeldf = geedf
         return modeldf
 
-    def _subset_to_obstypes(self, df: pd.DataFrame, trg_obstypes: list) -> pd.DataFrame:
+    def _subset_to_obstypes(self, df: pd.DataFrame, obstypes: list) -> pd.DataFrame:
         """
         Subset the modeldf to a list of target obstypes.
 
@@ -812,7 +812,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         ----------
         df : pandas.DataFrame
             Dataframe to subset.
-        trg_obstypes : list
+        obstypes : list
             List of target obstypes.
 
         Returns
@@ -825,7 +825,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         )
         keep_columns = []
 
-        for obs in trg_obstypes:
+        for obs in obstypes:
             if isinstance(obs, ModelObstype):
                 keep_columns.append(obs.name)
             elif isinstance(obs, ModelObstype_Vectorfield):
@@ -838,13 +838,13 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return df[keep_columns]
 
-    def _get_bandnames(self, trg_obstypes: list) -> list:
+    def _get_bandnames(self, obstypes: list) -> list:
         """
         Get a list of all known target band names.
 
         Parameters
         ----------
-        trg_obstypes : list
+        obstypes : list
             List of target obstypes.
 
         Returns
@@ -853,7 +853,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             List of band names.
         """
         trg_bands = []
-        for obs in trg_obstypes:
+        for obs in obstypes:
             if isinstance(obs, ModelObstype):
                 trg_bands.append(obs.model_band)
             elif isinstance(obs, ModelObstype_Vectorfield):
@@ -1180,7 +1180,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if get_all_bands:
             bandnames = self._get_all_gee_bandnames()
         else:
-            bandnames = self._get_bandnames(trg_obstypes=obstypes)
+            bandnames = self._get_bandnames(obstypes=obstypes)
 
         logger.info(f"{bandnames} are extracted from {self}.")
 
@@ -1246,7 +1246,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             )  # format to wide structure + rename columns etc
 
             if not get_all_bands:
-                df = self._subset_to_obstypes(df=df, trg_obstypes=obstypes)
+                df = self._subset_to_obstypes(df=df, obstypes=obstypes)
 
             # convert units + update attr
 

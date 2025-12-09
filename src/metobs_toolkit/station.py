@@ -1290,7 +1290,7 @@ class Station:
             "lower_threshold": lower_threshold,
             "upper_threshold": upper_threshold,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=obstype
+                trg_station=self.name, obstype=obstype
             ),
         }
 
@@ -1356,7 +1356,7 @@ class Station:
             "timewindow": timewindow,
             "min_records_per_window": min_records_per_window,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=obstype
+                trg_station=self.name, obstype=obstype
             ),
         }
 
@@ -1416,7 +1416,7 @@ class Station:
         qc_kwargs = {
             "max_N_repetitions": max_N_repetitions,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=obstype
+                trg_station=self.name, obstype=obstype
             ),
         }
 
@@ -1477,7 +1477,7 @@ class Station:
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=obstype
+                trg_station=self.name, obstype=obstype
             ),
         }
 
@@ -1554,7 +1554,7 @@ class Station:
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=obstype
+                trg_station=self.name, obstype=obstype
             ),
         }
 
