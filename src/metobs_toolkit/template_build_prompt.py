@@ -44,7 +44,7 @@ def test_unit(unitstring: str) -> bool:
         True if the unit is valid, False otherwise.
     """
     try:
-        Obstype(obsname="dummy", std_unit=unitstring, description="dummy")
+        Obstype(name="dummy", std_unit=unitstring, description="dummy")
         return True
     except MetObsUnitUnknown:
         print(
@@ -99,7 +99,7 @@ store/present the data): "
 
     # Get input data unit
     cur_unit = get_unit(
-        obstype=Obstype(obsname=obsname, std_unit=std_unit, description="_dummy")
+        obstype=Obstype(name=obsname, std_unit=std_unit, description="_dummy")
     )
 
     # Description
@@ -108,7 +108,7 @@ store/present the data): "
     )
     # create obstype:
     new_obstype = Obstype(
-        obsname=obsname,
+        name=obsname,
         std_unit=std_unit,
         description=description,
     )
@@ -717,7 +717,7 @@ observation(s) of one station)": 3,
             for newob in to_add_obstypes:
                 new_obstype = known_obstypes[newob]
                 print("new_obstype = metobs_toolkit.Obstype(")
-                print(f'                 obsname="{new_obstype.name}",')
+                print(f'                 name="{new_obstype.name}",')
                 print(f'                 std_unit="{new_obstype.std_unit}",')
                 print(f'                 description="{new_obstype.description}",')
                 print("                 )")

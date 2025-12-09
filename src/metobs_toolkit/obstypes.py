@@ -66,7 +66,7 @@ class Obstype:
 
     Parameters
     ----------
-    obsname : str
+    name : str
         Name of the observation type.
     std_unit : str or pint.Unit
         Standard unit for the observation type.
@@ -74,9 +74,9 @@ class Obstype:
         Description of the observation type.
     """
 
-    def __init__(self, obsname: str, std_unit: Union[str, pint.Unit], description: str):
+    def __init__(self, name: str, std_unit: Union[str, pint.Unit], description: str):
         # set name
-        self._name = str(obsname)
+        self._name = str(name)
         # set standard unit
         self._std_unit = _fmtunit(std_unit)
         # set description
@@ -113,7 +113,7 @@ class Obstype:
                 trg_orig_unit = self.original_unit
 
             trg_obs = Obstype(
-                obsname=self.name, std_unit=self.std_unit, description=trg_description
+                name=self.name, std_unit=self.std_unit, description=trg_description
             )
 
             trg_obs.original_name = trg_orig_name
@@ -329,7 +329,7 @@ class ModelObstype(Obstype):
     ):
         # set regular obstype
         super().__init__(
-            obsname=obstype.name,
+            name=obstype.name,
             std_unit=obstype.std_unit,
             description=obstype.description,
         )
@@ -468,7 +468,7 @@ class ModelObstype_Vectorfield(Obstype):
     ):
         # set regular obstype
         super().__init__(
-            obsname=obstype.name,
+            name=obstype.name,
             std_unit=obstype.std_unit,
             description=obstype.description,
         )
@@ -641,7 +641,7 @@ class ModelObstype_Vectorfield(Obstype):
 
         # Create a new obstype for the direction
         direction_obstype = Obstype(
-            obsname=self.direction_obstype_name,
+            name=self.direction_obstype_name,
             std_unit=ureg.degree,
             description=f"Direction of 2D-vector of {self.name} components.",
         )
@@ -684,7 +684,7 @@ class ModelObstype_Vectorfield(Obstype):
 
         # Create a new Obstype for the amplitude
         amplitude_obstype = Obstype(
-            obsname=self.amplitude_obstype_name,
+            name=self.amplitude_obstype_name,
             std_unit=self.std_unit,
             description=f"2D-vector amplitude of {self.name} components.",
         )
@@ -808,58 +808,58 @@ def convert_units(records, cur_unit, trg_unit):
 # ------------------------------------------
 
 temperature = Obstype(
-    obsname="temp", std_unit=ureg.degC, description="2m - temperature"
+    name="temp", std_unit=ureg.degC, description="2m - temperature"
 )
 
 humidity = Obstype(
-    obsname="humidity",
+    name="humidity",
     std_unit=ureg.percent,
     description="2m - relative humidity",
 )
 
 radiation_temp = Obstype(
-    obsname="radiation_temp",
+    name="radiation_temp",
     std_unit=ureg.degC,
     description="2m - Black globe",
 )
 
 pressure = Obstype(
-    obsname="pressure",
+    name="pressure",
     std_unit=ureg.hectopascal,
     description="atmospheric pressure (at station)",
 )
 
 pressure_at_sea_level = Obstype(
-    obsname="pressure_at_sea_level",
+    name="pressure_at_sea_level",
     std_unit=ureg.hectopascal,
     description="atmospheric pressure (at sea level)",
 )
 
 precip = Obstype(
-    obsname="precip",
+    name="precip",
     std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="precipitation intensity",
 )
 
 precip_sum = Obstype(
-    obsname="precip_sum",
+    name="precip_sum",
     std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="Cummulated precipitation",
 )
 wind_speed = Obstype(
-    obsname="wind_speed",
+    name="wind_speed",
     std_unit=ureg.meter / ureg.second,
     description="wind speed",
 )
 
 windgust = Obstype(
-    obsname="wind_gust",
+    name="wind_gust",
     std_unit=ureg.meter / ureg.second,
     description="wind gust",
 )
 
 wind_direction = Obstype(
-    obsname="wind_direction",
+    name="wind_direction",
     std_unit=ureg.degree,
     description="wind direction",
 )

@@ -84,7 +84,7 @@ class TestAddMethods:
 
         # 1 test with incompatible obtype merge
         fake_obstype = metobs_toolkit.Obstype(
-            obsname="temp",
+            name="temp",
             std_unit="degK",  # makes for incompatibel merge!
             description="blablabla",
         )
@@ -101,7 +101,7 @@ class TestAddMethods:
         # 2. test with compatible obstype merge
 
         fake_obstype = metobs_toolkit.Obstype(
-            obsname="temp",
+            name="temp",
             std_unit="degC",  # makes for compatibel merge!
             description="blablabla",
         )
@@ -246,7 +246,7 @@ class TestAddMethods:
 
         # Additional band
         fake_obs = metobs_toolkit.Obstype(
-            obsname="dummy", std_unit="km/h", description="blabla"
+            name="dummy", std_unit="km/h", description="blabla"
         )
         fake_modelobs = metobs_toolkit.ModelObstype(
             obstype=fake_obs,
