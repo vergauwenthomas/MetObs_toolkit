@@ -728,7 +728,7 @@ class Station:
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
-        target_obstype: Union[str, None] = None,
+        obstype: Union[str, None] = None,
         shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         origin: Union[None, pd.Timestamp] = None,
         origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -753,7 +753,7 @@ class Station:
             The target frequency to which the data should be resampled. Can be
             specified as a pandas frequency string (e.g., '5T' for 5 minutes)
             or a pandas.Timedelta object.
-        target_obstype : str or None, optional
+        obstype : str or None, optional
             The observation type (sensor) to resample. If None, all sensors
             will be resampled to the same frequency. Default is None.
         shift_tolerance : str or pandas.Timedelta, optional
@@ -775,9 +775,9 @@ class Station:
         Notes
         -----
 
-        * If `target_obstype` is None, all sensors in `self.sensordata` will be
+        * If `obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
-        * If `target_obstype` is specified, it must be a known observation type.
+        * If `obstype` is specified, it must be a known observation type.
         Warning
         -------
         Since the gaps depend on the record’s frequency and origin, all gaps
@@ -792,7 +792,7 @@ class Station:
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
         origin = fmt_datetime_arg(origin, none_is_none=True)
 
-        if target_obstype is None:
+        if obstype is None:
             for sensor in self.sensordata.values():
                 sensor.resample(
                     target_freq=target_freq,
@@ -802,10 +802,10 @@ class Station:
                 )
         else:
             # check if target obstype is known
-            self._obstype_is_known_check(target_obstype)
+            self._obstype_is_known_check(obstype)
 
             # resample
-            self.sensordata[target_obstype].resample(
+            self.sensordata[obstype].resample(
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
@@ -1108,7 +1108,7 @@ class Station:
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
         startdt_utc: Union[datetime, pd.Timestamp, str, None] = None,
         enddt_utc: Union[datetime, pd.Timestamp, str, None] = None,
-        target_obstypes: list = ["temp"],
+        obstypes: list = ["temp"],
         get_all_bands: bool = False,
         drive_filename: str = None,
         drive_folder: str = "gee_timeseries_data",
@@ -1135,7 +1135,7 @@ class Station:
         enddt_utc : datetime or str, optional
             The end datetime in UTC for the time series data. If None, the
             station's end datetime (converted to UTC) is used.
-        target_obstypes : list of str, optional
+        obstypes : list of str, optional
             List of observation types to extract. Defaults to ["temp"].
         get_all_bands : bool, optional
             If True, extracts all bands from the dataset. Defaults to False.
@@ -1198,8 +1198,8 @@ class Station:
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        # check if target_obstypes are mapped to bands
-        for obst in target_obstypes:
+        # check if obstypes are mapped to bands
+        for obst in obstypes:
             if obst not in geedynamicdatasetmanager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
                     f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
@@ -1215,7 +1215,7 @@ class Station:
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            obstypes=target_obstypes,
+            obstypes=obstypes,
             get_all_bands=get_all_bands,
             drive_filename=drive_filename,
             drive_folder=drive_folder,
@@ -1253,7 +1253,7 @@ class Station:
     @log_entry
     def gross_value_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
         whiteset: WhiteSet = WhiteSet(),
@@ -1263,7 +1263,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         lower_threshold : float, optional
            Thresholds to flag records below as outliers. The default is -15.0.
@@ -1283,24 +1283,24 @@ class Station:
         You can use the `outliersdf` property to view all flagged outliers.
         """
         # argument validity checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
 
         # Prepare kwargs for the sensor method
         qc_kwargs = {
             "lower_threshold": lower_threshold,
             "upper_threshold": upper_threshold,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype
+                trg_station=self.name, trg_obstype=obstype
             ),
         }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).gross_value_check(**qc_kwargs)
+        self.get_sensor(obstype).gross_value_check(**qc_kwargs)
 
     @log_entry
     def persistence_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
         whiteset: WhiteSet = WhiteSet(),
@@ -1314,7 +1314,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         timewindow : str or pandas.Timedelta
             The size of the rolling time window to check for persistence.
@@ -1348,7 +1348,7 @@ class Station:
         returns an empty DatetimeIndex.
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
         # Prepare kwargs for the sensor method
@@ -1356,17 +1356,17 @@ class Station:
             "timewindow": timewindow,
             "min_records_per_window": min_records_per_window,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype
+                trg_station=self.name, trg_obstype=obstype
             ),
         }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).persistence_check(**qc_kwargs)
+        self.get_sensor(obstype).persistence_check(**qc_kwargs)
 
     @log_entry
     def repetitions_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_N_repetitions: int = 5,
         whiteset: WhiteSet = WhiteSet(),
     ) -> None:
@@ -1382,7 +1382,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         max_N_repetitions : int
             The maximum number of repetitions allowed before the records are flagged as outliers.
@@ -1410,23 +1410,23 @@ class Station:
         returns an empty DatetimeIndex.
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
 
         # Prepare kwargs for the sensor method
         qc_kwargs = {
             "max_N_repetitions": max_N_repetitions,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype
+                trg_station=self.name, trg_obstype=obstype
             ),
         }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).repetitions_check(**qc_kwargs)
+        self.get_sensor(obstype).repetitions_check(**qc_kwargs)
 
     @log_entry
     def step_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         whiteset: WhiteSet = WhiteSet(),
@@ -1443,7 +1443,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         max_increase_per_second : int or float, >0, optional
             The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
@@ -1470,24 +1470,24 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
 
         # Prepare kwargs for the sensor method
         qc_kwargs = {
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype
+                trg_station=self.name, trg_obstype=obstype
             ),
         }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).step_check(**qc_kwargs)
+        self.get_sensor(obstype).step_check(**qc_kwargs)
 
     @log_entry
     def window_variation_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: pd.Timedelta = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 8.0 / 3600,
@@ -1508,7 +1508,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         timewindow : pandas.Timedelta
             The duration of the moving window. This should be a pandas Timedelta object. The default is pandas.Timedelta("1h")
@@ -1544,7 +1544,7 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
         # Prepare kwargs for the sensor method
@@ -1554,16 +1554,16 @@ class Station:
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, trg_obstype=target_obstype
+                trg_station=self.name, trg_obstype=obstype
             ),
         }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).window_variation_check(**qc_kwargs)
+        self.get_sensor(obstype).window_variation_check(**qc_kwargs)
 
     @log_entry
     def get_qc_stats(
-        self, target_obstype: str = "temp", make_plot: bool = True
+        self, obstype: str = "temp", make_plot: bool = True
     ) -> pd.DataFrame:
         """
         Generate quality control (QC) frequency statistics.
@@ -1582,7 +1582,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation type for which to compute frequency statistics, by default "temp".
         make_plot : bool, optional
             If True, a figure with pie charts representing the frequencies is generated. The default is True.
@@ -1600,16 +1600,16 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         # get freq statistics
-        qc_df = self.get_sensor(target_obstype).get_qc_freq_statistics()
+        qc_df = self.get_sensor(obstype).get_qc_freq_statistics()
 
         if make_plot:
             plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
 
             fig = plotting.qc_overview_pies(df=plotdf)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Station level: {self.name}."
+                f"QC frequency statistics of {obstype} on Station level: {self.name}."
             )
             return fig
         else:
@@ -1903,7 +1903,7 @@ class Station:
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
@@ -1914,12 +1914,12 @@ class Station:
         """
         Fill the gap(s) using model data without correction.
 
-        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        This method fills all the gaps of a specific *obstype*, by directly interpolating
         the model data to the missing records.
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
@@ -1952,8 +1952,8 @@ class Station:
         -----
         A schematic description of the raw model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
         #. Interpolate the model data to match the missing records in the gap.
@@ -1965,15 +1965,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="raw",
             overwrite_fill=overwrite_fill,
@@ -1987,7 +1987,7 @@ class Station:
     @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
@@ -2011,7 +2011,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
@@ -2051,8 +2051,8 @@ class Station:
         -----
         A schematic description of the debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
         #. Compute the bias of the modeldata (combine leading and trailing samples).
@@ -2068,15 +2068,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="debiased",
             overwrite_fill=overwrite_fill,
@@ -2094,7 +2094,7 @@ class Station:
     @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
@@ -2115,7 +2115,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration :  str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
@@ -2156,8 +2156,8 @@ class Station:
         -----
         A schematic description of the diurnal debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
            The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
@@ -2181,15 +2181,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="diurnal_debiased",
             method_kwargs={
@@ -2206,7 +2206,7 @@ class Station:
     @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
@@ -2232,7 +2232,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
@@ -2277,8 +2277,8 @@ class Station:
         -----
         A schematic description of the weighted diurnal debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperately).
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
@@ -2305,15 +2305,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="weighted_diurnal_debiased",
             method_kwargs={
@@ -2331,7 +2331,7 @@ class Station:
     @log_entry
     def interpolate_gaps(
         self,
-        target_obstype: str,
+        obstype: str,
         method: str = "time",
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
@@ -2344,14 +2344,14 @@ class Station:
         """
         Fill the gap(s) using interpolation of SensorData.
 
-        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        This method fills all the gaps of a specific *obstype*, by directly interpolating
         corresponding SensorData. Each gap is interpolated using the leading and trailing periods of the gap. One can select different
         interpolation methods. By using restrictions on the leading and trailing periods, one can
         ensure that the interpolation is only done when there are enough leading and trailing data available.
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         method:  str, optional
             Interpolation technique to use. See pandas.DataFrame.interpolate
@@ -2409,10 +2409,10 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # interpolate all the gaps
-        self.get_sensor(target_obstype).interpolate_gaps(
+        self.get_sensor(obstype).interpolate_gaps(
             overwrite_fill=overwrite_fill,
             method=method,
             max_gap_duration_to_fill=max_gap_duration_to_fill,

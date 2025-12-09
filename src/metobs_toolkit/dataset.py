@@ -583,7 +583,7 @@ class Dataset:
     @log_entry
     def sync_records(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timestamp_shift_tolerance: Union[str, pd.Timedelta] = "2min",
         freq_shift_tolerance: Union[str, pd.Timedelta] = "1min",
         fixed_origin: Union[pd.Timedelta, None] = None,
@@ -591,13 +591,13 @@ class Dataset:
         """Synchronize records of sensor data across stations.
 
         Synchronize records of sensor data across stations (for a specific observation type).
-        This method aligns the sensor data of a specified observation type (`target_obstype`)
+        This method aligns the sensor data of a specified observation type (`obstype`)
         across all stations by resampling the data to a common frequency and ensuring
         alignment errors of timestamps within specified tolerances.
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
         timestamp_shift_tolerance : str or pandas.Timedelta, optional
             The maximum allowed time shift tolerance for aligning data during
@@ -633,8 +633,8 @@ class Dataset:
         timestamp_shift_tolerance = fmt_timedelta_arg(timestamp_shift_tolerance)
 
         for sta in self.stations:
-            if target_obstype in sta.sensordata.keys():
-                sensor = sta.get_sensor(target_obstype)
+            if obstype in sta.sensordata.keys():
+                sensor = sta.get_sensor(obstype)
 
                 freq_target = simplify_time(
                     time=sensor.freq,
@@ -654,7 +654,7 @@ class Dataset:
                 )
             else:
                 logger.warning(
-                    f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronization."
+                    f"{sta} does not have {obstype} sensordata and is skipped in the synchronization."
                 )
 
     @copy_doc(Station.resample)
@@ -662,7 +662,7 @@ class Dataset:
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
-        target_obstype: Union[str, None] = None,
+        obstype: Union[str, None] = None,
         shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         origin: Union[str, pd.Timestamp, None] = None,
         origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -673,7 +673,7 @@ class Dataset:
         for sta in self.stations:
             sta.resample(
                 target_freq=target_freq,
-                target_obstype=target_obstype,
+                obstype=obstype,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
                 origin_simplify_tolerance=origin_simplify_tolerance,
@@ -1654,7 +1654,7 @@ class Dataset:
         geedynamicdatasetmanager: GEEDynamicDatasetManager,
         startdt_utc: Union[str, pd.Timestamp, None] = None,
         enddt_utc: Union[str, pd.Timestamp, None] = None,
-        target_obstypes: list = ["temp"],
+        obstypes: list = ["temp"],
         get_all_bands: bool = False,
         drive_filename: Union[str, None] = None,
         drive_folder: str = "gee_timeseries_data",
@@ -1665,8 +1665,8 @@ class Dataset:
             raise TypeError(
                 "geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance."
             )
-        if not isinstance(target_obstypes, list):
-            raise TypeError("target_obstypes must be a list.")
+        if not isinstance(obstypes, list):
+            raise TypeError("obstypes must be a list.")
 
         if startdt_utc is None:
             if self.df.empty:
@@ -1686,7 +1686,7 @@ class Dataset:
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        for obst in target_obstypes:
+        for obst in obstypes:
             if obst not in geedynamicdatasetmanager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
                     f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
@@ -1699,7 +1699,7 @@ class Dataset:
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            obstypes=target_obstypes,
+            obstypes=obstypes,
             get_all_bands=get_all_bands,
             drive_filename=drive_filename,
             drive_folder=drive_folder,
@@ -1734,20 +1734,20 @@ class Dataset:
     @log_entry
     def gross_value_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
             whiteset=whiteset,
@@ -1767,7 +1767,7 @@ class Dataset:
     @log_entry
     def persistence_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
         whiteset: WhiteSet = WhiteSet(),
@@ -1775,14 +1775,14 @@ class Dataset:
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
 
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
             whiteset=whiteset,
@@ -1802,19 +1802,19 @@ class Dataset:
     @log_entry
     def repetitions_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_N_repetitions: int = 5,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_N_repetitions=max_N_repetitions,
             whiteset=whiteset,
         )
@@ -1834,20 +1834,20 @@ class Dataset:
     @log_entry
     def step_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
             whiteset=whiteset,
@@ -1868,7 +1868,7 @@ class Dataset:
     @log_entry
     def window_variation_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 0.0022,
@@ -1876,16 +1876,16 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         timewindow = fmt_timedelta_arg(timewindow)
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
             max_increase_per_second=max_increase_per_second,
@@ -1907,7 +1907,7 @@ class Dataset:
     @log_entry
     def buddy_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
@@ -1967,7 +1967,7 @@ class Dataset:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. Default is "temp".
         spatial_buddy_radius : int | float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
@@ -2015,7 +2015,7 @@ class Dataset:
                 )
 
         qc_kwargs = dict(
-            obstype=target_obstype,
+            obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
@@ -2030,9 +2030,9 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
@@ -2064,7 +2064,7 @@ class Dataset:
         # update all the sensordata
         for station in target_stations:
             # Get the sensordata object
-            sensorddata = station.get_sensor(target_obstype)
+            sensorddata = station.get_sensor(obstype)
 
             # get outlier datetimeindex
             outldt = pd.DatetimeIndex(
@@ -2097,7 +2097,7 @@ class Dataset:
     @log_entry
     def buddy_check_with_safetynets(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
@@ -2191,7 +2191,7 @@ class Dataset:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. Default is "temp".
         spatial_buddy_radius : int or float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
@@ -2280,7 +2280,7 @@ class Dataset:
         Apply buddy check with an LCZ safety net:
 
         >>> dataset.buddy_check_with_safetynets(
-        ...     target_obstype="temp",
+        ...     obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4}
         ...     ]
@@ -2289,7 +2289,7 @@ class Dataset:
         Apply buddy check with multiple safety nets (LCZ first, then network):
 
         >>> dataset.buddy_check_with_safetynets(
-        ...     target_obstype="temp",
+        ...     obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
         ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3}
@@ -2324,7 +2324,7 @@ class Dataset:
                 )
 
         qc_kwargs = dict(
-            obstype=target_obstype,
+            obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
@@ -2340,9 +2340,9 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        # Locate stations with the target_obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        # Locate stations with the obstype
+        target_stations, skip_stations = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
@@ -2375,7 +2375,7 @@ class Dataset:
         # update all the sensordata
         for station in target_stations:
             # Get the sensordata object
-            sensorddata = station.get_sensor(target_obstype)
+            sensorddata = station.get_sensor(obstype)
 
             # get outlier datetimeindex
             outldt = pd.DatetimeIndex(
@@ -2402,10 +2402,10 @@ class Dataset:
     @copy_doc(Station.get_qc_stats)
     @log_entry
     def get_qc_stats(
-        self, target_obstype: str = "temp", make_plot: bool = True
+        self, obstype: str = "temp", make_plot: bool = True
     ) -> Union[pd.DataFrame, None]:
         freqdf_list = [
-            sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
+            sta.get_qc_stats(obstype=obstype, make_plot=False)
             for sta in self.stations
         ]
 
@@ -2420,7 +2420,7 @@ class Dataset:
         if make_plot:
             fig = plotting.qc_overview_pies(df=dfagg)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Dataset level."
+                f"QC frequency statistics of {obstype} on Dataset level."
             )
             return fig
         else:
@@ -2488,7 +2488,7 @@ class Dataset:
     @log_entry
     def interpolate_gaps(
         self,
-        target_obstype: str,
+        obstype: str,
         method: str = "time",
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
@@ -2503,13 +2503,13 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        target_stations, _skip = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.interpolate_gaps(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 method=method,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
@@ -2524,7 +2524,7 @@ class Dataset:
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         overwrite_fill: bool = False,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
         min_value: float | None = None,
@@ -2534,13 +2534,13 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        target_stations, _skip = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 overwrite_fill=overwrite_fill,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 min_value=min_value,
@@ -2551,7 +2551,7 @@ class Dataset:
     @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
@@ -2566,13 +2566,13 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        target_stations, _skip = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 min_leading_records_total=min_leading_records_total,
                 trailing_period_duration=trailing_period_duration,
@@ -2587,7 +2587,7 @@ class Dataset:
     @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
@@ -2601,13 +2601,13 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        target_stations, _skip = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_diurnal_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
@@ -2621,7 +2621,7 @@ class Dataset:
     @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
@@ -2637,13 +2637,13 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+        target_stations, _skip = filter_to_stations_with_obstype(
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 trailing_period_duration=trailing_period_duration,
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
@@ -2895,8 +2895,8 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     return picklereader.read_as_local_file()
 
 
-def filter_to_stations_with_target_obstype(
-    stations: list[Station], target_obstype: str
+def filter_to_stations_with_obstype(
+    stations: list[Station], obstype: str
 ) -> Tuple[list[Station], list[Station]]:
     """
     Split stations into those with and without the target observation type.
@@ -2907,12 +2907,12 @@ def filter_to_stations_with_target_obstype(
     skipped = []
     for sta in stations:
         try:
-            sta._obstype_is_known_check(target_obstype)
+            sta._obstype_is_known_check(obstype)
             subset.append(sta)
         except MetObsSensorDataNotFound:
             skipped.append(sta)
             logger.warning(
-                f"{sta} does not hold {target_obstype} sensordata! It will be skipped! "
+                f"{sta} does not hold {obstype} sensordata! It will be skipped! "
             )
             continue
 

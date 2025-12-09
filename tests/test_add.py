@@ -140,7 +140,7 @@ class TestAddMethods:
         sd_other.series.index = sd_other.series.index + pd.Timedelta("30D")
 
         # apply qc before add
-        sta.gross_value_check(target_obstype="temp", upper_threshold=24.2)
+        sta.gross_value_check(obstype="temp", upper_threshold=24.2)
         sd1 = copy.deepcopy(sta.get_sensor("temp"))
 
         # summ

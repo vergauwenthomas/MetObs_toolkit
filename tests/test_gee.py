@@ -264,7 +264,7 @@ class TestDemoDataset:
                 geedynamicdatasetmanager=era5_model,
                 startdt_utc=None,  # raises error in metadata-only case
                 enddt_utc=None,
-                target_obstypes=["temp"],
+                obstypes=["temp"],
                 get_all_bands=False,
                 drive_filename=None,
                 drive_folder="gee_timeseries_data",
@@ -278,7 +278,7 @@ class TestDemoDataset:
             geedynamicdatasetmanager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp", "pressure", "wind"],
+            obstypes=["temp", "pressure", "wind"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",
@@ -333,7 +333,7 @@ class TestDemoDataset:
             geedynamicdatasetmanager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp"],
+            obstypes=["temp"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",
@@ -374,7 +374,7 @@ class TestDemoDataset:
             geedynamicdatasetmanager=era5_manager,  # The datasetmanager to use
             startdt_utc=None,
             enddt_utc=None,
-            target_obstypes=[
+            obstypes=[
                 "temp"
             ],  # the observationtypes to extract, must be known modelobstypes
             force_direct_transfer=True,
@@ -435,7 +435,7 @@ class TestDemoDataset:
             geedynamicdatasetmanager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp", "pressure", "wind"],
+            obstypes=["temp", "pressure", "wind"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",

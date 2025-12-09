@@ -54,8 +54,8 @@ GEE data managers in `geedatasetmanagers.py` handle static (DEM, landcover) vs d
 ### Quality Control Pipeline
 QC methods modify data in-place and track outliers:
 ```python
-dataset.gross_value_check(target_obstype="temp", lower_threshold=-15, upper_threshold=35)
-dataset.persistence_check(target_obstype="temp", timewindow="1h")
+dataset.gross_value_check(obstype="temp", lower_threshold=-15, upper_threshold=35)
+dataset.persistence_check(obstype="temp", timewindow="1h")
 # Access results via dataset.outliersdf
 ```
 
