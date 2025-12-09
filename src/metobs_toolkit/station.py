@@ -1661,7 +1661,7 @@ class Station:
         # Filter the modeldatadf to target obstype, modelname, modelvariable
         trg_modeldatadf = filter_modeldatadf(
             modeldatadf=self.modeldatadf,
-            trgobstype=obstype,
+            obstype=obstype,
             modelname=modelname,
             modelvariable=modelvariable,
         )
