@@ -1741,7 +1741,7 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -1776,7 +1776,7 @@ class Dataset:
         timewindow = fmt_timedelta_arg(timewindow)
 
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -1808,7 +1808,7 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -1841,7 +1841,7 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -1877,7 +1877,7 @@ class Dataset:
         use_mp: bool = True,
     ) -> None:
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -2031,7 +2031,7 @@ class Dataset:
         )
 
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
@@ -2341,7 +2341,7 @@ class Dataset:
         )
 
         # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_obstype(
+        target_stations, skip_stations = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
@@ -2503,7 +2503,7 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_obstype(
+        target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -2534,7 +2534,7 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_obstype(
+        target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -2566,7 +2566,7 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_obstype(
+        target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -2601,7 +2601,7 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_obstype(
+        target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 
@@ -2637,7 +2637,7 @@ class Dataset:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # Filter to stations with target obstype
-        target_stations, _skip = filter_to_stations_with_obstype(
+        target_stations, _skip = filter_to_stations_with_target_obstype(
             stations=self.stations, obstype=obstype
         )
 

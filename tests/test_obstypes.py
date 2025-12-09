@@ -170,7 +170,7 @@ class TestObstype:
         """Test the model_unit setter of ModelObstype class."""
         # Create a base temperature obstype
         temp_obstype = metobs_toolkit.obstypes.Obstype(
-            obsname="temp", std_unit="°C", description="Temperature"
+            name="temp", std_unit="°C", description="Temperature"
         )
 
         # Create a ModelObstype with initial model_unit
