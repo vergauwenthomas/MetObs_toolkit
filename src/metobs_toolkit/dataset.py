@@ -687,7 +687,7 @@ class Dataset:
     def import_gee_data_from_file(
         self,
         filepath: str,
-        geedynamicdatasetmanager: GEEDynamicDatasetManager,
+        gee_dynamic_manager: GEEDynamicDatasetManager,
         force_update: bool = True,
         _force_from_dataframe: Union[pd.DataFrame, None] = None,
     ) -> pd.DataFrame:
@@ -702,7 +702,7 @@ class Dataset:
         ----------
         filepath : str
             The path to the file containing the GEE data.
-        geedynamicdatasetmanager : GEEDynamicDatasetManager
+        gee_dynamic_manager : GEEDynamicDatasetManager
             An instance of `GEEDynamicDatasetManager` responsible for managing the GEE dataset
             and its metadata.
         force_update : bool, optional
@@ -721,15 +721,15 @@ class Dataset:
             data = reader.read_as_local_file()
             force_update = True
 
-            totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
+            totaldf = gee_dynamic_manager._format_gee_df_structure(data)
         else:
             totaldf = _force_from_dataframe
 
-        known_obstypes = list(geedynamicdatasetmanager.modelobstypes.keys())
+        known_obstypes = list(gee_dynamic_manager.modelobstypes.keys())
         cols_to_skip = list(set(totaldf.columns) - set(known_obstypes))
         if bool(cols_to_skip):
             logger.warning(
-                f"The following columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdatasetmanager}: {cols_to_skip}"
+                f"The following columns in the GEE datafile are not present in the known modelobstypes of {gee_dynamic_manager}: {cols_to_skip}"
             )
 
         known_and_present = set(totaldf.columns) & set(known_obstypes)
@@ -745,10 +745,10 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=gee_dynamic_manager.modelobstypes[col],
                     timezone="UTC",
-                    modelname=geedynamicdatasetmanager.name,
-                    modelvariable=geedynamicdatasetmanager.modelobstypes[
+                    modelname=gee_dynamic_manager.name,
+                    modelvariable=gee_dynamic_manager.modelobstypes[
                         col
                     ].model_band,
                 )
@@ -1302,7 +1302,7 @@ class Dataset:
     @log_entry
     def make_gee_plot(
         self,
-        geedatasetmanager: Union[
+        gee_manager: Union[
             GEEStaticDatasetManager, GEEDynamicDatasetManager
         ] = default_datasets["LCZ"],
         timeinstance: Union[pd.Timestamp, str, None] = None,
@@ -1327,14 +1327,14 @@ class Dataset:
 
         Parameters
         ----------
-        geedatasetmanager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
+        gee_manager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
             The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["LCZ"]
         timeinstance :pandas.Timestamp or string or None, optional
             The timinstance to plot the GEE dataset for. This is only used and
-            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+            required when gee_manager is a GEEDynamicDatasetManager. The default is None.
         modelobstype : str, optional
             The modelobstype to plot the GEE dataset for. This is only used and
-            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+            required when gee_manager is a GEEDynamicDatasetManager. The default is None.
         save : bool, optional
             If True, the plot will be saved as a (HTML) file, that can be opened by a webbrowser. The default is False.
         outputfolder : str, optional
@@ -1354,13 +1354,13 @@ class Dataset:
             The interactive map.
         """
         if not isinstance(
-            geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
+            gee_manager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
         ):
             raise TypeError(
-                "geedatasetmanager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance."
+                "gee_manager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance."
             )
 
-        if isinstance(geedatasetmanager, GEEStaticDatasetManager):
+        if isinstance(gee_manager, GEEStaticDatasetManager):
             kwargs = dict(
                 outputfolder=outputfolder,
                 filename=filename,
@@ -1370,15 +1370,15 @@ class Dataset:
                 overwrite=overwrite,
             )
 
-        elif isinstance(geedatasetmanager, GEEDynamicDatasetManager):
+        elif isinstance(gee_manager, GEEDynamicDatasetManager):
             if timeinstance is None:
                 raise ValueError(
-                    f"Timeinstance is None, but is required for a dynamic dataset like {geedatasetmanager}"
+                    f"Timeinstance is None, but is required for a dynamic dataset like {gee_manager}"
                 )
             timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
-            if modelobstype not in geedatasetmanager.modelobstypes:
+            if modelobstype not in gee_manager.modelobstypes:
                 raise MetObsObstypeNotFound(
-                    f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are known: {geedatasetmanager.modelobstypes} "
+                    f"{modelobstype} is not a known modelobstype of {gee_manager}. These are known: {gee_manager.modelobstypes} "
                 )
 
             kwargs = dict(
@@ -1392,7 +1392,7 @@ class Dataset:
                 overwrite=overwrite,
             )
 
-        return geedatasetmanager.make_gee_plot(metadf=self.metadf, **kwargs)
+        return gee_manager.make_gee_plot(metadf=self.metadf, **kwargs)
 
     # ------------------------------------------
     #    Gee extracting
@@ -1401,7 +1401,7 @@ class Dataset:
     @log_entry
     def get_static_gee_point_data(
         self,
-        geestaticdatasetmanager: GEEStaticDatasetManager,
+        gee_static_manager: GEEStaticDatasetManager,
         overwrite: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
@@ -1412,7 +1412,7 @@ class Dataset:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
         overwrite : bool, optional
             If True, the retrieved data will overwrite existing data in the ´Station´'s metadata.
@@ -1436,17 +1436,17 @@ class Dataset:
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
-        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise TypeError(
-                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+                "gee_static_manager must be a GEEStaticDatasetManager instance."
             )
 
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdatasetmanager.extract_static_point_data(self.metadf)
+        geedf = gee_static_manager.extract_static_point_data(self.metadf)
 
-        varname = geestaticdatasetmanager.name
+        varname = gee_static_manager.name
         if overwrite:
             for staname, geedict in geedf.to_dict(orient="index").items():
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
@@ -1455,7 +1455,7 @@ class Dataset:
     @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
-        geestaticdatasetmanager: GEEStaticDatasetManager,
+        gee_static_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
         overwrite: bool = True,
@@ -1470,7 +1470,7 @@ class Dataset:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             An instance of GEEStaticDatasetManager used to retrieve static GEE data.
         buffers : list, optional
             A list of buffer radii (in meters) for which to compute the buffer fractions.
@@ -1501,9 +1501,9 @@ class Dataset:
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
-        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise TypeError(
-                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+                "gee_static_manager must be a GEEStaticDatasetManager instance."
             )
 
         if initialize_gee:
@@ -1511,7 +1511,7 @@ class Dataset:
 
         dflist = []
         for bufferradius in buffers:
-            geedf = geestaticdatasetmanager.extract_static_buffer_frac_data(
+            geedf = gee_static_manager.extract_static_buffer_frac_data(
                 metadf=self.metadf, bufferradius=bufferradius, agg_bool=aggregate
             )
             dflist.append(geedf)
@@ -1640,7 +1640,7 @@ class Dataset:
             raise TypeError("buffers must be a list.")
 
         return self.get_static_gee_buffer_fraction_data(
-            geestaticdatasetmanager=default_datasets["worldcover"],
+            gee_static_manager=default_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
             overwrite=update_stations,
@@ -1651,7 +1651,7 @@ class Dataset:
     @log_entry
     def get_gee_timeseries_data(
         self,
-        geedynamicdatasetmanager: GEEDynamicDatasetManager,
+        gee_dynamic_manager: GEEDynamicDatasetManager,
         startdt_utc: Union[str, pd.Timestamp, None] = None,
         enddt_utc: Union[str, pd.Timestamp, None] = None,
         obstypes: list = ["temp"],
@@ -1661,9 +1661,9 @@ class Dataset:
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
     ) -> Union[pd.DataFrame, None]:
-        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
+        if not isinstance(gee_dynamic_manager, GEEDynamicDatasetManager):
             raise TypeError(
-                "geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance."
+                "gee_dynamic_manager must be a GEEDynamicDatasetManager instance."
             )
         if not isinstance(obstypes, list):
             raise TypeError("obstypes must be a list.")
@@ -1687,15 +1687,15 @@ class Dataset:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
         for obst in obstypes:
-            if obst not in geedynamicdatasetmanager.modelobstypes.keys():
+            if obst not in gee_dynamic_manager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
+                    f"{obst} is not a known modelobstype of {gee_dynamic_manager}."
                 )
 
         if drive_filename is None:
-            drive_filename = f"{geedynamicdatasetmanager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"
+            drive_filename = f"{gee_dynamic_manager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"
 
-        df = geedynamicdatasetmanager.extract_timeseries_data(
+        df = gee_dynamic_manager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
@@ -1717,7 +1717,7 @@ class Dataset:
         # Thus we call that function, by providing it to _force_from_dataframe, these steps are skipped.
         _ = self.import_gee_data_from_file(
             filepath=None,
-            geedynamicdatasetmanager=geedynamicdatasetmanager,
+            gee_dynamic_manager=gee_dynamic_manager,
             force_update=True,
             _force_from_dataframe=df,
         )

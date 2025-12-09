@@ -141,7 +141,7 @@ class TestDemoData:
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         dataset.import_gee_data_from_file(
             filepath=target_era5_csv,
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             force_update=True,
         )
 

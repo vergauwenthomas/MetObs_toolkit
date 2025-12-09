@@ -42,7 +42,7 @@ class TestDataWithGaps:
             # extracting modeldata
             era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
             era5_data = dataset.get_gee_timeseries_data(
-                geedynamicdatasetmanager=era5_manager,
+                gee_dynamic_manager=era5_manager,
                 startdt_utc=None,  # raises error in metadata-only case
                 enddt_utc=None,
                 obstypes=["temp"],

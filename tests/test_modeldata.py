@@ -38,7 +38,7 @@ def create_dataset_with_modeldata():
 
     # Import the model data
     imported_df = dataset.import_gee_data_from_file(
-        filepath=era5_file, geedynamicdatasetmanager=era5_manager, force_update=True
+        filepath=era5_file, gee_dynamic_manager=era5_manager, force_update=True
     )
     return dataset
 

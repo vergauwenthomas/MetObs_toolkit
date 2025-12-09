@@ -38,7 +38,7 @@ def get_demo_dataset_with_modeldata():
 
     era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
     dataset.import_gee_data_from_file(
-        filepath=file_with_era5_data, geedynamicdatasetmanager=era5_manager
+        filepath=file_with_era5_data, gee_dynamic_manager=era5_manager
     )
 
     return dataset

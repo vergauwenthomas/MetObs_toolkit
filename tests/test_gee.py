@@ -170,7 +170,7 @@ class TestDemoDataset:
         for geemod in metobs_toolkit.default_GEE_datasets.values():
             if not isinstance(geemod, metobs_toolkit.GEEStaticDatasetManager):
                 continue
-            mapret = dataset.make_gee_plot(geedatasetmanager=geemod)
+            mapret = dataset.make_gee_plot(gee_manager=geemod)
             assert type(mapret) == geemap.Map
 
     def test_gee_dynamic_plot(self):
@@ -182,7 +182,7 @@ class TestDemoDataset:
 
         with pytest.raises(ValueError):
             mapret = dataset.make_gee_plot(
-                geedatasetmanager=geemod,
+                gee_manager=geemod,
                 modelobstype="temp",
                 timeinstance=None,  # must raise error
             )
@@ -193,13 +193,13 @@ class TestDemoDataset:
 
         with pytest.raises(MetObsObstypeNotFound):
             mapret = dataset.make_gee_plot(
-                geedatasetmanager=geemod,
+                gee_manager=geemod,
                 modelobstype="fakeobstype",  # must raise error
                 timeinstance=timeinstance,
             )
 
         mapret = dataset.make_gee_plot(
-            geedatasetmanager=geemod,
+            gee_manager=geemod,
             modelobstype="temp",
             timeinstance=timeinstance,
         )
@@ -261,7 +261,7 @@ class TestDemoDataset:
 
         with pytest.raises(MetObsMissingArgument):
             era5_data = dataset.get_gee_timeseries_data(
-                geedynamicdatasetmanager=era5_model,
+                gee_dynamic_manager=era5_model,
                 startdt_utc=None,  # raises error in metadata-only case
                 enddt_utc=None,
                 obstypes=["temp"],
@@ -275,7 +275,7 @@ class TestDemoDataset:
         startdt_utc = pd.Timestamp("2021-01-01 16:32:25")
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
             obstypes=["temp", "pressure", "wind"],
@@ -330,7 +330,7 @@ class TestDemoDataset:
         startdt_utc = pd.Timestamp("2022-08-31 18:32:25")
         enddt_utc = pd.Timestamp("2022-09-01 12:16:00")
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
             obstypes=["temp"],
@@ -371,7 +371,7 @@ class TestDemoDataset:
         era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         # Extract the timeseries
         era5_temp = dataset.get_station("vlinder02").get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_manager,  # The datasetmanager to use
+            gee_dynamic_manager=era5_manager,  # The datasetmanager to use
             startdt_utc=None,
             enddt_utc=None,
             obstypes=[
@@ -432,7 +432,7 @@ class TestDemoDataset:
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
             obstypes=["temp", "pressure", "wind"],
@@ -450,7 +450,7 @@ class TestDemoDataset:
         )
         dataset.import_gee_data_from_file(
             filepath=target_era5_csv,
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             force_update=True,
         )
         # compare with solution of direct import of gee data
