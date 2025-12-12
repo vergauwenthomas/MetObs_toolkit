@@ -15,7 +15,6 @@ import logging
 from datetime import datetime
 from functools import wraps
 from os import PathLike
-from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -67,6 +66,9 @@ def add_FileHandler(
     (higher) log level, no new handler is added. Log levels in order of restrictiveness:
     DEBUG < INFO < WARNING < ERROR < CRITICAL.
     """
+    # Lazy import to avoid circular dependency
+    from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
+
     filepath = fmt_output_filepath(
         filepath=filepath, default_filename="metobs_toolkit.log", overwrite=clearlog
     )
