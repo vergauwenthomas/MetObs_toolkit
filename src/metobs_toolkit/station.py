@@ -902,7 +902,7 @@ class Station:
     @log_entry
     def get_static_gee_point_data(
         self,
-        gee_static_manager: GEEStaticDatasetManager,
+        gee_manager: GEEStaticDatasetManager,
         update_metadata: bool = True,
         initialize_gee: bool = True,
     ):
@@ -914,7 +914,7 @@ class Station:
 
         Parameters
         ----------
-        gee_static_manager : GEEStaticDatasetManager
+        gee_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
         update_metadata : bool, optional
             If True, the retrieved data will update existing data in the Station's metadata.
@@ -932,16 +932,16 @@ class Station:
         This method interacts with the GEE API to fetch metadata for the station's location.
         Ensure that the GEE API is properly authenticated and initialized before using this method.
         """
-        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
+        if not isinstance(gee_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"gee_static_manager should be an instance of GeeStaticDataset, not {type(gee_static_manager)}"
+                f"gee_manager should be an instance of GeeStaticDataset, not {type(gee_manager)}"
             )
 
         value = self.site.get_gee_point_metadata(
-            gee_static_manager=gee_static_manager, initialize_gee=initialize_gee
+            gee_static_manager=gee_manager, initialize_gee=initialize_gee
         )
         if update_metadata:
-            self.site.set_geedata(gee_static_manager.name, value)
+            self.site.set_geedata(gee_manager.name, value)
 
         return value
 
@@ -977,7 +977,7 @@ class Station:
         `default_gee_datasets` dictionary to fetch the LCZ data.
         """
         lcz = self.get_static_gee_point_data(
-            gee_static_manager=default_gee_datasets["LCZ"],
+            gee_manager=default_gee_datasets["LCZ"],
             update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
@@ -1032,7 +1032,7 @@ class Station:
         `default_gee_datasets` dictionary to fetch the altitude data.
         """
         altitude = self.get_static_gee_point_data(
-            gee_static_manager=default_gee_datasets["altitude"],
+            gee_manager=default_gee_datasets["altitude"],
             update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
@@ -1051,7 +1051,7 @@ class Station:
     @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
-        gee_static_manager: GEEStaticDatasetManager,
+        gee_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
         update_metadata: bool = True,
@@ -1062,7 +1062,7 @@ class Station:
 
         Parameters
         ----------
-        gee_static_manager : GEEStaticDatasetManager
+        gee_manager : GEEStaticDatasetManager
             An instance of GEEStaticDatasetManager used to retrieve static GEE data.
         buffers : list, optional
             A list of buffer radii (in meters) for which to compute the buffer fractions.
@@ -1089,13 +1089,13 @@ class Station:
         -------
         It can happen that for stations located on small islands, or close to the coast, the sea-mask is not used as a landcover fraction.
         """
-        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
+        if not isinstance(gee_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"gee_static_manager should be an instance of GeeStaticDataset, not {type(gee_static_manager)}"
+                f"gee_manager should be an instance of GeeStaticDataset, not {type(gee_manager)}"
             )
 
         nesteddict = self.site.get_gee_point_buffer_fractions(
-            gee_static_manager=gee_static_manager,
+            gee_static_manager=gee_manager,
             buffers=buffers,
             aggregate=aggregate,
             initialize_gee=initialize_gee,
@@ -1142,7 +1142,7 @@ class Station:
         This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
         """
         return self.get_static_gee_buffer_fraction_data(
-            gee_static_manager=default_gee_datasets["worldcover"],
+            gee_manager=default_gee_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
             update_metadata=update_metadata,
@@ -1152,7 +1152,7 @@ class Station:
     @log_entry
     def get_gee_timeseries_data(
         self,
-        gee_dynamic_manager: GEEDynamicDatasetManager,
+        gee_manager: GEEDynamicDatasetManager,
         startdt_utc: Union[datetime, pd.Timestamp, str, None] = None,
         enddt_utc: Union[datetime, pd.Timestamp, str, None] = None,
         obstypes: list = ["temp"],
@@ -1175,7 +1175,7 @@ class Station:
 
         Parameters
         ----------
-        gee_dynamic_manager : GEEDynamicDatasetManager
+        gee_manager : GEEDynamicDatasetManager
             The dynamic dataset manager instance describing the target GEE dataset.
         startdt_utc : datetime or str, optional
             The start datetime in UTC for the time series data. If None, the
@@ -1232,9 +1232,9 @@ class Station:
 
         """
         # Check geedynamic dataset
-        if not isinstance(gee_dynamic_manager, GEEDynamicDatasetManager):
+        if not isinstance(gee_manager, GEEDynamicDatasetManager):
             raise ValueError(
-                f"geedynamicdataset should be an instance of GeeDynamicDataset, not {type(gee_dynamic_manager)}"
+                f"gee_manager should be an instance of GEEDynamicDatasetManager, not {type(gee_manager)}"
             )
 
         # Format datetime arguments
@@ -1250,18 +1250,18 @@ class Station:
 
         # check if obstypes are mapped to bands
         for obst in obstypes:
-            if obst not in gee_dynamic_manager.modelobstypes.keys():
+            if obst not in gee_manager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {gee_dynamic_manager}."
+                    f"{obst} is not a known modelobstype of {gee_manager}."
                 )
 
         # create specific name for the file that might be written to Drive
         if drive_filename is None:
             drive_filename = (
-                f"{gee_dynamic_manager.name}_timeseries_data_of_{self.name}.csv"
+                f"{gee_manager.name}_timeseries_data_of_{self.name}.csv"
             )
 
-        df = gee_dynamic_manager.extract_timeseries_data(
+        df = gee_manager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
@@ -1279,16 +1279,16 @@ class Station:
 
         # Create ModelTimeSeries instances
         for modelobscol in df.columns:
-            if modelobscol in gee_dynamic_manager.modelobstypes.keys():
+            if modelobscol in gee_manager.modelobstypes.keys():
                 modeltimeseries = ModelTimeSeries(
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    modelobstype=gee_dynamic_manager.modelobstypes[modelobscol],
+                    modelobstype=gee_manager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
-                    modelname=gee_dynamic_manager.name,
-                    modelvariable=gee_dynamic_manager.modelobstypes[
+                    modelname=gee_manager.name,
+                    modelvariable=gee_manager.modelobstypes[
                         modelobscol
                     ].model_band,
                 )

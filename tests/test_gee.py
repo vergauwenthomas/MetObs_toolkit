@@ -371,7 +371,7 @@ class TestDemoDataset:
         era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         # Extract the timeseries
         era5_temp = dataset.get_station("vlinder02").get_gee_timeseries_data(
-            gee_dynamic_manager=era5_manager,  # The datasetmanager to use
+            gee_manager=era5_manager,  # The datasetmanager to use
             startdt_utc=None,
             enddt_utc=None,
             obstypes=[
