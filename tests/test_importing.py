@@ -243,7 +243,7 @@ class TestDemoData:
             # pickle dataset
             dataset.save_dataset_to_pkl(filepath=trgfile)
             # Read in the pickled dataset
-            dataset2 = metobs_toolkit.import_dataset_from_pkl(filepath=trgfile)
+            dataset2 = metobs_toolkit.import_dataset_from_pkl(target_path=trgfile)
 
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
