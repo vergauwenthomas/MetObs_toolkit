@@ -106,7 +106,9 @@ class Dataset:
         self._stations = []  # stationname: Station
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
         self._template = Template()
-        self._metobs_version = __version__  # Store version for pickle compatibility check
+        self._metobs_version = (
+            __version__  # Store version for pickle compatibility check
+        )
         logger.debug("Dataset instance created.")
 
     # ------------------------------------------
