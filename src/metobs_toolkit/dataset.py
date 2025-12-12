@@ -71,6 +71,7 @@ from metobs_toolkit.geedatasetmanagers import (
 )
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.settings_collection.version import __version__
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -105,6 +106,7 @@ class Dataset:
         self._stations = []  # stationname: Station
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
         self._template = Template()
+        self._metobs_version = __version__  # Store version for pickle compatibility check
         logger.debug("Dataset instance created.")
 
     # ------------------------------------------
@@ -2948,10 +2950,30 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     -------
     Dataset
         The Dataset instance.
+
+    Warnings
+    --------
+    A warning is issued if the Dataset was saved with a different version
+    of metobs-toolkit than the currently installed version.
     """
 
     picklereader = PickleFileReader(file_path=target_path)
-    return picklereader.read_as_local_file()
+    dataset = picklereader.read_as_local_file()
+
+    # Check version compatibility
+    saved_version = getattr(dataset, "_metobs_version", None)
+    if saved_version is None:
+        logger.warning(
+            f"The imported Dataset was saved with an unknown version of metobs-toolkit. "
+            f"The current version is {__version__}. This may lead to compatibility issues."
+        )
+    elif saved_version != __version__:
+        logger.warning(
+            f"The imported Dataset was saved with metobs-toolkit version {saved_version}, "
+            f"but the current version is {__version__}. This may lead to compatibility issues."
+        )
+
+    return dataset
 
 
 def filter_to_stations_with_target_obstype(
