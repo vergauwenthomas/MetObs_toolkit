@@ -14,6 +14,8 @@ import os
 import logging
 from datetime import datetime
 from functools import wraps
+from os import PathLike
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -29,7 +31,7 @@ def log_entry(func):
 
 @log_entry
 def add_FileHandler(
-    trglogfile: str,
+    filepath: str | PathLike,
     setlvl: str = "DEBUG",
     logformat: str = "LOG:: %(levelname)s - %(message)s",
     clearlog: bool = True,
@@ -41,7 +43,7 @@ def add_FileHandler(
 
     Parameters
     ----------
-    trglogfile : str
+    filepath : str | PathLike
         Path of the target log file.
     setlvl : {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}, optional
         The logger level for the FileHandler. See
@@ -65,9 +67,9 @@ def add_FileHandler(
     (higher) log level, no new handler is added. Log levels in order of restrictiveness:
     DEBUG < INFO < WARNING < ERROR < CRITICAL.
     """
-    if clearlog:
-        if os.path.isfile(trglogfile):
-            os.remove(trglogfile)
+    filepath = fmt_output_filepath(
+        filepath=filepath, default_filename="metobs_toolkit.log", overwrite=clearlog
+    )
 
     rootlog = logging.getLogger("<metobs_toolkit>")
 
@@ -75,7 +77,7 @@ def add_FileHandler(
     target_level = getattr(logging, setlvl.upper())
 
     # Normalize the target file path for comparison
-    target_path = os.path.abspath(trglogfile)
+    target_path = os.path.abspath(filepath)
 
     # Check if FileHandler already exists for same file at same or higher level
     for handler in rootlog.handlers:
@@ -84,14 +86,14 @@ def add_FileHandler(
             existing_path = os.path.abspath(handler.baseFilename)
             if existing_path == target_path and handler.level <= target_level:
                 rootlog.debug(
-                    f"FileHandler already exists for file '{trglogfile}' "
+                    f"FileHandler already exists for file '{filepath}' "
                     f"at level {logging.getLevelName(handler.level)} "
                     f"(<= {setlvl.upper()}). No new FileHandler added."
                 )
                 return
 
     # Create the Handler for logging data to a file - will be inherited for children
-    file_handler = logging.FileHandler(filename=trglogfile)
+    file_handler = logging.FileHandler(filename=filepath)
     file_handler.setLevel(setlvl.upper())  # set handler level
     # Create a Formatter for formatting the log messages
     file_logger_formatter = logging.Formatter(logformat)

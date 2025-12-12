@@ -239,12 +239,11 @@ class TestDemoData:
         # Create a tmp dir
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
+            trgfile = tmpdir.joinpath("deleteme.pkl")
             # pickle dataset
-            dataset.save_dataset_to_pkl(target_folder=tmpdir, filename="deleteme")
+            dataset.save_dataset_to_pkl(filepath=trgfile)
             # Read in the pickled dataset
-            dataset2 = metobs_toolkit.import_dataset_from_pkl(
-                target_path=tmpdir.joinpath("deleteme.pkl")
-            )
+            dataset2 = metobs_toolkit.import_dataset_from_pkl(filepath=trgfile)
 
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
