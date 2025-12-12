@@ -1107,7 +1107,8 @@ class Station:
 
     @log_entry
     def get_landcover_fractions(
-        self, buffers: list = [100],
+        self,
+        buffers: list = [100],
         aggregate: bool = False,
         update_metadata: bool = True,
         initialize_gee: bool = True,
