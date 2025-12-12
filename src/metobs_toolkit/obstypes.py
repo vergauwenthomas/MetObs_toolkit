@@ -807,9 +807,7 @@ def convert_units(records, cur_unit, trg_unit):
 #    Default obstypes
 # ------------------------------------------
 
-temperature = Obstype(
-    name="temp", std_unit=ureg.degC, description="2m - temperature"
-)
+temperature = Obstype(name="temp", std_unit=ureg.degC, description="2m - temperature")
 
 humidity = Obstype(
     name="humidity",

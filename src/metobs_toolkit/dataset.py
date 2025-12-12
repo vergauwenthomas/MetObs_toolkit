@@ -1,4 +1,5 @@
 import os
+from os import PathLike
 import copy
 import pickle
 import logging
@@ -19,6 +20,7 @@ from metobs_toolkit.template import Template, update_known_obstype_with_original
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 from metobs_toolkit.io_collection.filereaders import (
     PickleFileReader,
     find_suitable_reader,
@@ -370,7 +372,9 @@ class Dataset:
         return dataset_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
-    def to_netcdf(self, filepath: str, **kwargs) -> None:
+    def to_netcdf(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the Dataset as a netCDF file.
 
@@ -379,8 +383,11 @@ class Dataset:
 
         Parameters
         ----------
-        filepath : str
-            Path where the netCDF file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the netCDF file will be saved. If None, defaults to
+            'dataset.nc' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments passed to xarray.Dataset.to_netcdf().
             Common options include:
@@ -401,6 +408,13 @@ class Dataset:
         The method uses the 'netcdf4' engine by default for better Unicode string
         compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.nc",
+            suffix=".nc",
+            overwrite=overwrite,
+        )
 
         # Convert to xarray Dataset
         ds = self.to_xr()
@@ -686,7 +700,7 @@ class Dataset:
     @log_entry
     def import_gee_data_from_file(
         self,
-        filepath: str,
+        filepath: str | PathLike,
         gee_dynamic_manager: GEEDynamicDatasetManager,
         force_update: bool = True,
         _force_from_dataframe: Union[pd.DataFrame, None] = None,
@@ -700,7 +714,7 @@ class Dataset:
 
         Parameters
         ----------
-        filepath : str
+        filepath : str or PathLike
             The path to the file containing the GEE data.
         gee_dynamic_manager : GEEDynamicDatasetManager
             An instance of `GEEDynamicDatasetManager` responsible for managing the GEE dataset
@@ -748,9 +762,7 @@ class Dataset:
                     modelobstype=gee_dynamic_manager.modelobstypes[col],
                     timezone="UTC",
                     modelname=gee_dynamic_manager.name,
-                    modelvariable=gee_dynamic_manager.modelobstypes[
-                        col
-                    ].model_band,
+                    modelvariable=gee_dynamic_manager.modelobstypes[col].model_band,
                 )
                 sta.add_to_modeldata(modeltimeseries, force_update=force_update)
 
@@ -784,8 +796,7 @@ class Dataset:
     @log_entry
     def save_dataset_to_pkl(
         self,
-        target_folder: Union[str, Path],
-        filename: str = "saved_dataset.pkl",
+        filepath: str | PathLike | None = None,
         overwrite: bool = False,
     ) -> None:
         """
@@ -793,38 +804,31 @@ class Dataset:
 
         Parameters
         ----------
-        target_folder : str or Path
-            The folder where the pickle file will be saved. Must be an existing directory.
-        filename : str, optional
-            The name of the pickle file. Defaults to "saved_dataset.pkl". If the provided
-            filename does not have a ".pkl" extension, it will be automatically appended.
+        filepath : str or path-like or None, optional
+            Path where the pickle file will be saved. If None, defaults to
+            'saved_dataset.pkl' in the current working directory. Default is None.
         overwrite : bool, optional
-            Whether to overwrite the file if it already exists. Defaults to False.
+            If True, overwrites existing file. Default is False.
 
         Returns
         -------
         None
         """
-        if not Path(target_folder).is_dir():
-            raise FileNotFoundError(f"{target_folder} does not exist")
 
-        if not filename.endswith(".pkl"):
-            filename += ".pkl"
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="saved_dataset.pkl",
+            suffix=".pkl",
+            overwrite=overwrite,
+        )
 
-        target_path = Path(target_folder).joinpath(filename)
-        if target_path.exists():
-            if overwrite:
-                target_path.unlink()
-            else:
-                raise FileExistsError(
-                    f"The file {target_path} already exists. Remove it or set overwrite=True"
-                )
-
-        with open(target_path, "wb") as outp:
+        with open(filepath, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     @log_entry
-    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_parquet(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the dataset observations to a parquet file.
 
@@ -833,8 +837,11 @@ class Dataset:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the parquet file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the parquet file will be saved. If None, defaults to
+            'dataset.parquet' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
 
@@ -848,11 +855,21 @@ class Dataset:
         Dataset.to_csv : Save dataset to CSV format.
         Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.parquet",
+            suffix=".parquet",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_parquet(target_file, **kwargs)
+        df.to_parquet(filepath, **kwargs)
 
     @log_entry
-    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_csv(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the dataset observations to a CSV file.
 
@@ -861,8 +878,11 @@ class Dataset:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the CSV file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the CSV file will be saved. If None, defaults to
+            'dataset.csv' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_csv().
 
@@ -876,8 +896,16 @@ class Dataset:
         Dataset.to_parquet : Save dataset to parquet format.
         Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.csv",
+            suffix=".csv",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_csv(target_file, **kwargs)
+        df.to_csv(filepath, **kwargs)
 
     @log_entry
     def import_data_from_file(
@@ -1308,8 +1336,7 @@ class Dataset:
         timeinstance: Union[pd.Timestamp, str, None] = None,
         modelobstype: str = None,
         save: bool = False,
-        outputfolder: str = os.getcwd(),
-        filename: str = "gee_plot.html",
+        filepath: str | PathLike = None,
         vmin: Union[int, float, None] = None,
         vmax: Union[int, float, None] = None,
         overwrite: bool = False,
@@ -1337,10 +1364,10 @@ class Dataset:
             required when gee_manager is a GEEDynamicDatasetManager. The default is None.
         save : bool, optional
             If True, the plot will be saved as a (HTML) file, that can be opened by a webbrowser. The default is False.
-        outputfolder : str, optional
-            The folder to save the file too. This is only used when save is True. The default is os.getcwd() (the current working directory).
-        filename : str, optional
-            The name of the file to save the plot to. This is only used when save is True. The default is "gee_plot.html".
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : int | float | None, optional
             The minimum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
         vmax : int | float | None, optional
@@ -1353,6 +1380,19 @@ class Dataset:
         geemap.foliummap.Map
             The interactive map.
         """
+
+        if not save and filepath is not None:
+            logger.warning(
+                "A 'filepath' was provided but 'save' is False. The 'filepath' parameter will be ignored."
+            )
+        if save:
+            filepath = fmt_output_filepath(
+                filepath=filepath,
+                default_filename="gee_plot.html",
+                suffix=".html",
+                overwrite=overwrite,
+            )
+
         if not isinstance(
             gee_manager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
         ):
@@ -1362,8 +1402,7 @@ class Dataset:
 
         if isinstance(gee_manager, GEEStaticDatasetManager):
             kwargs = dict(
-                outputfolder=outputfolder,
-                filename=filename,
+                filepath=filepath,
                 save=save,
                 vmin=vmin,
                 vmax=vmax,
@@ -1384,8 +1423,7 @@ class Dataset:
             kwargs = dict(
                 timeinstance=timeinstance,
                 modelobstype=modelobstype,
-                outputfolder=outputfolder,
-                filename=filename,
+                filepath=filepath,
                 save=save,
                 vmin=vmin,
                 vmax=vmax,
@@ -2405,8 +2443,7 @@ class Dataset:
         self, obstype: str = "temp", make_plot: bool = True
     ) -> Union[pd.DataFrame, None]:
         freqdf_list = [
-            sta.get_qc_stats(obstype=obstype, make_plot=False)
-            for sta in self.stations
+            sta.get_qc_stats(obstype=obstype, make_plot=False) for sta in self.stations
         ]
 
         dfagg = (
@@ -2419,9 +2456,7 @@ class Dataset:
 
         if make_plot:
             fig = plotting.qc_overview_pies(df=dfagg)
-            fig.suptitle(
-                f"QC frequency statistics of {obstype} on Dataset level."
-            )
+            fig.suptitle(f"QC frequency statistics of {obstype} on Dataset level.")
             return fig
         else:
             return dfagg

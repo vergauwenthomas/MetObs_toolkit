@@ -93,9 +93,7 @@ class TestBreakingDataset:
             use_mp=False,
         )
 
-        dataset.repetitions_check(
-            obstype="temp", max_N_repetitions=5, use_mp=False
-        )
+        dataset.repetitions_check(obstype="temp", max_N_repetitions=5, use_mp=False)
         dataset.step_check(
             obstype="temp",
             max_increase_per_second=8.0 / 3600.0,

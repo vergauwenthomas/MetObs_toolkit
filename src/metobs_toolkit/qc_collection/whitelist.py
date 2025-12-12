@@ -424,9 +424,7 @@ class WhiteSet:
             return infostr
 
     @log_entry
-    def create_sensorwhitelist(
-        self, trg_station: str, obstype: str
-    ) -> SensorWhiteSet:
+    def create_sensorwhitelist(self, trg_station: str, obstype: str) -> SensorWhiteSet:
         """Create a sensor-specific whitelist for a station and observation type.
 
         Filters the white_records by station name and obstype to create a

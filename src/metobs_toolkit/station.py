@@ -7,6 +7,7 @@ from datetime import datetime
 from matplotlib.pyplot import Axes
 from xarray import Dataset as xrDataset
 from pathlib import Path
+from os import PathLike
 
 from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -44,6 +45,7 @@ from metobs_toolkit.modeltimeseries import ModelTimeSeries
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import station_df
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -218,7 +220,9 @@ class Station:
         return station_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
-    def to_netcdf(self, filepath: str, **kwargs) -> None:
+    def to_netcdf(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the Station as a netCDF file.
 
@@ -227,8 +231,11 @@ class Station:
 
         Parameters
         ----------
-        filepath : str
-            Path where the netCDF file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the netCDF file will be saved. If None, defaults to
+            '<stationname>_station.nc' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments passed to xarray.Dataset.to_netcdf().
             Common options include:
@@ -250,6 +257,13 @@ class Station:
         compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
 
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.nc",
+            suffix=".nc",
+            overwrite=overwrite,
+        )
+
         # Convert to xarray Dataset
         ds = self.to_xr()
 
@@ -262,7 +276,9 @@ class Station:
         ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
-    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_parquet(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the station observations to a parquet file.
 
@@ -271,8 +287,11 @@ class Station:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the parquet file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the parquet file will be saved. If None, defaults to
+            '<stationname>_station.parquet' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
 
@@ -285,11 +304,21 @@ class Station:
         Station.df : The DataFrame property that is written to file.
         Station.to_csv : Save station data to CSV format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.parquet",
+            suffix=".parquet",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_parquet(target_file, **kwargs)
+        df.to_parquet(filepath, **kwargs)
 
     @log_entry
-    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_csv(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the station observations to a CSV file.
 
@@ -298,8 +327,11 @@ class Station:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the CSV file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the CSV file will be saved. If None, defaults to
+            '<stationname>_station.csv' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_csv().
 
@@ -312,8 +344,16 @@ class Station:
         Station.df : The DataFrame property that is written to file.
         Station.to_parquet : Save station data to parquet format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.csv",
+            suffix=".csv",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_csv(target_file, **kwargs)
+        df.to_csv(filepath, **kwargs)
 
     @copy_doc(station_df)
     @property

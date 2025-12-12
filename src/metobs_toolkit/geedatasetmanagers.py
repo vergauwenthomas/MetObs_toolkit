@@ -8,6 +8,7 @@ A Modeldata holds all timeseries coming from a model and methods to use them.
 
 # Standard library imports
 from pathlib import Path
+from os import PathLike
 import copy
 import sys
 from typing import Union
@@ -24,6 +25,7 @@ import ee
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
     folium_map,
@@ -457,8 +459,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         self,
         metadf: pd.DataFrame,
         save: bool = False,
-        outputfolder: str = None,
-        filename: str = None,
+        filepath: str | PathLike | None = None,
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
@@ -478,10 +479,10 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             Metadata dataframe with station locations.
         save : bool, optional
             If True, saves the map as an HTML file. Default is False.
-        outputfolder : str or None, optional
-            Path to the folder to save the HTML file. Default is None.
-        filename : str or None, optional
-            The filename for the HTML file. Default is None.
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : numeric or None, optional
             Minimum value for colormap. Default is None.
         vmax : numeric or None, optional
@@ -495,26 +496,12 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             The interactive map of the GeeStaticDataset.
         """
         if save:
-            if outputfolder is None:
-                raise MetObsModelDataError(
-                    "If save is True, then outputfolder must be specified."
-                )
-            if filename is None:
-                raise MetObsModelDataError(
-                    "If save is True, then filename must be specified."
-                )
-            if filename[-5:] != ".html":
-                filename += ".html"
-
-            target_path = Path(outputfolder).joinpath(filename)
-            if target_path.exists():
-                if overwrite:
-                    logger.info(f"Overwrite the file at {target_path}.")
-                    target_path.unlink()
-                else:
-                    raise MetObsModelDataError(
-                        f"{target_path} is already a file and overwrite is set to False!"
-                    )
+            filepath = fmt_output_filepath(
+                filepath,
+                default_filename="gee_plot.html",
+                overwrite=overwrite,
+                suffix=".html",
+            )
 
         connect_to_gee()
 
@@ -645,8 +632,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         MAP.addLayerControl()
 
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {target_path}")
-            MAP.save(target_path)
+            logger.info(f"Saving {self.name} gee plot at: {filepath}")
+            MAP.save(filepath)
 
         return MAP
 
@@ -914,8 +901,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         timeinstance: pd.Timestamp,
         modelobstype: str = "temp",
         save: bool = False,
-        outputfolder: str = None,
-        filename: str = None,
+        filepath: str | PathLike | None = None,
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
@@ -933,10 +919,10 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             The name of the ModelObstype to plot. Default is "temp".
         save : bool, optional
             If True, saves the map as an HTML file. Default is False.
-        outputfolder : str or None, optional
-            Path to the folder to save the HTML file. Default is None.
-        filename : str or None, optional
-            The filename for the HTML file. Default is None.
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : numeric or None, optional
             Minimum value for colormap. Default is None.
         vmax : numeric or None, optional
@@ -950,26 +936,12 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             The interactive map of the GeeDynamicDataset.
         """
         if save:
-            if outputfolder is None:
-                raise MetObsModelDataError(
-                    "If save is True, then outputfolder must be specified."
-                )
-            if filename is None:
-                raise MetObsModelDataError(
-                    "If save is True, then filename must be specified."
-                )
-            if filename[-5:] != ".html":
-                filename += ".html"
-
-            target_path = Path(outputfolder).joinpath(filename)
-            if target_path.exists():
-                if overwrite:
-                    logger.info(f"Overwrite the file at {target_path}.")
-                    target_path.unlink()
-                else:
-                    raise MetObsModelDataError(
-                        f"{target_path} is already a file and overwrite is set to False!"
-                    )
+            filepath = fmt_output_filepath(
+                filepath,
+                default_filename="gee_plot.html",
+                overwrite=overwrite,
+                suffix=".html",
+            )
 
         if timeinstance.tz is None:
             timeinstance = timeinstance.tz_localize(tz="UTC")
@@ -1093,8 +1065,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         # Save
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {target_path}")
-            MAP.save(target_path)
+            logger.info(f"Saving {self.name} gee plot at: {filepath}")
+            MAP.save(filepath)
 
         return MAP
 

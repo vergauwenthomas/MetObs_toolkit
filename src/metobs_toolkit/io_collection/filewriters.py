@@ -29,11 +29,14 @@ def write_dict_to_json(dictionary: dict, trgfile: str) -> None:
         print(j, file=f)
     return
 
+
 @log_entry
-def fmt_output_filepath(filepath: str | PathLike | None,
-                        default_filename: str,
-                        overwrite: bool = False,
-                        suffix: str | None = None) -> Path:
+def fmt_output_filepath(
+    filepath: str | PathLike | None,
+    default_filename: str,
+    overwrite: bool = False,
+    suffix: str | None = None,
+) -> Path:
     """
     Validate and prepare an output file path for writing.
 
@@ -70,27 +73,29 @@ def fmt_output_filepath(filepath: str | PathLike | None,
     IOError
         If the parent directory cannot be created.
     """
-    #use default filepath if none provided
+    # use default filepath if none provided
     if filepath is None:
         filepath = Path.cwd() / default_filename
-    
-    #Convert to Path object
+
+    # Convert to Path object
     if not isinstance(filepath, Path):
         filepath = Path(filepath)
-        
-    #Check suffix
+
+    # Check suffix
     if suffix:
         if filepath.suffix != suffix:
             logger.info(f"Appending suffix '{suffix}' to file path.")
             filepath = filepath.with_suffix(suffix)
-    
+
     if filepath.exists():
         if overwrite:
             logger.info(f"File {filepath} exists but will be overwritten.")
             filepath.unlink()
         else:
-            raise FileExistsError(f"File {filepath} already exists and overwrite is set to False.")
-    
+            raise FileExistsError(
+                f"File {filepath} already exists and overwrite is set to False."
+            )
+
     parent_dir = filepath.parent
     if not parent_dir.exists():
         try:
@@ -98,8 +103,5 @@ def fmt_output_filepath(filepath: str | PathLike | None,
             logger.info(f"Created directory {parent_dir}.")
         except Exception as e:
             raise IOError(f"Cannot create directory {parent_dir}: {e}")
-        
-    
-    
-    return filepath
 
+    return filepath
