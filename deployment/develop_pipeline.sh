@@ -45,7 +45,8 @@ rm ${REPODIR}/dist/*.tar.gz
 poetry update
 poetry show
 poetry build
-poetry install --all-extras --no-root
+#poetry install --all-extras --no-root
+poetry install --all-extras
 echo ""
 
 

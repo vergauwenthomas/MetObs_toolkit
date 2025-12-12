@@ -391,14 +391,10 @@ class TestDemoDataset:
             tmpdir = Path(tmpdir)
             trgfile = tmpdir / "deleteme.pkl"
             # pickle dataset
-            dataset.save_dataset_to_pkl(
-                filepath=trgfile, overwrite=True
-            )
+            dataset.save_dataset_to_pkl(filepath=trgfile, overwrite=True)
 
             # open datast
-            dataset_pkled = metobs_toolkit.import_dataset_from_pkl(
-                target_path=trgfile
-            )
+            dataset_pkled = metobs_toolkit.import_dataset_from_pkl(target_path=trgfile)
 
         assert_equality(dataset_pkled, dataset)
 
