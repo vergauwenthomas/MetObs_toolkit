@@ -984,7 +984,7 @@ def save_whitelist_records(
     for outlsta in outldf["name"].unique():
         # Create a sensorwhiteset for each station
         sensorwhiteset = whiteset.create_sensorwhitelist(
-            trg_station=outlsta, obstype=obstype
+            stationname=outlsta, obstype=obstype
         )
         # get the white-listed datetimes for the station
         outliers_dts = sensorwhiteset.catch_white_records(

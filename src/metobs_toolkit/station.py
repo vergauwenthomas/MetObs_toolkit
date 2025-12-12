@@ -903,7 +903,7 @@ class Station:
     def get_static_gee_point_data(
         self,
         gee_static_manager: GEEStaticDatasetManager,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ):
         """
@@ -916,8 +916,8 @@ class Station:
         ----------
         gee_static_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
-        overwrite : bool, optional
-            If True, the retrieved data will overwrite existing data in the Station's metadata.
+        update_metadata : bool, optional
+            If True, the retrieved data will update existing data in the Station's metadata.
             Default is True.
         initialize_gee : bool, optional
             If True, initializes the GEE API before fetching the data. Default is True.
@@ -940,7 +940,7 @@ class Station:
         value = self.site.get_gee_point_metadata(
             gee_static_manager=gee_static_manager, initialize_gee=initialize_gee
         )
-        if overwrite:
+        if update_metadata:
             self.site.set_geedata(gee_static_manager.name, value)
 
         return value
@@ -948,7 +948,7 @@ class Station:
     @log_entry
     def get_LCZ(
         self,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
         apply_seamask_fix: bool = True,
     ) -> str:
@@ -957,8 +957,8 @@ class Station:
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing LCZ data if stored in the Site attribute. Default is True.
+        update_metadata : bool, optional
+            If True, update existing LCZ data if stored in the Site attribute. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
         apply_seamask_fix: bool, optional
@@ -978,7 +978,7 @@ class Station:
         """
         lcz = self.get_static_gee_point_data(
             gee_static_manager=default_gee_datasets["LCZ"],
-            overwrite=False,  # overwrite is done in this method
+            update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
 
@@ -992,7 +992,7 @@ class Station:
                 raise ValueError("Unexpected LCZ value")
 
         # update the Site instance
-        if overwrite:
+        if update_metadata:
             self.site.set_LCZ(lcz)
         else:
             if self.site.flag_has_LCZ():
@@ -1004,15 +1004,15 @@ class Station:
 
     @log_entry
     def get_altitude(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self, update_metadata: bool = True, initialize_gee: bool = True
     ) -> float:
         """
         Retrieve altitude for the station using Google Earth Engine (GEE).
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing altitude data if stored in the Site attribute. Default is True.
+        update_metadata : bool, optional
+            If True, update existing altitude data if stored in the Site attribute. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
@@ -1033,12 +1033,12 @@ class Station:
         """
         altitude = self.get_static_gee_point_data(
             gee_static_manager=default_gee_datasets["altitude"],
-            overwrite=False,  # overwrite is done in this method
+            update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
 
         # update the Site instance
-        if overwrite:
+        if update_metadata:
             self.site.set_altitude(altitude)
         else:
             if self.site.flag_has_altitude():
@@ -1054,7 +1054,7 @@ class Station:
         gee_static_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> dict:
         """
@@ -1069,8 +1069,8 @@ class Station:
             Default is [100].
         aggregate : bool, optional
             If True, aggregate the buffer fraction data. Default is False.
-        overwrite : bool, optional
-            If True, overwrite the existing buffer fraction data in the station's Site attribute.
+        update_metadata : bool, optional
+            If True, update the existing buffer fraction data in the station's Site attribute.
             Default is True.
         initialize_gee : bool, optional
             If True, initialize the GEE environment before retrieving data. Default is True.
@@ -1100,14 +1100,17 @@ class Station:
             aggregate=aggregate,
             initialize_gee=initialize_gee,
         )
-        if overwrite:
+        if update_metadata:
             for bufferrad, fractions in nesteddict.items():
                 self.site.set_gee_buffered_frac_data(buffer=bufferrad, data=fractions)
         return nesteddict
 
     @log_entry
     def get_landcover_fractions(
-        self, buffers: list = [100], aggregate: bool = False, overwrite: bool = True
+        self, buffers: list = [100],
+        aggregate: bool = False,
+        update_metadata: bool = True,
+        initialize_gee: bool = True,
     ) -> dict:
         """
         Get landcover fractions for a circular buffer at the station using GEE.
@@ -1122,8 +1125,10 @@ class Station:
             Default is [100].
         aggregate : bool, optional
             If True, aggregates the data over the buffers. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing data. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing data. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1139,7 +1144,8 @@ class Station:
             gee_static_manager=default_gee_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
-            overwrite=overwrite,
+            update_metadata=update_metadata,
+            initialize_gee=initialize_gee,
         )
 
     @log_entry
@@ -1154,6 +1160,7 @@ class Station:
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
+        initialize_gee: bool = True,
     ) -> Union[pd.DataFrame, None]:
         """
         Extract time series data from GEE.
@@ -1190,6 +1197,8 @@ class Station:
             Defaults to False.
         force_to_drive : bool, optional
             If True, forces saving the data to Google Drive. Defaults to False.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1261,6 +1270,7 @@ class Station:
             drive_folder=drive_folder,
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
+            initialize_gee=initialize_gee,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
@@ -1330,7 +1340,7 @@ class Station:
             "lower_threshold": lower_threshold,
             "upper_threshold": upper_threshold,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, obstype=obstype
+                stationname=self.name, obstype=obstype
             ),
         }
 
@@ -1396,7 +1406,7 @@ class Station:
             "timewindow": timewindow,
             "min_records_per_window": min_records_per_window,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, obstype=obstype
+                stationname=self.name, obstype=obstype
             ),
         }
 
@@ -1456,7 +1466,7 @@ class Station:
         qc_kwargs = {
             "max_N_repetitions": max_N_repetitions,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, obstype=obstype
+                stationname=self.name, obstype=obstype
             ),
         }
 
@@ -1517,7 +1527,7 @@ class Station:
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, obstype=obstype
+                stationname=self.name, obstype=obstype
             ),
         }
 
@@ -1594,7 +1604,7 @@ class Station:
             "max_increase_per_second": max_increase_per_second,
             "max_decrease_per_second": max_decrease_per_second,
             "sensorwhiteset": whiteset.create_sensorwhitelist(
-                trg_station=self.name, obstype=obstype
+                stationname=self.name, obstype=obstype
             ),
         }
 

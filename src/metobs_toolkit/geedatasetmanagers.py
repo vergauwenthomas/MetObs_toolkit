@@ -463,6 +463,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """Make an interactive spatial plot of the GEE dataset and the stations.
 
@@ -489,6 +490,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             Maximum value for colormap. Default is None.
         overwrite : bool, optional
             If True, overwrites existing file. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
@@ -503,7 +506,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
                 suffix=".html",
             )
 
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         im = gee_api.get_ee_obj(self)
 
@@ -905,6 +909,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """
         Make an interactive spatial plot of the GEE dataset and the stations.
@@ -929,6 +934,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             Maximum value for colormap. Default is None.
         overwrite : bool, optional
             If True, overwrites existing file. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
@@ -959,7 +966,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if not isinstance(modelobstype, ModelObstype):
             raise MetObsModelDataError(f"{modelobstype} is not a ModelObstype.")
 
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         # Get image
         im = gee_api.get_ee_obj(self, target_bands=[modelobstype.model_band])
@@ -1082,6 +1090,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
+        initialize_gee: bool = True,
     ):
         """
         Extract timeseries data and set the modeldf.
@@ -1106,6 +1115,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             If True, forces direct transfer. Default is False.
         force_to_drive : bool, optional
             If True, forces writing to Google Drive. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before extracting data. Default is True.
 
         Returns
         -------
@@ -1147,7 +1158,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if enddt_utc.tz is None:
             enddt_utc = enddt_utc.tz_localize(tz="UTC")
 
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         if get_all_bands:
             bandnames = self._get_all_gee_bandnames()

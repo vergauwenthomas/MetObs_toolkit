@@ -1340,6 +1340,7 @@ class Dataset:
         vmin: Union[int, float, None] = None,
         vmax: Union[int, float, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """Create an interactive spatial plot of the GEE dataset and stations.
 
@@ -1374,6 +1375,8 @@ class Dataset:
             The maximum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
         overwrite : bool, optional
             If True, the plot will be overwritten if it already exists. This is only relevant when save is True. The default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
@@ -1428,6 +1431,7 @@ class Dataset:
                 vmin=vmin,
                 vmax=vmax,
                 overwrite=overwrite,
+                initialize_gee=initialize_gee,
             )
 
         return gee_manager.make_gee_plot(metadf=self.metadf, **kwargs)
@@ -1440,7 +1444,7 @@ class Dataset:
     def get_static_gee_point_data(
         self,
         gee_static_manager: GEEStaticDatasetManager,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """Extract static data from GEE dataset at Stations locations.
@@ -1452,8 +1456,8 @@ class Dataset:
         ----------
         gee_static_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
-        overwrite : bool, optional
-            If True, the retrieved data will overwrite existing data in the ´Station´'s metadata.
+        update_metadata : bool, optional
+            If True, the retrieved data will update existing data in the ´Station´'s metadata.
             Default is True.
         initialize_gee : bool, optional
             If True, initializes the GEE API before fetching the data. Default is True.
@@ -1485,7 +1489,7 @@ class Dataset:
         geedf = gee_static_manager.extract_static_point_data(self.metadf)
 
         varname = gee_static_manager.name
-        if overwrite:
+        if update_metadata:
             for staname, geedict in geedf.to_dict(orient="index").items():
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
         return geedf
@@ -1496,7 +1500,7 @@ class Dataset:
         gee_static_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """Extract circular buffer fractions of a GEE dataset at Stations locations.
@@ -1515,8 +1519,8 @@ class Dataset:
             Default is [100].
         aggregate : bool, optional
             If True, aggregate the buffer fraction data. Aggregation schemes are stored per ´GEEStaticDatasetManager´. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
         initialize_gee : bool, optional
             If True, initialize the GEE environment before retrieving data. Default is True.
 
@@ -1556,7 +1560,7 @@ class Dataset:
 
         geedf = save_concat((dflist))
 
-        if overwrite:
+        if update_metadata:
             for staname in geedf.index.get_level_values("name").unique():
                 asdict = geedf.loc[staname].to_dict(orient="index")
                 for radius, fractions in asdict.items():
@@ -1569,7 +1573,7 @@ class Dataset:
     @log_entry
     def get_LCZ(
         self,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
         apply_seamask_fix: bool = True,
     ) -> pd.DataFrame:
@@ -1578,8 +1582,8 @@ class Dataset:
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing LCZ data if stored in the ´Site´ instances. Default is True.
+        update_metadata : bool, optional
+            If True, update existing LCZ data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
         apply_seamask_fix: bool, optional
@@ -1594,7 +1598,7 @@ class Dataset:
 
         lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
-            overwrite=False,  # will be done below
+            update_metadata=False,  # will be done below
             initialize_gee=initialize_gee,
         )
 
@@ -1604,7 +1608,7 @@ class Dataset:
             lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
 
         # overwrite the site attribute
-        if overwrite:
+        if update_metadata:
             for station, lczval in lcz_df.iterrows():
                 self.get_station(station).site.set_LCZ(lczval["LCZ"])
 
@@ -1612,15 +1616,15 @@ class Dataset:
 
     @log_entry
     def get_altitude(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self, update_metadata: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
         """
         Retrieve altitude for the stations using Google Earth Engine (GEE).
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing altitude data if stored in the ´Site´ instances. Default is True.
+        update_metadata : bool, optional
+            If True, update existing altitude data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
@@ -1632,11 +1636,11 @@ class Dataset:
 
         alt_df = self.get_static_gee_point_data(
             default_datasets["altitude"],
-            overwrite=False,  # will be done below
+            update_metadata=False,  # will be done below
             initialize_gee=initialize_gee,
         )
 
-        if overwrite:
+        if update_metadata:
             for staname, geedict in alt_df.to_dict(orient="index").items():
                 self.get_station(staname).site.set_altitude(geedict["altitude"])
 
@@ -1647,7 +1651,7 @@ class Dataset:
         self,
         buffers: list = [100],
         aggregate: bool = False,
-        update_stations: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """
@@ -1660,8 +1664,10 @@ class Dataset:
             Default is [100].
         aggregate : bool, optional
             If True, aggregates the data over the buffers. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing landcover fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing landcover fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1681,7 +1687,7 @@ class Dataset:
             gee_static_manager=default_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
-            overwrite=update_stations,
+            update_metadata=update_metadata,
             initialize_gee=initialize_gee,
         )
 
@@ -1698,6 +1704,7 @@ class Dataset:
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
+        initialize_gee: bool = True,
     ) -> Union[pd.DataFrame, None]:
         if not isinstance(gee_dynamic_manager, GEEDynamicDatasetManager):
             raise TypeError(
@@ -1743,6 +1750,7 @@ class Dataset:
             drive_folder=drive_folder,
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
+            initialize_gee=initialize_gee,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
