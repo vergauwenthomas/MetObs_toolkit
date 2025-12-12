@@ -1257,9 +1257,7 @@ class Station:
 
         # create specific name for the file that might be written to Drive
         if drive_filename is None:
-            drive_filename = (
-                f"{gee_manager.name}_timeseries_data_of_{self.name}.csv"
-            )
+            drive_filename = f"{gee_manager.name}_timeseries_data_of_{self.name}.csv"
 
         df = gee_manager.extract_timeseries_data(
             metadf=self.metadf,
@@ -1288,9 +1286,7 @@ class Station:
                     datadtype=np.float32,
                     timezone="UTC",
                     modelname=gee_manager.name,
-                    modelvariable=gee_manager.modelobstypes[
-                        modelobscol
-                    ].model_band,
+                    modelvariable=gee_manager.modelobstypes[modelobscol].model_band,
                 )
                 # todo: duplicacy check
                 self.add_to_modeldata(modeltimeseries, force_update=True)
