@@ -6,6 +6,9 @@ import pandas as pd
 from .common_functions import test_moving_window_condition
 from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+)
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -67,7 +70,7 @@ def persistence_check(
         logger.warning(
             "The minimum number of window members for the persistence check is not met!"
         )
-        return pd.DatetimeIndex(name="datetime", data=[])
+        return timestamps_to_datetimeindex(name="datetime", timestamps=[])
 
     # Apply persistence
     @log_entry

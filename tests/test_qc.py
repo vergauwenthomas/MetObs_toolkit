@@ -538,7 +538,6 @@ class TestWhiteRecords:
         assert "n_timestamps=" in repr_sensor
         assert str_sensor == repr_sensor
 
-
     def test_import_data(self, overwrite_solution=False):
         """Import demo dataset for white_records testing."""
         _method_name = sys._getframe().f_code.co_name

@@ -3,6 +3,9 @@ import logging
 import pandas as pd
 from typing import List, Union
 import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+)
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -111,7 +114,9 @@ class SensorWhiteSet:
         pd.DatetimeIndex
             DatetimeIndex containing all whitelisted timestamps.
         """
-        return pd.DatetimeIndex(data=self.white_timestamps, name="datetime")
+        return timestamps_to_datetimeindex(
+            timestamps=self.white_timestamps, tz="UTC", name="datetime"
+        )
 
     def catch_white_records(self, outliers_idx: pd.DatetimeIndex) -> pd.DatetimeIndex:
         """Remove whitelisted timestamps from outliers index.
@@ -143,7 +148,7 @@ class SensorWhiteSet:
                     "All timestamps whitelisted, removing all %s outliers",
                     len(outliers_idx),
                 )
-                outliers = pd.DatetimeIndex([], name="datetime")
+                outliers = timestamps_to_datetimeindex([], name="datetime")
             else:
                 # Get the white timestamps
                 white_records = self._get_white_timestamps()
@@ -257,27 +262,10 @@ class WhiteSet:
         # Get the datetime values
         dt_values = self.white_records.get_level_values("datetime")
 
-        # Check if timezone-aware
-        if dt_values.tz is None:
-            # Timezone-naive: localize to UTC with warning
-            logger.warning(
-                "WhiteSet contains timezone-naive datetime values. "
-                "Setting timezone to UTC. It is recommended to provide "
-                "timezone-aware timestamps."
-            )
-            dt_values = dt_values.tz_localize("UTC")
-            logger.debug("Localized %s naive timestamps to UTC", len(dt_values))
-        else:
-            # Timezone-aware: convert to UTC if not already
-            if str(dt_values.tz) != "UTC":
-                logger.debug(
-                    "Converting %s timestamps from %s to UTC",
-                    len(dt_values),
-                    dt_values.tz,
-                )
-                dt_values = dt_values.tz_convert("UTC")
-            else:
-                logger.debug("Datetime values already in UTC")
+        # Convert to tz-aware Datetimeindex (tz is localized to UTC if naive, else it is converted)
+        dt_index = timestamps_to_datetimeindex(
+            timestamps=dt_values, tz="UTC", name="datetime"
+        )
 
         # Reconstruct the index with formatted datetimes
         if isinstance(self.white_records, pd.MultiIndex):
@@ -285,13 +273,13 @@ class WhiteSet:
             temp_index = self.white_records.droplevel("datetime")
             self.white_records = (
                 temp_index.to_frame()
-                .assign(datetime=dt_values)
+                .assign(datetime=dt_index.values)
                 .set_index("datetime", append=True)
                 .index
             )
         else:
             # For simple Index with only datetime
-            self.white_records = pd.Index(dt_values, name="datetime")
+            self.white_records = dt_index
 
         logger.debug("Datetime formatting completed")
 

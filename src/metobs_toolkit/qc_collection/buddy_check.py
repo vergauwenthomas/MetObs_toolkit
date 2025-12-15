@@ -7,7 +7,7 @@ from typing import Union, List, Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from metobs_toolkit.backend_collection.df_helpers import to_timedelta
+from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 from .whitelist import WhiteSet

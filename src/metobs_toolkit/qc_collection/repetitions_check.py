@@ -2,6 +2,9 @@ import logging
 import pandas as pd
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+)
 from .whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -66,7 +69,7 @@ def repetitions_check(
     # Combine all outlier groups
     if outlier_groups.empty:
         logger.debug("No outliers detected. Exiting repetitions_check function.")
-        return pd.DatetimeIndex([])
+        return timestamps_to_datetimeindex(timestamps=[], name="datetime")
 
     outliers = pd.concat(
         [

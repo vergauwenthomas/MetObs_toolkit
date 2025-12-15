@@ -1,5 +1,7 @@
+from __future__ import annotations
 import logging
-from typing import Literal, Union
+from typing import Literal, Union, TYPE_CHECKING
+
 
 import copy
 import numpy as np
@@ -9,9 +11,13 @@ from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+    to_timedelta,
+)
+
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
-    to_timedelta,
     convert_to_numeric_series,
 )
 from metobs_toolkit.gf_collection.overview_df_constructors import (
@@ -32,6 +38,13 @@ import metobs_toolkit.backend_collection.printing_collection as printing
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_df
+
+# add all imports only for type checking, but not for runtime
+if TYPE_CHECKING:
+    import pytz
+    import dateutil.tz
+    import datetime
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -64,6 +77,9 @@ class SensorData:
         Tolerance for timestamp matching, by default pandas.Timedelta('4min').
     """
 
+    # Class variable for internal timezone storage
+    _target_tz: str = "UTC"
+
     def __init__(
         self,
         stationname: str,
@@ -71,19 +87,22 @@ class SensorData:
         timestamps: np.ndarray,
         obstype: Obstype,
         datadtype: type = np.float32,
-        timezone: Union[str, pd.Timedelta] = "UTC",
+        timestamps_tz: Union[str, tz.tzinfo] = "UTC",
         **setupkwargs,
     ):
+
         # Set data
         self._stationname = stationname
         self.obstype = obstype
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).to_numpy(),
-            index=self._format_timestamp_index(timestamps, timezone),
+            index=self._format_timestamp_index(
+                timestamps, timestamps_tz
+            ),  # Transformed as UTC
             name=obstype.name,
         )
 
-        data.index.name = "datetime"
+        # data.index.name = "datetime"
         self.series = data  # datetime as index
 
         # outliers
@@ -158,8 +177,7 @@ class SensorData:
             otherrecords = other.series
 
         # Align timezones if different
-        if self.tz != other.tz:
-            otherrecords = otherrecords.tz_convert(str(self.tz))
+        otherrecords = otherrecords.tz_convert(self.tz)
 
         # Combine the series, preferring non-NaN from 'other'
         combined_series = selfrecords.combine_first(otherrecords)
@@ -189,7 +207,7 @@ class SensorData:
             timestamps=combined_series.index.values,
             obstype=self.obstype + other.obstype,
             datadtype=combined_series.dtype,
-            timezone=self.tz,
+            timestamps_tz=self.tz,
             apply_unit_conv=False,
         )
 
@@ -297,7 +315,12 @@ class SensorData:
     @property
     def tz(self):
         """Return the timezone of the stored timestamps."""
-        return self.series.index.tz
+        # Should always be SensorData._target_tz
+        cur_tz = self.series.index.tz
+        assert (
+            str(cur_tz) == SensorData._target_tz
+        ), f"Internal timezone mismatch: {cur_tz.zone} != {SensorData._target_tz}"
+        return cur_tz
 
     @property
     def start_datetime(self) -> pd.Timestamp:
@@ -425,26 +448,21 @@ class SensorData:
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
         )
 
+    @copy_doc(timestamps_to_datetimeindex)
     def _format_timestamp_index(
-        self, timestamps: np.ndarray, tz: Union[str, pd.Timedelta]
+        self,
+        timestamps: np.ndarray,
+        input_tz: Union[pytz.timezone | dateutil.tz.tzfile | datetime.tzinfo | str],
     ) -> pd.DatetimeIndex:
-        """
-        Format the timestamp index.
 
-        Parameters
-        ----------
-        timestamps : np.ndarray
-            Array of timestamps.
-        tz : str or pandas.Timedelta
-            Timezone of the timestamps.
-
-        Returns
-        -------
-        pd.DatetimeIndex
-            Formatted timestamp index.
-        """
-
-        return pd.DatetimeIndex(data=timestamps, tz=tz)
+        # Create a tz-aware DatetimeIndex in input timezone
+        timestamps = pd.DatetimeIndex(data=timestamps, tz=input_tz)
+        # Convert to UTC
+        return timestamps_to_datetimeindex(
+            timestamps=timestamps,
+            tz=SensorData._target_tz,  # store as UTC
+            name="datetime",
+        )
 
     def _update_outliers(
         self,

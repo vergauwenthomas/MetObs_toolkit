@@ -25,6 +25,7 @@ import ee
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.argumentcheckers import fmt_datetime_arg
 from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
@@ -950,11 +951,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 suffix=".html",
             )
 
-        if timeinstance.tz is None:
-            timeinstance = timeinstance.tz_localize(tz="UTC")
-        else:
-            timeinstance = timeinstance.tz_convert(tz="UTC")
-
+        timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
+        # floor to time.res (typically hourly/daily)
         timeinstance = timeinstance.floor(self.time_res)
 
         if modelobstype not in self.modelobstypes:

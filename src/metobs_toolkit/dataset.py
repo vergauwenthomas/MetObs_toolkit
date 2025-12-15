@@ -2887,7 +2887,7 @@ def createstations(
                     datarecords=records.to_numpy(),
                     timestamps=stationdata["datetime"].to_numpy(),
                     obstype=obstype,
-                    timezone=timezone,
+                    timestamps_tz=timezone,
                     freq_estimation_method=freq_estimation_method,
                     freq_estimation_simplify_tolerance=freq_estimation_simplify_tolerance,
                     origin_simplify_tolerance=origin_simplify_tolerance,

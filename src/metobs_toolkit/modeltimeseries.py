@@ -6,11 +6,16 @@ import numpy as np
 from matplotlib.pyplot import Axes
 from xarray import Dataset as xrDataset
 
+
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
-    to_timedelta,
     convert_to_numeric_series,
 )
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+    to_timedelta,
+)
+
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import ModelObstype
@@ -99,7 +104,9 @@ class ModelTimeSeries:
         # Data
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).values,
-            index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
+            index=timestamps_to_datetimeindex(
+                timestamps=timestamps, tz=timezone, name="datetime"
+            ),
             name=modelobstype.name,
         )
         if _convert_to_standard_units:
