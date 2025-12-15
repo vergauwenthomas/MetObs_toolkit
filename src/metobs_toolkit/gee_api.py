@@ -333,7 +333,8 @@ def _validate_metadf(metadf: pd.DataFrame) -> bool:
     try:
         # Just testing if it can be converted
         metadf = metadf.to_crs("epsg:4326")
-    except Exception:
+    except Exception as e:
+        logger.debug(f"CRS conversion failed: {e}")
         return False
 
     return True
