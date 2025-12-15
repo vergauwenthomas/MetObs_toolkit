@@ -1,16 +1,22 @@
-from typing import Union
-from dateutil import tz
-from datetime import tzinfo
+from __future__ import annotations
+import logging
+from typing import Literal, Union, TYPE_CHECKING
+
 import warnings
 
 
 import pandas as pd
 import numpy as np
 
+if TYPE_CHECKING:
+    from dateutil.tz import tzfile
+    from datetime import tzinfo
+    
+
 
 def timestamps_to_datetimeindex(
     timestamps: np.ndarray | pd.Series | pd.DatetimeIndex | list,
-    tz: Union[tz.tzfile | tzinfo | str] = "UTC",
+    tz: Union[tzfile | tzinfo | str] = "UTC",
     **kwargs,
 ) -> pd.DatetimeIndex:
     """

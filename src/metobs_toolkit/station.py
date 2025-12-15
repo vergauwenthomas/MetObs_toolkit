@@ -601,13 +601,13 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max(
+            maxdt = max(
                 [sensdata.end_datetime for sensdata in self.sensordata.values()]
             )
         else:
             # no sensordata, metadata only station
-            mindt = pd.NaT
-        return mindt
+            maxdt = pd.NaT
+        return maxdt
 
     @property
     def modeldata(self) -> list["ModelTimeSeries"]:  # type: ignore #noqa: F821

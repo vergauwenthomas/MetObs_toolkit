@@ -40,7 +40,8 @@ from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_
 # add all imports only for type checking, but not for runtime
 if TYPE_CHECKING:
     import pytz
-    import dateutil.tz
+    from dateutil.tz import tzfile
+    from datetime import tzinfo
     import datetime
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
@@ -87,7 +88,7 @@ class SensorData:
         timestamps: np.ndarray,
         obstype: Obstype,
         datadtype: type = np.float32,
-        timestamps_tz: Union[str, tz.tzinfo] = "UTC",
+        timestamps_tz:  Union[tzfile | tzinfo | str] = "UTC",
         **setupkwargs,
     ):
 
@@ -452,7 +453,7 @@ class SensorData:
     def _format_timestamp_index(
         self,
         timestamps: np.ndarray,
-        input_tz: Union[pytz.timezone | dateutil.tz.tzfile | datetime.tzinfo | str],
+        input_tz: Union[tzfile | tzinfo | str],
     ) -> pd.DatetimeIndex:
 
         # Create a tz-aware DatetimeIndex in input timezone

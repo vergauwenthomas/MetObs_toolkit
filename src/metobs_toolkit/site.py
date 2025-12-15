@@ -37,7 +37,7 @@ class Site:
     """
 
     def __init__(
-        self, stationname: str, latitude: float, longitude: float, extradata: dict = {}
+        self, stationname: str, latitude: float, longitude: float, extradata: dict | None = None
     ):
         # Set data
         self._stationname = stationname
@@ -49,7 +49,10 @@ class Site:
         self._altitude = nan  # set by the setup
 
         # additional data
-        self._extradata = dict(extradata)
+        if isinstance(extradata, dict):
+            self._extradata = extradata
+        else:
+            self._extradata = {}
 
         # Data extracted from other sources
         self._geedata = {}  # example: "LCZ": 'LCZ-4'
