@@ -354,10 +354,10 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
         return str(val)
     elif isinstance(val, bool):
         return str(val)
-    elif isinstance(val, list):
-        return [str(v) for v in val]
     elif isinstance(val, (str, int, float)):
         return val
+    elif isinstance(val, list):
+        return [str(v) for v in val]
     elif isinstance(val, pd.Timedelta):
         return str(val)
     elif isinstance(val, pd.Timestamp):

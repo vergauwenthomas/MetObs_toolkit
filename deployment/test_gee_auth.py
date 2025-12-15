@@ -51,7 +51,6 @@ def check_credentials_files():
         print("  python -c 'import metobs_toolkit; metobs_toolkit.connect_to_gee()'")
         return False
 
-    print()
     return True
 
 

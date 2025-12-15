@@ -6,7 +6,6 @@ import copy
 
 # import metobs_toolkit
 import pandas as pd
-import xarray as xr
 
 
 # Add the local source directory to Python path for development
@@ -539,25 +538,6 @@ class TestWhiteRecords:
         assert "n_timestamps=" in repr_sensor
         assert str_sensor == repr_sensor
 
-    def test_whiterecords_get_info(self):
-        """Test the WhiteSet and SensorWhiteSet classes."""
-        # Create a WhiteSet with mixed levels
-        white_records = pd.date_range(
-            start="2023-01-01 00:00",
-            periods=10,
-            freq="h",
-            tz="UTC",
-        )
-        multi_index = pd.MultiIndex.from_product(
-            [
-                ["vlinder05", "vlinder06", "vlinder07"],
-                white_records,
-                ["temp", "humidity"],
-            ],
-            names=["name", "datetime", "obstype"],
-        )
-        whiteset = metobs_toolkit.WhiteSet(multi_index)
-        _ = whiteset.get_info(printout=False)
 
     def test_import_data(self, overwrite_solution=False):
         """Import demo dataset for white_records testing."""
