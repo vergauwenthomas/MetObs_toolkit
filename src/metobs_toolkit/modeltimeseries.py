@@ -6,7 +6,6 @@ import numpy as np
 from matplotlib.pyplot import Axes
 from xarray import Dataset as xrDataset
 
-
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
     convert_to_numeric_series,

@@ -94,6 +94,27 @@ def add_FileHandler(
                 )
                 return
 
+    rootlog = logging.getLogger("<metobs_toolkit>")
+
+    # Convert target level to numeric value for comparison
+    target_level = getattr(logging, setlvl.upper())
+
+    # Normalize the target file path for comparison
+    target_path = os.path.abspath(trglogfile)
+
+    # Check if FileHandler already exists for same file at same or higher level
+    for handler in rootlog.handlers:
+        if isinstance(handler, logging.FileHandler):
+            # Compare normalized file paths
+            existing_path = os.path.abspath(handler.baseFilename)
+            if existing_path == target_path and handler.level <= target_level:
+                rootlog.debug(
+                    f"FileHandler already exists for file '{trglogfile}' "
+                    f"at level {logging.getLevelName(handler.level)} "
+                    f"(<= {setlvl.upper()}). No new FileHandler added."
+                )
+                return
+
     # Create the Handler for logging data to a file - will be inherited for children
     file_handler = logging.FileHandler(filename=filepath)
     file_handler.setLevel(setlvl.upper())  # set handler level
