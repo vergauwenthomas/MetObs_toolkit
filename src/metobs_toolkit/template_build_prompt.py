@@ -22,6 +22,7 @@ from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
 from metobs_toolkit.io_collection.filereaders import find_suitable_reader
 from metobs_toolkit.io_collection.filewriters import write_dict_to_json
+from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
@@ -348,7 +349,7 @@ Answer the prompt and hit Enter. \n \n"
         metadatafilepath = usr_input_file("Give the full path to your metadata file")
 
     if (not data_avail) and (not meta_avail):
-        sys.exit("No template can be built without a data or metadata file.")
+        raise MetObsTemplateError("No template can be built without a data or metadata file.")
 
     # ==========================================================================
     # Map data file
@@ -572,7 +573,7 @@ observation(s) of one station)": 3,
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
                 print("This is not an option, select an observation type.")
-                sys.exit("invalid obstype for wide dataset, see last message. ")
+                raise MetObsTemplateError("invalid obstype for wide dataset: This is not an option, select an observation type. ")
             wide_obstype_name = inv_obstype_desc[desc_return]
 
             # 1) add a new obstype

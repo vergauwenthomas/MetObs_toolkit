@@ -225,7 +225,7 @@ class Template:
             # no dataformat has been set --> this is valid in a metadata-only case
             self.dataformat = None
         else:
-            sys.exit(f"{datafmt} is not a known dataformat.")
+            raise MetObsTemplateError(f"{datafmt} is not a known dataformat.")
 
     # =============================================================================
     # Getters (used by other classes to extract specific data from a template)
@@ -431,7 +431,7 @@ class Template:
                 ts_info["fmt"] is not None
             ), "Datetimes are assumed to be present as a date and time column, but no formats are specified."
             return
-        sys.exit(
+        raise MetObsTemplateError(
             "The timestamps are not correctly mapped (either by using a datetime column, or by a time and date column)"
         )
 
