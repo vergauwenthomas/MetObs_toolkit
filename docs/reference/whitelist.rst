@@ -77,7 +77,7 @@ Examples
    
    # Use in QC check
    dataset.gross_value_check(
-       target_obstype='temp',
+       obstype='temp',
        lower_threshold=10.0,
        upper_threshold=25.0,
        whiteset=whiteset
@@ -97,7 +97,7 @@ Examples
    whiteset = metobs_toolkit.WhiteSet(white_records)
    
    dataset.persistence_check(
-       target_obstype='temp',
+       obstype='temp',
        timewindow='2h',
        whiteset=whiteset
    )

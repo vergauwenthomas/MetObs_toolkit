@@ -166,7 +166,7 @@ class TestDemoDataset:
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
 
-        aggdf = ana.aggregate_df(trgobstype="humidity", agg=["LCZ", "season", "hour"])
+        aggdf = ana.aggregate_df(obstype="humidity", agg=["LCZ", "season", "hour"])
 
         # 3. overwrite solution?
         if overwrite_solution:
@@ -190,7 +190,7 @@ class TestDemoDataset:
         )
 
         # 2. apply a metobs manipulation
-        ax = ana.plot_diurnal_cycle(trgobstype="temp", colorby="LCZ")
+        ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ")
         fig = ax.get_figure()
         return fig
 
@@ -203,7 +203,7 @@ class TestDemoDataset:
 
         # 2. apply a metobs manipulation
         ax = ana.plot_diurnal_cycle_with_reference_station(
-            ref_station="vlinder02", trgobstype="temp", colorby="LCZ"
+            ref_station="vlinder02", obstype="temp", colorby="LCZ"
         )
         fig = ax.get_figure()
         return fig

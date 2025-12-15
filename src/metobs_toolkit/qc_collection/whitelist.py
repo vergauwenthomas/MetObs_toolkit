@@ -424,9 +424,7 @@ class WhiteSet:
             return infostr
 
     @log_entry
-    def create_sensorwhitelist(
-        self, trg_station: str, trg_obstype: str
-    ) -> SensorWhiteSet:
+    def create_sensorwhitelist(self, stationname: str, obstype: str) -> SensorWhiteSet:
         """Create a sensor-specific whitelist for a station and observation type.
 
         Filters the white_records by station name and obstype to create a
@@ -434,9 +432,9 @@ class WhiteSet:
 
         Parameters
         ----------
-        trg_station : str
+        stationname : str
             Target station name to filter for.
-        trg_obstype : str
+        obstype : str
             Target observation type to filter for.
 
         Returns
@@ -452,8 +450,8 @@ class WhiteSet:
         """
         logger.debug(
             "Creating SensorWhiteSet for station='%s', obstype='%s'",
-            trg_station,
-            trg_obstype,
+            stationname,
+            obstype,
         )
 
         if self._flag_is_empty():
@@ -464,9 +462,9 @@ class WhiteSet:
         trg_whitelist = self.white_records
 
         if "name" in trg_whitelist.names:
-            if trg_station in trg_whitelist.get_level_values("name"):
+            if stationname in trg_whitelist.get_level_values("name"):
                 trg_whitelist = trg_whitelist[
-                    (trg_whitelist.get_level_values("name") == trg_station)
+                    (trg_whitelist.get_level_values("name") == stationname)
                 ]
                 logger.debug(
                     "Filtered whitelist by station name, %s records remain",
@@ -476,15 +474,15 @@ class WhiteSet:
                 # name is specified, but no matches in whitelist
                 logger.debug(
                     "Station '%s' not found in whitelist, returning empty SensorWhiteSet",
-                    trg_station,
+                    stationname,
                 )
                 return SensorWhiteSet(white_timestamps=None, all_timestamps=False)
 
         # filter on obstype if present
         if "obstype" in trg_whitelist.names:
-            if trg_obstype in trg_whitelist.get_level_values("obstype"):
+            if obstype in trg_whitelist.get_level_values("obstype"):
                 trg_whitelist = trg_whitelist[
-                    (trg_whitelist.get_level_values("obstype") == trg_obstype)
+                    (trg_whitelist.get_level_values("obstype") == obstype)
                 ]
                 logger.debug(
                     "Filtered whitelist by obstype, %s records remain",
@@ -494,7 +492,7 @@ class WhiteSet:
                 # obstype is specified, but no matches in whitelist
                 logger.debug(
                     "Obstype '%s' not found in whitelist, returning empty SensorWhiteSet",
-                    trg_obstype,
+                    obstype,
                 )
                 return SensorWhiteSet(white_timestamps=None, all_timestamps=False)
 

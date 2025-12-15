@@ -95,7 +95,7 @@ class TestDemoData:
         # Test presence of GF labels
         station.convert_outliers_to_gaps(obstype="temp")
         station.interpolate_gaps(
-            target_obstype="temp", max_gap_duration_to_fill="2d", overwrite_fill=True
+            obstype="temp", max_gap_duration_to_fill="2d", overwrite_fill=True
         )
         ds = station.to_xr()
 
@@ -141,7 +141,7 @@ class TestDemoData:
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         dataset.import_gee_data_from_file(
             filepath=target_era5_csv,
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             force_update=True,
         )
 
@@ -309,26 +309,26 @@ class TestDemoData:
         # 3. Apply multiple QC checks
         # Gross value check
         dataset.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=-10,
             upper_threshold=25,
         )
 
         # Persistence check
         dataset.persistence_check(
-            target_obstype="temp",
+            obstype="temp",
             timewindow="4h",
         )
 
         # Repetitions check
         dataset.repetitions_check(
-            target_obstype="temp",
+            obstype="temp",
             max_N_repetitions=5,
         )
 
         # Buddy check with safety nets and whiteset
         dataset.buddy_check_with_safetynets(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
                 {

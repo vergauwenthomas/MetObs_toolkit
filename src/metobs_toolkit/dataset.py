@@ -1,4 +1,5 @@
 import os
+from os import PathLike
 import copy
 import pickle
 import logging
@@ -19,6 +20,7 @@ from metobs_toolkit.template import Template, update_known_obstype_with_original
 from metobs_toolkit.station import Station
 from metobs_toolkit.io_collection.metadataparser import MetaDataParser
 from metobs_toolkit.io_collection.dataparser import DataParser
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 from metobs_toolkit.io_collection.filereaders import (
     PickleFileReader,
     find_suitable_reader,
@@ -69,6 +71,7 @@ from metobs_toolkit.geedatasetmanagers import (
 )
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.settings_collection.version import __version__
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -103,6 +106,9 @@ class Dataset:
         self._stations = []  # stationname: Station
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
         self._template = Template()
+        self._metobs_version = (
+            __version__  # Store version for pickle compatibility check
+        )
         logger.debug("Dataset instance created.")
 
     # ------------------------------------------
@@ -370,7 +376,9 @@ class Dataset:
         return dataset_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
-    def to_netcdf(self, filepath: str, **kwargs) -> None:
+    def to_netcdf(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the Dataset as a netCDF file.
 
@@ -379,8 +387,11 @@ class Dataset:
 
         Parameters
         ----------
-        filepath : str
-            Path where the netCDF file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the netCDF file will be saved. If None, defaults to
+            'dataset.nc' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments passed to xarray.Dataset.to_netcdf().
             Common options include:
@@ -401,6 +412,13 @@ class Dataset:
         The method uses the 'netcdf4' engine by default for better Unicode string
         compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.nc",
+            suffix=".nc",
+            overwrite=overwrite,
+        )
 
         # Convert to xarray Dataset
         ds = self.to_xr()
@@ -583,7 +601,7 @@ class Dataset:
     @log_entry
     def sync_records(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timestamp_shift_tolerance: Union[str, pd.Timedelta] = "2min",
         freq_shift_tolerance: Union[str, pd.Timedelta] = "1min",
         fixed_origin: Union[pd.Timedelta, None] = None,
@@ -591,13 +609,13 @@ class Dataset:
         """Synchronize records of sensor data across stations.
 
         Synchronize records of sensor data across stations (for a specific observation type).
-        This method aligns the sensor data of a specified observation type (`target_obstype`)
+        This method aligns the sensor data of a specified observation type (`obstype`)
         across all stations by resampling the data to a common frequency and ensuring
         alignment errors of timestamps within specified tolerances.
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The observation type to synchronize (e.g., "temp" for temperature). Default is "temp".
         timestamp_shift_tolerance : str or pandas.Timedelta, optional
             The maximum allowed time shift tolerance for aligning data during
@@ -633,8 +651,8 @@ class Dataset:
         timestamp_shift_tolerance = fmt_timedelta_arg(timestamp_shift_tolerance)
 
         for sta in self.stations:
-            if target_obstype in sta.sensordata.keys():
-                sensor = sta.get_sensor(target_obstype)
+            if obstype in sta.sensordata.keys():
+                sensor = sta.get_sensor(obstype)
 
                 freq_target = simplify_time(
                     time=sensor.freq,
@@ -654,7 +672,7 @@ class Dataset:
                 )
             else:
                 logger.warning(
-                    f"{sta} does not have {target_obstype} sensordata and is skipped in the synchronization."
+                    f"{sta} does not have {obstype} sensordata and is skipped in the synchronization."
                 )
 
     @copy_doc(Station.resample)
@@ -662,7 +680,7 @@ class Dataset:
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
-        target_obstype: Union[str, None] = None,
+        obstype: Union[str, None] = None,
         shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         origin: Union[str, pd.Timestamp, None] = None,
         origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -673,7 +691,7 @@ class Dataset:
         for sta in self.stations:
             sta.resample(
                 target_freq=target_freq,
-                target_obstype=target_obstype,
+                obstype=obstype,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
                 origin_simplify_tolerance=origin_simplify_tolerance,
@@ -686,8 +704,8 @@ class Dataset:
     @log_entry
     def import_gee_data_from_file(
         self,
-        filepath: str,
-        geedynamicdatasetmanager: GEEDynamicDatasetManager,
+        filepath: str | PathLike,
+        gee_dynamic_manager: GEEDynamicDatasetManager,
         force_update: bool = True,
         _force_from_dataframe: Union[pd.DataFrame, None] = None,
     ) -> pd.DataFrame:
@@ -700,9 +718,9 @@ class Dataset:
 
         Parameters
         ----------
-        filepath : str
+        filepath : str or PathLike
             The path to the file containing the GEE data.
-        geedynamicdatasetmanager : GEEDynamicDatasetManager
+        gee_dynamic_manager : GEEDynamicDatasetManager
             An instance of `GEEDynamicDatasetManager` responsible for managing the GEE dataset
             and its metadata.
         force_update : bool, optional
@@ -721,15 +739,15 @@ class Dataset:
             data = reader.read_as_local_file()
             force_update = True
 
-            totaldf = geedynamicdatasetmanager._format_gee_df_structure(data)
+            totaldf = gee_dynamic_manager._format_gee_df_structure(data)
         else:
             totaldf = _force_from_dataframe
 
-        known_obstypes = list(geedynamicdatasetmanager.modelobstypes.keys())
+        known_obstypes = list(gee_dynamic_manager.modelobstypes.keys())
         cols_to_skip = list(set(totaldf.columns) - set(known_obstypes))
         if bool(cols_to_skip):
             logger.warning(
-                f"The following columns in the GEE datafile are not present in the known modelobstypes of {geedynamicdatasetmanager}: {cols_to_skip}"
+                f"The following columns in the GEE datafile are not present in the known modelobstypes of {gee_dynamic_manager}: {cols_to_skip}"
             )
 
         known_and_present = set(totaldf.columns) & set(known_obstypes)
@@ -745,12 +763,10 @@ class Dataset:
                     site=sta.site,
                     datarecords=stadf[col].to_numpy(),
                     timestamps=stadf.index.to_numpy(),
-                    modelobstype=geedynamicdatasetmanager.modelobstypes[col],
+                    modelobstype=gee_dynamic_manager.modelobstypes[col],
                     timezone="UTC",
-                    modelname=geedynamicdatasetmanager.name,
-                    modelvariable=geedynamicdatasetmanager.modelobstypes[
-                        col
-                    ].model_band,
+                    modelname=gee_dynamic_manager.name,
+                    modelvariable=gee_dynamic_manager.modelobstypes[col].model_band,
                 )
                 sta.add_to_modeldata(modeltimeseries, force_update=force_update)
 
@@ -784,8 +800,7 @@ class Dataset:
     @log_entry
     def save_dataset_to_pkl(
         self,
-        target_folder: Union[str, Path],
-        filename: str = "saved_dataset.pkl",
+        filepath: str | PathLike | None = None,
         overwrite: bool = False,
     ) -> None:
         """
@@ -793,38 +808,31 @@ class Dataset:
 
         Parameters
         ----------
-        target_folder : str or Path
-            The folder where the pickle file will be saved. Must be an existing directory.
-        filename : str, optional
-            The name of the pickle file. Defaults to "saved_dataset.pkl". If the provided
-            filename does not have a ".pkl" extension, it will be automatically appended.
+        filepath : str or path-like or None, optional
+            Path where the pickle file will be saved. If None, defaults to
+            'saved_dataset.pkl' in the current working directory. Default is None.
         overwrite : bool, optional
-            Whether to overwrite the file if it already exists. Defaults to False.
+            If True, overwrites existing file. Default is False.
 
         Returns
         -------
         None
         """
-        if not Path(target_folder).is_dir():
-            raise FileNotFoundError(f"{target_folder} does not exist")
 
-        if not filename.endswith(".pkl"):
-            filename += ".pkl"
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="saved_dataset.pkl",
+            suffix=".pkl",
+            overwrite=overwrite,
+        )
 
-        target_path = Path(target_folder).joinpath(filename)
-        if target_path.exists():
-            if overwrite:
-                target_path.unlink()
-            else:
-                raise FileExistsError(
-                    f"The file {target_path} already exists. Remove it or set overwrite=True"
-                )
-
-        with open(target_path, "wb") as outp:
+        with open(filepath, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     @log_entry
-    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_parquet(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the dataset observations to a parquet file.
 
@@ -833,8 +841,11 @@ class Dataset:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the parquet file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the parquet file will be saved. If None, defaults to
+            'dataset.parquet' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
 
@@ -848,11 +859,21 @@ class Dataset:
         Dataset.to_csv : Save dataset to CSV format.
         Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.parquet",
+            suffix=".parquet",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_parquet(target_file, **kwargs)
+        df.to_parquet(filepath, **kwargs)
 
     @log_entry
-    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_csv(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the dataset observations to a CSV file.
 
@@ -861,8 +882,11 @@ class Dataset:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the CSV file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the CSV file will be saved. If None, defaults to
+            'dataset.csv' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_csv().
 
@@ -876,8 +900,16 @@ class Dataset:
         Dataset.to_parquet : Save dataset to parquet format.
         Dataset.save_dataset_to_pkl : Save complete dataset to pickle format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename="dataset.csv",
+            suffix=".csv",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_csv(target_file, **kwargs)
+        df.to_csv(filepath, **kwargs)
 
     @log_entry
     def import_data_from_file(
@@ -1089,7 +1121,7 @@ class Dataset:
         # Filter the modeldatadf to target obstype, modelname, modelvariable
         trg_modeldatadf = filter_modeldatadf(
             modeldatadf=self.modeldatadf,
-            trgobstype=obstype,
+            obstype=obstype,
             modelname=modelname,
             modelvariable=modelvariable,
         )
@@ -1302,17 +1334,17 @@ class Dataset:
     @log_entry
     def make_gee_plot(
         self,
-        geedatasetmanager: Union[
+        gee_manager: Union[
             GEEStaticDatasetManager, GEEDynamicDatasetManager
         ] = default_datasets["LCZ"],
         timeinstance: Union[pd.Timestamp, str, None] = None,
         modelobstype: str = None,
         save: bool = False,
-        outputfolder: str = os.getcwd(),
-        filename: str = "gee_plot.html",
+        filepath: str | PathLike = None,
         vmin: Union[int, float, None] = None,
         vmax: Union[int, float, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """Create an interactive spatial plot of the GEE dataset and stations.
 
@@ -1327,72 +1359,86 @@ class Dataset:
 
         Parameters
         ----------
-        geedatasetmanager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
+        gee_manager : GEEStaticDatasetManager  |  GEEDynamicDatasetManager, optional
             The GEE dataset manager to plot. If a GEEDynamicDatasetManager is provided, a timinstance and modelobstype is required. The default is default_datasets["LCZ"]
         timeinstance :pandas.Timestamp or string or None, optional
             The timinstance to plot the GEE dataset for. This is only used and
-            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+            required when gee_manager is a GEEDynamicDatasetManager. The default is None.
         modelobstype : str, optional
             The modelobstype to plot the GEE dataset for. This is only used and
-            required when geedatasetmanager is a GEEDynamicDatasetManager. The default is None.
+            required when gee_manager is a GEEDynamicDatasetManager. The default is None.
         save : bool, optional
             If True, the plot will be saved as a (HTML) file, that can be opened by a webbrowser. The default is False.
-        outputfolder : str, optional
-            The folder to save the file too. This is only used when save is True. The default is os.getcwd() (the current working directory).
-        filename : str, optional
-            The name of the file to save the plot to. This is only used when save is True. The default is "gee_plot.html".
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : int | float | None, optional
             The minimum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
         vmax : int | float | None, optional
             The maximum value for the color scale of the plot. If None, the scale is determined automatically. The default is None.
         overwrite : bool, optional
             If True, the plot will be overwritten if it already exists. This is only relevant when save is True. The default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
         geemap.foliummap.Map
             The interactive map.
         """
-        if not isinstance(
-            geedatasetmanager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
-        ):
-            raise TypeError(
-                "geedatasetmanager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance."
+
+        if not save and filepath is not None:
+            logger.warning(
+                "A 'filepath' was provided but 'save' is False. The 'filepath' parameter will be ignored."
+            )
+        if save:
+            filepath = fmt_output_filepath(
+                filepath=filepath,
+                default_filename="gee_plot.html",
+                suffix=".html",
+                overwrite=overwrite,
             )
 
-        if isinstance(geedatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(
+            gee_manager, (GEEStaticDatasetManager, GEEDynamicDatasetManager)
+        ):
+            raise TypeError(
+                "gee_manager must be a GEEStaticDatasetManager or GEEDynamicDatasetManager instance."
+            )
+
+        if isinstance(gee_manager, GEEStaticDatasetManager):
             kwargs = dict(
-                outputfolder=outputfolder,
-                filename=filename,
+                filepath=filepath,
                 save=save,
                 vmin=vmin,
                 vmax=vmax,
                 overwrite=overwrite,
             )
 
-        elif isinstance(geedatasetmanager, GEEDynamicDatasetManager):
+        elif isinstance(gee_manager, GEEDynamicDatasetManager):
             if timeinstance is None:
                 raise ValueError(
-                    f"Timeinstance is None, but is required for a dynamic dataset like {geedatasetmanager}"
+                    f"Timeinstance is None, but is required for a dynamic dataset like {gee_manager}"
                 )
             timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
-            if modelobstype not in geedatasetmanager.modelobstypes:
+            if modelobstype not in gee_manager.modelobstypes:
                 raise MetObsObstypeNotFound(
-                    f"{modelobstype} is not a known modelobstype of {geedatasetmanager}. These are known: {geedatasetmanager.modelobstypes} "
+                    f"{modelobstype} is not a known modelobstype of {gee_manager}. These are known: {gee_manager.modelobstypes} "
                 )
 
             kwargs = dict(
                 timeinstance=timeinstance,
                 modelobstype=modelobstype,
-                outputfolder=outputfolder,
-                filename=filename,
+                filepath=filepath,
                 save=save,
                 vmin=vmin,
                 vmax=vmax,
                 overwrite=overwrite,
+                initialize_gee=initialize_gee,
             )
 
-        return geedatasetmanager.make_gee_plot(metadf=self.metadf, **kwargs)
+        return gee_manager.make_gee_plot(metadf=self.metadf, **kwargs)
 
     # ------------------------------------------
     #    Gee extracting
@@ -1401,8 +1447,8 @@ class Dataset:
     @log_entry
     def get_static_gee_point_data(
         self,
-        geestaticdatasetmanager: GEEStaticDatasetManager,
-        overwrite: bool = True,
+        gee_static_manager: GEEStaticDatasetManager,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """Extract static data from GEE dataset at Stations locations.
@@ -1412,10 +1458,10 @@ class Dataset:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
-        overwrite : bool, optional
-            If True, the retrieved data will overwrite existing data in the ´Station´'s metadata.
+        update_metadata : bool, optional
+            If True, the retrieved data will update existing data in the ´Station´'s metadata.
             Default is True.
         initialize_gee : bool, optional
             If True, initializes the GEE API before fetching the data. Default is True.
@@ -1436,18 +1482,18 @@ class Dataset:
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
-        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise TypeError(
-                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+                "gee_static_manager must be a GEEStaticDatasetManager instance."
             )
 
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdatasetmanager.extract_static_point_data(self.metadf)
+        geedf = gee_static_manager.extract_static_point_data(self.metadf)
 
-        varname = geestaticdatasetmanager.name
-        if overwrite:
+        varname = gee_static_manager.name
+        if update_metadata:
             for staname, geedict in geedf.to_dict(orient="index").items():
                 self.get_station(staname).site.set_geedata(varname, geedict[varname])
         return geedf
@@ -1455,10 +1501,10 @@ class Dataset:
     @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
-        geestaticdatasetmanager: GEEStaticDatasetManager,
+        gee_static_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """Extract circular buffer fractions of a GEE dataset at Stations locations.
@@ -1470,15 +1516,15 @@ class Dataset:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             An instance of GEEStaticDatasetManager used to retrieve static GEE data.
         buffers : list, optional
             A list of buffer radii (in meters) for which to compute the buffer fractions.
             Default is [100].
         aggregate : bool, optional
             If True, aggregate the buffer fraction data. Aggregation schemes are stored per ´GEEStaticDatasetManager´. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
         initialize_gee : bool, optional
             If True, initialize the GEE environment before retrieving data. Default is True.
 
@@ -1501,9 +1547,9 @@ class Dataset:
 
         # Faster: construct the metadf with all stations, and get the lcs from one api call
 
-        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise TypeError(
-                "geestaticdatasetmanager must be a GEEStaticDatasetManager instance."
+                "gee_static_manager must be a GEEStaticDatasetManager instance."
             )
 
         if initialize_gee:
@@ -1511,14 +1557,14 @@ class Dataset:
 
         dflist = []
         for bufferradius in buffers:
-            geedf = geestaticdatasetmanager.extract_static_buffer_frac_data(
+            geedf = gee_static_manager.extract_static_buffer_frac_data(
                 metadf=self.metadf, bufferradius=bufferradius, agg_bool=aggregate
             )
             dflist.append(geedf)
 
         geedf = save_concat((dflist))
 
-        if overwrite:
+        if update_metadata:
             for staname in geedf.index.get_level_values("name").unique():
                 asdict = geedf.loc[staname].to_dict(orient="index")
                 for radius, fractions in asdict.items():
@@ -1531,7 +1577,7 @@ class Dataset:
     @log_entry
     def get_LCZ(
         self,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
         apply_seamask_fix: bool = True,
     ) -> pd.DataFrame:
@@ -1540,8 +1586,8 @@ class Dataset:
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing LCZ data if stored in the ´Site´ instances. Default is True.
+        update_metadata : bool, optional
+            If True, update existing LCZ data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
         apply_seamask_fix: bool, optional
@@ -1556,7 +1602,7 @@ class Dataset:
 
         lcz_df = self.get_static_gee_point_data(
             default_datasets["LCZ"],
-            overwrite=False,  # will be done below
+            update_metadata=False,  # will be done below
             initialize_gee=initialize_gee,
         )
 
@@ -1566,7 +1612,7 @@ class Dataset:
             lcz_df = lcz_df.fillna({default_datasets["LCZ"].name: lcz_water})
 
         # overwrite the site attribute
-        if overwrite:
+        if update_metadata:
             for station, lczval in lcz_df.iterrows():
                 self.get_station(station).site.set_LCZ(lczval["LCZ"])
 
@@ -1574,15 +1620,15 @@ class Dataset:
 
     @log_entry
     def get_altitude(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self, update_metadata: bool = True, initialize_gee: bool = True
     ) -> pd.DataFrame:
         """
         Retrieve altitude for the stations using Google Earth Engine (GEE).
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing altitude data if stored in the ´Site´ instances. Default is True.
+        update_metadata : bool, optional
+            If True, update existing altitude data if stored in the ´Site´ instances. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
@@ -1594,11 +1640,11 @@ class Dataset:
 
         alt_df = self.get_static_gee_point_data(
             default_datasets["altitude"],
-            overwrite=False,  # will be done below
+            update_metadata=False,  # will be done below
             initialize_gee=initialize_gee,
         )
 
-        if overwrite:
+        if update_metadata:
             for staname, geedict in alt_df.to_dict(orient="index").items():
                 self.get_station(staname).site.set_altitude(geedict["altitude"])
 
@@ -1609,7 +1655,7 @@ class Dataset:
         self,
         buffers: list = [100],
         aggregate: bool = False,
-        update_stations: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> pd.DataFrame:
         """
@@ -1622,8 +1668,10 @@ class Dataset:
             Default is [100].
         aggregate : bool, optional
             If True, aggregates the data over the buffers. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing landcover fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing landcover fraction data stored in the ´Site´ attribute of the ´Station´s. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1640,10 +1688,10 @@ class Dataset:
             raise TypeError("buffers must be a list.")
 
         return self.get_static_gee_buffer_fraction_data(
-            geestaticdatasetmanager=default_datasets["worldcover"],
+            gee_static_manager=default_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
-            overwrite=update_stations,
+            update_metadata=update_metadata,
             initialize_gee=initialize_gee,
         )
 
@@ -1651,22 +1699,23 @@ class Dataset:
     @log_entry
     def get_gee_timeseries_data(
         self,
-        geedynamicdatasetmanager: GEEDynamicDatasetManager,
+        gee_dynamic_manager: GEEDynamicDatasetManager,
         startdt_utc: Union[str, pd.Timestamp, None] = None,
         enddt_utc: Union[str, pd.Timestamp, None] = None,
-        target_obstypes: list = ["temp"],
+        obstypes: list = ["temp"],
         get_all_bands: bool = False,
         drive_filename: Union[str, None] = None,
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
+        initialize_gee: bool = True,
     ) -> Union[pd.DataFrame, None]:
-        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
+        if not isinstance(gee_dynamic_manager, GEEDynamicDatasetManager):
             raise TypeError(
-                "geedynamicdatasetmanager must be a GEEDynamicDatasetManager instance."
+                "gee_dynamic_manager must be a GEEDynamicDatasetManager instance."
             )
-        if not isinstance(target_obstypes, list):
-            raise TypeError("target_obstypes must be a list.")
+        if not isinstance(obstypes, list):
+            raise TypeError("obstypes must be a list.")
 
         if startdt_utc is None:
             if self.df.empty:
@@ -1686,25 +1735,26 @@ class Dataset:
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        for obst in target_obstypes:
-            if obst not in geedynamicdatasetmanager.modelobstypes.keys():
+        for obst in obstypes:
+            if obst not in gee_dynamic_manager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
+                    f"{obst} is not a known modelobstype of {gee_dynamic_manager}."
                 )
 
         if drive_filename is None:
-            drive_filename = f"{geedynamicdatasetmanager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"
+            drive_filename = f"{gee_dynamic_manager.name}_timeseries_data_of_full_dataset_{len(self.stations)}_stations"
 
-        df = geedynamicdatasetmanager.extract_timeseries_data(
+        df = gee_dynamic_manager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            obstypes=target_obstypes,
+            obstypes=obstypes,
             get_all_bands=get_all_bands,
             drive_filename=drive_filename,
             drive_folder=drive_folder,
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
+            initialize_gee=initialize_gee,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
@@ -1717,7 +1767,7 @@ class Dataset:
         # Thus we call that function, by providing it to _force_from_dataframe, these steps are skipped.
         _ = self.import_gee_data_from_file(
             filepath=None,
-            geedynamicdatasetmanager=geedynamicdatasetmanager,
+            gee_dynamic_manager=gee_dynamic_manager,
             force_update=True,
             _force_from_dataframe=df,
         )
@@ -1734,20 +1784,20 @@ class Dataset:
     @log_entry
     def gross_value_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             lower_threshold=lower_threshold,
             upper_threshold=upper_threshold,
             whiteset=whiteset,
@@ -1767,7 +1817,7 @@ class Dataset:
     @log_entry
     def persistence_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
         whiteset: WhiteSet = WhiteSet(),
@@ -1775,14 +1825,14 @@ class Dataset:
     ) -> None:
         timewindow = fmt_timedelta_arg(timewindow)
 
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
             whiteset=whiteset,
@@ -1802,19 +1852,19 @@ class Dataset:
     @log_entry
     def repetitions_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_N_repetitions: int = 5,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_N_repetitions=max_N_repetitions,
             whiteset=whiteset,
         )
@@ -1834,20 +1884,20 @@ class Dataset:
     @log_entry
     def step_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_increase_per_second=max_increase_per_second,
             max_decrease_per_second=max_decrease_per_second,
             whiteset=whiteset,
@@ -1868,7 +1918,7 @@ class Dataset:
     @log_entry
     def window_variation_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 0.0022,
@@ -1876,16 +1926,16 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_mp: bool = True,
     ) -> None:
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         timewindow = fmt_timedelta_arg(timewindow)
 
         func_feed_list = _create_qc_arg_set(
             stations=target_stations,
-            target_obstype=target_obstype,
+            obstype=obstype,
             timewindow=timewindow,
             min_records_per_window=min_records_per_window,
             max_increase_per_second=max_increase_per_second,
@@ -1907,7 +1957,7 @@ class Dataset:
     @log_entry
     def buddy_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
@@ -1967,7 +2017,7 @@ class Dataset:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. Default is "temp".
         spatial_buddy_radius : int | float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
@@ -2015,7 +2065,7 @@ class Dataset:
                 )
 
         qc_kwargs = dict(
-            obstype=target_obstype,
+            obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
@@ -2030,9 +2080,9 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
@@ -2064,7 +2114,7 @@ class Dataset:
         # update all the sensordata
         for station in target_stations:
             # Get the sensordata object
-            sensorddata = station.get_sensor(target_obstype)
+            sensorddata = station.get_sensor(obstype)
 
             # get outlier datetimeindex
             outldt = pd.DatetimeIndex(
@@ -2097,7 +2147,7 @@ class Dataset:
     @log_entry
     def buddy_check_with_safetynets(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
@@ -2191,7 +2241,7 @@ class Dataset:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. Default is "temp".
         spatial_buddy_radius : int or float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
@@ -2280,7 +2330,7 @@ class Dataset:
         Apply buddy check with an LCZ safety net:
 
         >>> dataset.buddy_check_with_safetynets(
-        ...     target_obstype="temp",
+        ...     obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4}
         ...     ]
@@ -2289,7 +2339,7 @@ class Dataset:
         Apply buddy check with multiple safety nets (LCZ first, then network):
 
         >>> dataset.buddy_check_with_safetynets(
-        ...     target_obstype="temp",
+        ...     obstype="temp",
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
         ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3}
@@ -2324,7 +2374,7 @@ class Dataset:
                 )
 
         qc_kwargs = dict(
-            obstype=target_obstype,
+            obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
@@ -2340,9 +2390,9 @@ class Dataset:
             use_mp=use_mp,
         )
 
-        # Locate stations with the target_obstype
+        # Locate stations with the obstype
         target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
@@ -2375,7 +2425,7 @@ class Dataset:
         # update all the sensordata
         for station in target_stations:
             # Get the sensordata object
-            sensorddata = station.get_sensor(target_obstype)
+            sensorddata = station.get_sensor(obstype)
 
             # get outlier datetimeindex
             outldt = pd.DatetimeIndex(
@@ -2402,11 +2452,10 @@ class Dataset:
     @copy_doc(Station.get_qc_stats)
     @log_entry
     def get_qc_stats(
-        self, target_obstype: str = "temp", make_plot: bool = True
+        self, obstype: str = "temp", make_plot: bool = True
     ) -> Union[pd.DataFrame, None]:
         freqdf_list = [
-            sta.get_qc_stats(target_obstype=target_obstype, make_plot=False)
-            for sta in self.stations
+            sta.get_qc_stats(obstype=obstype, make_plot=False) for sta in self.stations
         ]
 
         dfagg = (
@@ -2419,9 +2468,7 @@ class Dataset:
 
         if make_plot:
             fig = plotting.qc_overview_pies(df=dfagg)
-            fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Dataset level."
-            )
+            fig.suptitle(f"QC frequency statistics of {obstype} on Dataset level.")
             return fig
         else:
             return dfagg
@@ -2488,7 +2535,7 @@ class Dataset:
     @log_entry
     def interpolate_gaps(
         self,
-        target_obstype: str,
+        obstype: str,
         method: str = "time",
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
@@ -2504,12 +2551,12 @@ class Dataset:
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.interpolate_gaps(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 method=method,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 n_leading_anchors=n_leading_anchors,
@@ -2524,8 +2571,10 @@ class Dataset:
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
         min_value: float | None = None,
         max_value: float | None = None,
@@ -2535,13 +2584,15 @@ class Dataset:
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_raw_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 overwrite_fill=overwrite_fill,
+                modelname=modelname,
+                modelvariable=modelvariable,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 min_value=min_value,
                 max_value=max_value,
@@ -2551,12 +2602,14 @@ class Dataset:
     @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_trailing_records_total: int = 60,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
         min_value: float | None = None,
         max_value: float | None = None,
@@ -2567,17 +2620,19 @@ class Dataset:
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 min_leading_records_total=min_leading_records_total,
                 trailing_period_duration=trailing_period_duration,
                 min_trailing_records_total=min_trailing_records_total,
                 overwrite_fill=overwrite_fill,
+                modelname=modelname,
+                modelvariable=modelvariable,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 min_value=min_value,
                 max_value=max_value,
@@ -2587,11 +2642,13 @@ class Dataset:
     @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
         min_value: float | None = None,
         max_value: float | None = None,
@@ -2602,16 +2659,18 @@ class Dataset:
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_diurnal_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 trailing_period_duration=trailing_period_duration,
                 min_debias_sample_size=min_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                modelname=modelname,
+                modelvariable=modelvariable,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 min_value=min_value,
                 max_value=max_value,
@@ -2621,12 +2680,14 @@ class Dataset:
     @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         trailing_period_duration: Union[str, pd.Timedelta] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
         min_trail_debias_sample_size: int = 2,
         overwrite_fill: bool = False,
+        modelname: str | None = None,
+        modelvariable: str | None = None,
         max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
         min_value: float | None = None,
         max_value: float | None = None,
@@ -2638,17 +2699,19 @@ class Dataset:
 
         # Filter to stations with target obstype
         target_stations, _skip = filter_to_stations_with_target_obstype(
-            stations=self.stations, target_obstype=target_obstype
+            stations=self.stations, obstype=obstype
         )
 
         for sta in target_stations:
             sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-                target_obstype=target_obstype,
+                obstype=obstype,
                 leading_period_duration=leading_period_duration,
                 trailing_period_duration=trailing_period_duration,
                 min_lead_debias_sample_size=min_lead_debias_sample_size,
                 min_trail_debias_sample_size=min_trail_debias_sample_size,
                 overwrite_fill=overwrite_fill,
+                modelname=modelname,
+                modelvariable=modelvariable,
                 max_gap_duration_to_fill=max_gap_duration_to_fill,
                 min_value=min_value,
                 max_value=max_value,
@@ -2889,14 +2952,34 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     -------
     Dataset
         The Dataset instance.
+
+    Warnings
+    --------
+    A warning is issued if the Dataset was saved with a different version
+    of metobs-toolkit than the currently installed version.
     """
 
     picklereader = PickleFileReader(file_path=target_path)
-    return picklereader.read_as_local_file()
+    dataset = picklereader.read_as_local_file()
+
+    # Check version compatibility
+    saved_version = getattr(dataset, "_metobs_version", None)
+    if saved_version is None:
+        logger.warning(
+            f"The imported Dataset was saved with an unknown version of metobs-toolkit. "
+            f"The current version is {__version__}. This may lead to compatibility issues."
+        )
+    elif saved_version != __version__:
+        logger.warning(
+            f"The imported Dataset was saved with metobs-toolkit version {saved_version}, "
+            f"but the current version is {__version__}. This may lead to compatibility issues."
+        )
+
+    return dataset
 
 
 def filter_to_stations_with_target_obstype(
-    stations: list[Station], target_obstype: str
+    stations: list[Station], obstype: str
 ) -> Tuple[list[Station], list[Station]]:
     """
     Split stations into those with and without the target observation type.
@@ -2907,12 +2990,12 @@ def filter_to_stations_with_target_obstype(
     skipped = []
     for sta in stations:
         try:
-            sta._obstype_is_known_check(target_obstype)
+            sta._obstype_is_known_check(obstype)
             subset.append(sta)
         except MetObsSensorDataNotFound:
             skipped.append(sta)
             logger.warning(
-                f"{sta} does not hold {target_obstype} sensordata! It will be skipped! "
+                f"{sta} does not hold {obstype} sensordata! It will be skipped! "
             )
             continue
 

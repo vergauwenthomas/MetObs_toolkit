@@ -73,37 +73,35 @@ class TestBreakingDataset:
         # 2. apply a metobs manipulation
         # apply QC
         dataset.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=-15.0,
             upper_threshold=29.0,
             use_mp=False,
         )
         # fake check on humidity to see if this does not affect temp records
         dataset.gross_value_check(
-            target_obstype="humidity",
+            obstype="humidity",
             lower_threshold=5.0,
             upper_threshold=10.0,
             use_mp=False,
         )
 
         dataset.persistence_check(
-            target_obstype="temp",
+            obstype="temp",
             timewindow="1h",
             min_records_per_window=3,
             use_mp=False,
         )
 
-        dataset.repetitions_check(
-            target_obstype="temp", max_N_repetitions=5, use_mp=False
-        )
+        dataset.repetitions_check(obstype="temp", max_N_repetitions=5, use_mp=False)
         dataset.step_check(
-            target_obstype="temp",
+            obstype="temp",
             max_increase_per_second=8.0 / 3600.0,
             max_decrease_per_second=-10.0 / 3600.0,
             use_mp=False,
         )
         dataset.window_variation_check(
-            target_obstype="temp",
+            obstype="temp",
             timewindow="1h",
             min_records_per_window=3,
             max_increase_per_second=8.0 / 3600.0,
@@ -166,7 +164,7 @@ class TestBreakingDataset:
 
         #  2. apply a metobs manipulation
         # apply QC
-        statsdf = dataset.get_qc_stats(target_obstype="temp", make_plot=False)
+        statsdf = dataset.get_qc_stats(obstype="temp", make_plot=False)
         #  3. overwrite solution?
         if overwrite_solution:
             TestBreakingDataset.solutionfixer.create_solution(
@@ -183,7 +181,7 @@ class TestBreakingDataset:
         assert_equality(statsdf, solutionobj)
 
         # Test plotting
-        _statsdf = dataset.get_qc_stats(target_obstype="temp", make_plot=True)
+        _statsdf = dataset.get_qc_stats(obstype="temp", make_plot=True)
 
     def test_get_info(self):
         #  1. get_startpoint data
@@ -239,7 +237,7 @@ class TestDemoDataset:
         dataset = TestDemoDataset.solutionfixer.get_solution(
             **TestDemoDataset.solkwargs, methodname="test_import_data"
         )
-        target_obstype = "temp"
+        obstype = "temp"
 
         # Drop the temp of 2 random stations
         orig_count = len(dataset.stations)
@@ -249,12 +247,12 @@ class TestDemoDataset:
         # See if qc pipeline still runs
 
         # Run all QC checks with default settings
-        dataset.gross_value_check(target_obstype=target_obstype)
-        dataset.persistence_check(target_obstype=target_obstype)
-        dataset.repetitions_check(target_obstype=target_obstype)
-        dataset.step_check(target_obstype=target_obstype)
-        dataset.window_variation_check(target_obstype=target_obstype)
-        dataset.buddy_check(target_obstype=target_obstype)
+        dataset.gross_value_check(obstype=obstype)
+        dataset.persistence_check(obstype=obstype)
+        dataset.repetitions_check(obstype=obstype)
+        dataset.step_check(obstype=obstype)
+        dataset.window_variation_check(obstype=obstype)
+        dataset.buddy_check(obstype=obstype)
 
         assert orig_count == len(dataset.stations)
 
@@ -277,7 +275,7 @@ class TestDemoDataset:
         with pytest.raises(MetObsMetadataNotFound):
             # Should raise error because no altitude info is available and lapsrate is not none
             dataset.buddy_check(
-                target_obstype="temp",
+                obstype="temp",
                 spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
@@ -296,7 +294,7 @@ class TestDemoDataset:
         with pytest.raises(MetObsMetadataNotFound):
             # Should raise error because no altitude info is available and max_alt_diffis not none
             dataset.buddy_check(
-                target_obstype="temp",
+                obstype="temp",
                 spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
@@ -310,7 +308,7 @@ class TestDemoDataset:
 
         # Test that buddy check runs, with settings that does not create outliers
         dataset.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
@@ -331,7 +329,7 @@ class TestDemoDataset:
 
         # test one iteration
         dataset1.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
@@ -347,7 +345,7 @@ class TestDemoDataset:
 
         # test two iteration
         dataset2.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
@@ -399,7 +397,7 @@ class TestDemoDataset:
         # runs without errors
 
         dataset.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=50000,  # Large radius
             min_sample_size=2,
             spatial_z_threshold=1.8,  # Lower threshold
@@ -425,7 +423,7 @@ class TestDemoDataset:
         # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
         dataset1 = copy.deepcopy(dataset)
         dataset1.buddy_check_with_safetynets(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
                 {
@@ -478,7 +476,7 @@ class TestDemoDataset:
         # Test that missing min_sample_size raises an error
         with pytest.raises(KeyError):
             dataset.buddy_check_with_safetynets(
-                target_obstype="temp",
+                obstype="temp",
                 spatial_buddy_radius=25000,
                 safety_net_configs=[
                     {
@@ -531,7 +529,7 @@ class TestWhiteRecords:
 
         # Create a SensorWhiteSet
         sensor_whiteset = whiteset.create_sensorwhitelist(
-            trg_station="vlinder06", trg_obstype="temp"
+            stationname="vlinder06", obstype="temp"
         )
         # Check repr and str
         repr_sensor = repr(sensor_whiteset)
@@ -599,7 +597,7 @@ class TestWhiteRecords:
         # First run without white_records to identify outliers
         test_dataset = copy.deepcopy(dataset)
         test_dataset.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             use_mp=False,
@@ -616,7 +614,7 @@ class TestWhiteRecords:
             outliers.reset_index()["datetime"].head(20), name="datetime"
         )
         dataset1a.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
@@ -630,7 +628,7 @@ class TestWhiteRecords:
             data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
         )
         dataset1b.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_only),
@@ -641,7 +639,7 @@ class TestWhiteRecords:
 
         # test on station object
         copy.deepcopy(dataset).get_station("vlinder05").gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_only),
@@ -656,7 +654,7 @@ class TestWhiteRecords:
             .index
         )
         dataset2.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
@@ -668,7 +666,7 @@ class TestWhiteRecords:
         dataset3 = copy.deepcopy(dataset)
         white_full = outliers.head(25).index
         dataset3.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_full),
@@ -719,7 +717,7 @@ class TestWhiteRecords:
         # First run without white_records
         test_dataset = copy.deepcopy(dataset)
         test_dataset.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             spatial_z_threshold=1.8,
@@ -738,7 +736,7 @@ class TestWhiteRecords:
             name="datetime",
         )
         dataset1.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             spatial_z_threshold=2.1,
@@ -755,7 +753,7 @@ class TestWhiteRecords:
             .index
         )
         dataset2.buddy_check(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             spatial_z_threshold=2.1,
@@ -804,7 +802,7 @@ class TestWhiteRecords:
         # First run without whiteset
         test_dataset = copy.deepcopy(dataset)
         test_dataset.buddy_check_with_safetynets(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
                 {
@@ -831,7 +829,7 @@ class TestWhiteRecords:
             name="datetime",
         )
         dataset1.buddy_check_with_safetynets(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
                 {
@@ -856,7 +854,7 @@ class TestWhiteRecords:
             .index
         )
         dataset2.buddy_check_with_safetynets(
-            target_obstype="temp",
+            obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
                 {
@@ -954,7 +952,7 @@ class TestWhiteRecords:
         # First run without white_records to identify outliers
         test_dataset = copy.deepcopy(dataset)
         test_dataset.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             use_mp=False,
@@ -971,7 +969,7 @@ class TestWhiteRecords:
             outliers.reset_index()["datetime"].head(20), name="datetime"
         )
         dataset1a.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
@@ -985,7 +983,7 @@ class TestWhiteRecords:
             data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
         )
         dataset1b.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_only),
@@ -996,7 +994,7 @@ class TestWhiteRecords:
 
         # test on station object
         copy.deepcopy(dataset).get_station("vlinder05").gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_only),
@@ -1011,7 +1009,7 @@ class TestWhiteRecords:
             .index
         )
         dataset2.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
@@ -1023,7 +1021,7 @@ class TestWhiteRecords:
         dataset3 = copy.deepcopy(dataset)
         white_full = outliers.head(25).index
         dataset3.gross_value_check(
-            target_obstype="temp",
+            obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_full),
@@ -1098,7 +1096,7 @@ class TestWhiteRecords:
             # gross_value_check
             ds1 = copy.deepcopy(dataset)
             ds1.gross_value_check(
-                target_obstype="temp",
+                obstype="temp",
                 lower_threshold=10.0,
                 upper_threshold=25.0,
                 whiteset=whiteset_dt,
@@ -1108,7 +1106,7 @@ class TestWhiteRecords:
             # persistence_check
             ds2 = copy.deepcopy(dataset)
             ds2.persistence_check(
-                target_obstype="temp",
+                obstype="temp",
                 timewindow="4h",
                 min_records_per_window=3,
                 whiteset=whiteset_multi,
@@ -1118,7 +1116,7 @@ class TestWhiteRecords:
             # repetitions_check
             ds3 = copy.deepcopy(dataset)
             ds3.repetitions_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_N_repetitions=4,
                 whiteset=whiteset_full,
                 use_mp=True,
@@ -1127,7 +1125,7 @@ class TestWhiteRecords:
             # step_check
             ds4 = copy.deepcopy(dataset)
             ds4.step_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_increase_per_second=3 / 3600,
                 max_decrease_per_second=-1.0 * 3 / 3600,
                 whiteset=whiteset_dt,
@@ -1137,7 +1135,7 @@ class TestWhiteRecords:
             # window_variation_check
             ds5 = copy.deepcopy(dataset)
             ds5.window_variation_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_increase_per_second=3 / 3600,
                 max_decrease_per_second=-1.0 * 3 / 3600,
                 timewindow="3h",
@@ -1155,7 +1153,7 @@ class TestWhiteRecords:
             # gross_value_check
             st1 = copy.deepcopy(station)
             st1.gross_value_check(
-                target_obstype="temp",
+                obstype="temp",
                 lower_threshold=10.0,
                 upper_threshold=25.0,
                 whiteset=whiteset_dt,
@@ -1164,7 +1162,7 @@ class TestWhiteRecords:
             # persistence_check
             st2 = copy.deepcopy(station)
             st2.persistence_check(
-                target_obstype="temp",
+                obstype="temp",
                 timewindow="4h",
                 min_records_per_window=3,
                 whiteset=whiteset_multi,
@@ -1173,7 +1171,7 @@ class TestWhiteRecords:
             # repetitions_check
             st3 = copy.deepcopy(station)
             st3.repetitions_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_N_repetitions=4,
                 whiteset=whiteset_full,
             )
@@ -1181,7 +1179,7 @@ class TestWhiteRecords:
             # step_check
             st4 = copy.deepcopy(station)
             st4.step_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_increase_per_second=3 / 3600,
                 max_decrease_per_second=-1.0 * 3 / 3600,
                 whiteset=whiteset_dt,
@@ -1190,7 +1188,7 @@ class TestWhiteRecords:
             # window_variation_check
             st5 = copy.deepcopy(station)
             st5.window_variation_check(
-                target_obstype="temp",
+                obstype="temp",
                 max_increase_per_second=3 / 3600,
                 max_decrease_per_second=-1.0 * 3 / 3600,
                 timewindow="3h",

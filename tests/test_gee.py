@@ -104,19 +104,19 @@ class TestDemoDataset:
         seastation.site._lat = 51.361852
         seastation.site._lon = 3.009151
         # with mask fix
-        lcz_return = seastation.get_LCZ(apply_seamask_fix=True, overwrite=True)
+        lcz_return = seastation.get_LCZ(apply_seamask_fix=True, update_metadata=True)
         assert lcz_return == "Water (LCZ G)"
         assert seastation.site.LCZ == "Water (LCZ G)"  # LCZ-G is the water LCZ class
 
         # without mask
-        lcz_return = seastation.get_LCZ(apply_seamask_fix=False, overwrite=True)
+        lcz_return = seastation.get_LCZ(apply_seamask_fix=False, update_metadata=True)
         assert np.isnan(lcz_return)
 
         # Now on dataset level
         dataset.stations[5].site._lat = 51.361852
         dataset.stations[5].site._lon = 3.009151
 
-        lczdf = dataset.get_LCZ(apply_seamask_fix=True, overwrite=True)
+        lczdf = dataset.get_LCZ(apply_seamask_fix=True, update_metadata=True)
         assert lczdf["LCZ"].notna().all()
         assert lczdf["LCZ"].eq("Water (LCZ G)").any()
         assert dataset.stations[5].site.LCZ == "Water (LCZ G)"
@@ -170,7 +170,7 @@ class TestDemoDataset:
         for geemod in metobs_toolkit.default_GEE_datasets.values():
             if not isinstance(geemod, metobs_toolkit.GEEStaticDatasetManager):
                 continue
-            mapret = dataset.make_gee_plot(geedatasetmanager=geemod)
+            mapret = dataset.make_gee_plot(gee_manager=geemod)
             assert type(mapret) == geemap.Map
 
     def test_gee_dynamic_plot(self):
@@ -182,7 +182,7 @@ class TestDemoDataset:
 
         with pytest.raises(ValueError):
             mapret = dataset.make_gee_plot(
-                geedatasetmanager=geemod,
+                gee_manager=geemod,
                 modelobstype="temp",
                 timeinstance=None,  # must raise error
             )
@@ -193,13 +193,13 @@ class TestDemoDataset:
 
         with pytest.raises(MetObsObstypeNotFound):
             mapret = dataset.make_gee_plot(
-                geedatasetmanager=geemod,
+                gee_manager=geemod,
                 modelobstype="fakeobstype",  # must raise error
                 timeinstance=timeinstance,
             )
 
         mapret = dataset.make_gee_plot(
-            geedatasetmanager=geemod,
+            gee_manager=geemod,
             modelobstype="temp",
             timeinstance=timeinstance,
         )
@@ -261,10 +261,10 @@ class TestDemoDataset:
 
         with pytest.raises(MetObsMissingArgument):
             era5_data = dataset.get_gee_timeseries_data(
-                geedynamicdatasetmanager=era5_model,
+                gee_dynamic_manager=era5_model,
                 startdt_utc=None,  # raises error in metadata-only case
                 enddt_utc=None,
-                target_obstypes=["temp"],
+                obstypes=["temp"],
                 get_all_bands=False,
                 drive_filename=None,
                 drive_folder="gee_timeseries_data",
@@ -275,10 +275,10 @@ class TestDemoDataset:
         startdt_utc = pd.Timestamp("2021-01-01 16:32:25")
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp", "pressure", "wind"],
+            obstypes=["temp", "pressure", "wind"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",
@@ -330,10 +330,10 @@ class TestDemoDataset:
         startdt_utc = pd.Timestamp("2022-08-31 18:32:25")
         enddt_utc = pd.Timestamp("2022-09-01 12:16:00")
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp"],
+            obstypes=["temp"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",
@@ -371,10 +371,10 @@ class TestDemoDataset:
         era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         # Extract the timeseries
         era5_temp = dataset.get_station("vlinder02").get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_manager,  # The datasetmanager to use
+            gee_manager=era5_manager,  # The datasetmanager to use
             startdt_utc=None,
             enddt_utc=None,
-            target_obstypes=[
+            obstypes=[
                 "temp"
             ],  # the observationtypes to extract, must be known modelobstypes
             force_direct_transfer=True,
@@ -389,15 +389,12 @@ class TestDemoDataset:
         )
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
+            trgfile = tmpdir / "deleteme.pkl"
             # pickle dataset
-            dataset.save_dataset_to_pkl(
-                target_folder=tmpdir, filename="deleteme.pkl", overwrite=True
-            )
+            dataset.save_dataset_to_pkl(filepath=trgfile, overwrite=True)
 
             # open datast
-            dataset_pkled = metobs_toolkit.import_dataset_from_pkl(
-                target_path=tmpdir.joinpath("deleteme.pkl")
-            )
+            dataset_pkled = metobs_toolkit.import_dataset_from_pkl(target_path=trgfile)
 
         assert_equality(dataset_pkled, dataset)
 
@@ -432,10 +429,10 @@ class TestDemoDataset:
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
         era5_data = dataset.get_gee_timeseries_data(
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            target_obstypes=["temp", "pressure", "wind"],
+            obstypes=["temp", "pressure", "wind"],
             get_all_bands=False,
             drive_filename=None,
             drive_folder="gee_timeseries_data",
@@ -450,7 +447,7 @@ class TestDemoDataset:
         )
         dataset.import_gee_data_from_file(
             filepath=target_era5_csv,
-            geedynamicdatasetmanager=era5_model,
+            gee_dynamic_manager=era5_model,
             force_update=True,
         )
         # compare with solution of direct import of gee data

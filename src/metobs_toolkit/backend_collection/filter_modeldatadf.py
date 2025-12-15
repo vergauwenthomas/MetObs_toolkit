@@ -11,7 +11,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 @log_entry
 def filter_modeldatadf(
-    modeldatadf: pd.DataFrame, trgobstype: str, modelname: str, modelvariable: str
+    modeldatadf: pd.DataFrame, obstype: str, modelname: str, modelvariable: str
 ) -> pd.DataFrame:
     """
     Filter model data DataFrame by observation type, model name, and variable.
@@ -20,7 +20,7 @@ def filter_modeldatadf(
     ----------
     modeldatadf : pd.DataFrame
         Multi-index DataFrame containing model data with 'obstype' level.
-    trgobstype : str
+    obstype : str
         Target observation type to filter for.
     modelname : str or None
         Model name to filter for. If None, no filtering by model name.
@@ -39,9 +39,9 @@ def filter_modeldatadf(
     """
 
     # filter on obstype
-    if trgobstype not in modeldatadf.index.get_level_values("obstype"):
-        raise MetObsObstypeNotFound(f"There is no modeldata present of {trgobstype}")
-    modeldatadf = modeldatadf.xs(trgobstype, level="obstype", drop_level=False)
+    if obstype not in modeldatadf.index.get_level_values("obstype"):
+        raise MetObsObstypeNotFound(f"There is no modeldata present of {obstype}")
+    modeldatadf = modeldatadf.xs(obstype, level="obstype", drop_level=False)
 
     # filter on modelname
     if modelname is not None:

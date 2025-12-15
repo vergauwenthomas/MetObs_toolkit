@@ -108,7 +108,7 @@ class TestObstype:
     def test_creating_new_obstypes(self):
         # 1. Create a new Obstype instance
         new_obstype = metobs_toolkit.obstypes.Obstype(
-            obsname="new_temp", std_unit="°F", description="New temperature observation"
+            name="new_temp", std_unit="°F", description="New temperature observation"
         )
 
         # Test if error is trown for incompatible units
@@ -170,7 +170,7 @@ class TestObstype:
         """Test the model_unit setter of ModelObstype class."""
         # Create a base temperature obstype
         temp_obstype = metobs_toolkit.obstypes.Obstype(
-            obsname="temp", std_unit="°C", description="Temperature"
+            name="temp", std_unit="°C", description="Temperature"
         )
 
         # Create a ModelObstype with initial model_unit
@@ -204,7 +204,7 @@ class TestObstype:
         """Test the model_band setter of ModelObstype class."""
         # Create a base temperature obstype
         temp_obstype = metobs_toolkit.obstypes.Obstype(
-            obsname="temp", std_unit="°C", description="Temperature"
+            name="temp", std_unit="°C", description="Temperature"
         )
 
         # Create a ModelObstype with initial model_band

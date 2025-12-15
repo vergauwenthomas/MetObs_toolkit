@@ -38,7 +38,7 @@ def get_demo_dataset_with_modeldata():
 
     era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
     dataset.import_gee_data_from_file(
-        filepath=file_with_era5_data, geedynamicdatasetmanager=era5_manager
+        filepath=file_with_era5_data, gee_dynamic_manager=era5_manager
     )
 
     return dataset
@@ -84,7 +84,7 @@ class TestAddMethods:
 
         # 1 test with incompatible obtype merge
         fake_obstype = metobs_toolkit.Obstype(
-            obsname="temp",
+            name="temp",
             std_unit="degK",  # makes for incompatibel merge!
             description="blablabla",
         )
@@ -101,7 +101,7 @@ class TestAddMethods:
         # 2. test with compatible obstype merge
 
         fake_obstype = metobs_toolkit.Obstype(
-            obsname="temp",
+            name="temp",
             std_unit="degC",  # makes for compatibel merge!
             description="blablabla",
         )
@@ -140,7 +140,7 @@ class TestAddMethods:
         sd_other.series.index = sd_other.series.index + pd.Timedelta("30D")
 
         # apply qc before add
-        sta.gross_value_check(target_obstype="temp", upper_threshold=24.2)
+        sta.gross_value_check(obstype="temp", upper_threshold=24.2)
         sd1 = copy.deepcopy(sta.get_sensor("temp"))
 
         # summ
@@ -246,7 +246,7 @@ class TestAddMethods:
 
         # Additional band
         fake_obs = metobs_toolkit.Obstype(
-            obsname="dummy", std_unit="km/h", description="blabla"
+            name="dummy", std_unit="km/h", description="blabla"
         )
         fake_modelobs = metobs_toolkit.ModelObstype(
             obstype=fake_obs,
