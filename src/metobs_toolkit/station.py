@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import logging
 import copy
 import numpy as np
 import pandas as pd
-from typing import Literal, Union
+from typing import Literal, Union, TYPE_CHECKING
 from datetime import datetime
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
 from pathlib import Path
 from os import PathLike
+
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
 
 from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (

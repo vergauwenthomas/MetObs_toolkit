@@ -1,16 +1,20 @@
+from __future__ import annotations
+
 import os
 from os import PathLike
 import copy
 import pickle
 import logging
-from typing import Literal, Union, Tuple, List, Dict
+from typing import Literal, Union, Tuple, List, Dict, TYPE_CHECKING
 from pathlib import Path
 
 import pandas as pd
 import numpy as np
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
 import concurrent.futures
+
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
 
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,

@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import logging
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (

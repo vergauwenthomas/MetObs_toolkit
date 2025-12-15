@@ -6,8 +6,6 @@ from typing import Literal, Union, TYPE_CHECKING
 import copy
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
@@ -44,6 +42,8 @@ if TYPE_CHECKING:
     import pytz
     import dateutil.tz
     import datetime
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
 
 
 logger = logging.getLogger("<metobs_toolkit>")
