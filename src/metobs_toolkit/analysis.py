@@ -677,7 +677,7 @@ with {ref_station} as reference, grouped per {colorby}."
             If the observation type is not present.
         """
         if obstype in self.df.columns:
-            return
+            return None
         raise MetObsObstypeNotFound(f"{obstype} is not present in {self}.")
 
     def _all_possible_agg_categories(self) -> list:
