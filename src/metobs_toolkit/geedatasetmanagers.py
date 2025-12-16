@@ -1221,7 +1221,9 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             df = pd.DataFrame(properties)
 
             if df.empty:
-                raise MetObsModelDataError("ERROR: the returned timeseries from GEE are empty.")
+                raise MetObsModelDataError(
+                    "ERROR: the returned timeseries from GEE are empty."
+                )
 
             df = self._format_gee_df_structure(
                 df
