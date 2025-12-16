@@ -30,6 +30,7 @@ import metobs_toolkit.qc_collection as qc
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
+    MetObsInternalError,
 )
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
@@ -39,10 +40,8 @@ from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_
 
 # add all imports only for type checking, but not for runtime
 if TYPE_CHECKING:
-    import pytz
     from dateutil.tz import tzfile
     from datetime import tzinfo
-    import datetime
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
 
@@ -88,7 +87,7 @@ class SensorData:
         timestamps: np.ndarray,
         obstype: Obstype,
         datadtype: type = np.float32,
-        timestamps_tz:  Union[tzfile | tzinfo | str] = "UTC",
+        timestamps_tz: Union[tzfile | tzinfo | str] = "UTC",
         **setupkwargs,
     ):
 
@@ -318,9 +317,11 @@ class SensorData:
         """Return the timezone of the stored timestamps."""
         # Should always be SensorData._target_tz
         cur_tz = self.series.index.tz
-        assert (
-            str(cur_tz) == SensorData._target_tz
-        ), f"Internal timezone mismatch: {cur_tz.zone} != {SensorData._target_tz}"
+        if str(cur_tz) != SensorData._target_tz:
+            raise MetObsInternalError(
+                f"Internal timezone mismatch: {cur_tz.zone} != {SensorData._target_tz}"
+            )
+
         return cur_tz
 
     @property
@@ -1041,9 +1042,9 @@ class SensorData:
     def fill_gap_with_modeldata(
         self,
         modeltimeseries: "ModelTimeSeries",  # type: ignore #noqa: F821
-        method: str = Literal[
+        method: Literal[
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
-        ],
+        ] = "raw",
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
     ) -> None:
