@@ -230,7 +230,7 @@ class Gap:
         min_leading_records_total: int,
         trailing_period_duration: Union[str, pd.Timedelta],
         min_trailing_records_total: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -305,7 +305,7 @@ class Gap:
         if not gapsize_is_ok:
             self._labels[:] = label_def["failed_debias_modeldata_fill"]["label"]
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -320,7 +320,7 @@ class Gap:
             logger.warning(
                 f"Incompatible modeldata for debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -337,7 +337,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already updated
-            return
+            return None
 
         # 3. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -377,7 +377,7 @@ class Gap:
         leading_period_duration: pd.Timedelta,
         trailing_period_duration: pd.Timedelta,
         min_debias_sample_size: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -458,7 +458,7 @@ class Gap:
         if not gapsize_is_ok:
             self._labels[:] = label_def["failed_diurnal_debias_modeldata_fill"]["label"]
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -473,7 +473,7 @@ class Gap:
             logger.warning(
                 f"Incompatible modeldata for diurnal_debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -490,7 +490,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already been updated
-            return
+            return None
 
         # 4. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -534,7 +534,7 @@ class Gap:
         min_lead_debias_sample_size: int,
         trailing_period_duration: pd.Timedelta,
         min_trail_debias_sample_size: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -628,7 +628,7 @@ class Gap:
                 "failed_weighted_diurnal_debias_modeldata_fill"
             ]["label"]
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -645,7 +645,7 @@ class Gap:
             logger.warning(
                 f"Incompatible modeldata for weighted_diurnal_debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -664,7 +664,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already been updated
-            return
+            return None
 
         # 4. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -705,7 +705,7 @@ class Gap:
     def raw_model_gapfill(
         self,
         modeltimeseries: ModelTimeSeries,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -759,7 +759,7 @@ class Gap:
         if not gapsize_is_ok:
             self._labels[:] = label_def["failed_raw_modeldata_fill"]["label"]
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -774,7 +774,7 @@ class Gap:
             ]["label"]
             self._extra_info.loc[self.records.isna()] = err_msg
             logger.warning(f"Incompatible modeldata for raw_model_gapfill: \n{err_msg}")
-            return
+            return None
 
         modelseries = modeltimeseries.series
         gapseries = self.records
@@ -824,7 +824,7 @@ class Gap:
         self,
         sensordata: SensorData,
         method: str = "time",
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -903,7 +903,7 @@ class Gap:
         if not gapsize_is_ok:
             self._labels[:] = label_def["failed_interpolation_gap"]["label"]
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Get leading period
         lead_period, continueflag, err_msg = gf_methods.get_leading_period(
@@ -922,7 +922,7 @@ class Gap:
             logger.warning(
                 f"Cannot interpolate {self} because no valid leading period can be found."
             )
-            return
+            return None
 
         # 3. Get trailing period
         trail_period, continueflag, err_msg = gf_methods.get_trailing_period(
@@ -941,7 +941,7 @@ class Gap:
             logger.warning(
                 f"Cannot interpolate {self} because no valid trailing period can be found."
             )
-            return
+            return None
 
         # 5. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(
@@ -974,7 +974,7 @@ class Gap:
             "Unsuccessful interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
         )
 
-        return
+        return None
 
     # ------------------------------------------
     #    Helping methods
