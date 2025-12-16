@@ -98,3 +98,7 @@ When adding new public methods:
 3. Add test in `tests/` following solution-based pattern
 4. Apply `@log_entry` decorator
 5. Update property docstrings with `@copy_doc` if building derived data
+
+### Version compatibility
+When a method's signature changes, that is accessible by the user, a deprecation 
+warning must be added for the old singanture. 
