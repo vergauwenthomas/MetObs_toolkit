@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import logging
 import concurrent.futures
-from math import radians, cos, sin, asin, sqrt
-from typing import Union, List, Dict, Tuple
+from typing import Union, List, Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -11,6 +12,9 @@ from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 from .whitelist import WhiteSet
+
+if TYPE_CHECKING:
+    from metobs_toolkit.station import Station
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -99,7 +103,7 @@ def _validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
         If any required key is missing from a safety net configuration.
     """
     if safety_net_configs is None:
-        return
+        return None
 
     required_keys = {"category", "buddy_radius", "z_threshold", "min_sample_size"}
 
@@ -368,7 +372,7 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
 
 @log_entry
 def toolkit_buddy_check(
-    target_stations: list["Station"],  # noqa: F821
+    target_stations: list[Station],
     metadf: pd.DataFrame,
     obstype: str,
     spatial_buddy_radius: Union[int, float],

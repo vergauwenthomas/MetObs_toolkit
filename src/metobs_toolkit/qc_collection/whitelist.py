@@ -6,6 +6,9 @@ import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
 )
+from metobs_toolkit.backend_collection.errorclasses import (
+    MetObsArgumentError,
+)
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -33,10 +36,10 @@ class SensorWhiteSet:
             # None as a default is more convenient
             white_timestamps = []
 
-        if all_timestamps:
-            assert (
-                len(white_timestamps) == 0
-            ), "If all_timestamps is True, white_timestamps must be empty."
+        if (all_timestamps) & (len(white_timestamps) != 0):
+            raise MetObsArgumentError(
+                "If all_timestamps is True, white_timestamps must be empty."
+            )
 
         self.white_timestamps = white_timestamps
         self.all_timestamps = all_timestamps
@@ -253,11 +256,11 @@ class WhiteSet:
         This method modifies self.white_records in-place.
         """
         if self._flag_is_empty():
-            return
+            return None
 
         # Check if datetime level exists
         if "datetime" not in self.white_records.names:
-            return
+            return None
 
         # Get the datetime values
         dt_values = self.white_records.get_level_values("datetime")
@@ -299,7 +302,7 @@ class WhiteSet:
             If white_records contains unexpected index levels.
         """
         if self._flag_is_empty():
-            return
+            return None
 
         logger.debug(
             "Validating WhiteSet structure with levels: %s", self.white_records.names

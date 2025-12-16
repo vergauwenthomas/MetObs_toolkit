@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from datetime import tzinfo
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
+    from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -1041,7 +1042,7 @@ class SensorData:
     @log_entry
     def fill_gap_with_modeldata(
         self,
-        modeltimeseries: "ModelTimeSeries",  # type: ignore #noqa: F821
+        modeltimeseries: ModelTimeSeries,
         method: Literal[
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
         ] = "raw",
@@ -1111,7 +1112,7 @@ class SensorData:
     def interpolate_gaps(
         self,
         method: str = "time",
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,

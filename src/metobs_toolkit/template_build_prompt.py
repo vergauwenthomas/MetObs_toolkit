@@ -349,7 +349,9 @@ Answer the prompt and hit Enter. \n \n"
         metadatafilepath = usr_input_file("Give the full path to your metadata file")
 
     if (not data_avail) and (not meta_avail):
-        raise MetObsTemplateError("No template can be built without a data or metadata file.")
+        raise MetObsTemplateError(
+            "No template can be built without a data or metadata file."
+        )
 
     # ==========================================================================
     # Map data file
@@ -573,7 +575,9 @@ observation(s) of one station)": 3,
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
                 print("This is not an option, select an observation type.")
-                raise MetObsTemplateError("invalid obstype for wide dataset: This is not an option, select an observation type. ")
+                raise MetObsTemplateError(
+                    "invalid obstype for wide dataset: This is not an option, select an observation type. "
+                )
             wide_obstype_name = inv_obstype_desc[desc_return]
 
             # 1) add a new obstype
@@ -756,4 +760,4 @@ observation(s) of one station)": 3,
             print("    template_file = template,")
             print(")")
 
-    return
+    return None

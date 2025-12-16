@@ -11,7 +11,6 @@ import numpy as np
 if TYPE_CHECKING:
     from dateutil.tz import tzfile
     from datetime import tzinfo
-    
 
 
 def timestamps_to_datetimeindex(

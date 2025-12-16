@@ -6,12 +6,7 @@ import numpy as np
 import pandas as pd
 from typing import Literal, Union, TYPE_CHECKING
 from datetime import datetime
-from pathlib import Path
-from os import PathLike
 
-if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
-    from xarray import Dataset as xrDataset
 
 from metobs_toolkit.site import Site
 from metobs_toolkit.backend_collection.argumentcheckers import (
@@ -47,9 +42,15 @@ from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
-from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
+
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from os import PathLike
+    from xarray import Dataset as xrDataset
+    from metobs_toolkit.sensordata import SensorData
+    from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -202,7 +203,7 @@ class Station:
         return dict(self.obsdata)
 
     @log_entry
-    def get_sensor(self, obstype: str) -> "SensorData":  # type: ignore #noqa: F821
+    def get_sensor(self, obstype: str) -> SensorData:
         """Get the SensorData instance for a specific observation type.
 
         Parameters
@@ -486,7 +487,7 @@ class Station:
         obstype: str,
         modelname: str | None = None,
         modelvariable: str | None = None,
-    ) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    ) -> ModelTimeSeries:
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
@@ -610,7 +611,7 @@ class Station:
         return maxdt
 
     @property
-    def modeldata(self) -> list["ModelTimeSeries"]:  # type: ignore #noqa: F821
+    def modeldata(self) -> list[ModelTimeSeries]:
         """
         Retrieve the model data associated with the station.
 
@@ -1277,7 +1278,7 @@ class Station:
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
-            return
+            return None
 
         # Create ModelTimeSeries instances
         for modelobscol in df.columns:
@@ -1585,7 +1586,6 @@ class Station:
 
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
-        * In general, for temperatures, the decrease threshold is set less stringent than the increase
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
@@ -1958,7 +1958,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2046,7 +2046,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2152,7 +2152,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2265,7 +2265,7 @@ class Station:
         overwrite_fill=False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ):
@@ -2384,7 +2384,7 @@ class Station:
         self,
         obstype: str,
         method: str = "time",
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,

@@ -37,7 +37,11 @@ class Site:
     """
 
     def __init__(
-        self, stationname: str, latitude: float, longitude: float, extradata: dict | None = None
+        self,
+        stationname: str,
+        latitude: float,
+        longitude: float,
+        extradata: dict | None = None,
     ):
         # Set data
         self._stationname = stationname
@@ -408,7 +412,7 @@ class Site:
         # test if modeldata is static
         if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"gee_static_manager should be an isntance of GeeStaticDataset, not {type(gee_static_manager)}"
+                f"gee_static_manager should be an instance of GEEStaticDatasetManager, not {type(gee_static_manager)}"
             )
 
         # test if coordinates are knonw
@@ -463,7 +467,7 @@ class Site:
         # test if modeldata is static
         if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"gee_static_manager should be an isntance of GeeStaticDataset, not {type(gee_static_manager)}"
+                f"gee_static_manager should be an instance of GEEStaticDatasetManager, not {type(gee_static_manager)}"
             )
 
         # test if coordinates are knonw
@@ -539,7 +543,7 @@ class Site:
             )
 
         # Extra metadata
-        if bool(self):
+        if bool(self.extradata):
             infostr += printing.print_fmt_line(
                 "Extra metadata from the metadata file:", nident_root
             )

@@ -410,9 +410,11 @@ class Template:
 
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
-            assert (
-                ts_info["fmt"] is not None
-            ), "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
+            if ts_info["fmt"] is None:
+                raise MetObsTemplateError(
+                    "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
+                )
+
             if ts_info["time_column"] is not None:
                 self.timestampinfo["time_column"] = None
                 logger.warning(
@@ -423,14 +425,16 @@ class Template:
                 logger.warning(
                     f"The mapping of the date column ({ts_info['date_column']}) is ignored because of the presence of a datetime column."
                 )
-            return
+            return None
 
         # Situation 2: a separate date and time columns is present.
         if (ts_info["time_column"] is not None) & (ts_info["date_column"] is not None):
-            assert (
-                ts_info["fmt"] is not None
-            ), "Datetimes are assumed to be present as a date and time column, but no formats are specified."
-            return
+
+            if ts_info["fmt"] is None:
+                raise MetObsTemplateError(
+                    "Datetimes are assumed to be present as a date and time column, but no formats are specified."
+                )
+            return None
         raise MetObsTemplateError(
             "The timestamps are not correctly mapped (either by using a datetime column, or by a time and date column)"
         )

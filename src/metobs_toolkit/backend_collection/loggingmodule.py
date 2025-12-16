@@ -92,7 +92,7 @@ def add_FileHandler(
                     f"at level {logging.getLevelName(handler.level)} "
                     f"(<= {setlvl.upper()}). No new FileHandler added."
                 )
-                return
+                return None
 
     # Create the Handler for logging data to a file - will be inherited for children
     file_handler = logging.FileHandler(filename=filepath)
@@ -155,7 +155,7 @@ def add_StreamHandler(
                     f"StreamHandler already exists at level {logging.getLevelName(handler.level)} "
                     f"(<= {setlvl.upper()}). No new StreamHandler added."
                 )
-                return
+                return None
 
     # Create StreamHandler
     streamhandler = logging.StreamHandler()

@@ -307,7 +307,7 @@ class MetaDataParser:
         """
         # 1. target_single_name is included in the metadata
         if target_single_name in self.datadf.index:
-            return
+            return None
         else:
             # 2. not present in the metadata
             if self.datadf.shape[0] > 1:
@@ -326,7 +326,7 @@ class MetaDataParser:
                 )
                 # rename
                 self.datadf.index = pd.Index(name="name", data=[target_single_name])
-                return
+                return None
 
     # ------------------------------------------
     #    Getters

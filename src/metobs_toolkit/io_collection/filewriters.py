@@ -27,7 +27,7 @@ def write_dict_to_json(dictionary: dict, trgfile: str) -> None:
     j = json.dumps(dictionary, indent=4)
     with open(trgfile, "w") as f:
         print(j, file=f)
-    return
+    return None
 
 
 @log_entry

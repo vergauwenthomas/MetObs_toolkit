@@ -5,6 +5,8 @@ import numpy as np
 
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsTimeSimplifyError,
+    MetObsInternalError,
+    MetObsArgumentError,
 )
 from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 
@@ -167,9 +169,10 @@ class TimestampMatcher:
             )
         else:
             # test if the closing is a good candidate
-            assert (closing - origin) % target_freq == pd.Timedelta(
-                0
-            ), f"{closing} is not a good candidate with origin: {origin} and freq {target_freq}."
+            if (closing - origin) % target_freq != pd.Timedelta(0):
+                raise MetObsInternalError(
+                    f"{closing} is not a good candidate with origin: {origin} and freq {target_freq}."
+                )
 
         target_dtrange = pd.date_range(
             start=origin,
@@ -377,11 +380,14 @@ def get_likely_frequency(
     logger.debug(
         f"Starting get_likely_frequency with method={method} and max_simplify_error={max_simplify_error}"
     )
-    assert method in [
+
+    if method not in [
         "highest",
         "median",
-    ], f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
-
+    ]:
+        raise MetObsArgumentError(
+            f"The method for frequency estimation ({method}) is not known. Use one of [highest, median]"
+        )
     try:
         pd.to_timedelta(max_simplify_error)
     except ValueError:

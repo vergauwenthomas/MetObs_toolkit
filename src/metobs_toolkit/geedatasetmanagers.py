@@ -739,7 +739,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             )
         if modelobstype.name in self.modelobstypes.keys():
             if modelobstype == self.modelobstypes[modelobstype.name]:
-                return
+                return None
             else:
                 raise MetObsModelDataError(
                     f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
@@ -1089,7 +1089,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
         initialize_gee: bool = True,
-    ):
+    ) -> Union[pd.DataFrame, None]:
         """
         Extract timeseries data and set the modeldf.
 
@@ -1282,7 +1282,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 Dataset.import_gee_data_from_file() method."
             )
 
-            return
+            return None
 
 
 # =============================================================================

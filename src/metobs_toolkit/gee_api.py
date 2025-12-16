@@ -70,23 +70,23 @@ def connect_to_gee(**kwargs) -> None:
 
     if "/runner/" in os.getcwd():  # Triggered on GitHub action runner
         auth_on_runner()
-        return
+        return None
 
     if os.getenv("READTHEDOCS_VIRTUALENV_PATH") is not None:  # Triggered on RTD builds
         auth_on_rtd()
-        return
+        return None
 
     if bool(kwargs):  # kwargs are always passed by user, so reinitialize
         ee.Authenticate(**kwargs)
         ee.Initialize()
-        return
+        return None
 
     # Try to initialize with existing credentials
     try:
         # Try to initialize (will use default credentials location)
         ee.Initialize()
         logger.info("Successfully initialized GEE with default credentials")
-        return
+        return None
     except Exception as e:
         logger.warning(f"Failed to initialize GEE with default credentials: {e}")
         # Fall through to authentication
@@ -95,7 +95,7 @@ def connect_to_gee(**kwargs) -> None:
     if not ee.data._credentials:
         ee.Authenticate()
         ee.Initialize()
-    return
+    return None
 
 
 @log_entry
