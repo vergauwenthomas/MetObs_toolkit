@@ -1762,7 +1762,7 @@ class Dataset:
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
-            return
+            return None
 
         # Import the data and add it to the Stations
 
@@ -2541,7 +2541,7 @@ class Dataset:
         self,
         obstype: str,
         method: str = "time",
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2579,7 +2579,7 @@ class Dataset:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2614,7 +2614,7 @@ class Dataset:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2653,7 +2653,7 @@ class Dataset:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2692,7 +2692,7 @@ class Dataset:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
