@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
@@ -22,6 +22,9 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import gap_df
+
+if TYPE_CHECKING:
+    from metobs_toolkit.sensordata import SensorData
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -221,7 +224,7 @@ class Gap:
     @log_entry
     def debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: Union[str, pd.Timedelta],
         min_leading_records_total: int,
@@ -369,7 +372,7 @@ class Gap:
     @log_entry
     def diurnal_debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         trailing_period_duration: pd.Timedelta,
@@ -525,7 +528,7 @@ class Gap:
     @log_entry
     def weighted_diurnal_debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         min_lead_debias_sample_size: int,
@@ -819,7 +822,7 @@ class Gap:
     @log_entry
     def interpolate(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         method: str = "time",
         max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
         n_leading_anchors: int = 1,
@@ -999,7 +1002,7 @@ class Gap:
 
     def _setup_lead_and_trail_for_debias_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         fail_label: str,
         leading_period_duration: pd.Timedelta,
         min_leading_records_total: int,
