@@ -533,7 +533,7 @@ class Dataset:
                 infostr += printing.print_fmt_line("No QC outliers present.", 2)
             else:
                 infostr += printing.print_fmt_line(
-                    "A total of {outldf.shape[0]} outliers are present.", 2
+                    f"A total of {outldf.shape[0]} outliers are present.", 2
                 )
                 infostr += printing.print_fmt_line("label counts:", 3)
                 infostr += printing.print_fmt_dict(
@@ -995,8 +995,8 @@ class Dataset:
             raise MetObsMissingFile(
                 "No input_data_file or input_metadata_file is provided"
             )
-
-        assert template_file is not None, "No templatefile is specified."
+        if template_file is None:
+            raise MetObsMissingFile("No template_file is provided.")
 
         logger.info("Reading the templatefile")
         self.template.read_template_from_file(
