@@ -1,4 +1,6 @@
-from typing import Optional, Dict, Any, Union, Tuple
+from __future__ import annotations
+
+from typing import Dict, Any, Union, TYPE_CHECKING
 import logging
 import xarray as xr
 import numpy as np
@@ -9,8 +11,14 @@ from metobs_toolkit.settings_collection import __version__
 from metobs_toolkit.settings_collection.label_defenitions import label_to_numeric_map
 
 
+if TYPE_CHECKING:
+    from metobs_toolkit.sensordata import Sensordata
+    from metobs_toolkit.modeltimeseries import Modeltimeseries
+    from metobs_toolkit.dataset import Dataset
+    from metobs_toolkit.station import Station
+
 def modeltimeseries_to_xr(
-    modeltimeseries: "Modeltimeseries", fmt_datetime_coordinate=True
+    modeltimeseries: Modeltimeseries, fmt_datetime_coordinate=True
 ) -> xr.Dataset:
     """
     Convert a model time series object to an xarray Dataset.
@@ -67,7 +75,7 @@ def modeltimeseries_to_xr(
 
 
 def sensordata_to_xr(
-    sensordata: "Sensordata", fmt_datetime_coordinate=True
+    sensordata: Sensordata, fmt_datetime_coordinate=True
 ) -> xr.Dataset:
     """
     Convert sensor observations (including labels) to an xarray Dataset.
@@ -153,7 +161,7 @@ def sensordata_to_xr(
     return ds
 
 
-def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Dataset:
+def station_to_xr(station: Station, fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Merge all sensor and model data of a station into a single Dataset.
 
@@ -240,7 +248,7 @@ def station_to_xr(station: "Station", fmt_datetime_coordinate=True) -> xr.Datase
     return ds
 
 
-def dataset_to_xr(dataset: "Dataset", fmt_datetime_coordinate=True) -> xr.Dataset:
+def dataset_to_xr(dataset: Dataset, fmt_datetime_coordinate=True) -> xr.Dataset:
     """
     Concatenate multiple station Datasets into one along a new 'name'
     dimension.
@@ -383,7 +391,7 @@ def construct_metobs_attr() -> Dict:
     }
 
 
-def construct_QC_attr(sensordata: "Sensordata") -> Dict:
+def construct_QC_attr(sensordata: Sensordata) -> Dict:
     """
     Extract quality control check metadata from sensor data.
 
@@ -415,7 +423,7 @@ def construct_QC_attr(sensordata: "Sensordata") -> Dict:
     return returndict
 
 
-def construct_GF_attr(sensordata: "Sensordata") -> Dict[str, Dict[str, Any]]:
+def construct_GF_attr(sensordata: Sensordata) -> Dict[str, Dict[str, Any]]:
     """
     Extract applied gap-fill methods and their settings.
 
