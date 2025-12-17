@@ -70,7 +70,9 @@ def persistence_check(
         logger.warning(
             "The minimum number of window members for the persistence check is not met!"
         )
-        return timestamps_to_datetimeindex(name="datetime", timestamps=[])
+        return timestamps_to_datetimeindex(
+            name="datetime", timestamps=[], current_tz=None
+        )
 
     # Apply persistence
     @log_entry

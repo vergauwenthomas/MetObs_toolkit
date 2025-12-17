@@ -69,7 +69,9 @@ def repetitions_check(
     # Combine all outlier groups
     if outlier_groups.empty:
         logger.debug("No outliers detected. Exiting repetitions_check function.")
-        return timestamps_to_datetimeindex(timestamps=[], name="datetime")
+        return timestamps_to_datetimeindex(
+            timestamps=[], name="datetime", current_tz=None
+        )
 
     outliers = pd.concat(
         [

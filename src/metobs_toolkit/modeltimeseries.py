@@ -8,13 +8,17 @@ import numpy as np
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
+    from dateutil.tz import tzfile
+    from datetime import tzinfo
 
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
     convert_to_numeric_series,
 )
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
+    convert_timezone,
     to_timedelta,
 )
 
@@ -80,6 +84,9 @@ class ModelTimeSeries:
         unit conversion.
     """
 
+    # Class variable for internal timezone storage
+    _target_tz: str = Settings.get("store_tz")
+
     def __init__(
         self,
         site,
@@ -103,12 +110,18 @@ class ModelTimeSeries:
                 f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit = value syntax."
             )
 
+        # format timestamps
+        dtindex = timestamps_to_datetimeindex(
+            timestamps=timestamps,
+            current_tz=timezone,
+            name="datetime",
+        )
+        dtindex = convert_timezone(dtindex, target_tz=ModelTimeSeries._target_tz)
+
         # Data
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).values,
-            index=timestamps_to_datetimeindex(
-                timestamps=timestamps, tz=timezone, name="datetime"
-            ),
+            index=dtindex,
             name=modelobstype.name,
         )
         if _convert_to_standard_units:

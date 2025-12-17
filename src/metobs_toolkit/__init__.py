@@ -81,3 +81,9 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 from metobs_toolkit.settings_collection.version import __version__
+
+# =============================================================================
+# Settings
+# =============================================================================
+
+from metobs_toolkit.settings_collection.settings import Settings

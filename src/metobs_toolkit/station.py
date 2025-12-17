@@ -9,6 +9,7 @@ from datetime import datetime
 
 
 from metobs_toolkit.site import Site
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
@@ -28,7 +29,6 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 from metobs_toolkit.qc_collection.whitelist import WhiteSet
-from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
@@ -1747,9 +1747,9 @@ class Station:
         )
 
         plotdf = plotdf[["value"]]
-        plotdf["label"] = label_def["goodrecord"][
-            "label"
-        ]  # Just so that they are plotted as lines
+        plotdf["label"] = Settings.get(
+            "label_def.goodrecord.label"
+        )  # Just so that they are plotted as lines
 
         # Define linecolor (needed here if modeldata is added )
         if linecolor is None:

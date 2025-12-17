@@ -16,6 +16,9 @@ from datetime import datetime
 from functools import wraps
 from os import PathLike
 
+from metobs_toolkit.settings_collection.settings import Settings
+
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
@@ -31,8 +34,8 @@ def log_entry(func):
 @log_entry
 def add_FileHandler(
     filepath: str | PathLike,
-    setlvl: str = "DEBUG",
-    logformat: str = "LOG:: %(levelname)s - %(message)s",
+    setlvl: str = Settings.get("log_level"),
+    logformat: str = Settings.get("log_format"),
     clearlog: bool = True,
 ) -> None:
     """
@@ -112,7 +115,7 @@ def add_FileHandler(
 
 @log_entry
 def add_StreamHandler(
-    setlvl: str = "DEBUG", logformat: str = "LOG:: %(levelname)s - %(message)s"
+    setlvl: str = Settings.get("log_level"), logformat: str = Settings.get("log_format")
 ) -> None:
     """
     Add a StreamHandler to the Toolkit logger.

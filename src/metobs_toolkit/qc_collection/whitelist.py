@@ -2,9 +2,12 @@ import logging
 
 import pandas as pd
 from typing import List, Union
+
+from metobs_toolkit.settings_collection import Settings
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
+    convert_timezone,
 )
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsArgumentError,
@@ -27,6 +30,9 @@ class SensorWhiteSet:
     all_timestamps : bool, optional
         If True, all timestamps are whitelisted. Default is False.
     """
+
+    # Class variable for internal timezone storage
+    _target_tz: str = Settings.get("store_tz")
 
     def __init__(
         self, white_timestamps: Union[None, List] = None, all_timestamps: bool = False
@@ -117,9 +123,13 @@ class SensorWhiteSet:
         pd.DatetimeIndex
             DatetimeIndex containing all whitelisted timestamps.
         """
-        return timestamps_to_datetimeindex(
-            timestamps=self.white_timestamps, tz="UTC", name="datetime"
+
+        dtindex = timestamps_to_datetimeindex(
+            timestamps=self.white_timestamps,
+            current_tz=None,  # self.white_timestamps is already tz aware
+            name="datetime",
         )
+        return convert_timezone(dtindex, target_tz=SensorWhiteSet._target_tz)
 
     def catch_white_records(self, outliers_idx: pd.DatetimeIndex) -> pd.DatetimeIndex:
         """Remove whitelisted timestamps from outliers index.
@@ -151,7 +161,9 @@ class SensorWhiteSet:
                     "All timestamps whitelisted, removing all %s outliers",
                     len(outliers_idx),
                 )
-                outliers = timestamps_to_datetimeindex([], name="datetime")
+                outliers = timestamps_to_datetimeindex(
+                    [], name="datetime", current_tz=SensorWhiteSet._target_tz
+                )
             else:
                 # Get the white timestamps
                 white_records = self._get_white_timestamps()
@@ -200,6 +212,9 @@ class WhiteSet:
       - It is strongly recommended to provide timezone-aware timestamps to avoid
         ambiguity
     """
+
+    # Class variable for internal timezone storage
+    _target_tz: str = Settings.get("store_tz")
 
     def __init__(self, white_records: pd.Index = pd.Index([])) -> None:
         self.white_records = white_records
@@ -267,8 +282,9 @@ class WhiteSet:
 
         # Convert to tz-aware Datetimeindex (tz is localized to UTC if naive, else it is converted)
         dt_index = timestamps_to_datetimeindex(
-            timestamps=dt_values, tz="UTC", name="datetime"
+            timestamps=dt_values, current_tz="UTC", name="datetime"
         )
+        dt_index = convert_timezone(dt_index, target_tz=WhiteSet._target_tz)
 
         # Reconstruct the index with formatted datetimes
         if isinstance(self.white_records, pd.MultiIndex):

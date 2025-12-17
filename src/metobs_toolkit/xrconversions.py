@@ -6,9 +6,9 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet, WhiteSet
 from metobs_toolkit.settings_collection import __version__
-from metobs_toolkit.settings_collection.label_defenitions import label_to_numeric_map
 
 
 if TYPE_CHECKING:
@@ -17,37 +17,24 @@ if TYPE_CHECKING:
     from metobs_toolkit.dataset import Dataset
     from metobs_toolkit.station import Station
 
+
 def modeltimeseries_to_xr(
     modeltimeseries: Modeltimeseries, fmt_datetime_coordinate=True
 ) -> xr.Dataset:
     """
-    Convert a model time series object to an xarray Dataset.
-
-    The returned Dataset contains a single variable named after the
-    observation type (e.g. 'temperature'). Its DataArray has three
-    dimensions:
-
-    * kind: distinguishes the nature of the stacked data. For model
-      time series this contains a single value: 'model'.
-    * models: the model name (length 1 here, prepared for concatenation).
-    * datetime: timestamps of the model output.
-
-    Attributes on the variable describe the observation type and model
-    metadata.
+    Convert a Modeltimeseries to an xarray Dataset.
 
     Parameters
     ----------
-    modeltimeseries : ModelTimeseries
-        Object holding a time-indexed pandas Series and related metadata.
+    modeltimeseries : Modeltimeseries
+        Model timeseries object with time-indexed data.
     fmt_datetime_coordinate : bool, optional
-        If True, format the datetime coordinate for CF compliance by removing
-        timezone information and adding CF-compliant attributes. Default is True.
+        If True, format datetime for CF compliance. Default is True.
 
     Returns
     -------
     xarray.Dataset
-        Dataset with dimensions ('kind', 'models', 'datetime') where
-        kind = ['model'].
+        Dataset with dimensions ('kind', 'models', 'datetime').
     """
     attrsdict = {
         "modelobstype_name": modeltimeseries.modelobstype.name,
@@ -78,36 +65,19 @@ def sensordata_to_xr(
     sensordata: Sensordata, fmt_datetime_coordinate=True
 ) -> xr.Dataset:
     """
-    Convert sensor observations (including labels) to an xarray Dataset.
-
-    The returned Dataset contains one variable named after the observation
-    type (e.g. 'temperature'). Its DataArray has:
-
-    * kind dimension with two entries:
-
-      * 'obs'   -> the measured (and possibly processed) numerical values
-      * 'label' -> the associated integer / categorical QC or gap labels
-
-    * datetime dimension with the observation timestamps.
-
-    The 'obs' slice holds the physical observation values. The 'label'
-    slice holds the label codes; QC and gap-fill method metadata are stored
-    as attributes on that slice (accessible via the DataArray attributes).
+    Convert Sensordata (observations and labels) to an xarray Dataset.
 
     Parameters
     ----------
     sensordata : Sensordata
-        Sensor data object containing a DataFrame with 'value' and 'label'
-        plus metadata (QC, gap-fill info).
+        Sensor data object with 'value' and 'label' columns.
     fmt_datetime_coordinate : bool, optional
-        If True, format the datetime coordinate for CF compliance by removing
-        timezone information and adding CF-compliant attributes. Default is True.
+        If True, format datetime for CF compliance. Default is True.
 
     Returns
     -------
     xarray.Dataset
-        Dataset with variable <obstype> and dimensions ('kind', 'datetime'),
-        where kind = ['obs', 'label'].
+        Dataset with dimensions ('kind', 'datetime'), where kind=['obs', 'label'].
     """
     df = sensordata.df  # contains obs, outliers and gaps
     varname = sensordata.obstype.name
@@ -122,11 +92,11 @@ def sensordata_to_xr(
     # Labels
     # Note: to make the xr.Dataset serializable, we need to use integer labels!!
     present_labels = df["label"].unique()
-    df["label_numeric"] = df["label"].map(label_to_numeric_map)
+    df["label_numeric"] = df["label"].map(Settings.label_to_numericmap())
 
     applied_map = {
         f"Label:{key}": val
-        for key, val in label_to_numeric_map.items()
+        for key, val in Settings.label_to_numericmap().items()
         if key in present_labels
     }
 
@@ -163,35 +133,19 @@ def sensordata_to_xr(
 
 def station_to_xr(station: Station, fmt_datetime_coordinate=True) -> xr.Dataset:
     """
-    Merge all sensor and model data of a station into a single Dataset.
-
-    Each variable (per observation type) preserves its internal 'kind'
-    dimension, which may include:
-
-    * 'obs'   : sensor values
-    * 'label' : sensor labels
-    * 'model' : model time series (if present for that type)
-
-    Datetimes from all contributing sources (sensors and model series) are
-    unioned to build a common 'datetime' coordinate; individual variables
-    are reindexed onto this union (introducing NaNs where data are absent).
-
-    Station metadata (lat, lon, altitude, LCZ, and any extra data) are added
-    as coordinates.
+    Merge all sensor and model data of a Station into an xarray Dataset.
 
     Parameters
     ----------
     station : Station
-        Station object containing sensor and model data.
+        Station object with sensor and model data.
     fmt_datetime_coordinate : bool, optional
-        If True, format the datetime coordinate for CF compliance by removing
-        timezone information and adding CF-compliant attributes. Default is True.
+        If True, format datetime for CF compliance. Default is True.
 
     Returns
     -------
     xarray.Dataset
-        Dataset with (potential) dimensions ('kind', 'datetime') per
-        variable; station metadata as scalar coordinates.
+        Dataset with dimensions ('kind', 'datetime') and station metadata.
     """
 
     # --- Create variables per sensor----
@@ -250,26 +204,19 @@ def station_to_xr(station: Station, fmt_datetime_coordinate=True) -> xr.Dataset:
 
 def dataset_to_xr(dataset: Dataset, fmt_datetime_coordinate=True) -> xr.Dataset:
     """
-    Concatenate multiple station Datasets into one along a new 'name'
-    dimension.
-
-    All per-station variables retain their internal 'kind' dimension
-    (e.g. combinations of 'obs', 'label', 'model'). Only variables common
-    across stations will align cleanly (xarray merge semantics apply).
+    Convert a Dataset (multiple stations) to an xarray Dataset.
 
     Parameters
     ----------
     dataset : Dataset
         Collection of Station objects.
     fmt_datetime_coordinate : bool, optional
-        If True, format the datetime coordinate for CF compliance by removing
-        timezone information and adding CF-compliant attributes. Default is True.
+        If True, format datetime for CF compliance. Default is True.
 
     Returns
     -------
     xarray.Dataset
-        Multi-station Dataset with a 'name' dimension plus any variable
-        dimensions such as ('kind', 'datetime').
+        Multi-station Dataset with 'name' and 'datetime' dimensions.
     """
     sta_xrdict = {
         sta.name: station_to_xr(sta, fmt_datetime_coordinate=False)
@@ -294,21 +241,19 @@ def dataset_to_xr(dataset: Dataset, fmt_datetime_coordinate=True) -> xr.Dataset:
 # ------------------------------------------
 def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     """
-    Format a datetime coordinate in an xarray Dataset for CF compliance.
+    Format datetime coordinate for CF compliance.
 
-    Removes timezone information from datetime coordinates and adds
-    CF-compliant time attributes including 'standard_name', 'long_name',
-    and 'timezone' attributes.
+    Removes timezone info and adds CF-compliant attributes.
 
     Parameters
     ----------
     ds : xr.Dataset
-        The Dataset containing a 'datetime' coordinate to format.
+        Dataset with 'datetime' coordinate.
 
     Returns
     -------
     xr.Dataset
-        The Dataset with formatted datetime coordinate.
+        Dataset with formatted datetime coordinate.
     """
     if "UTC" in str(ds["datetime"].dtype) or "tz" in str(ds["datetime"].dtype):
         # Convert to pandas datetime index for timezone handling
@@ -342,17 +287,22 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
 # ------------------------------------------
 def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
     """
-    Format an attribute value for output.
+    Format an attribute value for netCDF serialization.
 
     Parameters
     ----------
     val : Any
-        The attribute value to format.
+        Attribute value to format.
 
     Returns
     -------
-    Any
-        The formatted attribute value.
+    str, list, int, or float
+        Formatted attribute value.
+
+    Raises
+    ------
+    ValueError
+        If val is a nested dict or unsupported type.
     """
     if isinstance(val, dict):
         raise ValueError(
@@ -379,12 +329,12 @@ def fmt_attr_value(val: Any) -> Union[str, list, int, float]:
 
 def construct_metobs_attr() -> Dict:
     """
-    Construct metadata attributes for a MetObs dataset.
+    Construct MetObs toolkit metadata attributes.
 
     Returns
     -------
     dict
-        Metadata attributes for the dataset.
+        Dictionary with MetObs version info.
     """
     return {
         "MetObs toolkit version": __version__,
@@ -393,22 +343,17 @@ def construct_metobs_attr() -> Dict:
 
 def construct_QC_attr(sensordata: Sensordata) -> Dict:
     """
-    Extract quality control check metadata from sensor data.
-
-    Creates attributes documenting all QC checks applied to the sensor data,
-    including a list of check names and detailed settings for each check
-    as flattened dictionary items.
+    Extract QC check metadata from Sensordata.
 
     Parameters
     ----------
     sensordata : Sensordata
-        Sensor data object containing outliers list with QC check metadata.
+        Sensor data with applied QC checks.
 
     Returns
     -------
     dict
-        Dictionary with 'QC checks' list and flattened QC settings as
-        'QC:{checkname}.{setting}' key-value pairs.
+        QC check names and flattened settings.
     """
     returndict = {"QC checks": []}
     for qcdict in sensordata.outliers:
@@ -425,17 +370,17 @@ def construct_QC_attr(sensordata: Sensordata) -> Dict:
 
 def construct_GF_attr(sensordata: Sensordata) -> Dict[str, Dict[str, Any]]:
     """
-    Extract applied gap-fill methods and their settings.
+    Extract gap-fill method metadata from Sensordata.
 
     Parameters
     ----------
     sensordata : Sensordata
-        Sensor data containing gap objects with fill settings.
+        Sensor data with gap-fill information.
 
     Returns
     -------
     dict
-        Mapping of gap-fill method names to the settings used.
+        Gap-fill method names and flattened settings.
     """
     returndict = {"GF methods": []}
     # NOTE:iteration is done over all the gaps, this is a bit overkill?

@@ -66,7 +66,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
-from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.settings_collection import Settings
+
 
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
@@ -75,7 +76,7 @@ from metobs_toolkit.geedatasetmanagers import (
 )
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
-from metobs_toolkit.settings_collection.version import __version__
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -110,9 +111,9 @@ class Dataset:
         self._stations = []  # stationname: Station
         self._obstypes = copy.copy(tlk_obstypes)  # init with all tlk obstypes
         self._template = Template()
-        self._metobs_version = (
-            __version__  # Store version for pickle compatibility check
-        )
+        self._metobs_version = Settings.get(
+            "version"
+        )  # Store version for pickle compatibility check
         logger.debug("Dataset instance created.")
 
     # ------------------------------------------
@@ -1171,7 +1172,7 @@ class Dataset:
         )
 
         plotdf = plotdf[["value"]]
-        plotdf["label"] = label_def["goodrecord"]["label"]
+        plotdf["label"] = Settings.get("label_def.goodrecord.label")
 
         if colormap is None:
             colormap = plotting.create_categorical_color_map(
@@ -2971,12 +2972,12 @@ def import_dataset_from_pkl(target_path: Union[str, Path]) -> Dataset:
     if saved_version is None:
         logger.warning(
             f"The imported Dataset was saved with an unknown version of metobs-toolkit. "
-            f"The current version is {__version__}. This may lead to compatibility issues."
+            f"The current version is {Settings.get('version')}. This may lead to compatibility issues."
         )
-    elif saved_version != __version__:
+    elif saved_version != Settings.get("version"):
         logger.warning(
             f"The imported Dataset was saved with metobs-toolkit version {saved_version}, "
-            f"but the current version is {__version__}. This may lead to compatibility issues."
+            f"but the current version is {Settings.get('version')}. This may lead to compatibility issues."
         )
 
     return dataset

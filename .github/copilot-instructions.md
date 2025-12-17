@@ -76,6 +76,29 @@ Code organized in `*_collection/` subdirectories by functionality:
 - `plot_collection/`: Visualization functions  
 - `backend_collection/`: Utilities, error classes, data constructors
 - `verif_collection/`: Model verification and scoring metrics
+- `settings_collection/`: Global configuration and label definitions
+
+### Settings Configuration
+Global settings that affect multiple functions are stored in the `Settings` singleton class:
+```python
+from metobs_toolkit.settings_collection.settings import Settings
+
+# Get a setting
+Settings.get("store_tz")  # Returns 'UTC'
+
+# Set a setting
+Settings.set("store_tz", "Europe/Brussels")
+
+# Access nested settings with dot notation
+Settings.get("label_def.goodrecord.label")  # Returns 'ok'
+
+# Reset to defaults
+Settings.reset()
+```
+
+**Important**: Only settings used by multiple functions belong in `Settings`. 
+Settings specific to a single function/method should be defined as default 
+argument values in that function's signature.
 
 ## Key Integrations
 

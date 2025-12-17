@@ -5,30 +5,33 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-import metobs_toolkit.settings_collection as settings
+from metobs_toolkit.backend_collection.errorclasses import MetObsInternalError
+from metobs_toolkit.settings_collection import Settings
 
 # ------------------------------------------
 #    Label groups
 # ------------------------------------------
-plot_as_line_labels = [
-    settings.label_def["goodrecord"]["label"],  # 'ok'
-    settings.label_def["uncheckedrecord"]["label"],  # 'not checked'
-] + [settings.label_def[trglab]["label"] for trglab in settings.gapfill_label_group]
 
-all_gap_without_val_labels = [
-    settings.label_def["regular_gap"]["label"],  # 'gap'
-] + [
-    settings.label_def[trglab]["label"]
-    for trglab in settings.failed_gapfill_label_group
-]
 
-all_outlier_labels = [
-    settings.label_def[cat]["label"]
-    for cat in settings.qc_label_group
-    if cat
-    not in ["duplicated_timestamp", "invalid_input"]  # TYPO: 'dupliacted' corrected
-]
+def all_gap_labels() -> list[str]:
+    return (
+        [Settings.get("label_def.regular_gap.label")]  # 'gap'
+        + [
+            Settings.get(f"label_def.{cat}.label")
+            for cat in Settings.get("gapfill_label_group")
+        ]  # 'interpolated_gap', 'raw_modeldata_fill', ...
+        + [
+            Settings.get(f"label_def.{cat}.label")
+            for cat in Settings.get("failed_gapfill_label_group")
+        ]  # 'failed_interpolated_gap', ...
+    )
+
+
+def all_outlier_labels() -> list[str]:
+    return [
+        Settings.get(f"label_def.{cat}.label") for cat in Settings.get("qc_label_group")
+    ]
+
 
 # ------------------------------------------
 #    Timeseries plot layers
@@ -144,9 +147,7 @@ def add_scatters_to_axes(
     ax: plt.Axes,
     series: pd.Series,
     legend_label: str,
-    color: str = "navy",
-    scattersize: int = 2,
-    zorder: Union[int, float] = 1.5,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add scatter points to the given axes.
@@ -159,12 +160,12 @@ def add_scatters_to_axes(
         The data series to plot. The index represents the x-axis, and the values represent the y-axis.
     legend_label : str
         The label for the legend entry.
-    color : str, optional
-        The color of the scatter points. Default is 'navy'.
-    scattersize : int, optional
-        The size of the scatter points. Default is 2.
-    zorder : int or float, optional
-        The z-order of the scatter points. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.scatter`.
+        Common options include:
+        - color : str, default 'navy'
+        - s : int, default 2 (marker size)
+        - zorder : int or float, default 1.5
 
     Returns
     -------
@@ -173,13 +174,16 @@ def add_scatters_to_axes(
     """
     logging.info(f"Entering add_scatters_to_axes with legend_label={legend_label}")
 
+    # Set defaults for kwargs
+    kwargs.setdefault("color", "navy")
+    kwargs.setdefault("s", 2)
+    kwargs.setdefault("zorder", 1.5)
+
     ax.scatter(
         series.index,
         series.values,
-        color=color,
-        s=scattersize,
-        zorder=zorder,
         label=legend_label,
+        **kwargs,
     )
     return ax
 
@@ -223,26 +227,13 @@ def plot_timeseries_color_by_label(
 
     # Create labels to filter
     labels_to_plot = [
-        settings.label_def["goodrecord"]["label"],  # 'ok'
-        settings.label_def["uncheckedrecord"]["label"],  # 'not checked'
+        Settings.get("label_def.goodrecord.label"),  # 'ok'
+        Settings.get("label_def.uncheckedrecord.label"),  # 'not checked'
     ]
-
     if show_gaps:
-        # Add all labels related to gaps
-        labels_to_plot += (
-            [settings.label_def["regular_gap"]["label"]]  # 'gap'
-            + [
-                settings.label_def[cat]["label"] for cat in settings.gapfill_label_group
-            ]  # 'interpolated_gap', 'raw_modeldata_fill', ...
-            + [
-                settings.label_def[cat]["label"]
-                for cat in settings.failed_gapfill_label_group
-            ]  # 'failed_interpolated_gap', ...
-        )
+        labels_to_plot += all_gap_labels()
     if show_outliers:
-        labels_to_plot += [
-            settings.label_def[cat]["label"] for cat in settings.qc_label_group
-        ]  # 'duplicated_timestamp', 'gross_value', ...
+        labels_to_plot += all_outlier_labels()
 
     # Get min and max values for the vertical lines
     ymin, ymax = plotdf["value"].min(), plotdf["value"].max()
@@ -251,17 +242,17 @@ def plot_timeseries_color_by_label(
         ymin = 0.0
         ymax = 10
 
+    label_to_checkname_map = Settings.label_to_qccheckmap()
     for label in labels_to_plot:  # Iterate over all labels to plot
         if label not in plotdf["label"].values:
             continue
 
-        # 1. Plot the lines --> be aware of interpolation issues!
-        if label in plot_as_line_labels:
-            # Solid lines for good records, else dashed
-            linestyle = (
-                "-" if label == settings.label_def["goodrecord"]["label"] else "--"
-            )
+        plotcolor = Settings.get_color_from_label(label)
+        if Settings.flag_plot_as_line(label):
 
+            linestyle = Settings.get(
+                f"label_def.{label_to_checkname_map[label]}.ls", "-"
+            )
             # Iterate over stations --> to avoid interpolation over multiple stations
             for _staname, stadf in plotdf.groupby(
                 plotdf.index.get_level_values("name")
@@ -285,11 +276,10 @@ def plot_timeseries_color_by_label(
                     series=plotseries,
                     legend_label=label,
                     linestyle=linestyle,
-                    color=settings.label_to_color_map[label],
+                    color=plotcolor,
                 )
-
         # 2. Plot data in vertical line representation (= no numerical values)
-        elif label in all_gap_without_val_labels:
+        elif Settings.flag_plot_as_vline(label):
             # Note: A regular subset must be done since data is represented as vlines (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
@@ -305,11 +295,11 @@ def plot_timeseries_color_by_label(
                 ymax=ymax,
                 idx=labelseries.index,
                 legend_label=label,
-                color=settings.label_to_color_map[label],
+                color=plotcolor,
             )
 
         # 3. Plot data in scatter representation (= outliers with numerical values)
-        elif label in all_outlier_labels:
+        elif Settings.flag_plot_as_scatter(label):
             # Note: A regular subset must be done since data is represented as scatters (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
@@ -321,10 +311,15 @@ def plot_timeseries_color_by_label(
                 ax=ax,
                 series=labelseries,
                 legend_label=label,
-                color=settings.label_to_color_map[label],
+                color=plotcolor,
+                marker=Settings.get(
+                    f"label_def.{label_to_checkname_map[label]}.marker", "o"
+                ),
             )
         else:
-            logging.warning(f"{label} is not plotted. ERROR!")
+            raise MetObsInternalError(
+                f"Label '{label}' is not configured to be plotted as line, vline or scatter."
+            )
 
     return ax
 
@@ -380,15 +375,16 @@ def plot_timeseries_color_by_station(
 
     # Handle gaps
     if not show_gaps:
-        all_gap_labels = all_gap_without_val_labels + [
-            settings.label_def[trglab]["label"]
-            for trglab in settings.gapfill_label_group
-        ]
-        plotdf.loc[plotdf["label"].isin(all_gap_labels), "value"] = np.nan
+
+        # all_gap_labels = all_gap_without_val_labels + [
+        #     Settings.get(f"label_def.{trglab}.label")
+        #     for trglab in Settings.get("gapfill_label_group")
+        # ]
+        plotdf.loc[plotdf["label"].isin(all_gap_labels()), "value"] = np.nan
 
     # Handle outliers
     if not show_outliers:
-        plotdf.loc[plotdf["label"].isin(all_outlier_labels), "value"] = np.nan
+        plotdf.loc[plotdf["label"].isin(all_outlier_labels()), "value"] = np.nan
 
     # Plot the data as a single color line
     # Iterate over stations to avoid interpolation over multiple stations

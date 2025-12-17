@@ -11,8 +11,8 @@ Created on Aug 21, 2025
 """
 
 import pandas as pd
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.settings_collection import label_def
 from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 
@@ -166,7 +166,7 @@ def sensordata_df(sensordata_instance) -> pd.DataFrame:
                 sensordata_instance.stationname: "value",
             }
         )
-        .assign(label=label_def["goodrecord"]["label"])
+        .assign(label=Settings.get("label_def.goodrecord.label"))
     )
 
     outliersdf = sensordata_instance.outliersdf[["value", "label"]]

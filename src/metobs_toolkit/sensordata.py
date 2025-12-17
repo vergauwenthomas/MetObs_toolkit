@@ -11,6 +11,7 @@ import pandas as pd
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
+    convert_timezone,
     to_timedelta,
 )
 
@@ -21,7 +22,7 @@ from metobs_toolkit.backend_collection.df_helpers import (
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     sensordata_gap_status_overview_df,
 )
-from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
@@ -79,7 +80,7 @@ class SensorData:
     """
 
     # Class variable for internal timezone storage
-    _target_tz: str = "UTC"
+    _target_tz: str = Settings.get("store_tz")
 
     def __init__(
         self,
@@ -97,7 +98,7 @@ class SensorData:
         self.obstype = obstype
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).to_numpy(),
-            index=self._format_timestamp_index(
+            index=_format_timestamp_index(
                 timestamps, timestamps_tz
             ),  # Transformed as UTC
             name=obstype.name,
@@ -252,7 +253,7 @@ class SensorData:
         for outlierinfo in self.outliers:
             checkname = outlierinfo["checkname"]
             checkdf = outlierinfo["df"].copy()
-            checkdf["label"] = label_def[checkname]["label"]
+            checkdf["label"] = Settings.get(f"label_def.{checkname}.label")
 
             # Create details column from all columns except 'value' and 'label'
             detail_cols = [
@@ -449,22 +450,6 @@ class SensorData:
         self.gaps = self._find_gaps(
             missingrecords=timestamp_matcher.gap_records,
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
-        )
-
-    @copy_doc(timestamps_to_datetimeindex)
-    def _format_timestamp_index(
-        self,
-        timestamps: np.ndarray,
-        input_tz: Union[tzfile | tzinfo | str],
-    ) -> pd.DatetimeIndex:
-
-        # Create a tz-aware DatetimeIndex in input timezone
-        timestamps = pd.DatetimeIndex(data=timestamps, tz=input_tz)
-        # Convert to UTC
-        return timestamps_to_datetimeindex(
-            timestamps=timestamps,
-            tz=SensorData._target_tz,  # store as UTC
-            name="datetime",
         )
 
     def _update_outliers(
@@ -1003,13 +988,13 @@ class SensorData:
         ntotal = self.series.shape[0]  # gaps included !!
         already_rejected = self.gapsdf.shape[0]  # initial gap records
         # add the 'ok' labels
-        infodict[label_def["goodrecord"]["label"]] = {
+        infodict[Settings.get("label_def.goodrecord.label")] = {
             "N_all": ntotal,
             "N_labeled": self.series[self.series.notnull()].shape[0],
         }
         # add the 'gap' labels
 
-        infodict[label_def["regular_gap"]["label"]] = {
+        infodict[Settings.get("label_def.regular_gap.label")] = {
             "N_all": ntotal,
             "N_labeled": already_rejected,
         }
@@ -1018,7 +1003,7 @@ class SensorData:
         for check in self.outliers:
             n_outliers = check["df"].shape[0]
             n_checked = ntotal - already_rejected
-            outlierlabel = label_def[check["checkname"]]["label"]
+            outlierlabel = Settings.get(f"label_def.{check['checkname']}.label")
             infodict[outlierlabel] = {
                 "N_labeled": n_outliers,
                 "N_checked": n_checked,
@@ -1168,3 +1153,18 @@ class SensorData:
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
             )
+
+
+def _format_timestamp_index(
+    timestamps: np.ndarray,
+    input_tz: Union[tzfile | tzinfo | str],
+) -> pd.DatetimeIndex:
+
+    # Localize the timestamps with the input timezone (to timezone aware)
+    dt_index = timestamps_to_datetimeindex(
+        timestamps=timestamps,
+        current_tz=input_tz,
+        name="datetime",
+    )
+    # Convert to the tz to store in (default is UTC)
+    return convert_timezone(dt_index, target_tz=SensorData._target_tz)
