@@ -993,7 +993,7 @@ class SensorData:
             "N_labeled": self.series[self.series.notnull()].shape[0],
         }
         # add the 'gap' labels
-
+        # TODO: I think the filled and failed labels must be included as well
         infodict[Settings.get("label_def.regular_gap.label")] = {
             "N_all": ntotal,
             "N_labeled": already_rejected,

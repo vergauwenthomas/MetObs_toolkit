@@ -375,11 +375,6 @@ def plot_timeseries_color_by_station(
 
     # Handle gaps
     if not show_gaps:
-
-        # all_gap_labels = all_gap_without_val_labels + [
-        #     Settings.get(f"label_def.{trglab}.label")
-        #     for trglab in Settings.get("gapfill_label_group")
-        # ]
         plotdf.loc[plotdf["label"].isin(all_gap_labels()), "value"] = np.nan
 
     # Handle outliers

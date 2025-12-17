@@ -59,13 +59,7 @@ class Settings:
     >>> # Get current setting
     >>> metobs_toolkit.Settings.get("store_tz")
     'UTC'
-    >>> # Update a setting
-    >>> metobs_toolkit.Settings.set("store_tz", "Europe/Brussels")
-    >>> # Get nested setting using dot notation
-    >>> metobs_toolkit.Settings.get("label_def.goodrecord.label")
-    'ok'
-    >>> # Reset all settings to defaults
-    >>> metobs_toolkit.Settings.reset()
+
     """
 
     _instance: Optional["Settings"] = None

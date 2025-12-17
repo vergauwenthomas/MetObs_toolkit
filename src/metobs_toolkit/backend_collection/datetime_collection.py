@@ -100,7 +100,7 @@ def convert_timezone(
         raise MetObsInternalError(
             f"Connot convert a datetimeindex with no timezone to {target_tz}."
         )
-       
+
     return datetimeindex.tz_convert(target_tz)
 
 
