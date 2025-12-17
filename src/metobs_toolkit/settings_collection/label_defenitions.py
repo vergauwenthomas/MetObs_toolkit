@@ -60,7 +60,13 @@ label_defs = {
         "plot_as": scatter,
         "marker": ".",
     },
-    "step": {"label": "in step outlier group", "color": "#05d4f0", "numeric_val": 6},
+    "step": {
+        "label": "in step outlier group",
+        "color": "#05d4f0",
+        "numeric_val": 6,
+        "plot_as": scatter,
+        "marker": ".",
+    },
     "window_variation": {
         "label": "in window variation outlier group",
         "color": "#05f0c9",
