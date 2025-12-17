@@ -79,21 +79,17 @@ class Settings:
         "gapfill_label_group": gapfill_label_group,
         "failed_gapfill_label_group": failed_gapfill_label_group,
         "qc_label_group": qc_label_group,
-        
         # Logging defaults
         "log_level": "WARNING",
         "log_format": "LOG:: %(levelname)s - %(message)s",
-        
         # Data storage settings,
         "store_tz": "UTC",
-        
         # Printing
-        'print_config': {'max_width': 80,
-                         'item_ident': " " * 2,
-                         'title_char': '=',
-        }
-     
-        
+        "print_config": {
+            "max_width": 80,
+            "item_ident": " " * 2,
+            "title_char": "=",
+        },
     }
 
     _config: Dict[str, Any] = {}
@@ -109,7 +105,7 @@ class Settings:
         if not Settings._initialized:
             Settings._config = deepcopy(Settings._defaults)
             Settings._initialized = True
-            
+
     def __str__(self) -> str:
         """Return a string representation of the Settings."""
         return f"MetObs Settings object"
@@ -239,7 +235,6 @@ class Settings:
         except (KeyError, TypeError):
             return None
 
-    
     @classmethod
     def to_dict(cls) -> Dict[str, Any]:
         """
@@ -303,8 +298,6 @@ class Settings:
             return None
         else:
             return infostr
-
- 
 
     # ------------------------------------------
     #   Methods Specific to plotting

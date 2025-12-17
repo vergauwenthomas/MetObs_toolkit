@@ -167,6 +167,7 @@ class TestSettingsSingleton:
         """Test that Settings is accessible via metobs_toolkit module."""
         assert metobs_toolkit.Settings is Settings
 
+
 class TestSettingsStrRepr:
     """Tests for Settings __str__ and __repr__ methods."""
 

@@ -1,5 +1,5 @@
-
 from metobs_toolkit.settings_collection import Settings
+
 title_char = Settings.get("print_config.title_char")
 max_n_chars = Settings.get("print_config.max_width")
 indent = Settings.get("print_config.item_ident")
