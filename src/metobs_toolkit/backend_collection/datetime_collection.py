@@ -97,13 +97,10 @@ def convert_timezone(
     """
 
     if datetimeindex.tz is None:
-        warnings.warn(
-            "The DatetimeIndex has no timezone information. " "Assuming UTC timezone.",
-            UserWarning,
-            stacklevel=2,
+        raise MetObsInternalError(
+            f"Connot convert a datetimeindex with no timezone to {target_tz}."
         )
-        datetimeindex = datetimeindex.tz_localize("UTC")
-
+       
     return datetimeindex.tz_convert(target_tz)
 
 

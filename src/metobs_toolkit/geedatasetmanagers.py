@@ -1149,12 +1149,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         obstypes = [self.modelobstypes[obs] for obs in obstypes]
 
         # convert timestamps to pd.Timestamps with utc as timezone if unaware
-        startdt_utc = pd.Timestamp(startdt_utc)
-        if startdt_utc.tz is None:
-            startdt_utc = startdt_utc.tz_localize(tz="UTC")
-        enddt_utc = pd.Timestamp(enddt_utc)
-        if enddt_utc.tz is None:
-            enddt_utc = enddt_utc.tz_localize(tz="UTC")
+        startdt_utc =  fmt_datetime_arg(startdt_utc, tz_if_dt_is_naive="UTC")
+        enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
         if initialize_gee:
             connect_to_gee()

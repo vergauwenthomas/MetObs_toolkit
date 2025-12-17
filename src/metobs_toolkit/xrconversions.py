@@ -175,7 +175,7 @@ def station_to_xr(station: Station, fmt_datetime_coordinate=True) -> xr.Dataset:
         np.concatenate([pd.to_datetime(ds["datetime"].values) for ds in all_to_join])
     )
     # to datetimes again
-    all_datetimes = pd.to_datetime(all_datetimes).tz_localize("UTC")
+    all_datetimes = pd.to_datetime(all_datetimes).tz_localize(Settings.get('store_tz'))
 
     # Broadcast
     all_reindexed = []
@@ -255,29 +255,17 @@ def format_datetime_coord(ds: xr.Dataset) -> xr.Dataset:
     xr.Dataset
         Dataset with formatted datetime coordinate.
     """
-    if "UTC" in str(ds["datetime"].dtype) or "tz" in str(ds["datetime"].dtype):
-        # Convert to pandas datetime index for timezone handling
-        dt_index = pd.DatetimeIndex(ds["datetime"].values)
 
-        if dt_index.tz is not None:
-            # Store timezone info and convert to naive
-            timezone_name = str(dt_index.tz)
-            dt_naive = dt_index.tz_localize(None)
-        else:
-            # Handle datetime64[ns, UTC] format - manually remove timezone
-            timezone_name = "UTC"
-            # Convert to naive by accessing the underlying datetime64[ns] values
-            dt_naive = pd.DatetimeIndex(ds["datetime"].values.astype("datetime64[ns]"))
+    dt_naive = pd.DatetimeIndex(ds["datetime"].values.astype("datetime64[ns]"))
+    timezone_name = Settings.get('store_tz')
 
-        # Update coordinate with naive datetime
-        ds = ds.assign_coords({"datetime": dt_naive})
+    # Update coordinate with naive datetime
+    ds = ds.assign_coords({"datetime": dt_naive})
 
-        # Add CF-compliant time attributes (but avoid calendar to prevent conflicts)
-        ds["datetime"].attrs["timezone"] = timezone_name
-        ds["datetime"].attrs["standard_name"] = "time"
-        ds["datetime"].attrs["long_name"] = "time"
-    else:
-        pass
+    # Add CF-compliant time attributes (but avoid calendar to prevent conflicts)
+    ds["datetime"].attrs["timezone"] = timezone_name
+    ds["datetime"].attrs["standard_name"] = "time"
+    ds["datetime"].attrs["long_name"] = "time"
 
     return ds
 
