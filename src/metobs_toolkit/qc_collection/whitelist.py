@@ -292,7 +292,7 @@ class WhiteSet:
             temp_index = self.white_records.droplevel("datetime")
             self.white_records = (
                 temp_index.to_frame()
-                .assign(datetime=dt_index.values)
+                .assign(datetime=dt_index)
                 .set_index("datetime", append=True)
                 .index
             )
