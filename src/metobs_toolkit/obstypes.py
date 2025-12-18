@@ -16,7 +16,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 # Use logger with name "<metobs_toolkit>"
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 if TYPE_CHECKING:
     from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield

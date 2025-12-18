@@ -6,25 +6,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from metobs_toolkit.settings_collection.settings import Settings
-from metobs_toolkit.plot_collection import default_plot_settings
 
 # Configure logging
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-pieplotsettings = default_plot_settings["pie_charts"]
 
 
 @log_entry
 def qc_overview_pies(
     df: pd.DataFrame,
-    figsize: Tuple[int, int] = pieplotsettings["figsize"],
-    ncol: int = pieplotsettings["ncols"],
-    radius_big: float = pieplotsettings["radius_big"],
-    radius_small: float = pieplotsettings["radius_small"],
-    textsize_big_pies: int = pieplotsettings["txt_size_big_pies"],
-    textsize_small_pies: int = pieplotsettings["txt_size_small_pies"],
+    figsize: Tuple[int, int] = Settings.get("plotting_settings.pie_charts.figsize"),
+    ncol: int = Settings.get("plotting_settings.pie_charts.ncols"),
+    radius_big: float = Settings.get("plotting_settings.pie_charts.radius_big"),
+    radius_small: float = Settings.get("plotting_settings.pie_charts.radius_small"),
+    textsize_big_pies: int = Settings.get("plotting_settings.pie_charts.txt_size_big_pies"),
+    textsize_small_pies: int = Settings.get("plotting_settings.pie_charts.txt_size_small_pies"),
 ) -> plt.Figure:
     """
     Generate a quality control (QC) overview using pie charts.
@@ -56,22 +54,6 @@ def qc_overview_pies(
     TypeError
         If any of the arguments are not of the expected type.
     """
-
-    # Validate argument types
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("Argument 'df' must be of type pandas.DataFrame.")
-    if not isinstance(figsize, tuple):
-        raise TypeError("Argument 'figsize' must be of type tuple.")
-    if not isinstance(ncol, int):
-        raise TypeError("Argument 'ncol' must be of type int.")
-    if not isinstance(radius_big, (int, float)):
-        raise TypeError("Argument 'radius_big' must be of type int or float.")
-    if not isinstance(radius_small, (int, float)):
-        raise TypeError("Argument 'radius_small' must be of type int or float.")
-    if not isinstance(textsize_big_pies, int):
-        raise TypeError("Argument 'textsize_big_pies' must be of type int.")
-    if not isinstance(textsize_small_pies, int):
-        raise TypeError("Argument 'textsize_small_pies' must be of type int.")
 
     # Define layout
     fig = plt.figure(figsize=figsize)

@@ -4,17 +4,16 @@ import matplotlib
 import matplotlib.pyplot as plt  # noqa: F401  # Dependency package
 import pandas as pd
 
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.plot_collection import (  # Local modules
     create_categorical_color_map,
-    default_plot_settings,
 )
 
 # Set up logging
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-default_cycle_settings = default_plot_settings["cycle_plot"]
 
 
 @log_entry
@@ -55,7 +54,8 @@ def make_diurnal_plot(
     if colordict is None:
         logger.debug("Creating default colormap.")
         colmap = create_categorical_color_map(
-            catlist=plotdf.columns, cmapname=default_cycle_settings["cmap_categorical"]
+            catlist=plotdf.columns,
+            cmapname=Settings.get("plotting_settings.cycle_plot.cmap_categorical"),
         )
     else:
         colmap = colordict
@@ -64,11 +64,7 @@ def make_diurnal_plot(
         logger.debug(f"Plotting reference station: {refstation}.")
         # Plot reference as dashed line
         ax.axhline(
-            y=0,
-            color="black",
-            linestyle="--",
-            zorder=0.9,
-            linewidth=0.8,
+            **Settings.get("plotting_settings.cycle_plot.hline_kwargs", {'y': 0}),
             label=f"Reference:{refstation}",
         )
 

@@ -3,7 +3,7 @@ import json
 from os import PathLike
 from pathlib import Path
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 

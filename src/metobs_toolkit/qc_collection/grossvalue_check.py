@@ -4,7 +4,7 @@ import pandas as pd
 
 
 from .whitelist import SensorWhiteSet
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 

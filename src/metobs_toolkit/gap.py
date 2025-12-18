@@ -22,7 +22,7 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
     fill_with_weighted_diurnal_debias,
 )
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import gap_df
 

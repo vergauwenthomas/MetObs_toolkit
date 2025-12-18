@@ -37,7 +37,7 @@ from metobs_toolkit.plot_collection import (
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsUnitUnknown
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
 logger = logging.getLogger("<metobs_toolkit>")

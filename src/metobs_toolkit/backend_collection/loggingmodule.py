@@ -22,16 +22,6 @@ from metobs_toolkit.settings_collection.settings import Settings
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-def log_entry(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        logger.debug(f"Entering {func.__name__}() in {func.__code__.co_filename}")
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-@log_entry
 def add_FileHandler(
     filepath: str | PathLike,
     setlvl: str = Settings.get("log_level"),
@@ -113,7 +103,7 @@ def add_FileHandler(
     rootlog.debug(f"FileHandler set at {datetime.now()}")
 
 
-@log_entry
+
 def add_StreamHandler(
     setlvl: str = Settings.get("log_level"), logformat: str = Settings.get("log_format")
 ) -> None:

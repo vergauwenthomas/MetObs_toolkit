@@ -36,7 +36,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_df
 
 # add all imports only for type checking, but not for runtime

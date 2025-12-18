@@ -41,7 +41,7 @@ from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_da
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 

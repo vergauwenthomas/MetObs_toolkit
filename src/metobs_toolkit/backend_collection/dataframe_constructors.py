@@ -13,7 +13,7 @@ Created on Aug 21, 2025
 import pandas as pd
 from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 
 @log_entry

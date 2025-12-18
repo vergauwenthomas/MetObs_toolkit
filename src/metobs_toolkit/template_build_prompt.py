@@ -24,7 +24,7 @@ from metobs_toolkit.io_collection.filereaders import find_suitable_reader
 from metobs_toolkit.io_collection.filewriters import write_dict_to_json
 from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
