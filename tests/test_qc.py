@@ -708,26 +708,48 @@ class TestWhiteRecords:
         #     outliers.reset_index()["datetime"].sample(n=33, random_state=42),
         #     name="datetime",
         # )
-        white_dt_only = pd.DatetimeIndex(['2022-09-11 16:00:00+00:00', '2022-09-09 01:00:00+00:00',
-               '2022-09-01 15:00:00+00:00', '2022-09-05 03:00:00+00:00',
-               '2022-09-12 16:00:00+00:00', '2022-09-15 04:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-04 05:00:00+00:00',
-               '2022-09-01 19:00:00+00:00', '2022-09-14 13:00:00+00:00',
-               '2022-09-12 18:00:00+00:00', '2022-09-01 14:00:00+00:00',
-               '2022-09-14 05:00:00+00:00', '2022-09-04 10:00:00+00:00',
-               '2022-09-09 03:00:00+00:00', '2022-09-09 02:00:00+00:00',
-               '2022-09-12 04:00:00+00:00', '2022-09-01 05:00:00+00:00',
-               '2022-09-05 02:00:00+00:00', '2022-09-15 06:00:00+00:00',
-               '2022-09-09 00:00:00+00:00', '2022-09-06 06:00:00+00:00',
-               '2022-09-11 16:00:00+00:00', '2022-09-03 09:00:00+00:00',
-               '2022-09-05 07:00:00+00:00', '2022-09-04 17:00:00+00:00',
-               '2022-09-11 00:00:00+00:00', '2022-09-14 17:00:00+00:00',
-               '2022-09-02 01:00:00+00:00', '2022-09-04 18:00:00+00:00',
-               '2022-09-05 05:00:00+00:00', '2022-09-09 07:00:00+00:00',
-               '2022-09-15 02:00:00+00:00',
-               '2023-09-15 02:00:00+00:00'],  #not in range
-              dtype='datetime64[ns, UTC]', name='datetime', freq=None)
-        
+        white_dt_only = pd.DatetimeIndex(
+            [
+                "2022-09-11 16:00:00+00:00",
+                "2022-09-09 01:00:00+00:00",
+                "2022-09-01 15:00:00+00:00",
+                "2022-09-05 03:00:00+00:00",
+                "2022-09-12 16:00:00+00:00",
+                "2022-09-15 04:00:00+00:00",
+                "2022-09-04 18:00:00+00:00",
+                "2022-09-04 05:00:00+00:00",
+                "2022-09-01 19:00:00+00:00",
+                "2022-09-14 13:00:00+00:00",
+                "2022-09-12 18:00:00+00:00",
+                "2022-09-01 14:00:00+00:00",
+                "2022-09-14 05:00:00+00:00",
+                "2022-09-04 10:00:00+00:00",
+                "2022-09-09 03:00:00+00:00",
+                "2022-09-09 02:00:00+00:00",
+                "2022-09-12 04:00:00+00:00",
+                "2022-09-01 05:00:00+00:00",
+                "2022-09-05 02:00:00+00:00",
+                "2022-09-15 06:00:00+00:00",
+                "2022-09-09 00:00:00+00:00",
+                "2022-09-06 06:00:00+00:00",
+                "2022-09-11 16:00:00+00:00",
+                "2022-09-03 09:00:00+00:00",
+                "2022-09-05 07:00:00+00:00",
+                "2022-09-04 17:00:00+00:00",
+                "2022-09-11 00:00:00+00:00",
+                "2022-09-14 17:00:00+00:00",
+                "2022-09-02 01:00:00+00:00",
+                "2022-09-04 18:00:00+00:00",
+                "2022-09-05 05:00:00+00:00",
+                "2022-09-09 07:00:00+00:00",
+                "2022-09-15 02:00:00+00:00",
+                "2023-09-15 02:00:00+00:00",
+            ],  # not in range
+            dtype="datetime64[ns, UTC]",
+            name="datetime",
+            freq=None,
+        )
+
         # Test with different structures
         dataset1 = copy.deepcopy(dataset)
         dataset1.buddy_check(
@@ -739,39 +761,77 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
             use_mp=False,
         )
-        outlier_timestamps = dataset1.outliersdf.index.get_level_values('datetime').unique()
+        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+            "datetime"
+        ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
-        #Check if the white dt only timestamps are not in the outliers
-        assert intersect.empty , "outlier timestamps found in white dt only"
-        assert not outlier_timestamps.empty , "not outliers found"
+        # Check if the white dt only timestamps are not in the outliers
+        assert intersect.empty, "outlier timestamps found in white dt only"
+        assert not outlier_timestamps.empty, "not outliers found"
 
         dataset2 = copy.deepcopy(dataset)
-        
+
         # white_name_dt = (
         #     outliers.sample(n=18, random_state=42)
         #     .reset_index()[["name", "datetime"]]
         #     .set_index(["name", "datetime"])
         #     .index
         # )
-        
+
         white_name_dt = pd.MultiIndex.from_arrays(
-            [['vlinder27', 'vlinder05', 'vlinder27', 'vlinder07', 'vlinder05',
-       'vlinder05', 'vlinder09', 'vlinder06', 'vlinder06', 'vlinder05',
-       'vlinder05', 'vlinder27', 'vlinder05', 'vlinder05', 'vlinder05',
-       'vlinder05', 'vlinder06', 'vlinder06', 'dummy_station', 'vlinder05',],
-            pd.DatetimeIndex(['2022-09-11 16:00:00+00:00', '2022-09-09 01:00:00+00:00',
-               '2022-09-01 15:00:00+00:00', '2022-09-05 03:00:00+00:00',
-               '2022-09-12 16:00:00+00:00', '2022-09-15 04:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-04 05:00:00+00:00',
-               '2022-09-01 19:00:00+00:00', '2022-09-14 13:00:00+00:00',
-               '2022-09-12 18:00:00+00:00', '2022-09-01 14:00:00+00:00',
-               '2022-09-14 05:00:00+00:00', '2022-09-04 10:00:00+00:00',
-               '2022-09-09 03:00:00+00:00', '2022-09-09 02:00:00+00:00',
-               '2022-09-12 04:00:00+00:00', '2022-09-01 05:00:00+00:00',
-               '2022-09-12 04:00:00+00:00', '2023-09-01 05:00:00+00:00',], #fake records
-              dtype='datetime64[ns, UTC]', name='datetime', freq=None)],
-            names=('name', 'datetime'))
-        
+            [
+                [
+                    "vlinder27",
+                    "vlinder05",
+                    "vlinder27",
+                    "vlinder07",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder09",
+                    "vlinder06",
+                    "vlinder06",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder27",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder06",
+                    "vlinder06",
+                    "dummy_station",
+                    "vlinder05",
+                ],
+                pd.DatetimeIndex(
+                    [
+                        "2022-09-11 16:00:00+00:00",
+                        "2022-09-09 01:00:00+00:00",
+                        "2022-09-01 15:00:00+00:00",
+                        "2022-09-05 03:00:00+00:00",
+                        "2022-09-12 16:00:00+00:00",
+                        "2022-09-15 04:00:00+00:00",
+                        "2022-09-04 18:00:00+00:00",
+                        "2022-09-04 05:00:00+00:00",
+                        "2022-09-01 19:00:00+00:00",
+                        "2022-09-14 13:00:00+00:00",
+                        "2022-09-12 18:00:00+00:00",
+                        "2022-09-01 14:00:00+00:00",
+                        "2022-09-14 05:00:00+00:00",
+                        "2022-09-04 10:00:00+00:00",
+                        "2022-09-09 03:00:00+00:00",
+                        "2022-09-09 02:00:00+00:00",
+                        "2022-09-12 04:00:00+00:00",
+                        "2022-09-01 05:00:00+00:00",
+                        "2022-09-12 04:00:00+00:00",
+                        "2023-09-01 05:00:00+00:00",
+                    ],  # fake records
+                    dtype="datetime64[ns, UTC]",
+                    name="datetime",
+                    freq=None,
+                ),
+            ],
+            names=("name", "datetime"),
+        )
 
         dataset2.buddy_check(
             obstype="temp",
@@ -782,28 +842,24 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
             use_mp=False,
         )
-        
-        outlier_idxs = dataset2.outliersdf.index.get_level_values('datetime').unique()
-        
+
+        outlier_idxs = dataset2.outliersdf.index.get_level_values("datetime").unique()
+
         intersect = outlier_idxs.intersection(white_name_dt)
-        #Check if the white dt only timestamps are not in the outliers
-        assert intersect.empty , "outlier timestamps found in white name dt"
-        assert not outlier_timestamps.empty , "not outliers found"
-        assert dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0], 'something wrong'
+        # Check if the white dt only timestamps are not in the outliers
+        assert intersect.empty, "outlier timestamps found in white name dt"
+        assert not outlier_timestamps.empty, "not outliers found"
+        assert (
+            dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0]
+        ), "something wrong"
 
-       
-
-    def test_white_records_buddy_check_with_safety_nets_dataset(
-        self
-    ):
+    def test_white_records_buddy_check_with_safety_nets_dataset(self):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-       
 
         dataset = TestWhiteRecords.solutionfixer.get_solution(
             **TestWhiteRecords.solkwargs, methodname="test_import_data"
         )
-        
-        
+
         # Ensure LCZ data is present
         if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
             dataset.get_LCZ()
@@ -829,34 +885,53 @@ class TestWhiteRecords:
 
         # outliers = test_dataset.outliersdf
 
-
         # Test with different structures
-    
+
         # white_dt_only = pd.Index(
         #     outliers.reset_index()["datetime"].sample(n=33, random_state=42),
         #     name="datetime",
         # )
-        white_dt_only = pd.DatetimeIndex([
-            '2022-09-11 17:00:00+00:00', '2022-09-01 15:00:00+00:00',
-               '2022-09-13 01:00:00+00:00', '2022-09-06 13:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-12 17:00:00+00:00',
-               '2022-09-04 05:00:00+00:00', '2022-09-01 14:00:00+00:00',
-               '2022-09-09 02:00:00+00:00', '2022-09-09 01:00:00+00:00',
-               '2022-09-15 05:00:00+00:00', '2022-09-01 19:00:00+00:00',
-               '2022-09-05 05:00:00+00:00', '2022-09-01 05:00:00+00:00',
-               '2022-09-14 10:00:00+00:00', '2022-09-09 07:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-09 03:00:00+00:00',
-               '2022-09-15 21:00:00+00:00', '2022-09-09 09:00:00+00:00',
-               '2022-09-10 13:00:00+00:00', '2022-09-12 07:00:00+00:00',
-               '2022-09-04 16:00:00+00:00', '2022-09-03 09:00:00+00:00',
-               '2022-09-14 04:00:00+00:00', '2022-09-09 05:00:00+00:00',
-               '2022-09-04 17:00:00+00:00', '2022-09-06 06:00:00+00:00',
-               '2022-09-02 01:00:00+00:00', '2022-09-07 04:00:00+00:00',
-               '2022-09-09 08:00:00+00:00', '2022-09-05 03:00:00+00:00',
-               '2022-09-01 22:00:00+00:00'],
-              dtype='datetime64[ns, UTC]', name='datetime', freq=None)
-        
-    
+        white_dt_only = pd.DatetimeIndex(
+            [
+                "2022-09-11 17:00:00+00:00",
+                "2022-09-01 15:00:00+00:00",
+                "2022-09-13 01:00:00+00:00",
+                "2022-09-06 13:00:00+00:00",
+                "2022-09-04 18:00:00+00:00",
+                "2022-09-12 17:00:00+00:00",
+                "2022-09-04 05:00:00+00:00",
+                "2022-09-01 14:00:00+00:00",
+                "2022-09-09 02:00:00+00:00",
+                "2022-09-09 01:00:00+00:00",
+                "2022-09-15 05:00:00+00:00",
+                "2022-09-01 19:00:00+00:00",
+                "2022-09-05 05:00:00+00:00",
+                "2022-09-01 05:00:00+00:00",
+                "2022-09-14 10:00:00+00:00",
+                "2022-09-09 07:00:00+00:00",
+                "2022-09-04 18:00:00+00:00",
+                "2022-09-09 03:00:00+00:00",
+                "2022-09-15 21:00:00+00:00",
+                "2022-09-09 09:00:00+00:00",
+                "2022-09-10 13:00:00+00:00",
+                "2022-09-12 07:00:00+00:00",
+                "2022-09-04 16:00:00+00:00",
+                "2022-09-03 09:00:00+00:00",
+                "2022-09-14 04:00:00+00:00",
+                "2022-09-09 05:00:00+00:00",
+                "2022-09-04 17:00:00+00:00",
+                "2022-09-06 06:00:00+00:00",
+                "2022-09-02 01:00:00+00:00",
+                "2022-09-07 04:00:00+00:00",
+                "2022-09-09 08:00:00+00:00",
+                "2022-09-05 03:00:00+00:00",
+                "2022-09-01 22:00:00+00:00",
+            ],
+            dtype="datetime64[ns, UTC]",
+            name="datetime",
+            freq=None,
+        )
+
         dataset1 = copy.deepcopy(dataset)
         dataset1.buddy_check_with_safetynets(
             obstype="temp",
@@ -875,41 +950,82 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
             use_mp=False,
         )
-        
-        outlier_timestamps = dataset1.outliersdf.index.get_level_values('datetime').unique()
+
+        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+            "datetime"
+        ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
-        #Check if the white dt only timestamps are not in the outliers
-        assert intersect.empty , "outlier timestamps found in white dt only"
-        assert not outlier_timestamps.empty , "not outliers found"
-        assert dataset1.outliersdf.shape[0] == 150, 'something wrong with outlier count'
-        
+        # Check if the white dt only timestamps are not in the outliers
+        assert intersect.empty, "outlier timestamps found in white dt only"
+        assert not outlier_timestamps.empty, "not outliers found"
+        assert dataset1.outliersdf.shape[0] == 150, "something wrong with outlier count"
+
         # white_name_dt = (
         #     outliers.sample(n=21, random_state=42)
         #     .reset_index()[["name", "datetime"]]
         #     .set_index(["name", "datetime"])
         #     .index
         # )
-        white_name_dt =pd.MultiIndex.from_arrays(
-            [['vlinder05', 'vlinder27', 'vlinder06', 'vlinder12', 'vlinder05',
-                'vlinder05', 'vlinder06', 'vlinder27', 'vlinder05', 'vlinder05',
-                'vlinder05', 'vlinder06', 'vlinder28', 'vlinder06', 'vlinder05',
-                'vlinder05', 'vlinder09', 'vlinder05', 'vlinder05', 'vlinder05',
-                'vlinder05', 'dummy_station', 'vlinder09'],
-            pd.DatetimeIndex(['2022-09-11 17:00:00+00:00', '2022-09-01 15:00:00+00:00',
-               '2022-09-13 01:00:00+00:00', '2022-09-06 13:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-12 17:00:00+00:00',
-               '2022-09-04 05:00:00+00:00', '2022-09-01 14:00:00+00:00',
-               '2022-09-09 02:00:00+00:00', '2022-09-09 01:00:00+00:00',
-               '2022-09-15 05:00:00+00:00', '2022-09-01 19:00:00+00:00',
-               '2022-09-05 05:00:00+00:00', '2022-09-01 05:00:00+00:00',
-               '2022-09-14 10:00:00+00:00', '2022-09-09 07:00:00+00:00',
-               '2022-09-04 18:00:00+00:00', '2022-09-09 03:00:00+00:00',
-               '2022-09-15 21:00:00+00:00', '2022-09-09 09:00:00+00:00',
-               '2022-09-10 13:00:00+00:00',
-               '2022-09-10 13:00:00+00:00', '2023-09-10 13:00:00+00:00'], #fake records
-              dtype='datetime64[ns, UTC]', name='datetime', freq=None)],
-            names=('name', 'datetime'))
-        
+        white_name_dt = pd.MultiIndex.from_arrays(
+            [
+                [
+                    "vlinder05",
+                    "vlinder27",
+                    "vlinder06",
+                    "vlinder12",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder06",
+                    "vlinder27",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder06",
+                    "vlinder28",
+                    "vlinder06",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder09",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder05",
+                    "vlinder05",
+                    "dummy_station",
+                    "vlinder09",
+                ],
+                pd.DatetimeIndex(
+                    [
+                        "2022-09-11 17:00:00+00:00",
+                        "2022-09-01 15:00:00+00:00",
+                        "2022-09-13 01:00:00+00:00",
+                        "2022-09-06 13:00:00+00:00",
+                        "2022-09-04 18:00:00+00:00",
+                        "2022-09-12 17:00:00+00:00",
+                        "2022-09-04 05:00:00+00:00",
+                        "2022-09-01 14:00:00+00:00",
+                        "2022-09-09 02:00:00+00:00",
+                        "2022-09-09 01:00:00+00:00",
+                        "2022-09-15 05:00:00+00:00",
+                        "2022-09-01 19:00:00+00:00",
+                        "2022-09-05 05:00:00+00:00",
+                        "2022-09-01 05:00:00+00:00",
+                        "2022-09-14 10:00:00+00:00",
+                        "2022-09-09 07:00:00+00:00",
+                        "2022-09-04 18:00:00+00:00",
+                        "2022-09-09 03:00:00+00:00",
+                        "2022-09-15 21:00:00+00:00",
+                        "2022-09-09 09:00:00+00:00",
+                        "2022-09-10 13:00:00+00:00",
+                        "2022-09-10 13:00:00+00:00",
+                        "2023-09-10 13:00:00+00:00",
+                    ],  # fake records
+                    dtype="datetime64[ns, UTC]",
+                    name="datetime",
+                    freq=None,
+                ),
+            ],
+            names=("name", "datetime"),
+        )
 
         dataset2 = copy.deepcopy(dataset)
         dataset2.buddy_check_with_safetynets(
@@ -929,17 +1045,18 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
             use_mp=False,
         )
-        
-        outlier_idxs = dataset2.outliersdf.index.get_level_values('datetime').unique()
-        
-        intersect = outlier_idxs.intersection(white_name_dt)
-        #Check if the white dt only timestamps are not in the outliers
-        assert intersect.empty , "outlier timestamps found in white name dt"
-        assert not outlier_timestamps.empty , "not outliers found"
-        assert dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0], 'something wrong'
-        #extra sanity check to ensure the test is valid
-        assert dataset2.outliersdf.shape[0] == 171, 'something wrong with outlier count'
 
+        outlier_idxs = dataset2.outliersdf.index.get_level_values("datetime").unique()
+
+        intersect = outlier_idxs.intersection(white_name_dt)
+        # Check if the white dt only timestamps are not in the outliers
+        assert intersect.empty, "outlier timestamps found in white name dt"
+        assert not outlier_timestamps.empty, "not outliers found"
+        assert (
+            dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0]
+        ), "something wrong"
+        # extra sanity check to ensure the test is valid
+        assert dataset2.outliersdf.shape[0] == 171, "something wrong with outlier count"
 
     def test_whiterecords_get_info(self):
         """Test the WhiteSet and SensorWhiteSet classes."""
