@@ -15,4 +15,5 @@ Here is a collection of topics to address common issues or questions.
   To_xarray <to_xarray>
   Using Whitesets <using_whitesets.ipynb>
   Logging <log_example.ipynb>
+  Changing Settings <changing_settings.ipynb>
   GUI <gui>

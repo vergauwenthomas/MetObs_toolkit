@@ -5,7 +5,7 @@ from typing import Tuple
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from metobs_toolkit.settings_collection import label_def, label_to_color_map
+from metobs_toolkit.settings_collection.settings import Settings
 from metobs_toolkit.plot_collection import default_plot_settings
 
 # Configure logging
@@ -83,7 +83,7 @@ def qc_overview_pies(
 
     # Frequency with all
     plotdf = df
-    colors = [label_to_color_map[label] for label in plotdf.index]
+    colors = [Settings.get_color_from_label(label) for label in plotdf.index]
     plotdf.plot(
         ax=ax_thl,
         kind="pie",
@@ -101,20 +101,20 @@ def qc_overview_pies(
     plotdf = df[
         ~df.index.isin(
             [
-                label_def["goodrecord"]["label"],  # TYPO
-                label_def["regular_gap"]["label"],  # TYPO
+                Settings.get("label_def.goodrecord.label"),
+                Settings.get("label_def.regular_gap.label"),
             ]
         )
     ]
 
-    colors = [label_to_color_map[label] for label in plotdf.index]
+    colors = [Settings.get_color_from_label(label) for label in plotdf.index]
 
     if plotdf.empty:
         # No outliers --> full pie with "No QC outliers" in the color of 'ok'
         plotdf = pd.DataFrame(
             data={"N_labeled": [100]}, index=pd.Index(data=["No QC outliers"])
         )
-        colors = [label_def["goodrecord"]["color"]]  # TYPO
+        colors = [Settings.get("label_def.goodrecord.color")]
 
     plotdf.plot(
         ax=ax_thr,
@@ -133,14 +133,14 @@ def qc_overview_pies(
     plotdf = df[
         ~df.index.isin(
             [
-                label_def["goodrecord"]["label"],
-                label_def["regular_gap"]["label"],
+                Settings.get("label_def.goodrecord.label"),
+                Settings.get("label_def.regular_gap.label"),
             ]
         )
     ]
 
     # Label to QC check name map
-    label_too_qcname_map = {val["label"]: key for key, val in label_def.items()}
+    label_too_qcname_map = Settings.label_to_qccheckmap()
 
     i = 0
     for idx, row in plotdf.iterrows():
@@ -150,14 +150,15 @@ def qc_overview_pies(
         # Construct a plot Series
         plotseries = pd.Series(
             {
-                label_def["uncheckedrecord"]["label"]: row["N_all"] - row["N_checked"],
-                label_def["goodrecord"]["label"]: row["N_checked"] - row["N_labeled"],
-                label_def["outlier"]["label"]: row["N_labeled"],
+                Settings.get("label_def.uncheckedrecord.label"): row["N_all"]
+                - row["N_checked"],
+                Settings.get("label_def.goodrecord.label"): row["N_checked"]
+                - row["N_labeled"],
+                Settings.get("label_def.outlier.label"): row["N_labeled"],
             }
         )
         # Define colors
-        colors = [label_to_color_map[label] for label in plotseries.index]
-
+        colors = [Settings.get_color_from_label(label) for label in plotseries.index]
         plotseries.plot(
             ax=subax,
             kind="pie",

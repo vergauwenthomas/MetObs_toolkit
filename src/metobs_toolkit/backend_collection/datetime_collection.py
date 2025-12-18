@@ -1,12 +1,14 @@
 from __future__ import annotations
 import logging
-from typing import Literal, Union, TYPE_CHECKING
+from typing import Literal, Union, Optional, TYPE_CHECKING
 
 import warnings
 
 
 import pandas as pd
 import numpy as np
+
+from metobs_toolkit.backend_collection.errorclasses import MetObsInternalError
 
 if TYPE_CHECKING:
     from dateutil.tz import tzfile
@@ -15,8 +17,8 @@ if TYPE_CHECKING:
 
 def timestamps_to_datetimeindex(
     timestamps: np.ndarray | pd.Series | pd.DatetimeIndex | list,
-    tz: Union[tzfile | tzinfo | str] = "UTC",
-    **kwargs,
+    current_tz: Optional[Union[tzfile | tzinfo | str]] = None,
+    name: Optional[str] = "datetime",
 ) -> pd.DatetimeIndex:
     """
     Convert timestamps to a timezone-aware DatetimeIndex.
@@ -25,27 +27,57 @@ def timestamps_to_datetimeindex(
     ----------
     timestamps : np.ndarray, pd.Series, pd.DatetimeIndex, or list
         The timestamps to convert.
-    tz : timezone, tz.tzfile, tzinfo, or str
-        The timezone to apply to the DatetimeIndex.
+    current_tz : timezone, tz.tzfile, tzinfo, str, or None
+        The timezone of the input timestamps. Required if timestamps are
+        timezone-naive. If timestamps are timezone-aware, this is used to
+        validate consistency.
 
     Returns
     -------
     pd.DatetimeIndex
         A timezone-aware DatetimeIndex.
+
+    Raises
+    ------
+    MetObsInternalError
+        If timestamps are timezone-naive and current_tz is not provided.
+        If timestamps are timezone-aware but timezone differs from current_tz.
     """
     # Create DatetimeIndex without explicitly putting a timezone
-    dt_index = pd.DatetimeIndex(data=timestamps, **kwargs)
+    dt_index = pd.DatetimeIndex(data=timestamps, name=name)
 
     if dt_index.empty:
-        return dt_index  # no need to convert timezone for empty index
-    else:
-        # Convert to target timezone
-        return convert_timezone(datetimeindex=dt_index, target_tz=tz)
+        return dt_index  # no need to process empty index
+
+    # Case 1: Timezone-naive timestamps
+    if dt_index.tz is None:
+        if current_tz is None:
+            raise MetObsInternalError(
+                "Timestamps are timezone-naive but no current_tz was provided. "
+                "Please provide current_tz to make the timestamps timezone-aware."
+            )
+        # Localize to current_tz
+        return dt_index.tz_localize(current_tz)
+
+    # Case 2: Timezone-aware timestamps
+    if current_tz is not None:
+        # Check if timezone matches current_tz
+        # Normalize timezone representations for comparison
+        input_tz = dt_index.tz
+        expected_tz = current_tz
+
+        if str(input_tz) != str(expected_tz):
+            raise MetObsInternalError(
+                f"Timestamps have timezone '{input_tz}' but current_tz is "
+                f"'{current_tz}'. Timezone mismatch detected."
+            )
+
+    return dt_index
 
 
 def convert_timezone(
     datetimeindex: pd.DatetimeIndex,
-    target_tz: Union[tz.tzfile | tzinfo | str] = "UTC",
+    target_tz: Union[tzfile | tzinfo | str] = "UTC",
 ) -> pd.DatetimeIndex:
     """
     Convert a DatetimeIndex to a target timezone.
@@ -65,12 +97,9 @@ def convert_timezone(
     """
 
     if datetimeindex.tz is None:
-        warnings.warn(
-            "The DatetimeIndex has no timezone information. " "Assuming UTC timezone.",
-            UserWarning,
-            stacklevel=2,
+        raise MetObsInternalError(
+            f"Connot convert a datetimeindex with no timezone to {target_tz}."
         )
-        datetimeindex = datetimeindex.tz_localize("UTC")
 
     return datetimeindex.tz_convert(target_tz)
 

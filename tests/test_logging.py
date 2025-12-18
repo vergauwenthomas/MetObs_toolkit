@@ -23,7 +23,7 @@ class TestAddStreamHandler:
 
     def test_add_stream_handler_default(self):
         """Test adding a StreamHandler with default settings."""
-        metobs_toolkit.add_StreamHandler()
+        metobs_toolkit.add_StreamHandler(setlvl="DEBUG")
 
         logger = logging.getLogger("<metobs_toolkit>")
         stream_handlers = [

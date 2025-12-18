@@ -17,6 +17,7 @@ the MetObs toolkit to be used by a user and developer.
   Obstypes <obstype>
   Site <site>
   WhiteSet <whitelist>
+  Settings <settings>
   ModelTimeSeries <modeltimeseries>
   GEEDatasetManagers <geedatasetmanagers>
 
