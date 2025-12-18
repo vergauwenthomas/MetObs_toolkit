@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as datetypeclass
 
+
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsStationNotFound,
     MetObsObstypeNotFound,
@@ -24,7 +26,7 @@ from metobs_toolkit.backend_collection.datetime_agg_collection import (
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import analysis_df
 
@@ -451,10 +453,8 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         plotdf = plotdf[obstype]  # selection by level0 of columns
 
         # Styling
-        default_style = plotting.default_plot_settings["cycle_plot"]
-
         if ax is None:
-            default_kwargs = {"figsize": default_style["figsize"]}
+            default_kwargs = Settings.get("plotting_settings.cycle_plot.figsize", (5, 5))
             default_kwargs.update(figkwargs)  # overwrite default
             ax = plotting.create_axes(**default_kwargs)
 
@@ -481,7 +481,9 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
 
         # Add legend
         if legend:
-            plotting.set_legend(ax, ncols=default_style["legend_n_columns"])
+            plotting.set_legend(
+                ax,
+                ncols=Settings.get("plotting_settings.cycle_plot.legend_n_columns", 2))
 
         # set title
         if title is None:
@@ -617,10 +619,8 @@ These are all the possible agg categories: \
         plotdf = plotdf["diff_value"]  # selection by level0 of columns
 
         # Styling
-        default_style = plotting.default_plot_settings["cycle_plot"]
-
         if ax is None:
-            default_kwargs = {"figsize": default_style["figsize"]}
+            default_kwargs = {"figsize": Settings.get("plotting_settings.cycle_plot.figsize", (5, 5))}
             default_kwargs.update(figkwargs)  # overwrite defaults
             ax = plotting.create_axes(**default_kwargs)
 
@@ -646,7 +646,7 @@ These are all the possible agg categories: \
 
         # Add legend
         if legend:
-            plotting.set_legend(ax, ncols=default_style["legend_n_columns"])
+            plotting.set_legend(ax, ncols=Settings.get("plotting_settings.cycle_plot.legend_n_columns", 2))
 
         # set title
         if title is None:
