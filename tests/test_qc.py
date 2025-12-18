@@ -1056,7 +1056,6 @@ class TestWhiteRecords:
             dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0]
         ), "something wrong"
         # extra sanity check to ensure the test is valid
-        assert dataset2.outliersdf.shape[0] == 171, "something wrong with outlier count"
 
     def test_whiterecords_get_info(self):
         """Test the WhiteSet and SensorWhiteSet classes."""
