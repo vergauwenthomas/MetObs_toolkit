@@ -62,7 +62,7 @@ dataset.persistence_check(obstype="temp", timewindow="1h")
 ### Logging Decorator Pattern
 All public methods must use `@log_entry` decorator from `backend_collection.loggingmodule`:
 ```python
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 @log_entry
 def my_method(self, arg1, arg2):
