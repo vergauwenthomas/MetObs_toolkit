@@ -76,10 +76,11 @@ Code organized in `*_collection/` subdirectories by functionality:
 - `plot_collection/`: Visualization functions  
 - `backend_collection/`: Utilities, error classes, data constructors
 - `verif_collection/`: Model verification and scoring metrics
-- `settings_collection/`: Global configuration and label definitions. Global settings that affect multiple functions are stored in the `Settings` singleton class:
+- `settings_collection/`: Global configuration and label definitions. 
 
 
-**Important**: Only settings used by multiple functions belong in `Settings`. 
+**Important**: Settings used by multiple functions belong in `Settings`. Also settings 
+related to plotting styles are centralized there. 
 Settings specific to a single function/method should be defined as default 
 argument values in that function's signature.
 
