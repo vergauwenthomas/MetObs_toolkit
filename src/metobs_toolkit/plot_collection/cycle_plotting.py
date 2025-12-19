@@ -11,9 +11,10 @@ from metobs_toolkit.plot_collection import (  # Local modules
 
 # Set up logging
 from metobs_toolkit.backend_collection.decorators import log_entry
+
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
-    
+
 logger = logging.getLogger("<metobs_toolkit>")
 
 
