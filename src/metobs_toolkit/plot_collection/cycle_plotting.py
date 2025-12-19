@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging  # Python default package
-from typing import Literal, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from metobs_toolkit.settings_collection import Settings
