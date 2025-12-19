@@ -41,51 +41,51 @@ label_defs = {
         "label": "duplicated timestamp outlier",
         "numeric_val": 2,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#a32a1f", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#a32a1f", "marker": "o", "s": 5, "zorder": 1.5},
     },
     # "invalid_input": {"label": "invalid input", "color": "#900357"},
     "gross_value": {
         "label": "gross value outlier",
         "numeric_val": 3,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#f1ff2b", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#f1ff2b", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "persistence": {
         "label": "persistence outlier",
         "numeric_val": 4,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#f0051c", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#f0051c", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "repetitions": {
         "label": "repetitions outlier",
         "numeric_val": 5,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#056ff0", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#056ff0", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "step": {
         "label": "in step outlier group",
         "numeric_val": 6,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#05d4f0", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#05d4f0", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "window_variation": {
         "label": "in window variation outlier group",
         "numeric_val": 7,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#05f0c9", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#05f0c9", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "buddy_check": {
         "label": "buddy check outlier",
         "numeric_val": 8,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#8300c4", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#8300c4", "marker": "o", "s": 5, "zorder": 1.5},
     },
     "buddy_check_with_safetynets": {
         "label": "buddy check (with safetynets) outlier",
         "color": "#8300c4",
         "numeric_val": 9,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#8300c4", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#8300c4", "marker": "o", "s": 5, "zorder": 1.5},
     },
     # aggregated
     "outlier": {
@@ -93,7 +93,7 @@ label_defs = {
         "agg_def": True,
         "numeric_val": 10,
         "plot_as": scatter,
-        "plotkwargs": {"color": "#f20000", "marker": ".", "s": 2, "zorder": 1.5},
+        "plotkwargs": {"color": "#f20000", "marker": "o", "s": 5, "zorder": 1.5},
     },  # specify it is an aggregated label
     # ----- Gap ----------
     "regular_gap": {
