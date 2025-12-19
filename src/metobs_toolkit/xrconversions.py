@@ -118,11 +118,11 @@ def sensordata_to_xr(
     # Labels
     # Note: to make the xr.Dataset serializable, we need to use integer labels!!
     present_labels = df["label"].unique()
-    df["label_numeric"] = df["label"].map(Settings.label_to_numericmap())
+    df["label_numeric"] = df["label"].map(Settings._label_to_numericmap())
 
     applied_map = {
         f"Label:{key}": val
-        for key, val in Settings.label_to_numericmap().items()
+        for key, val in Settings._label_to_numericmap().items()
         if key in present_labels
     }
 

@@ -49,7 +49,7 @@ def qc_overview_pies(
 
     # Frequency with all
     plotdf = df
-    colors = [Settings.get_color_from_label(label) for label in plotdf.index]
+    colors = [Settings._get_color_from_label(label) for label in plotdf.index]
     plotdf.plot(
         ax=ax_thl,
         kind="pie",
@@ -73,7 +73,7 @@ def qc_overview_pies(
         )
     ]
 
-    colors = [Settings.get_color_from_label(label) for label in plotdf.index]
+    colors = [Settings._get_color_from_label(label) for label in plotdf.index]
 
     if plotdf.empty:
         # No outliers --> full pie with "No QC outliers" in the color of 'ok'
@@ -106,7 +106,7 @@ def qc_overview_pies(
     ]
 
     # Label to QC check name map
-    label_too_qcname_map = Settings.label_to_qccheckmap()
+    label_too_qcname_map = Settings._label_to_qccheckmap()
 
     i = 0
     for idx, row in plotdf.iterrows():
@@ -124,7 +124,7 @@ def qc_overview_pies(
             }
         )
         # Define colors
-        colors = [Settings.get_color_from_label(label) for label in plotseries.index]
+        colors = [Settings._get_color_from_label(label) for label in plotseries.index]
         plotseries.plot(
             ax=subax,
             kind="pie",

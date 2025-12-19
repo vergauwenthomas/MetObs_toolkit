@@ -300,7 +300,7 @@ class Settings:
     #   Methods Specific to plotting
     # ------------------------------------------
     @classmethod
-    def get_color_from_label(cls, label) -> str:
+    def _get_color_from_label(cls, label) -> str:
         cls()
         return {
             group["label"]: group["plotkwargs"]["color"]
@@ -308,14 +308,14 @@ class Settings:
         }.get(label, "")
 
     @classmethod
-    def label_to_qccheckmap(cls) -> Dict[str, str]:
+    def _label_to_qccheckmap(cls) -> Dict[str, str]:
         cls()
         return {val["label"]: key for key, val in cls.get("label_def").items()}
 
     @classmethod
-    def flag_plot_as_scatter(cls, label: str) -> bool:
+    def _flag_plot_as_scatter(cls, label: str) -> bool:
         cls()
-        labelmap = cls.label_to_qccheckmap()
+        labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
         if plot_as == scatter:
             return True
@@ -323,9 +323,9 @@ class Settings:
             return False
 
     @classmethod
-    def flag_plot_as_line(cls, label: str) -> bool:
+    def _flag_plot_as_line(cls, label: str) -> bool:
         cls()
-        labelmap = cls.label_to_qccheckmap()
+        labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
         if plot_as == line:
             return True
@@ -333,9 +333,9 @@ class Settings:
             return False
 
     @classmethod
-    def flag_plot_as_vline(cls, label: str) -> bool:
+    def _flag_plot_as_vline(cls, label: str) -> bool:
         cls()
-        labelmap = cls.label_to_qccheckmap()
+        labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
         if plot_as == vline:
             return True
@@ -346,7 +346,7 @@ class Settings:
     #    Methods specific to xarray conv
     # ------------------------------------------
     @classmethod
-    def label_to_numericmap(cls) -> Dict[str, int]:
+    def _label_to_numericmap(cls) -> Dict[str, int]:
         cls()
         return {
             val["label"]: int(val["numeric_val"])

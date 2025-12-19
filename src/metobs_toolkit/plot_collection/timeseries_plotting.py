@@ -192,12 +192,12 @@ def plot_timeseries_color_by_label(
         ymin = 0.0
         ymax = 10
 
-    label_to_checkname_map = Settings.label_to_qccheckmap()
+    label_to_checkname_map = Settings._label_to_qccheckmap()
     for label in labels_to_plot:  # Iterate over all labels to plot
         if label not in plotdf["label"].values:
             continue
 
-        if Settings.flag_plot_as_line(label):
+        if Settings._flag_plot_as_line(label):
             # Iterate over stations --> to avoid interpolation over multiple stations
             for _staname, stadf in plotdf.groupby(
                 plotdf.index.get_level_values("name")
@@ -225,7 +225,7 @@ def plot_timeseries_color_by_label(
                     ),
                 )
         # 2. Plot data in vertical line representation (= no numerical values)
-        elif Settings.flag_plot_as_vline(label):
+        elif Settings._flag_plot_as_vline(label):
             # Note: A regular subset must be done since data is represented as vlines (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
@@ -247,7 +247,7 @@ def plot_timeseries_color_by_label(
             )
 
         # 3. Plot data in scatter representation (= outliers with numerical values)
-        elif Settings.flag_plot_as_scatter(label):
+        elif Settings._flag_plot_as_scatter(label):
             # Note: A regular subset must be done since data is represented as scatters (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
