@@ -1,9 +1,9 @@
+from __future__ import annotations
+
 import logging  # Python default package
+from typing import Literal, Union, TYPE_CHECKING
 
-import matplotlib
-import matplotlib.pyplot as plt  # noqa: F401  # Dependency package
 import pandas as pd
-
 from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.plot_collection import (  # Local modules
     create_categorical_color_map,
@@ -11,17 +11,19 @@ from metobs_toolkit.plot_collection import (  # Local modules
 
 # Set up logging
 from metobs_toolkit.backend_collection.decorators import log_entry
-
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    
 logger = logging.getLogger("<metobs_toolkit>")
 
 
 @log_entry
 def make_diurnal_plot(
     plotdf: pd.DataFrame,
-    ax: "matplotlib.axes.Axes",
+    ax: Axes,
     colordict: dict,
     refstation: str,
-) -> "matplotlib.axes.Axes":
+) -> Axes:
     """
     Create a diurnal plot for the given data.
 
