@@ -1163,7 +1163,9 @@ class Dataset:
         modelobstypeinstance = trg_modeltimeseries.modelobstype
 
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         plotdf = (
             trg_modeldatadf.reset_index()
@@ -1262,7 +1264,9 @@ class Dataset:
         """
 
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         plotdf = (
             self.df.xs(obstype, level="obstype", drop_level=False)
@@ -1282,7 +1286,7 @@ class Dataset:
                 modelobstype = obstype
 
             colormap = plotting.create_categorical_color_map(
-                catlist=plotdf.index.get_level_values("name").unique()
+                catlist=plotdf.index.get_level_values("name").unique(),
             )
             ax = self.make_plot_of_modeldata(
                 obstype=modelobstype,
@@ -1332,7 +1336,9 @@ class Dataset:
 
         plotting.format_datetime_axes(ax)
 
-        plotting.set_legend(ax)
+        plotting.set_legend(
+            ax, **Settings.get("plotting_settings.time_series.legendkwargs", {})
+        )
 
         return ax
 

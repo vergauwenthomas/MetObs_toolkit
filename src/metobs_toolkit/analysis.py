@@ -454,9 +454,9 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
 
         # Styling
         if ax is None:
-            default_kwargs = Settings.get("plotting_settings.cycle_plot.figsize", (5, 5))
-            default_kwargs.update(figkwargs)  # overwrite default
-            ax = plotting.create_axes(**default_kwargs)
+            allfigkwargs = Settings.get("plotting_settings.cycle_plot.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         # plot the cycles
         ax = plotting.make_diurnal_plot(
@@ -464,7 +464,6 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
             colordict=colordict,
             ax=ax,
             refstation=None,
-            figkwargs=figkwargs,
         )
 
         # Styling
@@ -482,8 +481,8 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         # Add legend
         if legend:
             plotting.set_legend(
-                ax,
-                ncols=Settings.get("plotting_settings.cycle_plot.legend_n_columns", 2))
+                ax, **Settings.get("plotting_settings.cycle_plot.legendkwargs", {})
+            )
 
         # set title
         if title is None:
@@ -620,9 +619,9 @@ These are all the possible agg categories: \
 
         # Styling
         if ax is None:
-            default_kwargs = {"figsize": Settings.get("plotting_settings.cycle_plot.figsize", (5, 5))}
-            default_kwargs.update(figkwargs)  # overwrite defaults
-            ax = plotting.create_axes(**default_kwargs)
+            allfigkwargs = Settings.get("plotting_settings.cycle_plot.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         # plot the cycles
         ax = plotting.make_diurnal_plot(
@@ -630,7 +629,6 @@ These are all the possible agg categories: \
             colordict=colordict,
             ax=ax,
             refstation=ref_station,
-            figkwargs=figkwargs,
         )
 
         # Styling
@@ -646,7 +644,9 @@ These are all the possible agg categories: \
 
         # Add legend
         if legend:
-            plotting.set_legend(ax, ncols=Settings.get("plotting_settings.cycle_plot.legend_n_columns", 2))
+            plotting.set_legend(
+                ax, **Settings.get("plotting_settings.cycle_plot.legendkwargs", {})
+            )
 
         # set title
         if title is None:

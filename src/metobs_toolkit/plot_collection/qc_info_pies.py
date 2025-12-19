@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from metobs_toolkit.settings_collection.settings import Settings
+from metobs_toolkit.plot_collection import create_axes
 
 # Configure logging
 from metobs_toolkit.backend_collection.decorators import log_entry
@@ -13,16 +14,9 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
 @log_entry
 def qc_overview_pies(
     df: pd.DataFrame,
-    figsize: Tuple[int, int] = Settings.get("plotting_settings.pie_charts.figsize"),
-    ncol: int = Settings.get("plotting_settings.pie_charts.ncols"),
-    radius_big: float = Settings.get("plotting_settings.pie_charts.radius_big"),
-    radius_small: float = Settings.get("plotting_settings.pie_charts.radius_small"),
-    textsize_big_pies: int = Settings.get("plotting_settings.pie_charts.txt_size_big_pies"),
-    textsize_small_pies: int = Settings.get("plotting_settings.pie_charts.txt_size_small_pies"),
 ) -> plt.Figure:
     """
     Generate a quality control (QC) overview using pie charts.
@@ -31,18 +25,6 @@ def qc_overview_pies(
     ----------
     df : pandas.DataFrame
         DataFrame containing QC data. Must include columns 'N_labeled', 'N_all', and 'N_checked'.
-    figsize : tuple of int, optional
-        Size of the figure, by default pieplotsettings["figsize"].
-    ncol : int, optional
-        Number of columns in the layout, by default pieplotsettings["ncols"].
-    radius_big : float, optional
-        Radius of the large pie charts, by default pieplotsettings["radius_big"].
-    radius_small : float, optional
-        Radius of the small pie charts, by default pieplotsettings["radius_small"].
-    textsize_big_pies : int, optional
-        Font size for the large pie charts, by default pieplotsettings["txt_size_big_pies"].
-    textsize_small_pies : int, optional
-        Font size for the small pie charts, by default pieplotsettings["txt_size_small_pies"].
 
     Returns
     -------
@@ -56,9 +38,11 @@ def qc_overview_pies(
     """
 
     # Define layout
-    fig = plt.figure(figsize=figsize)
-    fig.tight_layout()
+    ax = create_axes(**Settings.get("plotting_settings.pie_charts.figkwargs"))
+    ax.set_axis_off()
+    fig = ax.get_figure()
 
+    ncol = Settings.get("plotting_settings.pie_charts.ncols")
     spec = fig.add_gridspec(4, ncol)
     ax_thl = fig.add_subplot(spec[0, :2])  # top half left
     ax_thr = fig.add_subplot(spec[0, 2:])  # top half right
@@ -73,8 +57,8 @@ def qc_overview_pies(
         autopct="%1.1f%%",
         legend=False,
         colors=colors,
-        radius=radius_big,
-        fontsize=textsize_big_pies,
+        radius=Settings.get("plotting_settings.pie_charts.radius_big"),
+        fontsize=Settings.get("plotting_settings.pie_charts.txt_size_big_pies"),
     )
     ax_thl.set_title("Label frequencies")
     ax_thl.set_ylabel("")
@@ -105,8 +89,8 @@ def qc_overview_pies(
         autopct="%1.1f%%",
         legend=False,
         colors=colors,
-        radius=radius_big,
-        fontsize=textsize_big_pies,
+        radius=Settings.get("plotting_settings.pie_charts.radius_big"),
+        fontsize=Settings.get("plotting_settings.pie_charts.txt_size_big_pies"),
     )
     ax_thr.set_title("Outlier specific frequencies")
     ax_thr.set_ylabel("")
@@ -147,8 +131,8 @@ def qc_overview_pies(
             autopct="%1.1f%%",
             legend=False,
             colors=colors,
-            radius=radius_small,
-            fontsize=textsize_small_pies,
+            radius=Settings.get("plotting_settings.pie_charts.radius_small"),
+            fontsize=Settings.get("plotting_settings.pie_charts.txt_size_small_pies"),
         )
 
         subax.set_title(f"Effectiveness of {label_too_qcname_map[idx]}")

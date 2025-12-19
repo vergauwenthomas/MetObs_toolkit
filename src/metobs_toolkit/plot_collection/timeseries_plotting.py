@@ -63,8 +63,6 @@ def add_lines_to_axes(
     matplotlib.axes.Axes
         The updated axes with the line added.
     """
-    logging.info(f"Entering add_lines_to_axes with legend_label={legend_label}")
-
     ax.plot(series.index, series.values, label=legend_label, **kwargs)  # x  # y
     return ax
 
@@ -330,6 +328,7 @@ def plot_timeseries_color_by_station(
     if not show_outliers:
         plotdf.loc[plotdf["label"].isin(all_outlier_labels()), "value"] = np.nan
 
+    linekwargs = Settings.get("plotting_settings.time_series.linekwargs", {})
     # Plot the data as a single color line
     # Iterate over stations to avoid interpolation over multiple stations
     for staname, stadf in plotdf.groupby(plotdf.index.get_level_values("name")):
@@ -337,12 +336,14 @@ def plot_timeseries_color_by_station(
         plotseries = stadf["value"]
         plotseries.index = plotseries.index.droplevel("name")
 
+        # update linekwargs
+        linekwargs.update({"linestyle": linestyle, "color": colormap[staname]})
+
         ax = add_lines_to_axes(
             ax=ax,
             series=plotseries,
             legend_label=f"{legend_prefix}{staname}",
-            linestyle=linestyle,
-            color=colormap[staname],
+            **linekwargs,
         )
 
     return ax

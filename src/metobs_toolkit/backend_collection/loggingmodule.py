@@ -103,7 +103,6 @@ def add_FileHandler(
     rootlog.debug(f"FileHandler set at {datetime.now()}")
 
 
-
 def add_StreamHandler(
     setlvl: str = Settings.get("log_level"), logformat: str = Settings.get("log_format")
 ) -> None:

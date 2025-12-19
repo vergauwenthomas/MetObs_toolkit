@@ -15,14 +15,12 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
 @log_entry
 def make_diurnal_plot(
     plotdf: pd.DataFrame,
     ax: "matplotlib.axes.Axes",
     colordict: dict,
     refstation: str,
-    figkwargs: dict,
 ) -> "matplotlib.axes.Axes":
     """
     Create a diurnal plot for the given data.
@@ -37,8 +35,6 @@ def make_diurnal_plot(
         Dictionary mapping column names to colors. If None, a default colormap will be created.
     refstation : str
         The reference station to be plotted as a dashed line. If None, no reference is plotted.
-    figkwargs : dict
-        Additional keyword arguments for figure customization.
 
     Returns
     -------
@@ -55,7 +51,7 @@ def make_diurnal_plot(
         logger.debug("Creating default colormap.")
         colmap = create_categorical_color_map(
             catlist=plotdf.columns,
-            cmapname=Settings.get("plotting_settings.cycle_plot.cmap_categorical"),
+            cmapname=Settings.get("plotting_settings.coloring.categorical_cmap"),
         )
     else:
         colmap = colordict
@@ -64,7 +60,7 @@ def make_diurnal_plot(
         logger.debug(f"Plotting reference station: {refstation}.")
         # Plot reference as dashed line
         ax.axhline(
-            **Settings.get("plotting_settings.cycle_plot.hline_kwargs", {'y': 0}),
+            **Settings.get("plotting_settings.cycle_plot.hlinekwargs", {"y": 0}),
             label=f"Reference:{refstation}",
         )
 
@@ -85,6 +81,7 @@ def make_diurnal_plot(
             label=column,
             color=colmap[column],
             linestyle="-",
+            **Settings.get("plotting_settings.cycle_plot.linekwargs", {}),
         )
 
     logger.debug("Exiting make_diurnal_plot function.")

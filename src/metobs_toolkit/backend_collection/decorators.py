@@ -3,6 +3,7 @@ from functools import wraps
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 def log_entry(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

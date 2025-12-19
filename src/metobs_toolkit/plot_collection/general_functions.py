@@ -6,6 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 # Set up logging
+from metobs_toolkit.settings_collection.settings import Settings
 from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -204,7 +205,7 @@ def _create_main_legend_items(handles, labels):
 
 
 @log_entry
-def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
+def set_legend(ax: plt.Axes, **kwargs) -> plt.Axes:
     """
     Set the legend for the axes, handling duplicate labels and model/observation distinction.
 
@@ -212,8 +213,8 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
     ----------
     ax : matplotlib.axes.Axes
         The axes to set the legend for.
-    ncols : int, optional
-        Number of columns for the legend, by default 8.
+    **kwargs
+        Additional keyword arguments to pass to the legend function.
 
     Returns
     -------
@@ -271,23 +272,13 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
     main_labels = [item[0] for item in main_legenditems]
     main_handles = [item[1] for item in main_legenditems]
 
-    if len(main_labels) > 8:  # Adjust the threshold as needed
-        # adjust figure
-        fig = ax.get_figure()
-        fig.subplots_adjust(
-            bottom=0.2
-        )  # Adjust the bottom margin to make space for the legend
-        # create legend
-        _ = ax.legend(
-            main_handles,
-            main_labels,
-            loc="upper center",
-            bbox_to_anchor=(0.5, -0.15),
-            ncol=ncols,
-        )
-    else:
-        # create legend
-        _ = ax.legend(main_handles, main_labels)
+    # adjust figure
+    fig = ax.get_figure()
+    fig.subplots_adjust(
+        bottom=0.2
+    )  # Adjust the bottom margin to make space for the legend
+    # create legend
+    _ = ax.legend(main_handles, main_labels, **kwargs)
 
     return ax
 
@@ -298,7 +289,12 @@ def set_legend(ax: plt.Axes, ncols: int = 8) -> plt.Axes:
 
 
 @log_entry
-def create_categorical_color_map(catlist: list, cmapname: str = "tab20") -> dict:
+def create_categorical_color_map(
+    catlist: list,
+    cmapname: str = Settings.get(
+        "plotting_settings.coloring.categorical_cmap", "tab20"
+    ),
+) -> dict:
     """
     Create a categorical color map for a list of categories.
 

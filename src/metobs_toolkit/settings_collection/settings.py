@@ -303,7 +303,8 @@ class Settings:
     def get_color_from_label(cls, label) -> str:
         cls()
         return {
-            group["label"]: group['plotkwargs']["color"] for group in cls.get("label_def").values()
+            group["label"]: group["plotkwargs"]["color"]
+            for group in cls.get("label_def").values()
         }.get(label, "")
 
     @classmethod

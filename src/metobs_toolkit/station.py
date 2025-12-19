@@ -1737,7 +1737,9 @@ class Station:
         trg_modeltimeseries = _find_model_timeseries()
         # Create new axes if needed
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         plotdf = (
             trg_modeldatadf.reset_index()
@@ -1787,7 +1789,9 @@ class Station:
         plotting.format_datetime_axes(ax)
 
         # Add legend
-        plotting.set_legend(ax)
+        plotting.set_legend(
+            ax, **Settings.get("plotting_settings.time_series.legendkwargs", {})
+        )
 
         return ax
 
@@ -1859,7 +1863,9 @@ class Station:
 
         # Create new axes if needed
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         if show_modeldata:
             if modelobstype is None:
@@ -1938,7 +1944,9 @@ class Station:
         plotting.format_datetime_axes(ax)
 
         # Add legend
-        plotting.set_legend(ax)
+        plotting.set_legend(
+            ax, **Settings.get("plotting_settings.time_series.legendkwargs", {})
+        )
 
         return ax
 
