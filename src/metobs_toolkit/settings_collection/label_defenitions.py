@@ -21,7 +21,7 @@ label_defs = {
         "numeric_val": 0,
         "plot_as": line,
         "plotkwargs": {
-            "zorder": 1,
+            "zorder": 1.2,
             "color": "#07f72b",
             "ls": "-",
         },
@@ -31,7 +31,7 @@ label_defs = {
         "numeric_val": 1,
         "plot_as": line,
         "plotkwargs": {
-            "zorder": 1,
+            "zorder": 1.2,
             "color": "#f7cf07",
             "ls": "-",
         },
@@ -100,7 +100,7 @@ label_defs = {
         "label": "gap",
         "numeric_val": 11,
         "plot_as": vline,
-        "plotkwargs": {"color": "#f00592", "ls": "-", "linewidth": 2, "zorder": 1.1},
+        "plotkwargs": {"color": "#f00592", "ls": "-", "linewidth": 2, "zorder": 1.0},
     },
     # ----- Interpolation labels -----
     "interpolated_gap": {

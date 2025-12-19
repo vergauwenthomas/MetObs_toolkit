@@ -1206,7 +1206,8 @@ class Dataset:
 
         plotting.format_datetime_axes(ax)
 
-        plotting.set_legend(ax)
+        plotting.set_legend(ax,
+                            **Settings.get("plotting_settings.time_series.legendkwargs", {}))
 
         return ax
 

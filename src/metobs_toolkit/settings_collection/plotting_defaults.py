@@ -19,6 +19,7 @@ default_plot_settings["time_series"] = {
         "loc": "upper center",
         "bbox_to_anchor": (0.5, -0.15),
         "ncol": 5,
+        "frameon": False,
     },
     # line settings
     "linekwargs": {

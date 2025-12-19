@@ -326,7 +326,9 @@ class ModelTimeSeries:
         # Define a color
         if linecolor is None:
             # create a new color
-            color = create_categorical_color_map(["dummy"])["dummy"]
+            color = create_categorical_color_map(
+                catlist=["dummy"],
+                cmapname=Settings.get("plotting_settings.coloring.categorical_cmap"))["dummy"]
         else:
             color = linecolor
 
@@ -355,6 +357,7 @@ class ModelTimeSeries:
         set_xlabel(ax, f"Timestamps (in {self.tz})")
 
         # Add legend
-        set_legend(ax)
+        set_legend(ax,
+                   **Settings.get("plotting_settings.time_series.legendkwargs", {}))
 
         return ax
