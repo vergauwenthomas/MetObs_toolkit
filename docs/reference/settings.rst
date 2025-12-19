@@ -9,12 +9,12 @@ used across multiple functions and methods in the MetObs toolkit. Settings store
 here affect behavior throughout the toolkit (e.g., timezone handling, label 
 definitions, logging).
 
-Settings specific to a single function or method are NOT stored here - those are 
-defined as default argument values in the function/method signature.
 
 The Settings class uses the singleton pattern to ensure only one instance exists.
 Settings are accessed and modified using class methods, so no instantiation is 
-required by the user.
+required by the user. That makes the `Settings` especially convenient for 
+global configuration, and settings used at the deep modules without having to 
+pass all the settings as arguments (e.g. default style settings for plots).
 
 .. note::
    The Settings class is accessible directly from the ``metobs_toolkit`` module
