@@ -13,7 +13,6 @@ Created on Fri Aug  2 14:23:30 2024
 import os
 import logging
 from datetime import datetime
-from functools import wraps
 from os import PathLike
 
 from metobs_toolkit.settings_collection.settings import Settings
