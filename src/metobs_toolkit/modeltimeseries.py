@@ -37,7 +37,7 @@ from metobs_toolkit.plot_collection import (
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsUnitUnknown
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -326,7 +326,10 @@ class ModelTimeSeries:
         # Define a color
         if linecolor is None:
             # create a new color
-            color = create_categorical_color_map(["dummy"])["dummy"]
+            color = create_categorical_color_map(
+                catlist=["dummy"],
+                cmapname=Settings.get("plotting_settings.coloring.categorical_cmap"),
+            )["dummy"]
         else:
             color = linecolor
 
@@ -355,6 +358,6 @@ class ModelTimeSeries:
         set_xlabel(ax, f"Timestamps (in {self.tz})")
 
         # Add legend
-        set_legend(ax)
+        set_legend(ax, **Settings.get("plotting_settings.time_series.legendkwargs", {}))
 
         return ax

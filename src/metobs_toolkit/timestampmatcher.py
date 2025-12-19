@@ -10,7 +10,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 

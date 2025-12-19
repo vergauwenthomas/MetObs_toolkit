@@ -4,7 +4,7 @@ import pandas as pd
 
 from .common_functions import test_moving_window_condition
 from .whitelist import SensorWhiteSet
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
 )

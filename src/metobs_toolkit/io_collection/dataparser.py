@@ -5,7 +5,7 @@ from metobs_toolkit.io_collection.filereaders import FileReader
 
 from metobs_toolkit.template import Template, MetObsTemplateError
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 

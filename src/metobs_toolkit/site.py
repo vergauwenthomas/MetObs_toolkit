@@ -15,7 +15,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -187,12 +187,12 @@ class Site:
         return self._lon
 
     @property
-    def altitude(self) -> Union[float, type(nan)]:
+    def altitude(self) -> float:
         """Return the altitude."""
         return self._altitude
 
     @property
-    def LCZ(self) -> Union[str, type(nan)]:
+    def LCZ(self) -> str:
         """Return the LCZ."""
         return self._LCZ
 
@@ -246,7 +246,7 @@ class Site:
     # ------------------------------------------
 
     @log_entry
-    def set_altitude(self, altitude: Union[float, type(nan)]) -> None:
+    def set_altitude(self, altitude: Union[float]) -> None:
         """
         Set the altitude attribute.
 
@@ -258,7 +258,7 @@ class Site:
         self._altitude = float(altitude)
 
     @log_entry
-    def set_LCZ(self, LCZ: Union[str, type(nan)]) -> None:
+    def set_LCZ(self, LCZ: str) -> None:
         """
         Set the LCZ attribute.
 

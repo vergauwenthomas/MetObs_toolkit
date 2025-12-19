@@ -27,6 +27,7 @@ from metobs_toolkit.settings_collection.label_defenitions import (
     line,
     vline,
 )
+from metobs_toolkit.settings_collection.plotting_defaults import default_plot_settings
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -81,9 +82,11 @@ class Settings:
         # Printing
         "print_config": {
             "max_width": 80,
-            "item_ident": " " * 2,
+            "item_indent": " " * 2,
             "title_char": "=",
         },
+        # Plotting defaults
+        "plotting_settings": default_plot_settings,
     }
 
     _config: Dict[str, Any] = {}
@@ -300,7 +303,8 @@ class Settings:
     def get_color_from_label(cls, label) -> str:
         cls()
         return {
-            group["label"]: group["color"] for group in cls.get("label_def").values()
+            group["label"]: group["plotkwargs"]["color"]
+            for group in cls.get("label_def").values()
         }.get(label, "")
 
     @classmethod

@@ -42,10 +42,7 @@ def add_lines_to_axes(
     ax: plt.Axes,
     series: pd.Series,
     legend_label: str,
-    linestyle: Literal["-", "--", "-.", ":", ""] = "-",
-    color: str = "navy",
-    linewidth: int = 2,
-    zorder: Union[int, float] = 1.3,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add a line plot to the given axes.
@@ -58,31 +55,15 @@ def add_lines_to_axes(
         The data series to plot. The index represents the x-axis, and the values represent the y-axis.
     legend_label : str
         The label for the legend entry.
-    linestyle : {'-', '--', '-.', ':', ''}, optional
-        The style of the line. Default is '-'.
-    color : str, optional
-        The color of the line. Default is 'navy'.
-    linewidth : int, optional
-        The width of the line. Default is 2.
-    zorder : int or float, optional
-        The z-order of the line. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.plot`.
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the line added.
     """
-    logging.info(f"Entering add_lines_to_axes with legend_label={legend_label}")
-
-    ax.plot(
-        series.index,  # x
-        series.values,  # y
-        color=color,
-        linewidth=linewidth,
-        linestyle=linestyle,
-        zorder=zorder,
-        label=legend_label,
-    )
+    ax.plot(series.index, series.values, label=legend_label, **kwargs)  # x  # y
     return ax
 
 
@@ -92,10 +73,7 @@ def add_vertical_lines_to_axes(
     legend_label: str,
     ymin: float,
     ymax: float,
-    linestyle: Literal["-", "--", "-.", ":", ""] = "-",
-    color: str = "navy",
-    linewidth: int = 2,
-    zorder: Union[int, float] = 1.1,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add vertical lines to the given axes.
@@ -112,34 +90,16 @@ def add_vertical_lines_to_axes(
         The starting y-coordinate of the vertical lines.
     ymax : float
         The ending y-coordinate of the vertical lines.
-    linestyle : {'-', '--', '-.', ':', ''}, optional
-        The style of the lines. Default is '-'.
-    color : str, optional
-        The color of the lines. Default is 'navy'.
-    linewidth : int, optional
-        The width of the lines. Default is 2.
-    zorder : int or float, optional
-        The z-order of the lines. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.vlines`.
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the vertical lines added.
     """
-    logging.info(
-        f"Entering add_vertical_lines_to_axes with legend_label={legend_label}"
-    )
 
-    ax.vlines(
-        x=idx,
-        ymin=ymin,
-        ymax=ymax,
-        linestyle=linestyle,
-        linewidth=linewidth,
-        color=color,
-        zorder=zorder,
-        label=legend_label,
-    )
+    ax.vlines(x=idx, ymin=ymin, ymax=ymax, label=legend_label, **kwargs)
     return ax
 
 
@@ -162,22 +122,12 @@ def add_scatters_to_axes(
         The label for the legend entry.
     **kwargs
         Additional keyword arguments passed to `matplotlib.axes.Axes.scatter`.
-        Common options include:
-        - color : str, default 'navy'
-        - s : int, default 2 (marker size)
-        - zorder : int or float, default 1.5
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the scatter points added.
     """
-    logging.info(f"Entering add_scatters_to_axes with legend_label={legend_label}")
-
-    # Set defaults for kwargs
-    kwargs.setdefault("color", "navy")
-    kwargs.setdefault("s", 2)
-    kwargs.setdefault("zorder", 1.5)
 
     ax.scatter(
         series.index,
@@ -247,12 +197,7 @@ def plot_timeseries_color_by_label(
         if label not in plotdf["label"].values:
             continue
 
-        plotcolor = Settings.get_color_from_label(label)
         if Settings.flag_plot_as_line(label):
-
-            linestyle = Settings.get(
-                f"label_def.{label_to_checkname_map[label]}.ls", "-"
-            )
             # Iterate over stations --> to avoid interpolation over multiple stations
             for _staname, stadf in plotdf.groupby(
                 plotdf.index.get_level_values("name")
@@ -275,8 +220,9 @@ def plot_timeseries_color_by_label(
                     # Reindex to continuous timestamps (timestamps without this label have NaN values)
                     series=plotseries,
                     legend_label=label,
-                    linestyle=linestyle,
-                    color=plotcolor,
+                    **Settings.get(
+                        f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
+                    ),
                 )
         # 2. Plot data in vertical line representation (= no numerical values)
         elif Settings.flag_plot_as_vline(label):
@@ -295,7 +241,9 @@ def plot_timeseries_color_by_label(
                 ymax=ymax,
                 idx=labelseries.index,
                 legend_label=label,
-                color=plotcolor,
+                **Settings.get(
+                    f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
+                ),
             )
 
         # 3. Plot data in scatter representation (= outliers with numerical values)
@@ -311,9 +259,8 @@ def plot_timeseries_color_by_label(
                 ax=ax,
                 series=labelseries,
                 legend_label=label,
-                color=plotcolor,
-                marker=Settings.get(
-                    f"label_def.{label_to_checkname_map[label]}.marker", "o"
+                **Settings.get(
+                    f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
                 ),
             )
         else:
@@ -381,6 +328,7 @@ def plot_timeseries_color_by_station(
     if not show_outliers:
         plotdf.loc[plotdf["label"].isin(all_outlier_labels()), "value"] = np.nan
 
+    linekwargs = Settings.get("plotting_settings.time_series.linekwargs", {})
     # Plot the data as a single color line
     # Iterate over stations to avoid interpolation over multiple stations
     for staname, stadf in plotdf.groupby(plotdf.index.get_level_values("name")):
@@ -388,12 +336,14 @@ def plot_timeseries_color_by_station(
         plotseries = stadf["value"]
         plotseries.index = plotseries.index.droplevel("name")
 
+        # update linekwargs
+        linekwargs.update({"linestyle": linestyle, "color": colormap[staname]})
+
         ax = add_lines_to_axes(
             ax=ax,
             series=plotseries,
             legend_label=f"{legend_prefix}{staname}",
-            linestyle=linestyle,
-            color=colormap[staname],
+            **linekwargs,
         )
 
     return ax
