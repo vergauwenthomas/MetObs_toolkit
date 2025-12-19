@@ -184,19 +184,18 @@ class TestBreakingDataset:
 
     @pytest.mark.mpl_image_compare
     def test_make_plot_by_label_with_outliers(self):
-        
-        #get data with outliers
-        
+
+        # get data with outliers
+
         solutionobj = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname='test_apply_qc'
+            **TestBreakingDataset.solkwargs, methodname="test_apply_qc"
         )
-    
+
         # 2. apply a metobs manipulation
         ax = solutionobj.make_plot(colorby="label", obstype="temp")
         fig = ax.get_figure()
         return fig
-    
-    
+
     def test_get_info(self):
         #  1. get_startpoint data
         dataset = TestBreakingDataset.solutionfixer.get_solution(
