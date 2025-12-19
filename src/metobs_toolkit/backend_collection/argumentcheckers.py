@@ -3,12 +3,14 @@ arguments and input passed by the user."""
 
 import logging
 import datetime as datetimemodule
+import warnings
 
 import pandas as pd
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsArgumentError
+from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
+from metobs_toolkit.backend_collection.decorators import log_entry
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -18,11 +20,11 @@ def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
     if (none_is_none) & (timedeltaarg is None):
         return None
     if isinstance(timedeltaarg, datetimemodule.timedelta):
-        dt = pd.Timedelta(timedeltaarg)
+        dt = to_timedelta(timedeltaarg)
     elif isinstance(timedeltaarg, str):
-        dt = pd.Timedelta(timedeltaarg)
+        dt = to_timedelta(timedeltaarg)
     elif isinstance(timedeltaarg, pd.Timedelta):
-        dt = dt
+        dt = timedeltaarg
     else:
         raise MetObsArgumentError(
             f"{timedeltaarg} could not be interpreted as a Timedelta, \
@@ -58,12 +60,15 @@ def fmt_datetime_arg(
 pandas.Timestamp)."
         )
 
-    # check timezone and make tz-awer
+    # check timezone and make tz-aware
     if dt.tz is None:
+        warnings.warn(
+            "The datetime argument has no timezone information. "
+            f"Assuming {tz_if_dt_is_naive} timezone.",
+            UserWarning,
+            stacklevel=2,
+        )
         # tz naive timestamp
         dt = dt.tz_localize(tz=tz_if_dt_is_naive)
-    # else:
-    #     # tz aware timestamp --> convert to tz of records
-    #     dt = dt.tz_convert(tz=self._get_tz())
 
     return dt

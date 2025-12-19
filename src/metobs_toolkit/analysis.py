@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime as datetypeclass
 
+
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsStationNotFound,
     MetObsObstypeNotFound,
@@ -24,7 +26,7 @@ from metobs_toolkit.backend_collection.datetime_agg_collection import (
 from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.station import Station
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import analysis_df
 
@@ -297,7 +299,7 @@ but a {type(Dataholder)}"
     @log_entry
     def aggregate_df(
         self,
-        trgobstype: str = "temp",
+        obstype: str = "temp",
         agg: list[str] = ["LCZ", "hour"],
         method: Callable = np.nanmean,
     ) -> pd.DataFrame:
@@ -307,7 +309,7 @@ but a {type(Dataholder)}"
 
         Parameters
         ----------
-        trgobstype : str, optional
+        obstype : str, optional
             The target observation type to aggregate, by default "temp".
         agg : list of str, optional
             List of column names to group by for aggregation, by default
@@ -325,8 +327,8 @@ but a {type(Dataholder)}"
         if not callable(method):
             raise TypeError("method must be callable.")
 
-        # test if trgobstype is known
-        self._obstype_is_known(trgobstype)
+        # test if obstype is known
+        self._obstype_is_known(obstype)
 
         # test if agg categories are valid
         for aggcat in agg:
@@ -341,7 +343,7 @@ These are all the possible agg categories: \
         fulldf = pd.merge(left=self.fulldf, right=self.metadf, how="left", on="name")
 
         # Filter fulldf to relevant columns
-        fulldf = fulldf[agg + [trgobstype]]
+        fulldf = fulldf[agg + [obstype]]
 
         # Silence FutureWarning that DataFrameGrouBy.mean is currently used
         # instead of np.mean
@@ -362,7 +364,7 @@ These are all the possible agg categories: \
     @log_entry
     def plot_diurnal_cycle(
         self,
-        trgobstype: str = "temp",
+        obstype: str = "temp",
         colorby: str = "name",
         title: Union[str, None] = None,
         ax: Union[plt.Axes, None] = None,
@@ -377,7 +379,7 @@ These are all the possible agg categories: \
 
         Parameters
         ----------
-        trgobstype : str, optional
+        obstype : str, optional
             The target observation type to plot (e.g., "temp"). Default is
             "temp".
         colorby : str, optional
@@ -408,8 +410,8 @@ These are all the possible agg categories: \
             plot axes and the aggregated DataFrame.
         """
 
-        # test if trgobstype is known
-        self._obstype_is_known(trgobstype)
+        # test if obstype is known
+        self._obstype_is_known(obstype)
 
         # test if colorby is valid
         if colorby not in self._all_possible_agg_categories():
@@ -424,7 +426,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
 
         # create plotdf
         aggdf = self.aggregate_df(
-            trgobstype=trgobstype,
+            obstype=obstype,
             agg=[colorby, "hour", "minute", "second"],
             method=np.nanmean,
         )
@@ -444,19 +446,17 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         # construct plotdf
         # (index: fake_datetime, columns: colorby-groups, values: value)
         plotdf = (
-            aggdf[[colorby, "fake_datetime", trgobstype]]
+            aggdf[[colorby, "fake_datetime", obstype]]
             .set_index(["fake_datetime", colorby])
             .unstack(level=colorby)
         )
-        plotdf = plotdf[trgobstype]  # selection by level0 of columns
+        plotdf = plotdf[obstype]  # selection by level0 of columns
 
         # Styling
-        default_style = plotting.default_plot_settings["cycle_plot"]
-
         if ax is None:
-            default_kwargs = {"figsize": default_style["figsize"]}
-            default_kwargs.update(figkwargs)  # overwrite default
-            ax = plotting.create_axes(**default_kwargs)
+            allfigkwargs = Settings.get("plotting_settings.cycle_plot.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         # plot the cycles
         ax = plotting.make_diurnal_plot(
@@ -464,13 +464,12 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
             colordict=colordict,
             ax=ax,
             refstation=None,
-            figkwargs=figkwargs,
         )
 
         # Styling
 
         # Set ylabel
-        obstype = self._obstypes[trgobstype]
+        obstype = self._obstypes[obstype]
         plotting.set_ylabel(ax, obstype._get_plot_y_label())
 
         # Set xlabel
@@ -481,7 +480,9 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
 
         # Add legend
         if legend:
-            plotting.set_legend(ax, ncols=default_style["legend_n_columns"])
+            plotting.set_legend(
+                ax, **Settings.get("plotting_settings.cycle_plot.legendkwargs", {})
+            )
 
         # set title
         if title is None:
@@ -496,7 +497,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
     def plot_diurnal_cycle_with_reference_station(
         self,
         ref_station: str,
-        trgobstype: str = "temp",
+        obstype: str = "temp",
         colorby: str = "name",
         title: Union[str, None] = None,
         ax: Union[plt.Axes, None] = None,
@@ -513,7 +514,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         ----------
         ref_station : str
             The name of the reference station to compare against.
-        trgobstype : str, optional
+        obstype : str, optional
             The observation type to analyze (e.g., "temp"). Default is "temp".
         colorby : str, optional
             The column name to group data by for coloring the plot. Default
@@ -548,7 +549,7 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         Notes
         -----
         The method computes the differences between the target observation
-        type (`trgobstype`) and the reference station's values, then
+        type (`obstype`) and the reference station's values, then
         aggregates the data by the specified grouping (`colorby`) and time
         components (hour, minute, second). The resulting diurnal cycle is
         plotted, with options for customization.
@@ -558,8 +559,8 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
 diurnal_cycle_with_reference_station"
         )
 
-        # test if trgobstype is known
-        self._obstype_is_known(trgobstype)
+        # test if obstype is known
+        self._obstype_is_known(obstype)
 
         # test if colorby is valid
         if colorby not in self._all_possible_agg_categories():
@@ -583,11 +584,11 @@ These are all the possible agg categories: \
         fulldf = pd.merge(
             left=self.fulldf, right=self.metadf, how="left", on="name"
         ).set_index(["datetime", "name"])[
-            [trgobstype, colorby, "hour", "minute", "second"]
+            [obstype, colorby, "hour", "minute", "second"]
         ]
 
-        refrecords = fulldf.xs(ref_station, level="name", drop_level=True)[trgobstype]
-        fulldf["diff_value"] = fulldf[trgobstype] - refrecords
+        refrecords = fulldf.xs(ref_station, level="name", drop_level=True)[obstype]
+        fulldf["diff_value"] = fulldf[obstype] - refrecords
 
         # Aggregate the df
         aggdf = fulldf.groupby(
@@ -617,12 +618,10 @@ These are all the possible agg categories: \
         plotdf = plotdf["diff_value"]  # selection by level0 of columns
 
         # Styling
-        default_style = plotting.default_plot_settings["cycle_plot"]
-
         if ax is None:
-            default_kwargs = {"figsize": default_style["figsize"]}
-            default_kwargs.update(figkwargs)  # overwrite defaults
-            ax = plotting.create_axes(**default_kwargs)
+            allfigkwargs = Settings.get("plotting_settings.cycle_plot.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         # plot the cycles
         ax = plotting.make_diurnal_plot(
@@ -630,12 +629,11 @@ These are all the possible agg categories: \
             colordict=colordict,
             ax=ax,
             refstation=ref_station,
-            figkwargs=figkwargs,
         )
 
         # Styling
         # Set ylabel
-        obstype = self._obstypes[trgobstype]
+        obstype = self._obstypes[obstype]
         plotting.set_ylabel(ax, f"{obstype._get_plot_y_label()} difference")
 
         # Set xlabel
@@ -646,7 +644,9 @@ These are all the possible agg categories: \
 
         # Add legend
         if legend:
-            plotting.set_legend(ax, ncols=default_style["legend_n_columns"])
+            plotting.set_legend(
+                ax, **Settings.get("plotting_settings.cycle_plot.legendkwargs", {})
+            )
 
         # set title
         if title is None:
@@ -662,13 +662,13 @@ with {ref_station} as reference, grouped per {colorby}."
     #    Helpers
     # ------------------------------------------
 
-    def _obstype_is_known(self, trgobstype: str) -> None:
+    def _obstype_is_known(self, obstype: str) -> None:
         """
-        Test if the trgobstype has records, else Exception is raised.
+        Test if the obstype has records, else Exception is raised.
 
         Parameters
         ----------
-        trgobstype : str
+        obstype : str
             The observation type to check.
 
         Raises
@@ -676,9 +676,9 @@ with {ref_station} as reference, grouped per {colorby}."
         MetObsObstypeNotFound
             If the observation type is not present.
         """
-        if trgobstype in self.df.columns:
-            return
-        raise MetObsObstypeNotFound(f"{trgobstype} is not present in {self}.")
+        if obstype in self.df.columns:
+            return None
+        raise MetObsObstypeNotFound(f"{obstype} is not present in {self}.")
 
     def _all_possible_agg_categories(self) -> list:
         """

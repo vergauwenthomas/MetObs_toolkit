@@ -5,30 +5,33 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-import metobs_toolkit.settings_collection as settings
+from metobs_toolkit.backend_collection.errorclasses import MetObsInternalError
+from metobs_toolkit.settings_collection import Settings
 
 # ------------------------------------------
 #    Label groups
 # ------------------------------------------
-plot_as_line_labels = [
-    settings.label_def["goodrecord"]["label"],  # 'ok'
-    settings.label_def["uncheckedrecord"]["label"],  # 'not checked'
-] + [settings.label_def[trglab]["label"] for trglab in settings.gapfill_label_group]
 
-all_gap_without_val_labels = [
-    settings.label_def["regular_gap"]["label"],  # 'gap'
-] + [
-    settings.label_def[trglab]["label"]
-    for trglab in settings.failed_gapfill_label_group
-]
 
-all_outlier_labels = [
-    settings.label_def[cat]["label"]
-    for cat in settings.qc_label_group
-    if cat
-    not in ["duplicated_timestamp", "invalid_input"]  # TYPO: 'dupliacted' corrected
-]
+def all_gap_labels() -> list[str]:
+    return (
+        [Settings.get("label_def.regular_gap.label")]  # 'gap'
+        + [
+            Settings.get(f"label_def.{cat}.label")
+            for cat in Settings.get("gapfill_label_group")
+        ]  # 'interpolated_gap', 'raw_modeldata_fill', ...
+        + [
+            Settings.get(f"label_def.{cat}.label")
+            for cat in Settings.get("failed_gapfill_label_group")
+        ]  # 'failed_interpolated_gap', ...
+    )
+
+
+def all_outlier_labels() -> list[str]:
+    return [
+        Settings.get(f"label_def.{cat}.label") for cat in Settings.get("qc_label_group")
+    ]
+
 
 # ------------------------------------------
 #    Timeseries plot layers
@@ -39,10 +42,7 @@ def add_lines_to_axes(
     ax: plt.Axes,
     series: pd.Series,
     legend_label: str,
-    linestyle: Literal["-", "--", "-.", ":", ""] = "-",
-    color: str = "navy",
-    linewidth: int = 2,
-    zorder: Union[int, float] = 1.3,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add a line plot to the given axes.
@@ -55,31 +55,15 @@ def add_lines_to_axes(
         The data series to plot. The index represents the x-axis, and the values represent the y-axis.
     legend_label : str
         The label for the legend entry.
-    linestyle : {'-', '--', '-.', ':', ''}, optional
-        The style of the line. Default is '-'.
-    color : str, optional
-        The color of the line. Default is 'navy'.
-    linewidth : int, optional
-        The width of the line. Default is 2.
-    zorder : int or float, optional
-        The z-order of the line. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.plot`.
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the line added.
     """
-    logging.info(f"Entering add_lines_to_axes with legend_label={legend_label}")
-
-    ax.plot(
-        series.index,  # x
-        series.values,  # y
-        color=color,
-        linewidth=linewidth,
-        linestyle=linestyle,
-        zorder=zorder,
-        label=legend_label,
-    )
+    ax.plot(series.index, series.values, label=legend_label, **kwargs)  # x  # y
     return ax
 
 
@@ -89,10 +73,7 @@ def add_vertical_lines_to_axes(
     legend_label: str,
     ymin: float,
     ymax: float,
-    linestyle: Literal["-", "--", "-.", ":", ""] = "-",
-    color: str = "navy",
-    linewidth: int = 2,
-    zorder: Union[int, float] = 1.1,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add vertical lines to the given axes.
@@ -109,34 +90,16 @@ def add_vertical_lines_to_axes(
         The starting y-coordinate of the vertical lines.
     ymax : float
         The ending y-coordinate of the vertical lines.
-    linestyle : {'-', '--', '-.', ':', ''}, optional
-        The style of the lines. Default is '-'.
-    color : str, optional
-        The color of the lines. Default is 'navy'.
-    linewidth : int, optional
-        The width of the lines. Default is 2.
-    zorder : int or float, optional
-        The z-order of the lines. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.vlines`.
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the vertical lines added.
     """
-    logging.info(
-        f"Entering add_vertical_lines_to_axes with legend_label={legend_label}"
-    )
 
-    ax.vlines(
-        x=idx,
-        ymin=ymin,
-        ymax=ymax,
-        linestyle=linestyle,
-        linewidth=linewidth,
-        color=color,
-        zorder=zorder,
-        label=legend_label,
-    )
+    ax.vlines(x=idx, ymin=ymin, ymax=ymax, label=legend_label, **kwargs)
     return ax
 
 
@@ -144,9 +107,7 @@ def add_scatters_to_axes(
     ax: plt.Axes,
     series: pd.Series,
     legend_label: str,
-    color: str = "navy",
-    scattersize: int = 2,
-    zorder: Union[int, float] = 1.5,
+    **kwargs,
 ) -> plt.Axes:
     """
     Add scatter points to the given axes.
@@ -159,27 +120,20 @@ def add_scatters_to_axes(
         The data series to plot. The index represents the x-axis, and the values represent the y-axis.
     legend_label : str
         The label for the legend entry.
-    color : str, optional
-        The color of the scatter points. Default is 'navy'.
-    scattersize : int, optional
-        The size of the scatter points. Default is 2.
-    zorder : int or float, optional
-        The z-order of the scatter points. Default is 1.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.axes.Axes.scatter`.
 
     Returns
     -------
     matplotlib.axes.Axes
         The updated axes with the scatter points added.
     """
-    logging.info(f"Entering add_scatters_to_axes with legend_label={legend_label}")
 
     ax.scatter(
         series.index,
         series.values,
-        color=color,
-        s=scattersize,
-        zorder=zorder,
         label=legend_label,
+        **kwargs,
     )
     return ax
 
@@ -223,26 +177,13 @@ def plot_timeseries_color_by_label(
 
     # Create labels to filter
     labels_to_plot = [
-        settings.label_def["goodrecord"]["label"],  # 'ok'
-        settings.label_def["uncheckedrecord"]["label"],  # 'not checked'
+        Settings.get("label_def.goodrecord.label"),  # 'ok'
+        Settings.get("label_def.uncheckedrecord.label"),  # 'not checked'
     ]
-
     if show_gaps:
-        # Add all labels related to gaps
-        labels_to_plot += (
-            [settings.label_def["regular_gap"]["label"]]  # 'gap'
-            + [
-                settings.label_def[cat]["label"] for cat in settings.gapfill_label_group
-            ]  # 'interpolated_gap', 'raw_modeldata_fill', ...
-            + [
-                settings.label_def[cat]["label"]
-                for cat in settings.failed_gapfill_label_group
-            ]  # 'failed_interpolated_gap', ...
-        )
+        labels_to_plot += all_gap_labels()
     if show_outliers:
-        labels_to_plot += [
-            settings.label_def[cat]["label"] for cat in settings.qc_label_group
-        ]  # 'duplicated_timestamp', 'gross_value', ...
+        labels_to_plot += all_outlier_labels()
 
     # Get min and max values for the vertical lines
     ymin, ymax = plotdf["value"].min(), plotdf["value"].max()
@@ -251,17 +192,12 @@ def plot_timeseries_color_by_label(
         ymin = 0.0
         ymax = 10
 
+    label_to_checkname_map = Settings._label_to_qccheckmap()
     for label in labels_to_plot:  # Iterate over all labels to plot
         if label not in plotdf["label"].values:
             continue
 
-        # 1. Plot the lines --> be aware of interpolation issues!
-        if label in plot_as_line_labels:
-            # Solid lines for good records, else dashed
-            linestyle = (
-                "-" if label == settings.label_def["goodrecord"]["label"] else "--"
-            )
-
+        if Settings._flag_plot_as_line(label):
             # Iterate over stations --> to avoid interpolation over multiple stations
             for _staname, stadf in plotdf.groupby(
                 plotdf.index.get_level_values("name")
@@ -284,12 +220,12 @@ def plot_timeseries_color_by_label(
                     # Reindex to continuous timestamps (timestamps without this label have NaN values)
                     series=plotseries,
                     legend_label=label,
-                    linestyle=linestyle,
-                    color=settings.label_to_color_map[label],
+                    **Settings.get(
+                        f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
+                    ),
                 )
-
         # 2. Plot data in vertical line representation (= no numerical values)
-        elif label in all_gap_without_val_labels:
+        elif Settings._flag_plot_as_vline(label):
             # Note: A regular subset must be done since data is represented as vlines (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
@@ -305,11 +241,13 @@ def plot_timeseries_color_by_label(
                 ymax=ymax,
                 idx=labelseries.index,
                 legend_label=label,
-                color=settings.label_to_color_map[label],
+                **Settings.get(
+                    f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
+                ),
             )
 
         # 3. Plot data in scatter representation (= outliers with numerical values)
-        elif label in all_outlier_labels:
+        elif Settings._flag_plot_as_scatter(label):
             # Note: A regular subset must be done since data is represented as scatters (thus no false interpolation)
             labelseries = plotdf[plotdf["label"] == label]["value"]
             if labelseries.empty:
@@ -321,10 +259,14 @@ def plot_timeseries_color_by_label(
                 ax=ax,
                 series=labelseries,
                 legend_label=label,
-                color=settings.label_to_color_map[label],
+                **Settings.get(
+                    f"label_def.{label_to_checkname_map[label]}.plotkwargs", {}
+                ),
             )
         else:
-            logging.warning(f"{label} is not plotted. ERROR!")
+            raise MetObsInternalError(
+                f"Label '{label}' is not configured to be plotted as line, vline or scatter."
+            )
 
     return ax
 
@@ -380,16 +322,13 @@ def plot_timeseries_color_by_station(
 
     # Handle gaps
     if not show_gaps:
-        all_gap_labels = all_gap_without_val_labels + [
-            settings.label_def[trglab]["label"]
-            for trglab in settings.gapfill_label_group
-        ]
-        plotdf.loc[plotdf["label"].isin(all_gap_labels), "value"] = np.nan
+        plotdf.loc[plotdf["label"].isin(all_gap_labels()), "value"] = np.nan
 
     # Handle outliers
     if not show_outliers:
-        plotdf.loc[plotdf["label"].isin(all_outlier_labels), "value"] = np.nan
+        plotdf.loc[plotdf["label"].isin(all_outlier_labels()), "value"] = np.nan
 
+    linekwargs = Settings.get("plotting_settings.time_series.linekwargs", {})
     # Plot the data as a single color line
     # Iterate over stations to avoid interpolation over multiple stations
     for staname, stadf in plotdf.groupby(plotdf.index.get_level_values("name")):
@@ -397,12 +336,14 @@ def plot_timeseries_color_by_station(
         plotseries = stadf["value"]
         plotseries.index = plotseries.index.droplevel("name")
 
+        # update linekwargs
+        linekwargs.update({"linestyle": linestyle, "color": colormap[staname]})
+
         ax = add_lines_to_axes(
             ax=ax,
             series=plotseries,
             legend_label=f"{legend_prefix}{staname}",
-            linestyle=linestyle,
-            color=colormap[staname],
+            **linekwargs,
         )
 
     return ax

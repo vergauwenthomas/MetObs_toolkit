@@ -149,7 +149,7 @@ def assert_equality(to_check, solution):
         compare_df_attr(to_check, solution, "metadf")
         compare_df_attr(to_check, solution, "gapsdf")
         compare_df_attr(to_check, solution, "modeldatadf")
-        compare_df_attr(to_check, solution, "outliersdf")
+        compare_df_attr(to_check, solution, "outliersdf", exclude_columns="details")
         compare_df_attr(to_check, solution, "df")
         assert (
             to_check.obstypes == solution.obstypes
@@ -160,7 +160,7 @@ def assert_equality(to_check, solution):
         compare_df_attr(to_check, solution, "metadf")
         compare_df_attr(to_check, solution, "gapsdf")
         compare_df_attr(to_check, solution, "modeldatadf")
-        compare_df_attr(to_check, solution, "outliersdf")
+        compare_df_attr(to_check, solution, "outliersdf", exclude_columns="details")
         compare_df_attr(to_check, solution, "df")
     # metobs_toolkit.Station test
     elif to_check.__class__.__name__ == "Analysis":
@@ -173,11 +173,25 @@ def assert_equality(to_check, solution):
         raise AssertionError(retstr)
 
 
-def compare_df_attr(testobj, solutionobj, attr):
+def compare_df_attr(testobj, solutionobj, attr, exclude_columns=None):
     try:
+        left_df = getattr(testobj, attr)
+        right_df = getattr(solutionobj, attr)
+
+        # Exclude specified columns if provided
+        if exclude_columns:
+            if isinstance(exclude_columns, str):
+                exclude_columns = [exclude_columns]
+            left_df = left_df.drop(
+                columns=[c for c in exclude_columns if c in left_df.columns]
+            )
+            right_df = right_df.drop(
+                columns=[c for c in exclude_columns if c in right_df.columns]
+            )
+
         pd.testing.assert_frame_equal(
-            left=getattr(testobj, attr),
-            right=getattr(solutionobj, attr),
+            left=left_df,
+            right=right_df,
             check_exact=False,
         )
     except AssertionError as e:

@@ -22,8 +22,9 @@ from metobs_toolkit.dataset import Dataset
 from metobs_toolkit.obstypes import Obstype, tlk_obstypes, MetObsUnitUnknown
 from metobs_toolkit.io_collection.filereaders import find_suitable_reader
 from metobs_toolkit.io_collection.filewriters import write_dict_to_json
+from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -44,7 +45,7 @@ def test_unit(unitstring: str) -> bool:
         True if the unit is valid, False otherwise.
     """
     try:
-        Obstype(obsname="dummy", std_unit=unitstring, description="dummy")
+        Obstype(name="dummy", std_unit=unitstring, description="dummy")
         return True
     except MetObsUnitUnknown:
         print(
@@ -99,7 +100,7 @@ store/present the data): "
 
     # Get input data unit
     cur_unit = get_unit(
-        trgobstype=Obstype(obsname=obsname, std_unit=std_unit, description="_dummy")
+        obstype=Obstype(name=obsname, std_unit=std_unit, description="_dummy")
     )
 
     # Description
@@ -108,7 +109,7 @@ store/present the data): "
     )
     # create obstype:
     new_obstype = Obstype(
-        obsname=obsname,
+        name=obsname,
         std_unit=std_unit,
         description=description,
     )
@@ -116,14 +117,14 @@ store/present the data): "
 
 
 @log_entry
-def get_unit(trgobstype: Obstype) -> str:
+def get_unit(obstype: Obstype) -> str:
     """
     Prompt the user to specify the unit of the data for a given observation
     type.
 
     Parameters
     ----------
-    trgobstype : Obstype
+    obstype : Obstype
         The target observation type.
 
     Returns
@@ -132,19 +133,19 @@ def get_unit(trgobstype: Obstype) -> str:
         The unit string for the data.
     """
     is_std_unit = yes_no_ques(
-        f" Are the {trgobstype} values in your data in {trgobstype.std_unit}?"
+        f" Are the {obstype} values in your data in {obstype.std_unit}?"
     )
     if is_std_unit:
-        cur_unit = trgobstype.std_unit
+        cur_unit = obstype.std_unit
         return cur_unit
 
     else:
-        compatible_units = trgobstype.get_compatible_units()
+        compatible_units = obstype.get_compatible_units()
         curunit_ok = False
         while not curunit_ok:
             print(
                 f"The following units are compatible with \
-{trgobstype}: \n {compatible_units}"
+{obstype}: \n {compatible_units}"
             )
             cur_unit = str(
                 input(
@@ -155,11 +156,11 @@ like kilo/hecto/etc if you need): "
 
             # test unit
             try:
-                trgobstype.original_unit = cur_unit  # checks compatibility
+                obstype.original_unit = cur_unit  # checks compatibility
                 curunit_ok = True
             except MetObsUnitUnknown:
                 print(
-                    f"!! {cur_unit} is not compatible with {trgobstype}. \
+                    f"!! {cur_unit} is not compatible with {obstype}. \
 Provide a compatible unit."
                 )
                 pass
@@ -348,7 +349,9 @@ Answer the prompt and hit Enter. \n \n"
         metadatafilepath = usr_input_file("Give the full path to your metadata file")
 
     if (not data_avail) and (not meta_avail):
-        sys.exit("No template can be built without a data or metadata file.")
+        raise MetObsTemplateError(
+            "No template can be built without a data or metadata file."
+        )
 
     # ==========================================================================
     # Map data file
@@ -572,7 +575,9 @@ observation(s) of one station)": 3,
             desc_return = col_option_input(obstype_options)
             if desc_return is None:
                 print("This is not an option, select an observation type.")
-                sys.exit("invalid obstype for wide dataset, see last message. ")
+                raise MetObsTemplateError(
+                    "invalid obstype for wide dataset: This is not an option, select an observation type. "
+                )
             wide_obstype_name = inv_obstype_desc[desc_return]
 
             # 1) add a new obstype
@@ -717,7 +722,7 @@ observation(s) of one station)": 3,
             for newob in to_add_obstypes:
                 new_obstype = known_obstypes[newob]
                 print("new_obstype = metobs_toolkit.Obstype(")
-                print(f'                 obsname="{new_obstype.name}",')
+                print(f'                 name="{new_obstype.name}",')
                 print(f'                 std_unit="{new_obstype.std_unit}",')
                 print(f'                 description="{new_obstype.description}",')
                 print("                 )")
@@ -755,4 +760,4 @@ observation(s) of one station)": 3,
             print("    template_file = template,")
             print(")")
 
-    return
+    return None

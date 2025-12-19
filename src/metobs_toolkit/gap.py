@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 import logging
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
 from metobs_toolkit.obstypes import Obstype
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
 )
 
 from metobs_toolkit.backend_collection.df_helpers import convert_to_numeric_series
 import metobs_toolkit.backend_collection.printing_collection as printing
-from metobs_toolkit.settings_collection import label_def
+
 import metobs_toolkit.gf_collection.gf_common_methods as gf_methods
 from metobs_toolkit.gf_collection.debias_gapfill import fill_regular_debias
 from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
@@ -19,9 +22,12 @@ from metobs_toolkit.gf_collection.diurnal_debias_gapfill import (
     fill_with_weighted_diurnal_debias,
 )
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.dataframe_constructors import gap_df
+
+if TYPE_CHECKING:
+    from metobs_toolkit.sensordata import SensorData
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -55,7 +61,9 @@ class Gap:
         gaprecords.name = "datetime"
         self._records = pd.Series(data=np.nan, index=gaprecords, name="value")
         self._labels = pd.Series(
-            data=label_def["regular_gap"]["label"], index=gaprecords, name="label"
+            data=Settings.get("label_def.regular_gap.label"),
+            index=gaprecords,
+            name="label",
         )
         self._extra_info = pd.Series(
             data="no details", index=gaprecords, name="details"
@@ -221,13 +229,13 @@ class Gap:
     @log_entry
     def debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: Union[str, pd.Timedelta],
         min_leading_records_total: int,
         trailing_period_duration: Union[str, pd.Timedelta],
         min_trailing_records_total: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -300,9 +308,11 @@ class Gap:
             max_gap_duration_to_fill
         )
         if not gapsize_is_ok:
-            self._labels[:] = label_def["failed_debias_modeldata_fill"]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -312,12 +322,14 @@ class Gap:
             tp_duration=trailing_period_duration,
         )
         if not is_compat:
-            self._labels[:] = label_def["failed_debias_modeldata_fill"]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = err_msg
             logger.warning(
                 f"Incompatible modeldata for debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -326,7 +338,7 @@ class Gap:
             continueflag,
         ) = self._setup_lead_and_trail_for_debias_gapfill(
             sensordata=sensordata,
-            fail_label=label_def["failed_debias_modeldata_fill"]["label"],
+            fail_label=Settings.get("label_def.failed_debias_modeldata_fill.label"),
             leading_period_duration=leading_period_duration,
             min_leading_records_total=min_leading_records_total,
             trailing_period_duration=trailing_period_duration,
@@ -334,7 +346,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already updated
-            return
+            return None
 
         # 3. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -356,12 +368,12 @@ class Gap:
         )  # set the new filled records
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def["debias_modeldata_fill"][
-            "label"
-        ]
-        self._labels.loc[self.records.isna()] = label_def[
-            "failed_debias_modeldata_fill"
-        ]["label"]
+        self._labels.loc[self.records.notna()] = Settings.get(
+            "label_def.debias_modeldata_fill.label"
+        )
+        self._labels.loc[self.records.isna()] = Settings.get(
+            "label_def.failed_debias_modeldata_fill.label"
+        )
 
         # update details
         self._extra_info = filleddf["msg"].rename("details")
@@ -369,12 +381,12 @@ class Gap:
     @log_entry
     def diurnal_debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         trailing_period_duration: pd.Timedelta,
         min_debias_sample_size: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -453,9 +465,11 @@ class Gap:
             max_gap_duration_to_fill
         )
         if not gapsize_is_ok:
-            self._labels[:] = label_def["failed_diurnal_debias_modeldata_fill"]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_diurnal_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -465,12 +479,14 @@ class Gap:
             tp_duration=trailing_period_duration,
         )
         if not is_compat:
-            self._labels[:] = label_def["failed_diurnal_debias_modeldata_fill"]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_diurnal_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = err_msg
             logger.warning(
                 f"Incompatible modeldata for diurnal_debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -479,7 +495,9 @@ class Gap:
             continueflag,
         ) = self._setup_lead_and_trail_for_debias_gapfill(
             sensordata=sensordata,
-            fail_label=label_def["failed_diurnal_debias_modeldata_fill"]["label"],
+            fail_label=Settings.get(
+                "label_def.failed_diurnal_debias_modeldata_fill.label"
+            ),
             leading_period_duration=leading_period_duration,
             min_leading_records_total=min_debias_sample_size,
             trailing_period_duration=trailing_period_duration,
@@ -487,7 +505,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already been updated
-            return
+            return None
 
         # 4. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -512,12 +530,12 @@ class Gap:
         )  # set the new filled records
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def[
-            "diurnal_debias_modeldata_fill"
-        ]["label"]
-        self._labels.loc[self.records.isna()] = label_def[
-            "failed_diurnal_debias_modeldata_fill"
-        ]["label"]
+        self._labels.loc[self.records.notna()] = Settings.get(
+            "label_def.diurnal_debias_modeldata_fill.label"
+        )
+        self._labels.loc[self.records.isna()] = Settings.get(
+            "label_def.failed_diurnal_debias_modeldata_fill.label"
+        )
 
         # update details
         self._extra_info = filleddf["msg"].rename("details")
@@ -525,13 +543,13 @@ class Gap:
     @log_entry
     def weighted_diurnal_debiased_model_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         modeltimeseries: ModelTimeSeries,
         leading_period_duration: pd.Timedelta,
         min_lead_debias_sample_size: int,
         trailing_period_duration: pd.Timedelta,
         min_trail_debias_sample_size: int,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -621,11 +639,11 @@ class Gap:
             max_gap_duration_to_fill
         )
         if not gapsize_is_ok:
-            self._labels[:] = label_def[
-                "failed_weighted_diurnal_debias_modeldata_fill"
-            ]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_weighted_diurnal_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -635,14 +653,14 @@ class Gap:
             tp_duration=trailing_period_duration,
         )
         if not is_compat:
-            self._labels[:] = label_def[
-                "failed_weighted_diurnal_debias_modeldata_fill"
-            ]["label"]
+            self._labels[:] = Settings.get(
+                "label_def.failed_weighted_diurnal_debias_modeldata_fill.label"
+            )
             self._extra_info[:] = err_msg
             logger.warning(
                 f"Incompatible modeldata for weighted_diurnal_debias_model_gapfill: \n{err_msg}"
             )
-            return
+            return None
 
         # 3. Construct and validity-test leading and trailing periods
         (
@@ -651,9 +669,9 @@ class Gap:
             continueflag,
         ) = self._setup_lead_and_trail_for_debias_gapfill(
             sensordata=sensordata,
-            fail_label=label_def["failed_weighted_diurnal_debias_modeldata_fill"][
-                "label"
-            ],
+            fail_label=Settings.get(
+                "label_def.failed_weighted_diurnal_debias_modeldata_fill.label"
+            ),
             leading_period_duration=leading_period_duration,
             min_leading_records_total=min_lead_debias_sample_size,
             trailing_period_duration=trailing_period_duration,
@@ -661,7 +679,7 @@ class Gap:
         )
         if not continueflag:
             # warnings and gap attributes are already been updated
-            return
+            return None
 
         # 4. Fill the gap
         combdf = gf_methods.create_a_combined_df(
@@ -688,12 +706,12 @@ class Gap:
         )  # set the new filled records
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def[
-            "weighted_diurnal_debias_modeldata_fill"
-        ]["label"]
-        self._labels.loc[self.records.isna()] = label_def[
-            "failed_weighted_diurnal_debias_modeldata_fill"
-        ]["label"]
+        self._labels.loc[self.records.notna()] = Settings.get(
+            "label_def.weighted_diurnal_debias_modeldata_fill.label"
+        )
+        self._labels.loc[self.records.isna()] = Settings.get(
+            "label_def.failed_weighted_diurnal_debias_modeldata_fill.label"
+        )
 
         # update details
         self._extra_info = filleddf["msg"].rename("details")
@@ -702,7 +720,7 @@ class Gap:
     def raw_model_gapfill(
         self,
         modeltimeseries: ModelTimeSeries,
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("12h"),
         min_value=None,
         max_value=None,
     ) -> None:
@@ -754,9 +772,9 @@ class Gap:
             max_gap_duration_to_fill
         )
         if not gapsize_is_ok:
-            self._labels[:] = label_def["failed_raw_modeldata_fill"]["label"]
+            self._labels[:] = Settings.get("label_def.failed_raw_modeldata_fill.label")
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Check validity of modeltimeseries
         is_compat, err_msg = gf_methods.check_if_modeltimeseries_is_compatible(
@@ -766,12 +784,12 @@ class Gap:
             tp_duration=pd.Timedelta(0),
         )
         if not is_compat:
-            self._labels.loc[self.records.isna()] = label_def[
-                "failed_raw_modeldata_fill"
-            ]["label"]
+            self._labels.loc[self.records.isna()] = Settings.get(
+                "label_def.failed_raw_modeldata_fill.label"
+            )
             self._extra_info.loc[self.records.isna()] = err_msg
             logger.warning(f"Incompatible modeldata for raw_model_gapfill: \n{err_msg}")
-            return
+            return None
 
         modelseries = modeltimeseries.series
         gapseries = self.records
@@ -803,12 +821,12 @@ class Gap:
             self._records = self._records.clip(upper=max_value)
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def["raw_modeldata_fill"][
-            "label"
-        ]
-        self._labels.loc[self.records.isna()] = label_def["failed_raw_modeldata_fill"][
-            "label"
-        ]
+        self._labels.loc[self.records.notna()] = Settings.get(
+            "label_def.raw_modeldata_fill.label"
+        )
+        self._labels.loc[self.records.isna()] = Settings.get(
+            "label_def.failed_raw_modeldata_fill.label"
+        )
 
         # update details
         self._extra_info.loc[self.records.notna()] = (
@@ -819,9 +837,9 @@ class Gap:
     @log_entry
     def interpolate(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         method: str = "time",
-        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: pd.Timedelta = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -898,9 +916,9 @@ class Gap:
             max_gap_duration_to_fill
         )
         if not gapsize_is_ok:
-            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._labels[:] = Settings.get("label_def.failed_interpolation_gap.label")
             self._extra_info[:] = setdetails
-            return
+            return None
 
         # 2. Get leading period
         lead_period, continueflag, err_msg = gf_methods.get_leading_period(
@@ -914,12 +932,12 @@ class Gap:
 
         if not continueflag:
             # Interpolation failed due to failing leading period
-            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._labels[:] = Settings.get("label_def.failed_interpolation_gap.label")
             self._extra_info[:] = err_msg
             logger.warning(
                 f"Cannot interpolate {self} because no valid leading period can be found."
             )
-            return
+            return None
 
         # 3. Get trailing period
         trail_period, continueflag, err_msg = gf_methods.get_trailing_period(
@@ -933,12 +951,12 @@ class Gap:
 
         if not continueflag:
             # Interpolation failed due to failing trailing period
-            self._labels[:] = label_def["failed_interpolation_gap"]["label"]
+            self._labels[:] = Settings.get("label_def.failed_interpolation_gap.label")
             self._extra_info[:] = err_msg
             logger.warning(
                 f"Cannot interpolate {self} because no valid trailing period can be found."
             )
-            return
+            return None
 
         # 5. Combine the anchors with the observations
         combdf = gf_methods.create_a_combined_df(
@@ -960,10 +978,12 @@ class Gap:
         ]  # set the new filled records
 
         # set labels
-        self._labels.loc[self.records.notna()] = label_def["interpolated_gap"]["label"]
-        self._labels.loc[self.records.isna()] = label_def["failed_interpolation_gap"][
-            "label"
-        ]
+        self._labels.loc[self.records.notna()] = Settings.get(
+            "label_def.interpolated_gap.label"
+        )
+        self._labels.loc[self.records.isna()] = Settings.get(
+            "label_def.failed_interpolation_gap.label"
+        )
 
         # update details
         self._extra_info.loc[self.records.notna()] = "Successful interpolation"
@@ -971,7 +991,7 @@ class Gap:
             "Unsuccessful interpolation, likely due to an error when calling pandas.Series.interpolate. See the error logs for further details."
         )
 
-        return
+        return None
 
     # ------------------------------------------
     #    Helping methods
@@ -989,7 +1009,7 @@ class Gap:
         self._records.loc[:] = np.nan
 
         # 2. Convert all labels to 'gap'
-        self._labels.loc[:] = label_def["regular_gap"]["label"]
+        self._labels.loc[:] = Settings.get("label_def.regular_gap.label")
 
         # 3. Clears the extra data (per record)
         self._extra_info.loc[:] = "no details"
@@ -999,7 +1019,7 @@ class Gap:
 
     def _setup_lead_and_trail_for_debias_gapfill(
         self,
-        sensordata: "SensorData",  # type: ignore #noqa: F821
+        sensordata: SensorData,
         fail_label: str,
         leading_period_duration: pd.Timedelta,
         min_leading_records_total: int,
@@ -1087,4 +1107,3 @@ class Gap:
             )
             return False, detailstring
         return True, ""
-

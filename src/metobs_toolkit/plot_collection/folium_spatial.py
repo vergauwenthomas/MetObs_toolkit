@@ -10,7 +10,7 @@ import folium
 from folium import plugins as folium_plugins
 
 # Configure logging
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -219,7 +219,7 @@ def make_folium_html_plot(
     ]
     if len(unmapped_labels) > 0:
         logger.error(f"Unmapped labels found: {unmapped_labels}")
-        sys.exit(f"Unmapped labels found: {unmapped_labels}")
+        raise KeyError(f"Unmapped labels found: {unmapped_labels}")
 
     gdf["label_color"] = gdf[label_column].map(label_col_map)
 

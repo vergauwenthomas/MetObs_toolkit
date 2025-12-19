@@ -1,16 +1,27 @@
+from __future__ import annotations
+
 import logging
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
+    from dateutil.tz import tzfile
+    from datetime import tzinfo
 
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import (
-    to_timedelta,
     convert_to_numeric_series,
 )
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+    convert_timezone,
+    to_timedelta,
+)
+
 from metobs_toolkit.xrconversions import modeltimeseries_to_xr
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.obstypes import ModelObstype
@@ -26,7 +37,7 @@ from metobs_toolkit.plot_collection import (
 from metobs_toolkit.plot_collection.timeseries_plotting import add_lines_to_axes
 
 from metobs_toolkit.backend_collection.errorclasses import MetObsUnitUnknown
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import modeltimeseries_df
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -73,6 +84,9 @@ class ModelTimeSeries:
         unit conversion.
     """
 
+    # Class variable for internal timezone storage
+    _target_tz: str = Settings.get("store_tz")
+
     def __init__(
         self,
         site,
@@ -96,10 +110,18 @@ class ModelTimeSeries:
                 f"The model_unit of {self.modelobstype} is not set. Set this using the ModelObstype.model_unit = value syntax."
             )
 
+        # format timestamps
+        dtindex = timestamps_to_datetimeindex(
+            timestamps=timestamps,
+            current_tz=timezone,
+            name="datetime",
+        )
+        dtindex = convert_timezone(dtindex, target_tz=ModelTimeSeries._target_tz)
+
         # Data
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).values,
-            index=pd.DatetimeIndex(data=timestamps, tz=timezone, name="datetime"),
+            index=dtindex,
             name=modelobstype.name,
         )
         if _convert_to_standard_units:
@@ -304,7 +326,10 @@ class ModelTimeSeries:
         # Define a color
         if linecolor is None:
             # create a new color
-            color = create_categorical_color_map(["dummy"])["dummy"]
+            color = create_categorical_color_map(
+                catlist=["dummy"],
+                cmapname=Settings.get("plotting_settings.coloring.categorical_cmap"),
+            )["dummy"]
         else:
             color = linecolor
 
@@ -333,6 +358,6 @@ class ModelTimeSeries:
         set_xlabel(ax, f"Timestamps (in {self.tz})")
 
         # Add legend
-        set_legend(ax)
+        set_legend(ax, **Settings.get("plotting_settings.time_series.legendkwargs", {}))
 
         return ax

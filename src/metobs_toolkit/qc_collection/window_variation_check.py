@@ -3,8 +3,11 @@ from typing import Union
 import pandas as pd
 
 from .common_functions import test_moving_window_condition
-
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from .whitelist import SensorWhiteSet
+from metobs_toolkit.backend_collection.decorators import log_entry
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+)
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -16,6 +19,7 @@ def window_variation_check(
     min_records_per_window: int,
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
+    sensorwhiteset: SensorWhiteSet,
 ) -> pd.DatetimeIndex:
     """
     Test if the increase or decrease in a time window exceeds a threshold.
@@ -44,6 +48,10 @@ def window_variation_check(
     max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the window duration.
         This value must be negative.
+    sensorwhiteset : SensorWhiteSet, optional
+        A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the
+        window variation check criteria.
 
     Returns
     -------
@@ -76,7 +84,7 @@ def window_variation_check(
         logger.warning(
             "The minimum number of window members for the window variation check is not met!"
         )
-        return pd.DatetimeIndex(name="datetime", data=[])
+        return timestamps_to_datetimeindex(timestamps=[], name="datetime")
 
     # Drop outliers from the series (these are NaNs)
     input_series = records.dropna()
@@ -124,5 +132,11 @@ def window_variation_check(
         center=True,
         min_periods=min_records_per_window,
     ).apply(variation_test)
+
+    outliers_idx = window_outliers.loc[window_outliers == 1].index
+
+    # Catch the white records
+    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+
     logger.debug("Exiting function window_variation_check")
-    return window_outliers.loc[window_outliers == 1].index
+    return outliers_idx

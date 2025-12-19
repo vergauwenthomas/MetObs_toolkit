@@ -2,7 +2,8 @@ import logging
 from typing import Union
 import pandas as pd
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from .whitelist import SensorWhiteSet
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -12,6 +13,7 @@ def step_check(
     records: pd.Series,
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
+    sensorwhiteset: SensorWhiteSet,
 ) -> pd.DatetimeIndex:
     """
     Check for 'spikes' and 'dips' in a time series.
@@ -33,6 +35,10 @@ def step_check(
     max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
         This value must be negative.
+    sensorwhiteset : SensorWhiteSet, optional
+        A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
+        Records matching the whiteset criteria will not be flagged as outliers even if they meet the
+        step check criteria.
 
     Returns
     -------
@@ -73,5 +79,10 @@ def step_check(
         )
     )
 
+    outliers_idx = step_filter[step_filter].index
+
+    # Catch the white records
+    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx)
+
     logger.debug("Exiting function step_check")
-    return step_filter[step_filter].index
+    return outliers_idx

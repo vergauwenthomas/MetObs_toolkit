@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib.pyplot import Axes
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 
 @log_entry

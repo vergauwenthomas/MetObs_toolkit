@@ -142,9 +142,11 @@ jobs:
             - docs/examples/filling_example.ipynb
             - docs/examples/analysis_example.ipynb
             - docs/topics/log_example.ipynb
+            - docs/topics/using_whitesets.ipynb
             - docs/topics/metadata_only.ipynb
             - docs/topics/template_doc.ipynb
             - docs/topics/to_xarray.ipynb
+            - docs/topics/changing_settings.ipynb
 
 
 
@@ -302,6 +304,8 @@ jobs:
             - tests/test_add.py
             - tests/test_to_xr.py
             - tests/test_modeldata.py
+            - tests/test_logging.py
+            - tests/test_settings.py            
 
         continue-on-error: true
         steps:

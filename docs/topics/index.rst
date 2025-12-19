@@ -12,6 +12,8 @@ Here is a collection of topics to address common issues or questions.
   GEE authentication <gee_authentication>
   Metadata only <metadata_only.ipynb>
   Combine datasets <combine_datasets>
-  to_xarray <to_xarray>
-  logging <log_example.ipynb>
+  To_xarray <to_xarray>
+  Using Whitesets <using_whitesets.ipynb>
+  Logging <log_example.ipynb>
+  Changing Settings <changing_settings.ipynb>
   GUI <gui>

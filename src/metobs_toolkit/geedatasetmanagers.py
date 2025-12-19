@@ -8,6 +8,7 @@ A Modeldata holds all timeseries coming from a model and methods to use them.
 
 # Standard library imports
 from pathlib import Path
+from os import PathLike
 import copy
 import sys
 from typing import Union
@@ -24,6 +25,8 @@ import ee
 import metobs_toolkit.gee_api as gee_api
 from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 import metobs_toolkit.backend_collection.printing_collection as printing
+from metobs_toolkit.backend_collection.argumentcheckers import fmt_datetime_arg
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 from metobs_toolkit.obstypes import default_era5_obstypes
 from metobs_toolkit.plot_collection import (
     folium_map,
@@ -44,7 +47,7 @@ from metobs_toolkit.obstypes import (
     ModelObstype_Vectorfield,
 )
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -457,11 +460,11 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         self,
         metadf: pd.DataFrame,
         save: bool = False,
-        outputfolder: str = None,
-        filename: str = None,
+        filepath: str | PathLike | None = None,
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """Make an interactive spatial plot of the GEE dataset and the stations.
 
@@ -478,16 +481,18 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             Metadata dataframe with station locations.
         save : bool, optional
             If True, saves the map as an HTML file. Default is False.
-        outputfolder : str or None, optional
-            Path to the folder to save the HTML file. Default is None.
-        filename : str or None, optional
-            The filename for the HTML file. Default is None.
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : numeric or None, optional
             Minimum value for colormap. Default is None.
         vmax : numeric or None, optional
             Maximum value for colormap. Default is None.
         overwrite : bool, optional
             If True, overwrites existing file. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
@@ -495,28 +500,15 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
             The interactive map of the GeeStaticDataset.
         """
         if save:
-            if outputfolder is None:
-                raise MetObsModelDataError(
-                    "If save is True, then outputfolder must be specified."
-                )
-            if filename is None:
-                raise MetObsModelDataError(
-                    "If save is True, then filename must be specified."
-                )
-            if filename[-5:] != ".html":
-                filename += ".html"
+            filepath = fmt_output_filepath(
+                filepath,
+                default_filename="gee_plot.html",
+                overwrite=overwrite,
+                suffix=".html",
+            )
 
-            target_path = Path(outputfolder).joinpath(filename)
-            if target_path.exists():
-                if overwrite:
-                    logger.info(f"Overwrite the file at {target_path}.")
-                    target_path.unlink()
-                else:
-                    raise MetObsModelDataError(
-                        f"{target_path} is already a file and overwrite is set to False!"
-                    )
-
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         im = gee_api.get_ee_obj(self)
 
@@ -645,8 +637,8 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
         MAP.addLayerControl()
 
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {target_path}")
-            MAP.save(target_path)
+            logger.info(f"Saving {self.name} gee plot at: {filepath}")
+            MAP.save(filepath)
 
         return MAP
 
@@ -747,7 +739,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             )
         if modelobstype.name in self.modelobstypes.keys():
             if modelobstype == self.modelobstypes[modelobstype.name]:
-                return
+                return None
             else:
                 raise MetObsModelDataError(
                     f"There is already a known ModelObstype with {modelobstype.name} as a name: {self.modelobstypes[modelobstype.name]}"
@@ -804,7 +796,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         modeldf = geedf
         return modeldf
 
-    def _subset_to_obstypes(self, df: pd.DataFrame, trg_obstypes: list) -> pd.DataFrame:
+    def _subset_to_obstypes(self, df: pd.DataFrame, obstypes: list) -> pd.DataFrame:
         """
         Subset the modeldf to a list of target obstypes.
 
@@ -812,7 +804,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         ----------
         df : pandas.DataFrame
             Dataframe to subset.
-        trg_obstypes : list
+        obstypes : list
             List of target obstypes.
 
         Returns
@@ -825,7 +817,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         )
         keep_columns = []
 
-        for obs in trg_obstypes:
+        for obs in obstypes:
             if isinstance(obs, ModelObstype):
                 keep_columns.append(obs.name)
             elif isinstance(obs, ModelObstype_Vectorfield):
@@ -838,13 +830,13 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         return df[keep_columns]
 
-    def _get_bandnames(self, trg_obstypes: list) -> list:
+    def _get_bandnames(self, obstypes: list) -> list:
         """
         Get a list of all known target band names.
 
         Parameters
         ----------
-        trg_obstypes : list
+        obstypes : list
             List of target obstypes.
 
         Returns
@@ -853,7 +845,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             List of band names.
         """
         trg_bands = []
-        for obs in trg_obstypes:
+        for obs in obstypes:
             if isinstance(obs, ModelObstype):
                 trg_bands.append(obs.model_band)
             elif isinstance(obs, ModelObstype_Vectorfield):
@@ -914,11 +906,11 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         timeinstance: pd.Timestamp,
         modelobstype: str = "temp",
         save: bool = False,
-        outputfolder: str = None,
-        filename: str = None,
+        filepath: str | PathLike | None = None,
         vmin: Union[float, int, None] = None,
         vmax: Union[float, int, None] = None,
         overwrite: bool = False,
+        initialize_gee: bool = True,
     ):
         """
         Make an interactive spatial plot of the GEE dataset and the stations.
@@ -933,16 +925,18 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             The name of the ModelObstype to plot. Default is "temp".
         save : bool, optional
             If True, saves the map as an HTML file. Default is False.
-        outputfolder : str or None, optional
-            Path to the folder to save the HTML file. Default is None.
-        filename : str or None, optional
-            The filename for the HTML file. Default is None.
+        filepath : str or path-like or None, optional
+            Path to the file to save the HTML output, if save is True. If the path does not
+            end with '.html', it will be appended. If None, defaults to
+            'gee_plot.html' in the current working directory. Default is None.
         vmin : numeric or None, optional
             Minimum value for colormap. Default is None.
         vmax : numeric or None, optional
             Maximum value for colormap. Default is None.
         overwrite : bool, optional
             If True, overwrites existing file. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before creating the plot. Default is True.
 
         Returns
         -------
@@ -950,32 +944,15 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             The interactive map of the GeeDynamicDataset.
         """
         if save:
-            if outputfolder is None:
-                raise MetObsModelDataError(
-                    "If save is True, then outputfolder must be specified."
-                )
-            if filename is None:
-                raise MetObsModelDataError(
-                    "If save is True, then filename must be specified."
-                )
-            if filename[-5:] != ".html":
-                filename += ".html"
+            filepath = fmt_output_filepath(
+                filepath,
+                default_filename="gee_plot.html",
+                overwrite=overwrite,
+                suffix=".html",
+            )
 
-            target_path = Path(outputfolder).joinpath(filename)
-            if target_path.exists():
-                if overwrite:
-                    logger.info(f"Overwrite the file at {target_path}.")
-                    target_path.unlink()
-                else:
-                    raise MetObsModelDataError(
-                        f"{target_path} is already a file and overwrite is set to False!"
-                    )
-
-        if timeinstance.tz is None:
-            timeinstance = timeinstance.tz_localize(tz="UTC")
-        else:
-            timeinstance = timeinstance.tz_convert(tz="UTC")
-
+        timeinstance = fmt_datetime_arg(timeinstance, tz_if_dt_is_naive="UTC")
+        # floor to time.res (typically hourly/daily)
         timeinstance = timeinstance.floor(self.time_res)
 
         if modelobstype not in self.modelobstypes:
@@ -987,7 +964,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         if not isinstance(modelobstype, ModelObstype):
             raise MetObsModelDataError(f"{modelobstype} is not a ModelObstype.")
 
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         # Get image
         im = gee_api.get_ee_obj(self, target_bands=[modelobstype.model_band])
@@ -1093,8 +1071,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         # Save
         if save:
-            logger.info(f"Saving {self.name} gee plot at: {target_path}")
-            MAP.save(target_path)
+            logger.info(f"Saving {self.name} gee plot at: {filepath}")
+            MAP.save(filepath)
 
         return MAP
 
@@ -1110,7 +1088,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
-    ):
+        initialize_gee: bool = True,
+    ) -> Union[pd.DataFrame, None]:
         """
         Extract timeseries data and set the modeldf.
 
@@ -1134,6 +1113,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             If True, forces direct transfer. Default is False.
         force_to_drive : bool, optional
             If True, forces writing to Google Drive. Default is False.
+        initialize_gee : bool, optional
+            If True, initializes the GEE API before extracting data. Default is True.
 
         Returns
         -------
@@ -1168,19 +1149,16 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         obstypes = [self.modelobstypes[obs] for obs in obstypes]
 
         # convert timestamps to pd.Timestamps with utc as timezone if unaware
-        startdt_utc = pd.Timestamp(startdt_utc)
-        if startdt_utc.tz is None:
-            startdt_utc = startdt_utc.tz_localize(tz="UTC")
-        enddt_utc = pd.Timestamp(enddt_utc)
-        if enddt_utc.tz is None:
-            enddt_utc = enddt_utc.tz_localize(tz="UTC")
+        startdt_utc = fmt_datetime_arg(startdt_utc, tz_if_dt_is_naive="UTC")
+        enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        connect_to_gee()
+        if initialize_gee:
+            connect_to_gee()
 
         if get_all_bands:
             bandnames = self._get_all_gee_bandnames()
         else:
-            bandnames = self._get_bandnames(trg_obstypes=obstypes)
+            bandnames = self._get_bandnames(obstypes=obstypes)
 
         logger.info(f"{bandnames} are extracted from {self}.")
 
@@ -1239,14 +1217,16 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             df = pd.DataFrame(properties)
 
             if df.empty:
-                sys.exit("ERROR: the returned timeseries from GEE are empty.")
+                raise MetObsModelDataError(
+                    "ERROR: the returned timeseries from GEE are empty."
+                )
 
             df = self._format_gee_df_structure(
                 df
             )  # format to wide structure + rename columns etc
 
             if not get_all_bands:
-                df = self._subset_to_obstypes(df=df, trg_obstypes=obstypes)
+                df = self._subset_to_obstypes(df=df, obstypes=obstypes)
 
             # convert units + update attr
 
@@ -1298,7 +1278,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 Dataset.import_gee_data_from_file() method."
             )
 
-            return
+            return None
 
 
 # =============================================================================

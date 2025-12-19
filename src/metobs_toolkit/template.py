@@ -17,7 +17,7 @@ from metobs_toolkit.io_collection.filereaders import JsonFileReader
 from metobs_toolkit.backend_collection.errorclasses import MetObsTemplateError
 import metobs_toolkit.backend_collection.printing_collection as printing
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -225,7 +225,7 @@ class Template:
             # no dataformat has been set --> this is valid in a metadata-only case
             self.dataformat = None
         else:
-            sys.exit(f"{datafmt} is not a known dataformat.")
+            raise MetObsTemplateError(f"{datafmt} is not a known dataformat.")
 
     # =============================================================================
     # Getters (used by other classes to extract specific data from a template)
@@ -410,9 +410,11 @@ class Template:
 
         # situation 1:  datetime column is present
         if ts_info["datetimecolumn"] is not None:
-            assert (
-                ts_info["fmt"] is not None
-            ), "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
+            if ts_info["fmt"] is None:
+                raise MetObsTemplateError(
+                    "Datetimes are assumed to be present in ONE column, but no datetime format is specified."
+                )
+
             if ts_info["time_column"] is not None:
                 self.timestampinfo["time_column"] = None
                 logger.warning(
@@ -423,15 +425,17 @@ class Template:
                 logger.warning(
                     f"The mapping of the date column ({ts_info['date_column']}) is ignored because of the presence of a datetime column."
                 )
-            return
+            return None
 
         # Situation 2: a separate date and time columns is present.
         if (ts_info["time_column"] is not None) & (ts_info["date_column"] is not None):
-            assert (
-                ts_info["fmt"] is not None
-            ), "Datetimes are assumed to be present as a date and time column, but no formats are specified."
-            return
-        sys.exit(
+
+            if ts_info["fmt"] is None:
+                raise MetObsTemplateError(
+                    "Datetimes are assumed to be present as a date and time column, but no formats are specified."
+                )
+            return None
+        raise MetObsTemplateError(
             "The timestamps are not correctly mapped (either by using a datetime column, or by a time and date column)"
         )
 

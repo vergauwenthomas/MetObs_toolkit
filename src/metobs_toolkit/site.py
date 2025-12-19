@@ -15,7 +15,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -37,7 +37,11 @@ class Site:
     """
 
     def __init__(
-        self, stationname: str, latitude: float, longitude: float, extradata: dict = {}
+        self,
+        stationname: str,
+        latitude: float,
+        longitude: float,
+        extradata: dict | None = None,
     ):
         # Set data
         self._stationname = stationname
@@ -49,7 +53,10 @@ class Site:
         self._altitude = nan  # set by the setup
 
         # additional data
-        self._extradata = dict(extradata)
+        if isinstance(extradata, dict):
+            self._extradata = extradata
+        else:
+            self._extradata = {}
 
         # Data extracted from other sources
         self._geedata = {}  # example: "LCZ": 'LCZ-4'
@@ -180,12 +187,12 @@ class Site:
         return self._lon
 
     @property
-    def altitude(self) -> Union[float, type(nan)]:
+    def altitude(self) -> float:
         """Return the altitude."""
         return self._altitude
 
     @property
-    def LCZ(self) -> Union[str, type(nan)]:
+    def LCZ(self) -> str:
         """Return the LCZ."""
         return self._LCZ
 
@@ -239,7 +246,7 @@ class Site:
     # ------------------------------------------
 
     @log_entry
-    def set_altitude(self, altitude: Union[float, type(nan)]) -> None:
+    def set_altitude(self, altitude: Union[float]) -> None:
         """
         Set the altitude attribute.
 
@@ -251,7 +258,7 @@ class Site:
         self._altitude = float(altitude)
 
     @log_entry
-    def set_LCZ(self, LCZ: Union[str, type(nan)]) -> None:
+    def set_LCZ(self, LCZ: str) -> None:
         """
         Set the LCZ attribute.
 
@@ -380,14 +387,14 @@ class Site:
 
     @log_entry
     def get_gee_point_metadata(
-        self, geestaticdataset: GEEStaticDatasetManager, initialize_gee: bool = True
+        self, gee_static_manager: GEEStaticDatasetManager, initialize_gee: bool = True
     ) -> Union[str, float]:
         """
         Extract static point metadata from a GEEStaticDatasetManager.
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             The GEE static dataset manager.
         initialize_gee : bool, optional
             Whether to initialize the GEE API, by default True.
@@ -400,12 +407,12 @@ class Site:
         Raises
         ------
         ValueError
-            If geestaticdataset is not a GEEStaticDatasetManager or coordinates are unknown.
+            If gee_static_manager is not a GEEStaticDatasetManager or coordinates are unknown.
         """
         # test if modeldata is static
-        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"gee_static_manager should be an instance of GEEStaticDatasetManager, not {type(gee_static_manager)}"
             )
 
         # test if coordinates are knonw
@@ -416,19 +423,19 @@ class Site:
         if initialize_gee:
             connect_to_gee()
 
-        geedf = geestaticdataset.extract_static_point_data(self.metadf)
+        geedf = gee_static_manager.extract_static_point_data(self.metadf)
         if geedf.empty:
             logger.warning(
-                f"No data returned by GEE when point extraction on {self} for {geestaticdataset.name}"
+                f"No data returned by GEE when point extraction on {self} for {gee_static_manager.name}"
             )
             return nan
 
-        return geedf[geestaticdataset.name].iloc[0]
+        return geedf[gee_static_manager.name].iloc[0]
 
     @log_entry
     def get_gee_point_buffer_fractions(
         self,
-        geestaticdataset: GEEStaticDatasetManager,
+        gee_static_manager: GEEStaticDatasetManager,
         buffers: list = [100.0],
         aggregate: bool = False,
         initialize_gee: bool = True,
@@ -438,7 +445,7 @@ class Site:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_static_manager : GEEStaticDatasetManager
             The GEE static dataset manager.
         buffers : list, optional
             List of buffer radii, by default [100.0].
@@ -455,12 +462,12 @@ class Site:
         Raises
         ------
         ValueError
-            If geestaticdataset is not a GEEStaticDatasetManager or coordinates are unknown.
+            If gee_static_manager is not a GEEStaticDatasetManager or coordinates are unknown.
         """
         # test if modeldata is static
-        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
+        if not isinstance(gee_static_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an isntance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"gee_static_manager should be an instance of GEEStaticDatasetManager, not {type(gee_static_manager)}"
             )
 
         # test if coordinates are knonw
@@ -473,7 +480,7 @@ class Site:
 
         bufferdict = {}
         for bufferradius in buffers:
-            geedf = geestaticdataset.extract_static_buffer_frac_data(
+            geedf = gee_static_manager.extract_static_buffer_frac_data(
                 metadf=self.metadf, bufferradius=bufferradius, agg_bool=aggregate
             )
             fracdict = (
@@ -536,7 +543,7 @@ class Site:
             )
 
         # Extra metadata
-        if bool(self):
+        if bool(self.extradata):
             infostr += printing.print_fmt_line(
                 "Extra metadata from the metadata file:", nident_root
             )

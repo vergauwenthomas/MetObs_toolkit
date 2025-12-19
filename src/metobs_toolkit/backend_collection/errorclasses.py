@@ -1,6 +1,6 @@
 import logging
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -168,6 +168,13 @@ class MetObsAdditionError(Exception):
 
 class MetObsNonUniqueIDs(Exception):
     """Raised when non-unique ID's are expected, but duplicates are found"""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+
+class MetObsInternalError(Exception):
+    """Raised when an internal error is detected."""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

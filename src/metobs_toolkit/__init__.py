@@ -27,6 +27,8 @@ from metobs_toolkit.geedatasetmanagers import (
     default_datasets as default_GEE_datasets,
 )
 
+from metobs_toolkit.qc_collection.whitelist import WhiteSet
+
 # Special functions that can be directly called by te user
 from metobs_toolkit.dataset import import_dataset_from_pkl
 from metobs_toolkit.template_build_prompt import build_template_prompt
@@ -79,3 +81,9 @@ rootlog.addHandler(console_handler)
 # =============================================================================
 
 from metobs_toolkit.settings_collection.version import __version__
+
+# =============================================================================
+# Settings
+# =============================================================================
+
+from metobs_toolkit.settings_collection.settings import Settings

@@ -1,30 +1,30 @@
+from __future__ import annotations
+
 import logging  # Python default package
+from typing import TYPE_CHECKING
 
-import matplotlib
-import matplotlib.pyplot as plt  # noqa: F401  # Dependency package
 import pandas as pd
-
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.plot_collection import (  # Local modules
     create_categorical_color_map,
-    default_plot_settings,
 )
 
 # Set up logging
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
+
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
 
 logger = logging.getLogger("<metobs_toolkit>")
-
-default_cycle_settings = default_plot_settings["cycle_plot"]
 
 
 @log_entry
 def make_diurnal_plot(
     plotdf: pd.DataFrame,
-    ax: "matplotlib.axes.Axes",
+    ax: Axes,
     colordict: dict,
     refstation: str,
-    figkwargs: dict,
-) -> "matplotlib.axes.Axes":
+) -> Axes:
     """
     Create a diurnal plot for the given data.
 
@@ -38,8 +38,6 @@ def make_diurnal_plot(
         Dictionary mapping column names to colors. If None, a default colormap will be created.
     refstation : str
         The reference station to be plotted as a dashed line. If None, no reference is plotted.
-    figkwargs : dict
-        Additional keyword arguments for figure customization.
 
     Returns
     -------
@@ -55,7 +53,8 @@ def make_diurnal_plot(
     if colordict is None:
         logger.debug("Creating default colormap.")
         colmap = create_categorical_color_map(
-            catlist=plotdf.columns, cmapname=default_cycle_settings["cmap_categorical"]
+            catlist=plotdf.columns,
+            cmapname=Settings.get("plotting_settings.coloring.categorical_cmap"),
         )
     else:
         colmap = colordict
@@ -64,11 +63,7 @@ def make_diurnal_plot(
         logger.debug(f"Plotting reference station: {refstation}.")
         # Plot reference as dashed line
         ax.axhline(
-            y=0,
-            color="black",
-            linestyle="--",
-            zorder=0.9,
-            linewidth=0.8,
+            **Settings.get("plotting_settings.cycle_plot.hlinekwargs", {"y": 0}),
             label=f"Reference:{refstation}",
         )
 
@@ -89,6 +84,7 @@ def make_diurnal_plot(
             label=column,
             color=colmap[column],
             linestyle="-",
+            **Settings.get("plotting_settings.cycle_plot.linekwargs", {}),
         )
 
     logger.debug("Exiting make_diurnal_plot function.")

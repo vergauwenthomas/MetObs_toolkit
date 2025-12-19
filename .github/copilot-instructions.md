@@ -54,15 +54,15 @@ GEE data managers in `geedatasetmanagers.py` handle static (DEM, landcover) vs d
 ### Quality Control Pipeline
 QC methods modify data in-place and track outliers:
 ```python
-dataset.gross_value_check(target_obstype="temp", lower_threshold=-15, upper_threshold=35)
-dataset.persistence_check(target_obstype="temp", timewindow="1h")
+dataset.gross_value_check(obstype="temp", lower_threshold=-15, upper_threshold=35)
+dataset.persistence_check(obstype="temp", timewindow="1h")
 # Access results via dataset.outliersdf
 ```
 
 ### Logging Decorator Pattern
 All public methods must use `@log_entry` decorator from `backend_collection.loggingmodule`:
 ```python
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 
 @log_entry
 def my_method(self, arg1, arg2):
@@ -76,6 +76,13 @@ Code organized in `*_collection/` subdirectories by functionality:
 - `plot_collection/`: Visualization functions  
 - `backend_collection/`: Utilities, error classes, data constructors
 - `verif_collection/`: Model verification and scoring metrics
+- `settings_collection/`: Global configuration and label definitions. 
+
+
+**Important**: Settings used by multiple functions belong in `Settings`. Also settings 
+related to plotting styles are centralized there. 
+Settings specific to a single function/method should be defined as default 
+argument values in that function's signature.
 
 ## Key Integrations
 
@@ -98,3 +105,7 @@ When adding new public methods:
 3. Add test in `tests/` following solution-based pattern
 4. Apply `@log_entry` decorator
 5. Update property docstrings with `@copy_doc` if building derived data
+
+### Version compatibility
+When a method's signature changes, that is accessible by the user, a deprecation 
+warning must be added for the old singanture. 

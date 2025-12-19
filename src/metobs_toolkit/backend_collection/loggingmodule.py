@@ -13,25 +13,18 @@ Created on Fri Aug  2 14:23:30 2024
 import os
 import logging
 from datetime import datetime
-from functools import wraps
+from os import PathLike
+
+from metobs_toolkit.settings_collection.settings import Settings
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-def log_entry(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        logger.debug(f"Entering {func.__name__}() in {func.__code__.co_filename}")
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-@log_entry
 def add_FileHandler(
-    trglogfile: str,
-    setlvl: str = "DEBUG",
-    logformat: str = "LOG:: %(levelname)s - %(message)s",
+    filepath: str | PathLike,
+    setlvl: str = Settings.get("log_level"),
+    logformat: str = Settings.get("log_format"),
     clearlog: bool = True,
 ) -> None:
     """
@@ -41,7 +34,7 @@ def add_FileHandler(
 
     Parameters
     ----------
-    trglogfile : str
+    filepath : str | PathLike
         Path of the target log file.
     setlvl : {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}, optional
         The logger level for the FileHandler. See
@@ -65,9 +58,12 @@ def add_FileHandler(
     (higher) log level, no new handler is added. Log levels in order of restrictiveness:
     DEBUG < INFO < WARNING < ERROR < CRITICAL.
     """
-    if clearlog:
-        if os.path.isfile(trglogfile):
-            os.remove(trglogfile)
+    # Lazy import to avoid circular dependency
+    from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
+
+    filepath = fmt_output_filepath(
+        filepath=filepath, default_filename="metobs_toolkit.log", overwrite=clearlog
+    )
 
     rootlog = logging.getLogger("<metobs_toolkit>")
 
@@ -75,7 +71,7 @@ def add_FileHandler(
     target_level = getattr(logging, setlvl.upper())
 
     # Normalize the target file path for comparison
-    target_path = os.path.abspath(trglogfile)
+    target_path = os.path.abspath(filepath)
 
     # Check if FileHandler already exists for same file at same or higher level
     for handler in rootlog.handlers:
@@ -84,14 +80,14 @@ def add_FileHandler(
             existing_path = os.path.abspath(handler.baseFilename)
             if existing_path == target_path and handler.level <= target_level:
                 rootlog.debug(
-                    f"FileHandler already exists for file '{trglogfile}' "
+                    f"FileHandler already exists for file '{filepath}' "
                     f"at level {logging.getLevelName(handler.level)} "
                     f"(<= {setlvl.upper()}). No new FileHandler added."
                 )
-                return
+                return None
 
     # Create the Handler for logging data to a file - will be inherited for children
-    file_handler = logging.FileHandler(filename=trglogfile)
+    file_handler = logging.FileHandler(filename=filepath)
     file_handler.setLevel(setlvl.upper())  # set handler level
     # Create a Formatter for formatting the log messages
     file_logger_formatter = logging.Formatter(logformat)
@@ -100,12 +96,14 @@ def add_FileHandler(
 
     rootlog.addHandler(file_handler)
 
+    # Ensure the root logger level allows messages to reach the handler
+    rootlog.setLevel(logging.DEBUG)
+
     rootlog.debug(f"FileHandler set at {datetime.now()}")
 
 
-@log_entry
 def add_StreamHandler(
-    setlvl: str = "DEBUG", logformat: str = "LOG:: %(levelname)s - %(message)s"
+    setlvl: str = Settings.get("log_level"), logformat: str = Settings.get("log_format")
 ) -> None:
     """
     Add a StreamHandler to the Toolkit logger.
@@ -148,7 +146,7 @@ def add_StreamHandler(
                     f"StreamHandler already exists at level {logging.getLevelName(handler.level)} "
                     f"(<= {setlvl.upper()}). No new StreamHandler added."
                 )
-                return
+                return None
 
     # Create StreamHandler
     streamhandler = logging.StreamHandler()

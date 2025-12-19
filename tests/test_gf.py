@@ -42,10 +42,10 @@ class TestDataWithGaps:
             # extracting modeldata
             era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
             era5_data = dataset.get_gee_timeseries_data(
-                geedynamicdatasetmanager=era5_manager,
+                gee_dynamic_manager=era5_manager,
                 startdt_utc=None,  # raises error in metadata-only case
                 enddt_utc=None,
-                target_obstypes=["temp"],
+                obstypes=["temp"],
                 get_all_bands=False,
                 drive_filename=None,
                 # drive_folder="gee_timeseries_data",
@@ -96,7 +96,7 @@ class TestDataWithGaps:
 
         # test interpolation using higher order cubic spline
         sta.interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             method="cubicspline",
             max_gap_duration_to_fill="5h",
             n_leading_anchors=3,
@@ -110,7 +110,7 @@ class TestDataWithGaps:
         # regular interpolation with overwrite_fill == false -> should only try to fill the failed filled gaps
         sta.interpolate_gaps(
             max_gap_duration_to_fill="5h",
-            target_obstype="temp",
+            obstype="temp",
             overwrite_fill=False,
         )
 
@@ -147,7 +147,7 @@ class TestDataWithGaps:
         # ------------------------------------------
         # test interpolation using higher order cubic spline
         dataset.interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             method="cubicspline",
             max_gap_duration_to_fill=pd.Timedelta("5h"),
             n_leading_anchors=3,
@@ -179,7 +179,7 @@ class TestDataWithGaps:
         # ------------------------------------------
 
         dataset.interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             method="spline",
             max_gap_duration_to_fill=pd.Timedelta("5h"),
             n_leading_anchors=3,
@@ -193,7 +193,7 @@ class TestDataWithGaps:
 
         # regular interpolation iwht overwrite_fill == True -> should overwrite the data!
         dataset.interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             overwrite_fill=True,
         )
 
@@ -240,7 +240,7 @@ class TestDataWithGaps:
 
         dataset.repetitions_check(max_N_repetitions=8)
         dataset.convert_outliers_to_gaps()
-        dataset.interpolate_gaps(target_obstype="temp", method="linear")
+        dataset.interpolate_gaps(obstype="temp", method="linear")
 
     def test_raw_modeldata_gapfill(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -252,7 +252,7 @@ class TestDataWithGaps:
 
         # test raw gapfill on dataset
         dataset.fill_gaps_with_raw_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("6h"),
             overwrite_fill=False,
         )
@@ -276,7 +276,7 @@ class TestDataWithGaps:
 
         with pytest.raises(MetObsModelDataError):
             dataset.fill_gaps_with_raw_modeldata(
-                target_obstype="humidity", overwrite_fill=True
+                obstype="humidity", overwrite_fill=True
             )
 
         # test on station and dataset
@@ -287,7 +287,7 @@ class TestDataWithGaps:
         )
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_raw_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("6h"),
             overwrite_fill=False,
         )
@@ -300,9 +300,9 @@ class TestDataWithGaps:
         dataset = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname="test_import_data"
         )
-        dataset.interpolate_gaps(target_obstype="temp", overwrite_fill=False)
+        dataset.interpolate_gaps(obstype="temp", overwrite_fill=False)
         dataset.fill_gaps_with_raw_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("6h"),
             overwrite_fill=True,
         )
@@ -321,14 +321,14 @@ class TestDataWithGaps:
         )
 
         dataset.interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("5h"),
             overwrite_fill=False,
         )
 
         # test raw gapfill on dataset
         dataset.fill_gaps_with_raw_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("10h"),
             overwrite_fill=False,
         )
@@ -361,7 +361,7 @@ class TestDataWithGaps:
 
         # test debias gapfill on dataset
         dataset.fill_gaps_with_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("6h"),
             min_leading_records_total=5,
             trailing_period_duration=pd.Timedelta("24h"),
@@ -392,7 +392,7 @@ class TestDataWithGaps:
         )
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("6h"),
             min_leading_records_total=5,
             trailing_period_duration=pd.Timedelta("24h"),
@@ -414,7 +414,7 @@ class TestDataWithGaps:
 
         # test diurnal debias gapfill on dataset
         dataset.fill_gaps_with_diurnal_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_debias_sample_size=2,
@@ -441,7 +441,7 @@ class TestDataWithGaps:
         )
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_diurnal_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             max_gap_duration_to_fill=pd.Timedelta("12h"),
@@ -482,7 +482,7 @@ class TestDataWithGaps:
 
         # test diurnal debias gapfill on dataset
         dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_lead_debias_sample_size=1,
@@ -510,7 +510,7 @@ class TestDataWithGaps:
         )
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_lead_debias_sample_size=1,
@@ -537,7 +537,7 @@ class TestDataWithGaps:
 
         # test diurnal debias gapfill on dataset
         dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-            target_obstype="temp",
+            obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_lead_debias_sample_size=1,  # This condition is not always met
@@ -569,7 +569,7 @@ class TestDataWithGaps:
         # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
 
         dataset.stations[0].interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("25h"),
             overwrite_fill=False,
         )
@@ -588,7 +588,7 @@ class TestDataWithGaps:
         # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
 
         dataset.stations[0].interpolate_gaps(
-            target_obstype="temp",
+            obstype="temp",
             max_gap_duration_to_fill=pd.Timedelta("25h"),
             overwrite_fill=False,
         )
@@ -725,14 +725,14 @@ class TestDataWithGaps:
         )
 
         # Test parameters
-        target_obstype = "temp"
+        obstype = "temp"
         min_threshold = 11.0
         max_threshold = 16.0
 
         # Test 1: Raw model data gap fill with min/max clipping
         dataset_raw = copy.deepcopy(dataset)
         dataset_raw.fill_gaps_with_raw_modeldata(
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_gap_duration_to_fill=pd.Timedelta("6h"),
             overwrite_fill=False,
             min_value=min_threshold,
@@ -752,7 +752,7 @@ class TestDataWithGaps:
         # Test 2: Debiased model data gap fill with min/max clipping
         dataset_debiased = copy.deepcopy(dataset)
         dataset_debiased.fill_gaps_with_debiased_modeldata(
-            target_obstype=target_obstype,
+            obstype=obstype,
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_leading_records_total=10,
@@ -772,7 +772,7 @@ class TestDataWithGaps:
         # Test 3: Diurnal debiased model data gap fill with min/max clipping
         dataset_diurnal = copy.deepcopy(dataset)
         dataset_diurnal.fill_gaps_with_diurnal_debiased_modeldata(
-            target_obstype=target_obstype,
+            obstype=obstype,
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_debias_sample_size=2,
@@ -789,7 +789,7 @@ class TestDataWithGaps:
         # Test 4: Weighted diurnal debiased model data gap fill with min/max clipping
         dataset_weighted = copy.deepcopy(dataset)
         dataset_weighted.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-            target_obstype=target_obstype,
+            obstype=obstype,
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
             min_lead_debias_sample_size=1,
@@ -812,7 +812,7 @@ class TestDataWithGaps:
         # Test 5: Test on individual Station (not Dataset)
         station = dataset.get_station("vlinder01")
         station.fill_gaps_with_raw_modeldata(
-            target_obstype=target_obstype,
+            obstype=obstype,
             max_gap_duration_to_fill=pd.Timedelta("6h"),
             overwrite_fill=False,
             min_value=12.90,

@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import logging
 import copy
 import numpy as np
 import pandas as pd
-from typing import Literal, Union
+from typing import Literal, Union, TYPE_CHECKING
 from datetime import datetime
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
-from pathlib import Path
+
 
 from metobs_toolkit.site import Site
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_datetime_arg,
     fmt_timedelta_arg,
@@ -27,7 +28,7 @@ from metobs_toolkit.backend_collection.errorclasses import (
 )
 import metobs_toolkit.backend_collection.printing_collection as printing
 from metobs_toolkit.backend_collection.df_helpers import save_concat
-from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.qc_collection.whitelist import WhiteSet
 from metobs_toolkit.geedatasetmanagers import (
     GEEStaticDatasetManager,
     GEEDynamicDatasetManager,
@@ -40,9 +41,16 @@ from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_da
 from metobs_toolkit.sensordata import SensorData
 from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
-from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import station_df
+from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
+
+if TYPE_CHECKING:
+    from matplotlib.pyplot import Axes
+    from os import PathLike
+    from xarray import Dataset as xrDataset
+    from metobs_toolkit.sensordata import SensorData
+    from metobs_toolkit.modeltimeseries import ModelTimeSeries
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -195,7 +203,7 @@ class Station:
         return dict(self.obsdata)
 
     @log_entry
-    def get_sensor(self, obstype: str) -> "SensorData":  # type: ignore #noqa: F821
+    def get_sensor(self, obstype: str) -> SensorData:
         """Get the SensorData instance for a specific observation type.
 
         Parameters
@@ -217,7 +225,9 @@ class Station:
         return station_to_xr(self, fmt_datetime_coordinate=True)
 
     @log_entry
-    def to_netcdf(self, filepath: str, **kwargs) -> None:
+    def to_netcdf(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the Station as a netCDF file.
 
@@ -226,8 +236,11 @@ class Station:
 
         Parameters
         ----------
-        filepath : str
-            Path where the netCDF file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the netCDF file will be saved. If None, defaults to
+            '<stationname>_station.nc' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments passed to xarray.Dataset.to_netcdf().
             Common options include:
@@ -249,6 +262,13 @@ class Station:
         compatibility. The scipy engine has limitations with certain Unicode datatypes.
         """
 
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.nc",
+            suffix=".nc",
+            overwrite=overwrite,
+        )
+
         # Convert to xarray Dataset
         ds = self.to_xr()
 
@@ -261,7 +281,9 @@ class Station:
         ds.to_netcdf(filepath, **kwargs)
 
     @log_entry
-    def to_parquet(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_parquet(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the station observations to a parquet file.
 
@@ -270,8 +292,11 @@ class Station:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the parquet file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the parquet file will be saved. If None, defaults to
+            '<stationname>_station.parquet' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_parquet().
 
@@ -284,11 +309,21 @@ class Station:
         Station.df : The DataFrame property that is written to file.
         Station.to_csv : Save station data to CSV format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.parquet",
+            suffix=".parquet",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_parquet(target_file, **kwargs)
+        df.to_parquet(filepath, **kwargs)
 
     @log_entry
-    def to_csv(self, target_file: Union[str, Path], **kwargs) -> None:
+    def to_csv(
+        self, filepath: str | PathLike | None = None, overwrite: bool = False, **kwargs
+    ) -> None:
         """
         Save the station observations to a CSV file.
 
@@ -297,8 +332,11 @@ class Station:
 
         Parameters
         ----------
-        target_file : str or Path
-            The file path where the CSV file will be saved.
+        filepath : str or path-like or None, optional
+            Path where the CSV file will be saved. If None, defaults to
+            '<stationname>_station.csv' in the current working directory. Default is None.
+        overwrite : bool, optional
+            If True, overwrites existing file. Default is False.
         **kwargs
             Additional keyword arguments to pass to pandas.DataFrame.to_csv().
 
@@ -311,8 +349,16 @@ class Station:
         Station.df : The DataFrame property that is written to file.
         Station.to_parquet : Save station data to parquet format.
         """
+
+        filepath = fmt_output_filepath(
+            filepath=filepath,
+            default_filename=f"{self.name.replace(' ', '_')}_station.csv",
+            suffix=".csv",
+            overwrite=overwrite,
+        )
+
         df = self.df
-        df.to_csv(target_file, **kwargs)
+        df.to_csv(filepath, **kwargs)
 
     @copy_doc(station_df)
     @property
@@ -329,13 +375,13 @@ class Station:
         Returns
         -------
         pandas.DataFrame
-            A DataFrame with two columns ['value', 'label'], representing
-            the value and details of the flagged observation.
+            A DataFrame with columns ['value', 'label', 'details'], representing
+            the value, label and details of the flagged observation.
         """
 
         concatlist = []
         for sensordata in self.sensordata.values():
-            stadf = sensordata.outliersdf[["value", "label"]].reset_index()
+            stadf = sensordata.outliersdf[["value", "label", "details"]].reset_index()
             stadf["obstype"] = sensordata.obstype.name
             concatlist.append(stadf.set_index(["datetime", "obstype"]))
 
@@ -343,7 +389,7 @@ class Station:
         combdf.sort_index(inplace=True)
         if combdf.empty:
             combdf = pd.DataFrame(
-                columns=["value", "label"],
+                columns=["value", "label", "details"],
                 index=pd.MultiIndex(
                     levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
                 ),
@@ -441,7 +487,7 @@ class Station:
         obstype: str,
         modelname: str | None = None,
         modelvariable: str | None = None,
-    ) -> "ModelTimeSeries":  # type: ignore #noqa: F821
+    ) -> ModelTimeSeries:
         """Get the ModelTimeSeries instance for a specific observation type.
 
         Parameters
@@ -556,16 +602,16 @@ class Station:
         """
 
         if bool(self.sensordata):
-            mindt = max(
+            maxdt = max(
                 [sensdata.end_datetime for sensdata in self.sensordata.values()]
             )
         else:
             # no sensordata, metadata only station
-            mindt = pd.NaT
-        return mindt
+            maxdt = pd.NaT
+        return maxdt
 
     @property
-    def modeldata(self) -> list["ModelTimeSeries"]:  # type: ignore #noqa: F821
+    def modeldata(self) -> list[ModelTimeSeries]:
         """
         Retrieve the model data associated with the station.
 
@@ -727,7 +773,7 @@ class Station:
     def resample(
         self,
         target_freq: Union[str, pd.Timedelta],
-        target_obstype: Union[str, None] = None,
+        obstype: Union[str, None] = None,
         shift_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         origin: Union[None, pd.Timestamp] = None,
         origin_simplify_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -752,7 +798,7 @@ class Station:
             The target frequency to which the data should be resampled. Can be
             specified as a pandas frequency string (e.g., '5T' for 5 minutes)
             or a pandas.Timedelta object.
-        target_obstype : str or None, optional
+        obstype : str or None, optional
             The observation type (sensor) to resample. If None, all sensors
             will be resampled to the same frequency. Default is None.
         shift_tolerance : str or pandas.Timedelta, optional
@@ -774,9 +820,9 @@ class Station:
         Notes
         -----
 
-        * If `target_obstype` is None, all sensors in `self.sensordata` will be
+        * If `obstype` is None, all sensors in `self.sensordata` will be
           resampled to the same frequency.
-        * If `target_obstype` is specified, it must be a known observation type.
+        * If `obstype` is specified, it must be a known observation type.
         Warning
         -------
         Since the gaps depend on the record’s frequency and origin, all gaps
@@ -791,7 +837,7 @@ class Station:
         shift_tolerance = fmt_timedelta_arg(shift_tolerance)
         origin = fmt_datetime_arg(origin, none_is_none=True)
 
-        if target_obstype is None:
+        if obstype is None:
             for sensor in self.sensordata.values():
                 sensor.resample(
                     target_freq=target_freq,
@@ -801,10 +847,10 @@ class Station:
                 )
         else:
             # check if target obstype is known
-            self._obstype_is_known_check(target_obstype)
+            self._obstype_is_known_check(obstype)
 
             # resample
-            self.sensordata[target_obstype].resample(
+            self.sensordata[obstype].resample(
                 target_freq=target_freq,
                 shift_tolerance=shift_tolerance,
                 origin=origin,
@@ -861,8 +907,8 @@ class Station:
     @log_entry
     def get_static_gee_point_data(
         self,
-        geestaticdatasetmanager: GEEStaticDatasetManager,
-        overwrite: bool = True,
+        gee_manager: GEEStaticDatasetManager,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ):
         """
@@ -873,10 +919,10 @@ class Station:
 
         Parameters
         ----------
-        geestaticdatasetmanager : GEEStaticDatasetManager
+        gee_manager : GEEStaticDatasetManager
             An instance of `GEEStaticDatasetManager` representing the static GEE dataset to query.
-        overwrite : bool, optional
-            If True, the retrieved data will overwrite existing data in the Station's metadata.
+        update_metadata : bool, optional
+            If True, the retrieved data will update existing data in the Station's metadata.
             Default is True.
         initialize_gee : bool, optional
             If True, initializes the GEE API before fetching the data. Default is True.
@@ -891,23 +937,23 @@ class Station:
         This method interacts with the GEE API to fetch metadata for the station's location.
         Ensure that the GEE API is properly authenticated and initialized before using this method.
         """
-        if not isinstance(geestaticdatasetmanager, GEEStaticDatasetManager):
+        if not isinstance(gee_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdatasetmanager)}"
+                f"gee_manager should be an instance of GeeStaticDataset, not {type(gee_manager)}"
             )
 
         value = self.site.get_gee_point_metadata(
-            geestaticdataset=geestaticdatasetmanager, initialize_gee=initialize_gee
+            gee_static_manager=gee_manager, initialize_gee=initialize_gee
         )
-        if overwrite:
-            self.site.set_geedata(geestaticdatasetmanager.name, value)
+        if update_metadata:
+            self.site.set_geedata(gee_manager.name, value)
 
         return value
 
     @log_entry
     def get_LCZ(
         self,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
         apply_seamask_fix: bool = True,
     ) -> str:
@@ -916,8 +962,8 @@ class Station:
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing LCZ data if stored in the Site attribute. Default is True.
+        update_metadata : bool, optional
+            If True, update existing LCZ data if stored in the Site attribute. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
         apply_seamask_fix: bool, optional
@@ -936,8 +982,8 @@ class Station:
         `default_gee_datasets` dictionary to fetch the LCZ data.
         """
         lcz = self.get_static_gee_point_data(
-            geestaticdatasetmanager=default_gee_datasets["LCZ"],
-            overwrite=False,  # overwrite is done in this method
+            gee_manager=default_gee_datasets["LCZ"],
+            update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
 
@@ -951,7 +997,7 @@ class Station:
                 raise ValueError("Unexpected LCZ value")
 
         # update the Site instance
-        if overwrite:
+        if update_metadata:
             self.site.set_LCZ(lcz)
         else:
             if self.site.flag_has_LCZ():
@@ -963,15 +1009,15 @@ class Station:
 
     @log_entry
     def get_altitude(
-        self, overwrite: bool = True, initialize_gee: bool = True
+        self, update_metadata: bool = True, initialize_gee: bool = True
     ) -> float:
         """
         Retrieve altitude for the station using Google Earth Engine (GEE).
 
         Parameters
         ----------
-        overwrite : bool, optional
-            If True, overwrite existing altitude data if stored in the Site attribute. Default is True.
+        update_metadata : bool, optional
+            If True, update existing altitude data if stored in the Site attribute. Default is True.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
@@ -991,13 +1037,13 @@ class Station:
         `default_gee_datasets` dictionary to fetch the altitude data.
         """
         altitude = self.get_static_gee_point_data(
-            geestaticdatasetmanager=default_gee_datasets["altitude"],
-            overwrite=False,  # overwrite is done in this method
+            gee_manager=default_gee_datasets["altitude"],
+            update_metadata=False,  # overwrite is done in this method
             initialize_gee=initialize_gee,
         )
 
         # update the Site instance
-        if overwrite:
+        if update_metadata:
             self.site.set_altitude(altitude)
         else:
             if self.site.flag_has_altitude():
@@ -1010,10 +1056,10 @@ class Station:
     @log_entry
     def get_static_gee_buffer_fraction_data(
         self,
-        geestaticdataset: GEEStaticDatasetManager,
+        gee_manager: GEEStaticDatasetManager,
         buffers: list = [100],
         aggregate: bool = False,
-        overwrite: bool = True,
+        update_metadata: bool = True,
         initialize_gee: bool = True,
     ) -> dict:
         """
@@ -1021,15 +1067,15 @@ class Station:
 
         Parameters
         ----------
-        geestaticdataset : GEEStaticDatasetManager
+        gee_manager : GEEStaticDatasetManager
             An instance of GEEStaticDatasetManager used to retrieve static GEE data.
         buffers : list, optional
             A list of buffer radii (in meters) for which to compute the buffer fractions.
             Default is [100].
         aggregate : bool, optional
             If True, aggregate the buffer fraction data. Default is False.
-        overwrite : bool, optional
-            If True, overwrite the existing buffer fraction data in the station's Site attribute.
+        update_metadata : bool, optional
+            If True, update the existing buffer fraction data in the station's Site attribute.
             Default is True.
         initialize_gee : bool, optional
             If True, initialize the GEE environment before retrieving data. Default is True.
@@ -1048,25 +1094,29 @@ class Station:
         -------
         It can happen that for stations located on small islands, or close to the coast, the sea-mask is not used as a landcover fraction.
         """
-        if not isinstance(geestaticdataset, GEEStaticDatasetManager):
+        if not isinstance(gee_manager, GEEStaticDatasetManager):
             raise ValueError(
-                f"geestaticdataset should be an instance of GeeStaticDataset, not {type(geestaticdataset)}"
+                f"gee_manager should be an instance of GeeStaticDataset, not {type(gee_manager)}"
             )
 
         nesteddict = self.site.get_gee_point_buffer_fractions(
-            geestaticdataset=geestaticdataset,
+            gee_static_manager=gee_manager,
             buffers=buffers,
             aggregate=aggregate,
             initialize_gee=initialize_gee,
         )
-        if overwrite:
+        if update_metadata:
             for bufferrad, fractions in nesteddict.items():
                 self.site.set_gee_buffered_frac_data(buffer=bufferrad, data=fractions)
         return nesteddict
 
     @log_entry
     def get_landcover_fractions(
-        self, buffers: list = [100], aggregate: bool = False, overwrite: bool = True
+        self,
+        buffers: list = [100],
+        aggregate: bool = False,
+        update_metadata: bool = True,
+        initialize_gee: bool = True,
     ) -> dict:
         """
         Get landcover fractions for a circular buffer at the station using GEE.
@@ -1081,8 +1131,10 @@ class Station:
             Default is [100].
         aggregate : bool, optional
             If True, aggregates the data over the buffers. Default is False.
-        overwrite : bool, optional
-            If True, overwrites existing data. Default is True.
+        update_metadata : bool, optional
+            If True, updates existing data. Default is True.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1095,24 +1147,26 @@ class Station:
         This method makes use of the GEE API. Make sure that you have access and user rights to use the GEE API.
         """
         return self.get_static_gee_buffer_fraction_data(
-            geestaticdataset=default_gee_datasets["worldcover"],
+            gee_manager=default_gee_datasets["worldcover"],
             buffers=buffers,
             aggregate=aggregate,
-            overwrite=overwrite,
+            update_metadata=update_metadata,
+            initialize_gee=initialize_gee,
         )
 
     @log_entry
     def get_gee_timeseries_data(
         self,
-        geedynamicdatasetmanager: GEEDynamicDatasetManager,
+        gee_manager: GEEDynamicDatasetManager,
         startdt_utc: Union[datetime, pd.Timestamp, str, None] = None,
         enddt_utc: Union[datetime, pd.Timestamp, str, None] = None,
-        target_obstypes: list = ["temp"],
+        obstypes: list = ["temp"],
         get_all_bands: bool = False,
         drive_filename: str = None,
         drive_folder: str = "gee_timeseries_data",
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
+        initialize_gee: bool = True,
     ) -> Union[pd.DataFrame, None]:
         """
         Extract time series data from GEE.
@@ -1126,7 +1180,7 @@ class Station:
 
         Parameters
         ----------
-        geedynamicdatasetmanager : GEEDynamicDatasetManager
+        gee_manager : GEEDynamicDatasetManager
             The dynamic dataset manager instance describing the target GEE dataset.
         startdt_utc : datetime or str, optional
             The start datetime in UTC for the time series data. If None, the
@@ -1134,7 +1188,7 @@ class Station:
         enddt_utc : datetime or str, optional
             The end datetime in UTC for the time series data. If None, the
             station's end datetime (converted to UTC) is used.
-        target_obstypes : list of str, optional
+        obstypes : list of str, optional
             List of observation types to extract. Defaults to ["temp"].
         get_all_bands : bool, optional
             If True, extracts all bands from the dataset. Defaults to False.
@@ -1149,6 +1203,8 @@ class Station:
             Defaults to False.
         force_to_drive : bool, optional
             If True, forces saving the data to Google Drive. Defaults to False.
+        initialize_gee : bool, optional
+            If True, initialize the Google Earth Engine API before fetching data. Default is True.
 
         Returns
         -------
@@ -1181,9 +1237,9 @@ class Station:
 
         """
         # Check geedynamic dataset
-        if not isinstance(geedynamicdatasetmanager, GEEDynamicDatasetManager):
+        if not isinstance(gee_manager, GEEDynamicDatasetManager):
             raise ValueError(
-                f"geedynamicdataset should be an instance of GeeDynamicDataset, not {type(geedynamicdatasetmanager)}"
+                f"gee_manager should be an instance of GEEDynamicDatasetManager, not {type(gee_manager)}"
             )
 
         # Format datetime arguments
@@ -1197,48 +1253,45 @@ class Station:
         else:
             enddt_utc = fmt_datetime_arg(enddt_utc, tz_if_dt_is_naive="UTC")
 
-        # check if target_obstypes are mapped to bands
-        for obst in target_obstypes:
-            if obst not in geedynamicdatasetmanager.modelobstypes.keys():
+        # check if obstypes are mapped to bands
+        for obst in obstypes:
+            if obst not in gee_manager.modelobstypes.keys():
                 raise MetObsMetadataNotFound(
-                    f"{obst} is not a known modelobstype of {geedynamicdatasetmanager}."
+                    f"{obst} is not a known modelobstype of {gee_manager}."
                 )
 
         # create specific name for the file that might be written to Drive
         if drive_filename is None:
-            drive_filename = (
-                f"{geedynamicdatasetmanager.name}_timeseries_data_of_{self.name}.csv"
-            )
+            drive_filename = f"{gee_manager.name}_timeseries_data_of_{self.name}.csv"
 
-        df = geedynamicdatasetmanager.extract_timeseries_data(
+        df = gee_manager.extract_timeseries_data(
             metadf=self.metadf,
             startdt_utc=startdt_utc,
             enddt_utc=enddt_utc,
-            obstypes=target_obstypes,
+            obstypes=obstypes,
             get_all_bands=get_all_bands,
             drive_filename=drive_filename,
             drive_folder=drive_folder,
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
+            initialize_gee=initialize_gee,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
-            return
+            return None
 
         # Create ModelTimeSeries instances
         for modelobscol in df.columns:
-            if modelobscol in geedynamicdatasetmanager.modelobstypes.keys():
+            if modelobscol in gee_manager.modelobstypes.keys():
                 modeltimeseries = ModelTimeSeries(
                     site=self.site,
                     datarecords=df[modelobscol].to_numpy(),
                     timestamps=df.index.get_level_values("datetime").to_numpy(),
-                    modelobstype=geedynamicdatasetmanager.modelobstypes[modelobscol],
+                    modelobstype=gee_manager.modelobstypes[modelobscol],
                     datadtype=np.float32,
                     timezone="UTC",
-                    modelname=geedynamicdatasetmanager.name,
-                    modelvariable=geedynamicdatasetmanager.modelobstypes[
-                        modelobscol
-                    ].model_band,
+                    modelname=gee_manager.name,
+                    modelvariable=gee_manager.modelobstypes[modelobscol].model_band,
                 )
                 # todo: duplicacy check
                 self.add_to_modeldata(modeltimeseries, force_update=True)
@@ -1252,21 +1305,25 @@ class Station:
     @log_entry
     def gross_value_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         lower_threshold: float = -15.0,
         upper_threshold: float = 39.0,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Identify outliers based on thresholds.
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         lower_threshold : float, optional
            Thresholds to flag records below as outliers. The default is -15.0.
         upper_threshold : float, optional
             Thresholds to flag records above as outliers. The default is 39.0.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1278,18 +1335,27 @@ class Station:
         You can use the `outliersdf` property to view all flagged outliers.
         """
         # argument validity checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
 
-        self.get_sensor(target_obstype).gross_value_check(
-            lower_threshold=lower_threshold, upper_threshold=upper_threshold
-        )
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            "lower_threshold": lower_threshold,
+            "upper_threshold": upper_threshold,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                stationname=self.name, obstype=obstype
+            ),
+        }
+
+        # apply check on the sensordata
+        self.get_sensor(obstype).gross_value_check(**qc_kwargs)
 
     @log_entry
     def persistence_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: Union[str, pd.Timedelta] = pd.Timedelta("60min"),
         min_records_per_window: int = 5,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Check if values are not constant in a moving time window.
@@ -1300,7 +1366,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         timewindow : str or pandas.Timedelta
             The size of the rolling time window to check for persistence.
@@ -1308,6 +1374,9 @@ class Station:
         min_records_per_window : int
             The minimum number of non-NaN records required within the time window for the check to be valid.
             The default is 5
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1331,17 +1400,27 @@ class Station:
         returns an empty DatetimeIndex.
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            "timewindow": timewindow,
+            "min_records_per_window": min_records_per_window,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                stationname=self.name, obstype=obstype
+            ),
+        }
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).persistence_check(
-            timewindow=timewindow, min_records_per_window=min_records_per_window
-        )
+        self.get_sensor(obstype).persistence_check(**qc_kwargs)
 
     @log_entry
     def repetitions_check(
-        self, target_obstype: str = "temp", max_N_repetitions: int = 5
+        self,
+        obstype: str = "temp",
+        max_N_repetitions: int = 5,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Test if an observation changes after a number of repetitions.
@@ -1355,11 +1434,14 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         max_N_repetitions : int
             The maximum number of repetitions allowed before the records are flagged as outliers.
             If the number of repetitions exceeds this value, all repeated records are flagged as outliers. The default is 5.
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1380,19 +1462,26 @@ class Station:
         returns an empty DatetimeIndex.
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
+
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            "max_N_repetitions": max_N_repetitions,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                stationname=self.name, obstype=obstype
+            ),
+        }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).repetitions_check(
-            max_N_repetitions=max_N_repetitions
-        )
+        self.get_sensor(obstype).repetitions_check(**qc_kwargs)
 
     @log_entry
     def step_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         max_increase_per_second: Union[int, float] = 8.0 / 3600.0,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600.0,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Check for 'spikes' and 'dips' in a time series.
@@ -1406,7 +1495,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         max_increase_per_second : int or float, >0, optional
             The maximum allowed increase (per second). This value is extrapolated to the time resolution of records.
@@ -1414,6 +1503,9 @@ class Station:
         max_decrease_per_second : int or float, <0, optional
             The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
             This value must be negative! The default is -10.0/3600.0
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1430,22 +1522,29 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
+
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            "max_increase_per_second": max_increase_per_second,
+            "max_decrease_per_second": max_decrease_per_second,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                stationname=self.name, obstype=obstype
+            ),
+        }
 
         # apply check on the sensordata
-        self.get_sensor(target_obstype).step_check(
-            max_increase_per_second=max_increase_per_second,
-            max_decrease_per_second=max_decrease_per_second,
-        )
+        self.get_sensor(obstype).step_check(**qc_kwargs)
 
     @log_entry
     def window_variation_check(
         self,
-        target_obstype: str = "temp",
+        obstype: str = "temp",
         timewindow: pd.Timedelta = pd.Timedelta("1h"),
         min_records_per_window: int = 3,
         max_increase_per_second: Union[int, float] = 8.0 / 3600,
         max_decrease_per_second: Union[int, float] = -10.0 / 3600,
+        whiteset: WhiteSet = WhiteSet(),
     ) -> None:
         """
         Test if the increase/decrease in a time window exceeds a threshold.
@@ -1461,7 +1560,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation to check. By default "temp"
         timewindow : pandas.Timedelta
             The duration of the moving window. This should be a pandas Timedelta object. The default is pandas.Timedelta("1h")
@@ -1474,6 +1573,9 @@ class Station:
         max_decrease_per_second : int or float, <0
             The maximum allowed decrease (per second). This value is extrapolated to the window duration.
             This value must be negative! The default is -10.0/3600
+        whiteset : WhiteSet, optional
+            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
+            Records matching the whiteset criteria will not be flagged as outliers. The default is an empty WhiteSet().
 
         Returns
         -------
@@ -1485,7 +1587,6 @@ class Station:
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
-        * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
         * A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
@@ -1494,20 +1595,26 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         timewindow = fmt_timedelta_arg(timewindow)
 
+        # Prepare kwargs for the sensor method
+        qc_kwargs = {
+            "timewindow": timewindow,
+            "min_records_per_window": min_records_per_window,
+            "max_increase_per_second": max_increase_per_second,
+            "max_decrease_per_second": max_decrease_per_second,
+            "sensorwhiteset": whiteset.create_sensorwhitelist(
+                stationname=self.name, obstype=obstype
+            ),
+        }
+
         # apply check on the sensordata
-        self.get_sensor(target_obstype).window_variation_check(
-            timewindow=timewindow,
-            min_records_per_window=min_records_per_window,
-            max_increase_per_second=max_increase_per_second,
-            max_decrease_per_second=max_decrease_per_second,
-        )
+        self.get_sensor(obstype).window_variation_check(**qc_kwargs)
 
     @log_entry
     def get_qc_stats(
-        self, target_obstype: str = "temp", make_plot: bool = True
+        self, obstype: str = "temp", make_plot: bool = True
     ) -> pd.DataFrame:
         """
         Generate quality control (QC) frequency statistics.
@@ -1526,7 +1633,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype : str, optional
+        obstype : str, optional
             The target observation type for which to compute frequency statistics, by default "temp".
         make_plot : bool, optional
             If True, a figure with pie charts representing the frequencies is generated. The default is True.
@@ -1544,16 +1651,16 @@ class Station:
 
         """
         # argument checks
-        self._obstype_is_known_check(target_obstype)
+        self._obstype_is_known_check(obstype)
         # get freq statistics
-        qc_df = self.get_sensor(target_obstype).get_qc_freq_statistics()
+        qc_df = self.get_sensor(obstype).get_qc_freq_statistics()
 
         if make_plot:
             plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
 
             fig = plotting.qc_overview_pies(df=plotdf)
             fig.suptitle(
-                f"QC frequency statistics of {target_obstype} on Station level: {self.name}."
+                f"QC frequency statistics of {obstype} on Station level: {self.name}."
             )
             return fig
         else:
@@ -1605,7 +1712,7 @@ class Station:
         # Filter the modeldatadf to target obstype, modelname, modelvariable
         trg_modeldatadf = filter_modeldatadf(
             modeldatadf=self.modeldatadf,
-            trgobstype=obstype,
+            obstype=obstype,
             modelname=modelname,
             modelvariable=modelvariable,
         )
@@ -1630,7 +1737,9 @@ class Station:
         trg_modeltimeseries = _find_model_timeseries()
         # Create new axes if needed
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         plotdf = (
             trg_modeldatadf.reset_index()
@@ -1640,9 +1749,9 @@ class Station:
         )
 
         plotdf = plotdf[["value"]]
-        plotdf["label"] = label_def["goodrecord"][
-            "label"
-        ]  # Just so that they are plotted as lines
+        plotdf["label"] = Settings.get(
+            "label_def.goodrecord.label"
+        )  # Just so that they are plotted as lines
 
         # Define linecolor (needed here if modeldata is added )
         if linecolor is None:
@@ -1680,7 +1789,9 @@ class Station:
         plotting.format_datetime_axes(ax)
 
         # Add legend
-        plotting.set_legend(ax)
+        plotting.set_legend(
+            ax, **Settings.get("plotting_settings.time_series.legendkwargs", {})
+        )
 
         return ax
 
@@ -1752,7 +1863,9 @@ class Station:
 
         # Create new axes if needed
         if ax is None:
-            ax = plotting.create_axes(**figkwargs)
+            allfigkwargs = Settings.get("plotting_settings.time_series.figkwargs", {})
+            allfigkwargs.update(figkwargs)
+            ax = plotting.create_axes(**allfigkwargs)
 
         if show_modeldata:
             if modelobstype is None:
@@ -1831,7 +1944,9 @@ class Station:
         plotting.format_datetime_axes(ax)
 
         # Add legend
-        plotting.set_legend(ax)
+        plotting.set_legend(
+            ax, **Settings.get("plotting_settings.time_series.legendkwargs", {})
+        )
 
         return ax
 
@@ -1847,23 +1962,23 @@ class Station:
     @log_entry
     def fill_gaps_with_raw_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
         """
         Fill the gap(s) using model data without correction.
 
-        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        This method fills all the gaps of a specific *obstype*, by directly interpolating
         the model data to the missing records.
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         overwrite_fill : bool, optional
             If True, the status of a `gap` and present gapfill info will be ignored and overwritten.
@@ -1896,8 +2011,8 @@ class Station:
         -----
         A schematic description of the raw model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Ensure both the `ModelTimeSeries` and `gap` have the same timezone.
         #. Interpolate the model data to match the missing records in the gap.
@@ -1909,15 +2024,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="raw",
             overwrite_fill=overwrite_fill,
@@ -1931,7 +2046,7 @@ class Station:
     @log_entry
     def fill_gaps_with_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_leading_records_total: int = 60,
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
@@ -1939,7 +2054,7 @@ class Station:
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -1955,7 +2070,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. The default is "24h".
@@ -1995,8 +2110,8 @@ class Station:
         -----
         A schematic description of the debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
         #. Compute the bias of the modeldata (combine leading and trailing samples).
@@ -2012,15 +2127,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="debiased",
             overwrite_fill=overwrite_fill,
@@ -2038,14 +2153,14 @@ class Station:
     @log_entry
     def fill_gaps_with_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_debias_sample_size: int = 6,
         overwrite_fill: bool = False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ) -> None:
@@ -2059,7 +2174,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration :  str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
@@ -2100,8 +2215,8 @@ class Station:
         -----
         A schematic description of the diurnal debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions.
            The required conditions are tested by testing the samplesizes per hour, minute and second for the leading + trailing periods.
@@ -2125,15 +2240,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="diurnal_debiased",
             method_kwargs={
@@ -2150,7 +2265,7 @@ class Station:
     @log_entry
     def fill_gaps_with_weighted_diurnal_debiased_modeldata(
         self,
-        target_obstype: str,
+        obstype: str,
         leading_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         trailing_period_duration: Union[pd.Timedelta, str] = pd.Timedelta("24h"),
         min_lead_debias_sample_size: int = 2,
@@ -2158,7 +2273,7 @@ class Station:
         overwrite_fill=False,
         modelname: str | None = None,
         modelvariable: str | None = None,
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("12h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("12h"),
         min_value: float | None = None,
         max_value: float | None = None,
     ):
@@ -2176,7 +2291,7 @@ class Station:
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         leading_period_duration : str or pandas.Timedelta, optional
             The duration of the leading period. That is the period before the gap, used
@@ -2221,8 +2336,8 @@ class Station:
         -----
         A schematic description of the weighted diurnal debiased model data gap fill:
 
-        #. Check if the target_obstype is knonw, and if the corresponding modeldata is present.
-        #. Iterate over the gaps of the target_obstype.
+        #. Check if the obstype is knonw, and if the corresponding modeldata is present.
+        #. Iterate over the gaps of the obstype.
         #. Check the compatibility of the `ModelTimeSeries` with the `gap`.
         #. Construct a leading and trailing sample, and test if they meet the required conditions. The required conditions are tested by testing the samplesizes per hour, minute and second for the leading and trailing periods (seperately).
         #. A leading and trailing set of diurnal biases are computed by grouping to hour, minute and second, and averaging the biases.
@@ -2249,15 +2364,15 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # Get modeltimeseries
         modeltimeseries = self.get_modeltimeseries(
-            target_obstype, modelname=modelname, modelvariable=modelvariable
+            obstype, modelname=modelname, modelvariable=modelvariable
         )
 
         # fill the gaps
-        self.get_sensor(target_obstype).fill_gap_with_modeldata(
+        self.get_sensor(obstype).fill_gap_with_modeldata(
             modeltimeseries=modeltimeseries,
             method="weighted_diurnal_debiased",
             method_kwargs={
@@ -2275,9 +2390,9 @@ class Station:
     @log_entry
     def interpolate_gaps(
         self,
-        target_obstype: str,
+        obstype: str,
         method: str = "time",
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, None] = None,
@@ -2288,14 +2403,14 @@ class Station:
         """
         Fill the gap(s) using interpolation of SensorData.
 
-        This method fills all the gaps of a specific *target_obstype*, by directly interpolating
+        This method fills all the gaps of a specific *obstype*, by directly interpolating
         corresponding SensorData. Each gap is interpolated using the leading and trailing periods of the gap. One can select different
         interpolation methods. By using restrictions on the leading and trailing periods, one can
         ensure that the interpolation is only done when there are enough leading and trailing data available.
 
         Parameters
         ----------
-        target_obstype :  str
+        obstype :  str
             The target obstype to fill the gaps for.
         method:  str, optional
             Interpolation technique to use. See pandas.DataFrame.interpolate
@@ -2353,10 +2468,10 @@ class Station:
         max_gap_duration_to_fill = fmt_timedelta_arg(max_gap_duration_to_fill)
 
         # obstype check
-        self._obstype_is_known_check(obstype=target_obstype)
+        self._obstype_is_known_check(obstype=obstype)
 
         # interpolate all the gaps
-        self.get_sensor(target_obstype).interpolate_gaps(
+        self.get_sensor(obstype).interpolate_gaps(
             overwrite_fill=overwrite_fill,
             method=method,
             max_gap_duration_to_fill=max_gap_duration_to_fill,

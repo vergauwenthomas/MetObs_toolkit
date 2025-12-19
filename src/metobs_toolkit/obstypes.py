@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import math
-from typing import Union
+from typing import Union, TYPE_CHECKING
 import logging
 import numpy as np
 import pandas as pd
@@ -14,7 +16,10 @@ from metobs_toolkit.backend_collection.errorclasses import (
 import metobs_toolkit.backend_collection.printing_collection as printing
 
 # Use logger with name "<metobs_toolkit>"
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
+
+if TYPE_CHECKING:
+    from metobs_toolkit.obstypes import Obstype, ModelObstype, ModelObstype_Vectorfield
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -66,7 +71,7 @@ class Obstype:
 
     Parameters
     ----------
-    obsname : str
+    name : str
         Name of the observation type.
     std_unit : str or pint.Unit
         Standard unit for the observation type.
@@ -74,9 +79,9 @@ class Obstype:
         Description of the observation type.
     """
 
-    def __init__(self, obsname: str, std_unit: Union[str, pint.Unit], description: str):
+    def __init__(self, name: str, std_unit: Union[str, pint.Unit], description: str):
         # set name
-        self._name = str(obsname)
+        self._name = str(name)
         # set standard unit
         self._std_unit = _fmtunit(std_unit)
         # set description
@@ -93,7 +98,7 @@ class Obstype:
         """
         return f"{self.name}_{self.std_unit}"
 
-    def __add__(self, other: "Obstype") -> "Obstype":
+    def __add__(self, other: Obstype) -> Obstype:
         # This function is called when other instances,
         # that hold Obstype 's are joined.
 
@@ -113,7 +118,7 @@ class Obstype:
                 trg_orig_unit = self.original_unit
 
             trg_obs = Obstype(
-                obsname=self.name, std_unit=self.std_unit, description=trg_description
+                name=self.name, std_unit=self.std_unit, description=trg_description
             )
 
             trg_obs.original_name = trg_orig_name
@@ -171,25 +176,25 @@ class Obstype:
 
     @name.setter
     @log_entry
-    def name(self, value: str):
+    def name(self, value: str) -> str:
         """Set the name of the observation type."""
         self._name = str(value)
 
     @description.setter
     @log_entry
-    def description(self, value: str):
+    def description(self, value: str) -> str:
         """Set the description of the observation type."""
         self._description = str(value)
 
     @original_name.setter
     @log_entry
-    def original_name(self, value):
+    def original_name(self, value) -> None:
         """Set the original name of the observation type."""
         self._original_name = str(value)
 
     @original_unit.setter
     @log_entry
-    def original_unit(self, value):
+    def original_unit(self, value) -> None:
         """Set the original unit and check compatibility with standard unit."""
 
         # If a tempalate is used, with more mapped columns then present in the
@@ -197,7 +202,7 @@ class Obstype:
         # set to None. This is a valid value
         if (value is None) | (str(value) == "None"):
             self._original_unit = None
-            return
+            return None
 
         self._original_unit = _fmtunit(value)
         # test if it is a compatible unit wrt the standard unit
@@ -225,7 +230,7 @@ class Obstype:
         return [fmt_unit_to_str(uni) for uni in compunits]
 
     @log_entry
-    def is_compatible_with(self, other: "Obstype") -> bool:
+    def is_compatible_with(self, other: Obstype) -> bool:
         """
         Test if the other Obstype is compatible with this one.
 
@@ -329,7 +334,7 @@ class ModelObstype(Obstype):
     ):
         # set regular obstype
         super().__init__(
-            obsname=obstype.name,
+            name=obstype.name,
             std_unit=obstype.std_unit,
             description=obstype.description,
         )
@@ -351,7 +356,7 @@ class ModelObstype(Obstype):
         """
         return f"{super()._id()}_{self.model_band}"
 
-    def __add__(self, other: "ModelObstype") -> "ModelObstype":
+    def __add__(self, other: ModelObstype) -> ModelObstype:
         if self._id() != other._id():
             raise MetObsAdditionError(
                 f"{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})"
@@ -468,7 +473,7 @@ class ModelObstype_Vectorfield(Obstype):
     ):
         # set regular obstype
         super().__init__(
-            obsname=obstype.name,
+            name=obstype.name,
             std_unit=obstype.std_unit,
             description=obstype.description,
         )
@@ -493,7 +498,7 @@ class ModelObstype_Vectorfield(Obstype):
         """
         return f"{super()._id()}_{self.model_band_u}_{self.model_band_v}"
 
-    def __add__(self, other: "ModelObstype_Vectorfield") -> "ModelObstype_Vectorfield":
+    def __add__(self, other: ModelObstype_Vectorfield) -> ModelObstype_Vectorfield:
         if self._id() != other._id():
             raise MetObsAdditionError(
                 f"{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})"
@@ -641,7 +646,7 @@ class ModelObstype_Vectorfield(Obstype):
 
         # Create a new obstype for the direction
         direction_obstype = Obstype(
-            obsname=self.direction_obstype_name,
+            name=self.direction_obstype_name,
             std_unit=ureg.degree,
             description=f"Direction of 2D-vector of {self.name} components.",
         )
@@ -684,7 +689,7 @@ class ModelObstype_Vectorfield(Obstype):
 
         # Create a new Obstype for the amplitude
         amplitude_obstype = Obstype(
-            obsname=self.amplitude_obstype_name,
+            name=self.amplitude_obstype_name,
             std_unit=self.std_unit,
             description=f"2D-vector amplitude of {self.name} components.",
         )
@@ -807,59 +812,57 @@ def convert_units(records, cur_unit, trg_unit):
 #    Default obstypes
 # ------------------------------------------
 
-temperature = Obstype(
-    obsname="temp", std_unit=ureg.degC, description="2m - temperature"
-)
+temperature = Obstype(name="temp", std_unit=ureg.degC, description="2m - temperature")
 
 humidity = Obstype(
-    obsname="humidity",
+    name="humidity",
     std_unit=ureg.percent,
     description="2m - relative humidity",
 )
 
 radiation_temp = Obstype(
-    obsname="radiation_temp",
+    name="radiation_temp",
     std_unit=ureg.degC,
     description="2m - Black globe",
 )
 
 pressure = Obstype(
-    obsname="pressure",
+    name="pressure",
     std_unit=ureg.hectopascal,
     description="atmospheric pressure (at station)",
 )
 
 pressure_at_sea_level = Obstype(
-    obsname="pressure_at_sea_level",
+    name="pressure_at_sea_level",
     std_unit=ureg.hectopascal,
     description="atmospheric pressure (at sea level)",
 )
 
 precip = Obstype(
-    obsname="precip",
+    name="precip",
     std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="precipitation intensity",
 )
 
 precip_sum = Obstype(
-    obsname="precip_sum",
+    name="precip_sum",
     std_unit=ureg.mm / (ureg.meter * ureg.meter),
     description="Cummulated precipitation",
 )
 wind_speed = Obstype(
-    obsname="wind_speed",
+    name="wind_speed",
     std_unit=ureg.meter / ureg.second,
     description="wind speed",
 )
 
 windgust = Obstype(
-    obsname="wind_gust",
+    name="wind_gust",
     std_unit=ureg.meter / ureg.second,
     description="wind gust",
 )
 
 wind_direction = Obstype(
-    obsname="wind_direction",
+    name="wind_direction",
     std_unit=ureg.degree,
     description="wind direction",
 )

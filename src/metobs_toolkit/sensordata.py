@@ -1,23 +1,28 @@
+from __future__ import annotations
 import logging
-from typing import Literal, Union
+from typing import Literal, Union, TYPE_CHECKING
+
 
 import copy
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import Axes
-from xarray import Dataset as xrDataset
 
 
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
+from metobs_toolkit.backend_collection.datetime_collection import (
+    timestamps_to_datetimeindex,
+    convert_timezone,
+    to_timedelta,
+)
+
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
-    to_timedelta,
     convert_to_numeric_series,
 )
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     sensordata_gap_status_overview_df,
 )
-from metobs_toolkit.settings_collection import label_def
+from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.xrconversions import sensordata_to_xr
 from metobs_toolkit.timestampmatcher import TimestampMatcher
 from metobs_toolkit.obstypes import Obstype
@@ -26,12 +31,22 @@ import metobs_toolkit.qc_collection as qc
 from metobs_toolkit.backend_collection.errorclasses import (
     MetObsQualityControlError,
     MetObsAdditionError,
+    MetObsInternalError,
 )
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
-from metobs_toolkit.backend_collection.loggingmodule import log_entry
+from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.dataframe_constructors import sensordata_df
+
+# add all imports only for type checking, but not for runtime
+if TYPE_CHECKING:
+    from dateutil.tz import tzfile
+    from datetime import tzinfo
+    from matplotlib.pyplot import Axes
+    from xarray import Dataset as xrDataset
+    from metobs_toolkit.modeltimeseries import ModelTimeSeries
+
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -64,6 +79,9 @@ class SensorData:
         Tolerance for timestamp matching, by default pandas.Timedelta('4min').
     """
 
+    # Class variable for internal timezone storage
+    _target_tz: str = Settings.get("store_tz")
+
     def __init__(
         self,
         stationname: str,
@@ -71,19 +89,22 @@ class SensorData:
         timestamps: np.ndarray,
         obstype: Obstype,
         datadtype: type = np.float32,
-        timezone: Union[str, pd.Timedelta] = "UTC",
+        timestamps_tz: Union[tzfile | tzinfo | str] = "UTC",
         **setupkwargs,
     ):
+
         # Set data
         self._stationname = stationname
         self.obstype = obstype
         data = pd.Series(
             data=convert_to_numeric_series(datarecords, datadtype=datadtype).to_numpy(),
-            index=self._format_timestamp_index(timestamps, timezone),
+            index=_format_timestamp_index(
+                timestamps, timestamps_tz
+            ),  # Transformed as UTC
             name=obstype.name,
         )
 
-        data.index.name = "datetime"
+        # data.index.name = "datetime"
         self.series = data  # datetime as index
 
         # outliers
@@ -158,8 +179,7 @@ class SensorData:
             otherrecords = other.series
 
         # Align timezones if different
-        if self.tz != other.tz:
-            otherrecords = otherrecords.tz_convert(str(self.tz))
+        otherrecords = otherrecords.tz_convert(self.tz)
 
         # Combine the series, preferring non-NaN from 'other'
         combined_series = selfrecords.combine_first(otherrecords)
@@ -189,7 +209,7 @@ class SensorData:
             timestamps=combined_series.index.values,
             obstype=self.obstype + other.obstype,
             datadtype=combined_series.dtype,
-            timezone=self.tz,
+            timestamps_tz=self.tz,
             apply_unit_conv=False,
         )
 
@@ -232,8 +252,29 @@ class SensorData:
         to_concat = []
         for outlierinfo in self.outliers:
             checkname = outlierinfo["checkname"]
-            checkdf = outlierinfo["df"]
-            checkdf["label"] = label_def[checkname]["label"]
+            checkdf = outlierinfo["df"].copy()
+            checkdf["label"] = Settings.get(f"label_def.{checkname}.label")
+
+            # Create details column from all columns except 'value' and 'label'
+            detail_cols = [
+                col for col in checkdf.columns if col not in ["value", "label"]
+            ]
+            if detail_cols:
+                # Build details string for each row
+                details_list = []
+                for _, row in checkdf.iterrows():
+                    parts = [
+                        f"{col}: {row[col]}"
+                        for col in detail_cols
+                        if pd.notna(row[col])
+                    ]
+                    details_list.append(", ".join(parts))
+                checkdf["details"] = details_list
+                # Drop the original detail columns
+                checkdf = checkdf.drop(columns=detail_cols)
+            else:
+                checkdf["details"] = ""
+
             to_concat.append(checkdf)
 
         totaldf = save_concat(to_concat)
@@ -241,7 +282,8 @@ class SensorData:
         if totaldf.empty:
             # return empty dataframe
             totaldf = pd.DataFrame(
-                columns=["value", "label"], index=pd.DatetimeIndex([], name="datetime")
+                columns=["value", "label", "details"],
+                index=pd.DatetimeIndex([], name="datetime"),
             )
         else:
             totaldf.sort_index(inplace=True)
@@ -275,7 +317,14 @@ class SensorData:
     @property
     def tz(self):
         """Return the timezone of the stored timestamps."""
-        return self.series.index.tz
+        # Should always be SensorData._target_tz
+        cur_tz = self.series.index.tz
+        if str(cur_tz) != SensorData._target_tz:
+            raise MetObsInternalError(
+                f"Internal timezone mismatch: {cur_tz.zone} != {SensorData._target_tz}"
+            )
+
+        return cur_tz
 
     @property
     def start_datetime(self) -> pd.Timestamp:
@@ -402,27 +451,6 @@ class SensorData:
             missingrecords=timestamp_matcher.gap_records,
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
         )
-
-    def _format_timestamp_index(
-        self, timestamps: np.ndarray, tz: Union[str, pd.Timedelta]
-    ) -> pd.DatetimeIndex:
-        """
-        Format the timestamp index.
-
-        Parameters
-        ----------
-        timestamps : np.ndarray
-            Array of timestamps.
-        tz : str or pandas.Timedelta
-            Timezone of the timestamps.
-
-        Returns
-        -------
-        pd.DatetimeIndex
-            Formatted timestamp index.
-        """
-
-        return pd.DatetimeIndex(data=timestamps, tz=tz)
 
     def _update_outliers(
         self,
@@ -960,13 +988,13 @@ class SensorData:
         ntotal = self.series.shape[0]  # gaps included !!
         already_rejected = self.gapsdf.shape[0]  # initial gap records
         # add the 'ok' labels
-        infodict[label_def["goodrecord"]["label"]] = {
+        infodict[Settings.get("label_def.goodrecord.label")] = {
             "N_all": ntotal,
             "N_labeled": self.series[self.series.notnull()].shape[0],
         }
         # add the 'gap' labels
-
-        infodict[label_def["regular_gap"]["label"]] = {
+        # TODO: I think the filled and failed labels must be included as well
+        infodict[Settings.get("label_def.regular_gap.label")] = {
             "N_all": ntotal,
             "N_labeled": already_rejected,
         }
@@ -975,7 +1003,7 @@ class SensorData:
         for check in self.outliers:
             n_outliers = check["df"].shape[0]
             n_checked = ntotal - already_rejected
-            outlierlabel = label_def[check["checkname"]]["label"]
+            outlierlabel = Settings.get(f"label_def.{check['checkname']}.label")
             infodict[outlierlabel] = {
                 "N_labeled": n_outliers,
                 "N_checked": n_checked,
@@ -999,10 +1027,10 @@ class SensorData:
     @log_entry
     def fill_gap_with_modeldata(
         self,
-        modeltimeseries: "ModelTimeSeries",  # type: ignore #noqa: F821
-        method: str = Literal[
+        modeltimeseries: ModelTimeSeries,
+        method: Literal[
             "raw", "debiased", "diurnal_debiased", "weighted_diurnal_debiased"
-        ],
+        ] = "raw",
         overwrite_fill: bool = False,
         method_kwargs: dict = {},
     ) -> None:
@@ -1069,7 +1097,7 @@ class SensorData:
     def interpolate_gaps(
         self,
         method: str = "time",
-        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta(("3h")),
+        max_gap_duration_to_fill: Union[str, pd.Timedelta] = pd.Timedelta("3h"),
         n_leading_anchors: int = 1,
         n_trailing_anchors: int = 1,
         max_lead_to_gap_distance: Union[pd.Timedelta, str, None] = None,
@@ -1125,3 +1153,18 @@ class SensorData:
                 max_trail_to_gap_distance=max_trail_to_gap_distance,
                 method_kwargs=method_kwargs,
             )
+
+
+def _format_timestamp_index(
+    timestamps: np.ndarray,
+    input_tz: Union[tzfile | tzinfo | str],
+) -> pd.DatetimeIndex:
+
+    # Localize the timestamps with the input timezone (to timezone aware)
+    dt_index = timestamps_to_datetimeindex(
+        timestamps=timestamps,
+        current_tz=input_tz,
+        name="datetime",
+    )
+    # Convert to the tz to store in (default is UTC)
+    return convert_timezone(dt_index, target_tz=SensorData._target_tz)
