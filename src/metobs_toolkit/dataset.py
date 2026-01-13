@@ -2068,19 +2068,17 @@ class Dataset:
         * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
         * White-listed records from the WhiteSet participate in all buddy check calculations but are not flagged as outliers in the final results.
 
+        See Also
+        --------
+        buddy_check_with_safetynets : Buddy check with configurable safety nets.
+
         """
-
-        instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
-        if (lapserate is not None) | (max_alt_diff is not None):
-            if not all([sta.site.flag_has_altitude() for sta in self.stations]):
-                raise MetObsMetadataNotFound(
-                    "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
-                )
-
-        qc_kwargs = dict(
+        # Delegate to buddy_check_with_safetynets with no safety nets
+        self.buddy_check_with_safetynets(
             obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
-            spatial_min_sample_size=min_sample_size,
+            safety_net_configs=None,
+            min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
             min_std=min_std,
             spatial_z_threshold=spatial_z_threshold,
@@ -2088,68 +2086,8 @@ class Dataset:
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             whiteset=whiteset,
-            safety_net_configs=None,  # No safety nets for basic buddy_check
-            # technical
             use_mp=use_mp,
         )
-
-        # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, obstype=obstype
-        )
-        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
-
-        outlierslist, timestamp_map = toolkit_buddy_check(
-            target_stations=target_stations, metadf=metadf, **qc_kwargs
-        )
-        # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
-        # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
-        # timestamps to the original timestamps
-
-        # convert to a dataframe
-        alloutliersdf = pd.DataFrame(
-            data=outlierslist, columns=["name", "datetime", "detail_msg"]
-        )
-
-        # Handle duplicates
-        # Note: duplicates can occur when a specific record was part of more than one
-        # outlier group, and is flagged by more than one group. If so, keep the
-        # first row, but concat the detail_msg's (since they describe the outlier group)
-
-        if not alloutliersdf.empty:
-            # Group by name and datetime, concatenate detail_msg for duplicates
-            alloutliersdf = (
-                alloutliersdf.groupby(["name", "datetime"], as_index=False)
-                .agg({"detail_msg": lambda x: " | ".join(x)})
-                .reset_index(drop=True)
-            )
-
-        # update all the sensordata
-        for station in target_stations:
-            # Get the sensordata object
-            sensorddata = station.get_sensor(obstype)
-
-            # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(
-                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
-            )
-
-            if not outldt.empty:
-                # convert to original timestamps
-                dtmap = timestamp_map[station.name]
-                outldt = outldt.map(dtmap)
-
-            # update the sensordata
-            sensorddata._update_outliers(
-                qccheckname="buddy_check",
-                outliertimestamps=outldt,
-                check_kwargs=qc_kwargs,
-                extra_columns={
-                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
-                        "detail_msg"
-                    ].to_numpy()
-                },
-            )
 
     @log_entry
     def buddy_check_with_LCZ_safety_net(*args):
@@ -2361,9 +2299,11 @@ class Dataset:
 
         """
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
-
+        
         # Validate that the required metadata columns exist
         if safety_net_configs:
+            if not isinstance(safety_net_configs, list):
+                raise TypeError("safety_net_configs must be a list of dicts.")
             required_categories = set(cfg["category"] for cfg in safety_net_configs)
             for category in required_categories:
                 if category == "LCZ":
@@ -2409,58 +2349,15 @@ class Dataset:
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
-        outlierslist, timestamp_map = toolkit_buddy_check(
+        qcresuldict = toolkit_buddy_check(
             target_stations=target_stations, metadf=metadf, **qc_kwargs
         )
 
-        # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
-        # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
-        # timestamps to the original timestamps
+        for staname, qcres in qcresuldict.items():
+            sensordata = self.get_station(staname).get_sensor(obstype)
+            sensordata._update_outliers_NEW(qcresult=qcres, overwrite=False)
+        
 
-        # convert to a dataframe
-        alloutliersdf = pd.DataFrame(
-            data=outlierslist, columns=["name", "datetime", "detail_msg"]
-        )
-
-        # Handle duplicates
-        # Note: duplicates can occur when a specific record was part of more than one
-        # outlier group, and is flagged by more than one group. If so, keep the
-        # first row, but concat the detail_msg's (since they describe the outlier group)
-
-        if not alloutliersdf.empty:
-            # Group by name and datetime, concatenate detail_msg for duplicates
-            alloutliersdf = (
-                alloutliersdf.groupby(["name", "datetime"], as_index=False)
-                .agg({"detail_msg": lambda x: " | ".join(x)})
-                .reset_index(drop=True)
-            )
-
-        # update all the sensordata
-        for station in target_stations:
-            # Get the sensordata object
-            sensorddata = station.get_sensor(obstype)
-
-            # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(
-                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
-            )
-
-            if not outldt.empty:
-                # convert to original timestamps
-                dtmap = timestamp_map[station.name]
-                outldt = outldt.map(dtmap)
-
-            # update the sensordata
-            sensorddata._update_outliers(
-                qccheckname="buddy_check_with_safetynets",
-                outliertimestamps=outldt,
-                check_kwargs=qc_kwargs,
-                extra_columns={
-                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
-                        "detail_msg"
-                    ].to_numpy()
-                },
-            )
 
     @copy_doc(Station.get_qc_stats)
     @log_entry
