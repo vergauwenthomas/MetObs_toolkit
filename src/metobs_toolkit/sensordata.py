@@ -33,6 +33,13 @@ from metobs_toolkit.backend_collection.errorclasses import (
     MetObsAdditionError,
     MetObsInternalError,
 )
+from metobs_toolkit.qcresult import (
+    QCresult,
+    pass_cond,
+    flagged_cond,
+    unmet_cond,
+    saved_cond,
+)
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
 
@@ -108,7 +115,7 @@ class SensorData:
         self.series = data  # datetime as index
 
         # outliers
-        self.outliers = []  # List of {'checkname': ..., 'df': ....., 'settings': }
+        self.outliers = []  # List of QCresult
 
         # gaps
         self.gaps = []  # list of Gap's
@@ -143,6 +150,7 @@ class SensorData:
         """Return a string representation of the SensorData object."""
         return f"{self.obstype.name} data of station {self.stationname}."
 
+    #TODO: update this method to handle QCresult outliers
     def __add__(self, other: "SensorData") -> "SensorData":
         """
         Combine two SensorData objects for the same station and obstype.
@@ -245,36 +253,14 @@ class SensorData:
     def to_xr(self) -> xrDataset:
         return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
+    #TODO: update this method to handle QCresult outliers
     @property
     def outliersdf(self) -> pd.DataFrame:
         """Return a DataFrame of the outlier records."""
         logger.debug("Creating outliers DataFrame for %s", self.stationname)
         to_concat = []
-        for outlierinfo in self.outliers:
-            checkname = outlierinfo["checkname"]
-            checkdf = outlierinfo["df"].copy()
-            checkdf["label"] = Settings.get(f"label_def.{checkname}.label")
-
-            # Create details column from all columns except 'value' and 'label'
-            detail_cols = [
-                col for col in checkdf.columns if col not in ["value", "label"]
-            ]
-            if detail_cols:
-                # Build details string for each row
-                details_list = []
-                for _, row in checkdf.iterrows():
-                    parts = [
-                        f"{col}: {row[col]}"
-                        for col in detail_cols
-                        if pd.notna(row[col])
-                    ]
-                    details_list.append(", ".join(parts))
-                checkdf["details"] = details_list
-                # Drop the original detail columns
-                checkdf = checkdf.drop(columns=detail_cols)
-            else:
-                checkdf["details"] = ""
-
+        for qcresult in self.outliers:
+            checkdf = qcresult.create_outliersdf()
             to_concat.append(checkdf)
 
         totaldf = save_concat(to_concat)
@@ -285,8 +271,8 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
-        else:
-            totaldf.sort_index(inplace=True)
+        
+        totaldf.sort_index(inplace=True)
 
         logger.debug("Outliers DataFrame created successfully for %s", self.stationname)
         return totaldf
@@ -401,10 +387,15 @@ class SensorData:
             self.duplicated_timestamp_check()
 
         if apply_invalid_check:
-            # invalid check
-            self.invalid_value_check(
-                skip_records=self.outliers[0]["df"].index
-            )  # skip the records already labeled as duplicates
+            # get the records that are flagged by the
+            if self.outliers[0].checkname =='duplicated_timestamp':
+                dup_outl_ti = self.outliers[0].get_outlier_timestamps()
+            else:
+                dup_outl_ti = pd.DatetimeIndex([])
+            # invalid check (no qcresult, these timestamps are removed, and catched by gapcheck)
+            valid_records = qc.drop_invalid_values(records=self.series,
+                                                   skip_records=dup_outl_ti)
+            self.series = valid_records
 
         if apply_unit_conv:
             # convert units to standard units
@@ -427,16 +418,8 @@ class SensorData:
 
         # update the outliers (replace the raw timestamps with the new)
         outl_datetime_map = timestamp_matcher.get_outlier_map()
-        for outlinfo in self.outliers:
-            outlinfo["df"]["new_datetime"] = outlinfo["df"].index.map(outl_datetime_map)
-            outlinfo["df"] = (
-                outlinfo["df"]
-                .reset_index()
-                .rename(
-                    columns={"datetime": "raw_timestamp", "new_datetime": "datetime"}
-                )
-                .set_index("datetime")
-            )
+        for qcresult in self.outliers:
+            qcresult.remap_timestamps(mapping=outl_datetime_map)
 
         # create gaps
 
@@ -451,61 +434,73 @@ class SensorData:
             missingrecords=timestamp_matcher.gap_records,
             target_freq=pd.to_timedelta(timestamp_matcher.target_freq),
         )
+        
+    def _update_outliers_NEW(self,
+                             qcresult: QCresult,
+                             overwrite: bool = False) -> None:
+        
+        #add the results to the outliers list
+        self.outliers.append(qcresult)
+        
+        #convert the outlier timestamps to NaN in the series
+        self.series.loc[qcresult.get_outlier_timestamps()] = np.nan
+        
+        
+    # #TODO: delete this method
+    # def _update_outliers(
+    #     self,
+    #     qccheckname: str,
+    #     outliertimestamps: pd.DatetimeIndex,
+    #     check_kwargs: dict,
+    #     extra_columns: dict = {},
+    #     overwrite: bool = False,
+    # ) -> None:
+    #     """
+    #     Update the outliers attribute.
 
-    def _update_outliers(
-        self,
-        qccheckname: str,
-        outliertimestamps: pd.DatetimeIndex,
-        check_kwargs: dict,
-        extra_columns: dict = {},
-        overwrite: bool = False,
-    ) -> None:
-        """
-        Update the outliers attribute.
+    #     Parameters
+    #     ----------
+    #     qccheckname : str
+    #         Name of the quality control check.
+    #     outliertimestamps : pd.DatetimeIndex
+    #         Datetime index of the outliers.
+    #     check_kwargs : dict
+    #         Additional arguments for the check.
+    #     extra_columns : dict, optional
+    #         Extra columns to add to the outliers DataFrame, by default {}.
+    #     overwrite : bool, optional
+    #         Whether to overwrite existing outliers, by default False.
 
-        Parameters
-        ----------
-        qccheckname : str
-            Name of the quality control check.
-        outliertimestamps : pd.DatetimeIndex
-            Datetime index of the outliers.
-        check_kwargs : dict
-            Additional arguments for the check.
-        extra_columns : dict, optional
-            Extra columns to add to the outliers DataFrame, by default {}.
-        overwrite : bool, optional
-            Whether to overwrite existing outliers, by default False.
+    #     Raises
+    #     ------
+    #     MetobsQualityControlError
+    #         If the check is already applied and overwrite is False.
+    #     """
+    #     logger.debug(
+    #         "Entering _update_outliers for %s with check %s", self, qccheckname
+    #     )
 
-        Raises
-        ------
-        MetobsQualityControlError
-            If the check is already applied and overwrite is False.
-        """
-        logger.debug(
-            "Entering _update_outliers for %s with check %s", self, qccheckname
-        )
+    #     for applied_qc_info in self.outliers:
+    #         if qccheckname == applied_qc_info.keys():
+    #             if overwrite:
+    #                 self.outliers.remove(applied_qc_info)
+    #             else:
+    #                 raise MetObsQualityControlError(
+    #                     f"The {qccheckname} is already applied on {self}. Fix error or set overwrite=True"
+    #                 )
 
-        for applied_qc_info in self.outliers:
-            if qccheckname == applied_qc_info.keys():
-                if overwrite:
-                    self.outliers.remove(applied_qc_info)
-                else:
-                    raise MetObsQualityControlError(
-                        f"The {qccheckname} is already applied on {self}. Fix error or set overwrite=True"
-                    )
+    #     outlier_values = self.series.loc[outliertimestamps]
+    #     outlier_values = outlier_values[~outlier_values.index.duplicated(keep="first")]
 
-        outlier_values = self.series.loc[outliertimestamps]
-        outlier_values = outlier_values[~outlier_values.index.duplicated(keep="first")]
+    #     datadict = {"value": outlier_values.to_numpy()}
+    #     datadict.update(extra_columns)
+    #     df = pd.DataFrame(data=datadict, index=outlier_values.index)
 
-        datadict = {"value": outlier_values.to_numpy()}
-        datadict.update(extra_columns)
-        df = pd.DataFrame(data=datadict, index=outlier_values.index)
+    #     self.outliers.append(
+    #         {"checkname": qccheckname, "df": df, "settings": check_kwargs}
+    #     )
 
-        self.outliers.append(
-            {"checkname": qccheckname, "df": df, "settings": check_kwargs}
-        )
-
-        self.series.loc[outliertimestamps] = np.nan
+    #     self.series.loc[outliertimestamps] = np.nan
 
     def _find_gaps(self, missingrecords: pd.Series, target_freq: pd.Timedelta) -> list:
         """
@@ -553,6 +548,7 @@ class SensorData:
             gap.name = str(trgname)
 
     @log_entry
+    #TODO: update this method to handle QCresult outliers
     def convert_outliers_to_gaps(self) -> None:
         """
         Convert all outliers to gaps.
@@ -646,19 +642,20 @@ class SensorData:
         # update the outliers (replace the raw timestamps with the new)
         outl_datetime_map = timestampmatcher.get_outlier_map()
         for outlinfo in self.outliers:
-            # add mapped timestamps
-            outlinfo["df"]["new_datetime"] = outlinfo["df"].index.map(outl_datetime_map)
-            # reformat the dataframe
-            outlinfo["df"] = (
-                outlinfo["df"]
-                .reset_index()
-                .rename(
-                    columns={"datetime": "raw_timestamp", "new_datetime": "datetime"}
-                )
-                .set_index("datetime")
-            )
-            # Drop references to NaT datetimes (when qc is applied before resampling)
-            outlinfo["df"] = outlinfo["df"].loc[outlinfo["df"].index.notnull()]
+            outlinfo.remap_timestamps(mapping=outl_datetime_map)
+            # # add mapped timestamps
+            # outlinfo["df"]["new_datetime"] = outlinfo["df"].index.map(outl_datetime_map)
+            # # reformat the dataframe
+            # outlinfo["df"] = (
+            #     outlinfo["df"]
+            #     .reset_index()
+            #     .rename(
+            #         columns={"datetime": "raw_timestamp", "new_datetime": "datetime"}
+            #     )
+            #     .set_index("datetime")
+            # )
+            # # Drop references to NaT datetimes (when qc is applied before resampling)
+            # outlinfo["df"] = outlinfo["df"].loc[outlinfo["df"].index.notnull()]
 
         # create gaps
         orig_gapsdf = self.gapsdf
@@ -784,49 +781,7 @@ class SensorData:
     #    Quality Control (technical qc + value-based qc)
     # ------------------------------------------
 
-    @log_entry
-    def invalid_value_check(self, skip_records: pd.DatetimeIndex) -> None:
-        """
-        Check for invalid values in the series.
-
-        Invalid values are those that could not be cast to numeric.
-
-        Parameters
-        ----------
-        skip_records : pd.DatetimeIndex
-            Records to skip during the check.
-
-        Raises
-        ------
-        MetobsQualityControlError
-            If the check is already applied.
-        """
-
-        skipped_data = self.series.loc[skip_records]
-        targets = self.series.drop(skip_records)
-
-        # Option 1: Create a outlier label for these invalid inputs,
-        # and treath them as outliers
-        # outlier_timestamps = targets[~targets.notnull()]
-
-        # self._update_outliers(
-        #     qccheckname="invalid_input",
-        #     outliertimestamps=outlier_timestamps.index,
-        #     check_kwargs={},
-        #     extra_columns={},
-        #     overwrite=False,
-        # )
-
-        # Option 2: Since there is not numeric value present, these timestamps are
-        # interpreted as gaps --> remove the timestamp, so that it is captured by the
-        # gap finder.
-
-        # Note: do not treat the first/last timestamps differently. That is
-        # a philosiphycal choice.
-
-        self.series = targets[targets.notnull()]  # subset to numerical casted values
-        # add the skipped records back
-        self.series = pd.concat([self.series, skipped_data]).sort_index()
+    
 
     @log_entry
     def duplicated_timestamp_check(self) -> None:
@@ -838,22 +793,17 @@ class SensorData:
         MetobsQualityControlError
             If the check is already applied.
         """
-
-        duplicates = pd.Series(
-            data=self.series.index.duplicated(keep=False), index=self.series.index
-        )
-        duplicates = duplicates.loc[duplicates]
-        duplicates = duplicates[duplicates.index.duplicated(keep="first")]
-
-        self._update_outliers(
-            qccheckname="duplicated_timestamp",
-            outliertimestamps=duplicates.index,
-            check_kwargs={},
-            extra_columns={},
-            overwrite=False,
-        )
-
+        qcresult = qc.duplicated_timestamp_check(records=self.series)
+        
+        #drop duplicates for the series, keep only the first occurrence
+        #(These values will then be put to Nan in the update)
         self.series = self.series[~self.series.index.duplicated(keep="first")]
+        
+        #Update the outliers
+        self._update_outliers_NEW(qcresult=qcresult, overwrite=False)
+        
+
+        
 
     @log_entry
     def gross_value_check(self, **qckwargs) -> None:
@@ -866,12 +816,9 @@ class SensorData:
             Additional keyword arguments for the check.
         """
 
-        outlier_timestamps = qc.gross_value_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qccheckname="gross_value",
-            outliertimestamps=outlier_timestamps,
-            check_kwargs={**qckwargs},
-            extra_columns={},
+        qcresult = qc.gross_value_check(records=self.series, **qckwargs)
+        self._update_outliers_NEW(
+            qcresult=qcresult,
             overwrite=False,
         )
 
@@ -886,13 +833,9 @@ class SensorData:
             Additional keyword arguments for the check.
         """
 
-        outlier_timestamps = qc.persistence_check(records=self.series, **qckwargs)
-
-        self._update_outliers(
-            qccheckname="persistence",
-            outliertimestamps=outlier_timestamps,
-            check_kwargs={**qckwargs},
-            extra_columns={},
+        qcresult = qc.persistence_check(records=self.series, **qckwargs)
+        self._update_outliers_NEW(
+            qcresult=qcresult,
             overwrite=False,
         )
 
@@ -907,13 +850,9 @@ class SensorData:
             Additional keyword arguments for the check.
         """
 
-        outlier_timestamps = qc.repetitions_check(records=self.series, **qckwargs)
-
-        self._update_outliers(
-            qccheckname="repetitions",
-            outliertimestamps=outlier_timestamps,
-            check_kwargs={**qckwargs},
-            extra_columns={},
+        qcresult = qc.repetitions_check(records=self.series, **qckwargs)
+        self._update_outliers_NEW(
+            qcresult=qcresult,
             overwrite=False,
         )
 
@@ -928,13 +867,9 @@ class SensorData:
             Additional keyword arguments for the check.
         """
 
-        outlier_timestamps = qc.step_check(records=self.series, **qckwargs)
-
-        self._update_outliers(
-            qccheckname="step",
-            outliertimestamps=outlier_timestamps,
-            check_kwargs={**qckwargs},
-            extra_columns={},
+        qcresult = qc.step_check(records=self.series, **qckwargs)
+        self._update_outliers_NEW(
+            qcresult=qcresult,
             overwrite=False,
         )
 
@@ -949,13 +884,9 @@ class SensorData:
             Additional keyword arguments for the check.
         """
 
-        outlier_timestamps = qc.window_variation_check(records=self.series, **qckwargs)
-
-        self._update_outliers(
-            qccheckname="window_variation",
-            outliertimestamps=outlier_timestamps,
-            check_kwargs={**qckwargs},
-            extra_columns={},
+        qcresult = qc.window_variation_check(records=self.series, **qckwargs)
+        self._update_outliers_NEW(
+            qcresult=qcresult,
             overwrite=False,
         )
 

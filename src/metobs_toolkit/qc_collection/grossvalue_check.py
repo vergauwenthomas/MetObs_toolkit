@@ -2,9 +2,10 @@ import logging
 from typing import Union
 import pandas as pd
 
-
+from .common_functions import create_qcresult_flags
 from .whitelist import SensorWhiteSet
 from metobs_toolkit.backend_collection.decorators import log_entry
+from metobs_toolkit.qcresult import QCresult
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -15,7 +16,7 @@ def gross_value_check(
     lower_threshold: Union[int, float],
     upper_threshold: Union[int, float],
     sensorwhiteset: SensorWhiteSet,
-) -> pd.DatetimeIndex:
+) -> QCresult:
     """
     Identify outliers in a time series based on lower and upper thresholds.
 
@@ -34,21 +35,42 @@ def gross_value_check(
 
     Returns
     -------
-    pd.DatetimeIndex
-        Timestamps of outlier records.
-
-
+    QCresult
+        Quality control result object containing flags, outliers, and details
+        for the gross value check.
     """
 
     # Drop NaN values
-    records = records.dropna()
+    to_check_records = records.dropna()
     # Identify outliers
-    outliers_idx = records[
-        (records < lower_threshold) | (records > upper_threshold)
+    outliers_idx = to_check_records[
+        (to_check_records < lower_threshold) | (to_check_records > upper_threshold)
     ].index
 
     # Exclude white records if provided
-    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
 
-    logger.debug("Exiting function gross_value_check.")
-    return outliers_idx
+    # Create QCresult flags
+    flags = create_qcresult_flags(
+        all_input_records=records,
+        unmet_cond_idx = pd.DatetimeIndex([]),
+        outliers_before_white_idx=outliers_idx,
+        outliers_after_white_idx=outliers_after_white_idx,
+    )
+
+    qcresult = QCresult(
+        checkname="gross_value",
+        checksettings=locals().pop('records', None),
+        flags=flags,
+        outliers = records.loc[outliers_after_white_idx],
+        detail='no details'
+        )
+    
+    #Create and add details
+    if not outliers_after_white_idx.empty:
+        detailseries = pd.Series(
+            data = 'value outside gross value thresholds [' + str(lower_threshold) + ', ' + str(upper_threshold) + ']',
+            index = outliers_after_white_idx
+        )
+        qcresult.add_details_by_series(detail_series = detailseries)
+    return qcresult

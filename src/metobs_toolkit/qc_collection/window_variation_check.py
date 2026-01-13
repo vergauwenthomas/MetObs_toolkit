@@ -1,9 +1,11 @@
 import logging
 from typing import Union
 import pandas as pd
+from numpy import nan
 
-from .common_functions import test_moving_window_condition
+from .common_functions import test_moving_window_condition, create_qcresult_flags
 from .whitelist import SensorWhiteSet
+from metobs_toolkit.qcresult import QCresult
 from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
@@ -20,11 +22,11 @@ def window_variation_check(
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
     sensorwhiteset: SensorWhiteSet,
-) -> pd.DatetimeIndex:
+) -> QCresult:
     """
     Test if the increase or decrease in a time window exceeds a threshold.
 
-    This function checks if the variation of observations in time does not exceed a threshold.
+    This function checks if the variation of observations in time does exceeds a threshold.
     It applies a moving window over the time series, defined by a duration (`timewindow`), and tests
     if the window contains at least a minimum number of records (`min_records_per_window`).
 
@@ -74,9 +76,12 @@ def window_variation_check(
     if max_increase_per_second < 0:
         raise ValueError("max_increase_per_second must be positive!")
 
+    # Drop outliers from the series (these are NaNs)
+    to_check_records = records.dropna()
+    
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
-        records=records,
+        records=records, #pass records, because freq is estimated
         windowsize=timewindow,
         min_records_per_window=min_records_per_window,
     )
@@ -84,10 +89,25 @@ def window_variation_check(
         logger.warning(
             "The minimum number of window members for the window variation check is not met!"
         )
-        return timestamps_to_datetimeindex(timestamps=[], name="datetime")
+        flags = create_qcresult_flags(
+            all_input_records=records,
+            unmet_cond_idx=to_check_records.index,
+            outliers_before_white_idx=pd.DatetimeIndex([]),
+            outliers_after_white_idx=pd.DatetimeIndex([]),
+        )
+        
+        qcresult = QCresult(
+            checkname="window_variation",
+            checksettings=locals().pop('records', None),
+            flags=flags,
+            outliers=timestamps_to_datetimeindex(
+                name="datetime", timestamps=[], current_tz=None
+                ),
+            detail="Minimum number of records per window not met.",
+        )
+        return qcresult
 
-    # Drop outliers from the series (these are NaNs)
-    input_series = records.dropna()
+    
 
     # Calculate window thresholds (by linear extrapolation)
     max_window_increase = (
@@ -126,17 +146,45 @@ def window_variation_check(
             return 0
 
     # Apply rolling window
-    window_outliers = input_series.rolling(
+    window_flags = to_check_records.rolling(
         window=timewindow,
         closed="both",
         center=True,
         min_periods=min_records_per_window,
     ).apply(variation_test)
 
-    outliers_idx = window_outliers.loc[window_outliers == 1].index
-
+    # The returns are numeric values (0 --> oke, NaN --> not checked (members/window condition not met), 1 --> outlier)
+    window_flags = window_flags.map(
+        {0.0: 'pass', #Dummy label
+         nan: 'unmet', #Dummy label
+         1.0: 'flagged'}) #Dummy label     
+    
+    # Filter outliers
+    outliers_idx = window_flags.loc[window_flags == 'flagged'].index
     # Catch the white records
-    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
 
-    logger.debug("Exiting function window_variation_check")
-    return outliers_idx
+    #Create flags
+    flags = create_qcresult_flags(
+        all_input_records=records,
+        unmet_cond_idx=window_flags[window_flags == 'unmet'].index,    
+        outliers_before_white_idx=outliers_idx,
+        outliers_after_white_idx=outliers_after_white_idx)
+    
+    qcresult = QCresult(
+        checkname="window_variation",
+        checksettings=locals().pop('records', None),
+        flags=flags,
+        outliers = records.loc[outliers_after_white_idx],
+        detail='no details'
+        )
+    
+    #Create and add details
+    if not outliers_after_white_idx.empty:
+        detailseries = pd.Series(
+            data = f'Variation in {timewindow} window exceeds max increase of {max_window_increase} or max decrease of {max_window_decrease}.',
+            index = outliers_after_white_idx
+        )
+        qcresult.add_details_by_series(detail_series = detailseries)
+    
+    return qcresult

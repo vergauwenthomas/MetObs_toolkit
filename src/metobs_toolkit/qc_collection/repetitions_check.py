@@ -1,6 +1,8 @@
 import logging
 import pandas as pd
 
+from metobs_toolkit.qcresult import QCresult
+from .common_functions import create_qcresult_flags
 from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
@@ -15,7 +17,7 @@ def repetitions_check(
     records: pd.Series,
     max_N_repetitions: int,
     sensorwhiteset: SensorWhiteSet,
-) -> pd.DatetimeIndex:
+) -> QCresult:
     """
     Test if an observation changes after a number of repetitions.
 
@@ -33,15 +35,16 @@ def repetitions_check(
     max_N_repetitions : int
         The maximum number of repetitions allowed before the records are flagged as outliers.
         If the number of repetitions exceeds this value, all repeated records are flagged as outliers.
-    sensorwhiteset : SensorWhiteSet, optional
+    sensorwhiteset : SensorWhiteSet
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they exceed the
         max_N_repetitions threshold.
 
     Returns
     -------
-    pd.DatetimeIndex
-        Timestamps of outlier records.
+    QCresult
+        Quality control result object containing flags, outliers, and details
+        for the repetitions check.
 
     Notes
     -----
@@ -51,13 +54,13 @@ def repetitions_check(
     """
 
     # Drop outliers from the series (these are NaNs)
-    input_series = records.dropna()
+    to_check_records = records.dropna()
 
     # Create group definitions for repeating values that do not change
-    persistence_filter = ((input_series.shift() != input_series)).cumsum()
+    persistence_filter = ((to_check_records.shift() != to_check_records)).cumsum()
     persdf = pd.DataFrame(
-        data={"value": input_series, "persistgroup": persistence_filter},
-        index=input_series.index,
+        data={"value": to_check_records, "persistgroup": persistence_filter},
+        index=to_check_records.index,
     )
 
     # Find outlier groups
@@ -66,13 +69,15 @@ def repetitions_check(
     group_sizes = groups.size()
     outlier_groups = group_sizes[group_sizes > max_N_repetitions]
 
+    
+    # if outlier_groups.empty:
+    #     logger.debug("No outliers detected. Exiting repetitions_check function.")
+        
+    #     return timestamps_to_datetimeindex(
+    #         timestamps=[], name="datetime", current_tz=None
+    #     )
+    
     # Combine all outlier groups
-    if outlier_groups.empty:
-        logger.debug("No outliers detected. Exiting repetitions_check function.")
-        return timestamps_to_datetimeindex(
-            timestamps=[], name="datetime", current_tz=None
-        )
-
     outliers = pd.concat(
         [
             groups.get_group(
@@ -84,5 +89,30 @@ def repetitions_check(
     logger.debug("Outliers detected. Exiting repetitions_check function.")
 
     # Catch the white records
-    outliers_idx = sensorwhiteset.catch_white_records(outliers.index)
-    return outliers_idx
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers.index)
+    
+    # Create flags
+    flags = create_qcresult_flags(
+        all_input_records=records,
+        unmet_cond_idx = pd.DatetimeIndex([]),
+        outliers_before_white_idx=outliers.index,
+        outliers_after_white_idx=outliers_after_white_idx,
+    )
+
+    qcresult = QCresult(
+        checkname="repetitions",
+        checksettings=locals().pop('records', None),
+        flags=flags,
+        outliers = records.loc[outliers_after_white_idx],
+        detail='no details'
+        )
+    
+    #Create and add details
+    if not outliers_after_white_idx.empty:
+        detailseries = pd.Series(
+            data = 'More than ' + str(max_N_repetitions) + ' repeated values',
+            index = outliers_after_white_idx
+        )
+        qcresult.add_details_by_series(detail_series = detailseries)
+    
+    return qcresult

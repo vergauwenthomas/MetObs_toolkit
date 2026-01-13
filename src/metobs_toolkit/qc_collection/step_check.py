@@ -3,7 +3,9 @@ from typing import Union
 import pandas as pd
 
 from .whitelist import SensorWhiteSet
+from .common_functions import create_qcresult_flags
 from metobs_toolkit.backend_collection.decorators import log_entry
+from metobs_toolkit.qcresult import QCresult
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -14,7 +16,7 @@ def step_check(
     max_increase_per_second: Union[int, float],
     max_decrease_per_second: Union[int, float],
     sensorwhiteset: SensorWhiteSet,
-) -> pd.DatetimeIndex:
+) -> QCresult:
     """
     Check for 'spikes' and 'dips' in a time series.
 
@@ -35,15 +37,16 @@ def step_check(
     max_decrease_per_second : int or float
         The maximum allowed decrease (per second). This value is extrapolated to the time resolution of records.
         This value must be negative.
-    sensorwhiteset : SensorWhiteSet, optional
+    sensorwhiteset : SensorWhiteSet
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they meet the
         step check criteria.
 
     Returns
     -------
-    pd.DatetimeIndex
-        Timestamps of outlier records.
+    QCresult
+        Quality control result object containing flags, outliers, and details
+        for the step check.
 
     Notes
     -----
@@ -59,22 +62,22 @@ def step_check(
         raise ValueError("max_increase_per_second must be positive!")
 
     # Drop outliers from the series (these are NaNs)
-    input_series = records.dropna()
+    to_check_records = records.dropna()
 
     # Calculate timedelta between rows
-    time_diff = input_series.index.to_series().diff()
+    time_diff = to_check_records.index.to_series().diff()
 
     # Define filter
     step_filter = (
         # Step increase
         (
-            (input_series - input_series.shift(1))
+            (to_check_records - to_check_records.shift(1))
             > (float(max_increase_per_second) * time_diff.dt.total_seconds())
         )  # or
         |
         # Step decrease
         (
-            (input_series - input_series.shift(1))
+            (to_check_records - to_check_records.shift(1))
             < (max_decrease_per_second * time_diff.dt.total_seconds())
         )
     )
@@ -82,7 +85,31 @@ def step_check(
     outliers_idx = step_filter[step_filter].index
 
     # Catch the white records
-    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx)
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx)
 
-    logger.debug("Exiting function step_check")
-    return outliers_idx
+    flags = create_qcresult_flags(
+        all_input_records=records,
+        unmet_cond_idx = pd.DatetimeIndex([]),
+        outliers_before_white_idx=outliers_idx,
+        outliers_after_white_idx=outliers_after_white_idx,
+    )
+    
+
+    qcresult = QCresult(
+        checkname="step",
+        checksettings=locals().pop('records', None),
+        flags=flags,
+        outliers = records.loc[outliers_after_white_idx],
+        detail='no details'
+        )
+    
+    #Create and add details
+    if not outliers_after_white_idx.empty:
+        detailseries = pd.Series(
+            data = 'step >' + str(max_increase_per_second) + ' per second or step <' + str(max_decrease_per_second) + ' per second',
+            index = outliers_after_white_idx
+        )
+        qcresult.add_details_by_series(detail_series = detailseries)
+    return qcresult
+    
+    

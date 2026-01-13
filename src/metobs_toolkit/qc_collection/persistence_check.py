@@ -3,8 +3,14 @@ import logging
 import numpy as np
 import pandas as pd
 
-from .common_functions import test_moving_window_condition
+from .common_functions import test_moving_window_condition, create_qcresult_flags
 from .whitelist import SensorWhiteSet
+from metobs_toolkit.qcresult import (
+    QCresult,
+    pass_cond,
+    flagged_cond,
+    unmet_cond,
+)
 from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
@@ -19,7 +25,7 @@ def persistence_check(
     timewindow: pd.Timedelta,
     min_records_per_window: int,
     sensorwhiteset: SensorWhiteSet,
-) -> pd.DatetimeIndex:
+) -> QCresult:
     """
     Check if values are not constant in a moving time window.
 
@@ -35,15 +41,16 @@ def persistence_check(
         The size of the rolling time window to check for persistence.
     min_records_per_window : int
         The minimum number of non-NaN records required within the time window for the check to be valid.
-    sensorwhiteset : SensorWhiteSet, optional
+    sensorwhiteset : SensorWhiteSet
         A SensorWhiteSet instance containing timestamps that should be excluded from outlier detection.
         Records matching the whiteset criteria will not be flagged as outliers even if they meet the
         persistence criteria.
 
     Returns
     -------
-    pd.DatetimeIndex
-        Timestamps of outlier records.
+    QCresult
+        Quality control result object containing flags, outliers, and details
+        for the persistence check.
 
     Notes
     -----
@@ -60,9 +67,10 @@ def persistence_check(
     returns an empty DatetimeIndex.
     """
 
+    to_check_records = records.dropna() # Exclude outliers and gaps
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
-        records=records,
+        records=records, #pass records, because freq is estimated
         windowsize=timewindow,
         min_records_per_window=min_records_per_window,
     )
@@ -70,12 +78,26 @@ def persistence_check(
         logger.warning(
             "The minimum number of window members for the persistence check is not met!"
         )
-        return timestamps_to_datetimeindex(
-            name="datetime", timestamps=[], current_tz=None
+        flags = create_qcresult_flags(
+            all_input_records=records,
+            unmet_cond_idx=to_check_records.index,
+            outliers_before_white_idx=pd.DatetimeIndex([]),
+            outliers_after_white_idx=pd.DatetimeIndex([]),
         )
+        qcresult = QCresult(
+            checkname="persistence",
+            checksettings=locals().pop('records', None),
+            flags=flags,
+            outliers=timestamps_to_datetimeindex(
+                name="datetime", timestamps=[], current_tz=None
+                ),
+            detail="Minimum number of records per window not met.",
+        )
+        return qcresult
+            
 
     # Apply persistence
-    @log_entry
+    
     def is_unique(window: pd.Series) -> bool:
         """
         Check if all non-NaN values in the window are identical.
@@ -95,8 +117,9 @@ def persistence_check(
         return (a[0] == a).all() if len(a) > 0 else False
 
     # This is very expensive if no coarsening is applied! Can we speed this up?
-    window_is_constant = (
-        records.dropna()  # Exclude outliers and gaps
+    
+    window_flags = (
+        to_check_records  
         .rolling(
             window=timewindow,
             closed="both",
@@ -105,13 +128,38 @@ def persistence_check(
         )
         .apply(is_unique)
     )
-    # The returns are numeric values (0 --> False, NaN --> not checked (members/window condition not met), 1 --> outlier)
-    window_is_constant = window_is_constant.map({0.0: False, np.nan: False, 1.0: True})
-
-    outliers_idx = window_is_constant[window_is_constant].index
+    # The returns are numeric values (0 --> oke, NaN --> not checked (members/window condition not met), 1 --> outlier)
+    window_flags = window_flags.map(
+        {0.0: pass_cond,
+         np.nan: unmet_cond,
+         1.0: flagged_cond})        
+    
+    outliers_idx = window_flags[window_flags == flagged_cond].index
 
     # Catch the white records
-    outliers_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
-
-    logger.debug("Exiting function persistence_check")
-    return outliers_idx
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+   
+    #Create flags
+    flags = create_qcresult_flags(
+        all_input_records=records,
+        unmet_cond_idx=window_flags[window_flags == unmet_cond].index,    
+        outliers_before_white_idx=outliers_idx,
+        outliers_after_white_idx=outliers_after_white_idx)
+    
+    qcresult = QCresult(
+        checkname="persistence",
+        checksettings=locals().pop('records', None),
+        flags=flags,
+        outliers = records.loc[outliers_after_white_idx],
+        detail='no details'
+        )
+    
+    #Create and add details
+    if not outliers_after_white_idx.empty:
+        detailseries = pd.Series(
+            data = 'constant values in timewindow of ' + str(timewindow),
+            index = outliers_after_white_idx
+        )
+        qcresult.add_details_by_series(detail_series = detailseries)
+    
+    return qcresult
