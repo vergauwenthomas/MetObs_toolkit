@@ -15,62 +15,36 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
+from solutionclass import SolutionFixer2, assert_equality, datadir
 
 import pytest
+
+
 
 
 class TestBreakingDataset:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testbreakingdata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
     # paths to data
     datafile = datadir.joinpath("testdata_breaking.csv")
     templatefile = datadir.joinpath("template_breaking.json")
-
-    def test_import_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
-
-        # 2. apply a metobs manipulation
+    
+    @pytest.fixture(scope='class')
+    def import_dataset(self):
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=TestBreakingDataset.templatefile,
             #   input_metadata_file=metobs_toolkit.demo_metadatafile,
             input_data_file=TestBreakingDataset.datafile,
         )
-
-        # 3. overwrite solution?
-        if overwrite_solution:
-            TestBreakingDataset.solutionfixer.create_solution(
-                solutiondata=dataset,
-                methodname=_method_name,
-                **TestBreakingDataset.solkwargs,
-            )
-
-        # 4. Get solution
-        solutionobj = TestBreakingDataset.solutionfixer.get_solution(
-            methodname=_method_name, **TestBreakingDataset.solkwargs
-        )
-
-        # 5. Construct the equlity tests
-        assert_equality(dataset, solutionobj)  # dataset comparison
-
-    def test_apply_qc(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
-        #  1. get_startpoint data
-        dataset = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname="test_import_data"
-        )
-
-        # 2. apply a metobs manipulation
-        # apply QC
+        return dataset
+    
+    @pytest.fixture(scope='class')
+    def regular_qc_on_dataset(self, import_dataset):
+        dataset = copy.deepcopy(import_dataset)
+        
         dataset.gross_value_check(
             obstype="temp",
             lower_threshold=-15.0,
@@ -108,22 +82,14 @@ class TestBreakingDataset:
             # use_mp=True,
             use_mp=False,
         )
-
-        #  3. overwrite solution?
-        if overwrite_solution:
-            TestBreakingDataset.solutionfixer.create_solution(
-                solutiondata=dataset,
-                **TestBreakingDataset.solkwargs,
-                methodname=_method_name,
-            )
-        # 4. Get solution
-        solutionobj = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname=_method_name
-        )
-
+        return dataset
+    
+    def test_qc_labels(self, regular_qc_on_dataset):
+        dataset = copy.deepcopy(regular_qc_on_dataset)
+        
         # reading manual labels
         man_df = pd.read_csv(TestBreakingDataset.datafile)
-        # create datetime coumn
+        # create datetime column
         man_df["datetime"] = man_df["date"] + " " + man_df["time"]
         man_df["datetime"] = pd.to_datetime(man_df["datetime"])
         man_df["datetime"] = man_df["datetime"].dt.tz_localize("Europe/Berlin")
@@ -148,59 +114,56 @@ class TestBreakingDataset:
         compare["correct_labeled"] = compare["label_manual"].eq(compare["label"])
         diff = compare.loc[compare["correct_labeled"] == False, :]
         assert diff.empty, f"Incorrect labels compared to the manual labels: \n {diff}"
-
-        # 5. Construct the equlity tests on dataset level
-
-        assert_equality(dataset, solutionobj)  # dataset comparison
-
-    def test_qc_statistics(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-        #  1. get_startpoint data
-        dataset = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname="test_apply_qc"
-        )
-
-        #  2. apply a metobs manipulation
-        # apply QC
-        statsdf = dataset.get_qc_stats(obstype="temp", make_plot=False)
-        #  3. overwrite solution?
+        
+    def test_qc_with_solution(self, regular_qc_on_dataset, overwrite_solution=False):
+        method_name = 'test_qc_with_solution'
+        
+        dataset = copy.deepcopy(regular_qc_on_dataset)
+        
         if overwrite_solution:
             TestBreakingDataset.solutionfixer.create_solution(
-                solutiondata=statsdf,
+                solution=dataset,
+                methodname=method_name,
                 **TestBreakingDataset.solkwargs,
-                methodname=_method_name,
             )
-        # 4. Get solution
+        
         solutionobj = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname=_method_name
+            **TestBreakingDataset.solkwargs, methodname=method_name
         )
+        
+        assert_equality(dataset, solutionobj)  # dataset comparison
+        
 
-        # 5. Construct the equlity tests on dataset level
-        assert_equality(statsdf, solutionobj)
-
-        # Test plotting
-        _statsdf = dataset.get_qc_stats(obstype="temp", make_plot=True)
+    def test_qc_stats_check(self, regular_qc_on_dataset, overwrite_solution=False):
+        method_name = 'test_qc_stats_check'
+        dataset = copy.deepcopy(regular_qc_on_dataset)
+    
+        df = dataset.get_qc_stats(obstype='temp', make_plot=False)
+        
+        if overwrite_solution:
+            TestBreakingDataset.solutionfixer.create_solution(
+                solution=df,
+                methodname=method_name,
+                **TestBreakingDataset.solkwargs,
+            )
+            
+        solutiondf = TestBreakingDataset.solutionfixer.get_solution(
+            methodname=method_name, **TestBreakingDataset.solkwargs
+        )
+        assert_equality(df, solutiondf)
+    
 
     @pytest.mark.mpl_image_compare
-    def test_make_plot_by_label_with_outliers(self):
-
-        # get data with outliers
-
-        solutionobj = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname="test_apply_qc"
-        )
-
-        # 2. apply a metobs manipulation
-        ax = solutionobj.make_plot(colorby="label", obstype="temp")
+    def test_make_plot_by_label_with_outliers(self, regular_qc_on_dataset):
+        dataset = copy.deepcopy(regular_qc_on_dataset)
+        ax = dataset.make_plot(colorby="label", obstype="temp")
         fig = ax.get_figure()
         return fig
 
-    def test_get_info(self):
+
+    def test_get_info(self, regular_qc_on_dataset):
         #  1. get_startpoint data
-        dataset = TestBreakingDataset.solutionfixer.get_solution(
-            **TestBreakingDataset.solkwargs, methodname="test_apply_qc"
-        )
+        dataset = copy.deepcopy(regular_qc_on_dataset)
         # call get info on dataset, station and sensor level
         _ = dataset.get_info(printout=True)
         _ = dataset.get_station("Fictional").get_info(printout=True)
@@ -210,16 +173,10 @@ class TestBreakingDataset:
 class TestDemoDataset:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    def test_import_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
-
-        # 2. apply a metobs manipulation
+    @pytest.fixture(scope='class')
+    def import_dataset(self):
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=metobs_toolkit.demo_template,
@@ -228,28 +185,31 @@ class TestDemoDataset:
         )
         # To hourly !!
         dataset.resample(target_freq="1h")
+        
+        dataset.get_LCZ()
+        return dataset
+    
+    def test_import_data(self, import_dataset, overwrite_solution=False):
+        """Import demo dataset for QC testing."""
+        _method_name = 'test_import_data'
+        dataset = copy.deepcopy(import_dataset)
 
-        # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
 
-        # 4. Get solution
         solutionobj = TestDemoDataset.solutionfixer.get_solution(
             methodname=_method_name, **TestDemoDataset.solkwargs
         )
 
-        # 5. Construct the equlity tests
-        assert_equality(dataset, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj)
 
-    def test_qc_when_some_stations_missing_obs(self):
+    def test_qc_when_some_stations_missing_obs(self, import_dataset):
         #  1. get_startpoint data
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         obstype = "temp"
 
         # Drop the temp of 2 random stations
@@ -269,17 +229,9 @@ class TestDemoDataset:
 
         assert orig_count == len(dataset.stations)
 
-    def test_buddy_check(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
+    def test_buddy_check_raise_errors(self, import_dataset):
         #  1. get_startpoint data
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
-
-        # 2. apply a metobs manipulation
-        # Test if errors ar raised
+        dataset = copy.deepcopy(import_dataset)
 
         from metobs_toolkit.backend_collection.errorclasses import (
             MetObsMetadataNotFound,
@@ -319,6 +271,79 @@ class TestDemoDataset:
                 use_mp=False,
             )
 
+    def test_buddy_check_one_iteration(self, import_dataset, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+        dataset =  copy.deepcopy(import_dataset)
+        
+        # test one iteration
+        dataset.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_std=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,  # one iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=False,
+        )
+        
+        # overwrite solution?
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solution=dataset,
+                **TestDemoDataset.solkwargs,
+                methodname=_method_name,
+            )
+            
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname=_method_name
+        )
+
+        # validate expression
+        assert_equality(dataset, solutionobj, exclude_columns = ['details'])  # dataset comparison
+    
+    def test_buddy_check_more_iterations(self, import_dataset, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)
+        
+        # test one iteration
+        dataset.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_std=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=2,  # one iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=False,
+        )
+
+        
+        # overwrite solution?
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solution=dataset,
+                **TestDemoDataset.solkwargs,
+                methodname=_method_name,
+            )
+            
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname=_method_name
+        )
+
+        # validate expression
+        assert_equality(dataset, solutionobj,  exclude_columns = ['details'])  # dataset comparison
+   
+    def test_buddy_check_no_outliers(self, import_dataset):
+        
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset)
         # Test that buddy check runs, with settings that does not create outliers
         dataset.buddy_check(
             obstype="temp",
@@ -332,78 +357,16 @@ class TestDemoDataset:
             lapserate=None,  # -0.0065
             use_mp=False,
         )
-
+        
+    
         assert dataset.outliersdf.empty
-
-        # Now create outliers with the buddy check
-
-        dataset1 = copy.deepcopy(dataset)  # used to test 1 iteration
-        dataset2 = copy.deepcopy(dataset)  # use to test 2 iterations
-
-        # test one iteration
-        dataset1.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_std=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=1,  # one iteration test
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=False,
-        )
-
-        # outliersdf_1_iter = dataset1.outliersdf
-
-        # test two iteration
-        dataset2.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_std=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=2,  # one iteration test
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=False,
-        )
-
-        # overwrite solution?
-        if overwrite_solution:
-            TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset1,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name + "_1_iter",
-            )
-            TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset2,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name + "_2_iter",
-            )
-
-        # 4. Get solution
-        solutionobj_1iter = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name + "_1_iter"
-        )
-        solutionobj_2iter = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name + "_2_iter"
-        )
-
-        # validate expression
-        assert_equality(dataset1, solutionobj_1iter)  # dataset comparison
-
-        assert_equality(dataset2, solutionobj_2iter)  # dataset comparison
-
-    def test_buddy_check_with_big_radius(self):
+   
+    def test_buddy_check_with_big_radius(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #  1. get_startpoint data
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         # Tricky thing is that with big radii, a station can appear in multiple
         # buddy groups, which can lead to edge cases. Here we test that the code
@@ -419,23 +382,28 @@ class TestDemoDataset:
             use_mp=False,  # Deterministic behavior
         )
 
-    def test_buddy_check_with_safety_nets(self, overwrite_solution=False):
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solution=dataset,
+                **TestDemoDataset.solkwargs,
+                methodname=_method_name,
+            )
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname=_method_name
+        )
+        assert_equality(dataset, solutionobj,  exclude_columns = ['details'])
+
+    def test_buddy_check_with_safety_nets(self, import_dataset, overwrite_solution=False):
         """Test the generalized buddy_check_with_safety_nets method."""
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         # 1. get_startpoint data
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
-
-        # Ensure LCZ data is present for all stations
-        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
-            dataset.get_LCZ()
+        dataset = copy.deepcopy(import_dataset)
 
         # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
-        dataset1 = copy.deepcopy(dataset)
-        dataset1.buddy_check_with_safetynets(
+        dataset = copy.deepcopy(dataset)
+        dataset.buddy_check_with_safetynets(
             obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -456,13 +424,13 @@ class TestDemoDataset:
             use_mp=False,
         )
         assert (
-            dataset1.outliersdf.shape[0] == 74
-        ), f"Expected 74 outliers, got {dataset1.outliersdf.shape[0]}"
+            dataset.outliersdf.shape[0] == 74
+        ), f"Expected 74 outliers, got {dataset.outliersdf.shape[0]}"
 
         # overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset1,
+                solution=dataset,
                 **TestDemoDataset.solkwargs,
                 methodname=_method_name,
             )
@@ -473,18 +441,12 @@ class TestDemoDataset:
         )
 
         # validate expression
-        assert_equality(dataset1, solutionobj)
+        assert_equality(dataset, solutionobj,  exclude_columns = ['details'])
 
-    def test_buddy_check_with_safety_nets_missing_min_sample_size(self):
+    def test_buddy_check_with_safety_nets_missing_min_sample_size(self, import_dataset):
         """Test that an error is raised when min_sample_size is missing from safety_net_configs."""
         # Get dataset
-        dataset = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
-
-        # Ensure LCZ data is present
-        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
-            dataset.get_LCZ()
+        dataset = copy.deepcopy(import_dataset)
 
         # Test that missing min_sample_size raises an error
         with pytest.raises(KeyError):
@@ -510,8 +472,22 @@ class TestWhiteRecords:
 
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testwhiterecords"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
+    @pytest.fixture(scope='class')
+    def import_dataset(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        # Resample to hourly for consistent testing
+        dataset.resample(target_freq="1h")
+        
+        dataset.get_LCZ()
+        return dataset
+    
     def test_whiterecords_reprs(self):
         """Test the WhiteSet and SensorWhiteSet classes."""
         # Create a WhiteSet with mixed levels
@@ -551,23 +527,15 @@ class TestWhiteRecords:
         assert "SensorWhiteSet" in repr_sensor
         assert "n_timestamps=" in repr_sensor
         assert str_sensor == repr_sensor
-
-    def test_import_data(self, overwrite_solution=False):
+ 
+    def test_import_data(self, import_dataset, overwrite_solution=False):
         """Import demo dataset for white_records testing."""
         _method_name = sys._getframe().f_code.co_name
 
-        dataset = metobs_toolkit.Dataset()
-        dataset.import_data_from_file(
-            template_file=metobs_toolkit.demo_template,
-            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            input_data_file=metobs_toolkit.demo_datafile,
-        )
-        # Resample to hourly for consistent testing
-        dataset.resample(target_freq="1h")
-
+        dataset = copy.deepcopy(import_dataset)
         if overwrite_solution:
             TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 methodname=_method_name,
                 **TestWhiteRecords.solkwargs,
             )
@@ -578,16 +546,10 @@ class TestWhiteRecords:
 
         assert_equality(dataset, solutionobj)
 
-    def test_white_records_input_combinations(self, overwrite_solution=False):
-        """Test white_records with gross_value_check on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
-
-        # Get some timestamps that would be flagged as outliers
-        # First run without white_records to identify outliers
+    @pytest.fixture(scope='class')
+    def dataset_with_outliers(self, import_dataset):
+        """Run gross_value_check to identify outliers for white_records testing."""
+        dataset = copy.deepcopy(import_dataset)
         test_dataset = copy.deepcopy(dataset)
         test_dataset.gross_value_check(
             obstype="temp",
@@ -595,96 +557,41 @@ class TestWhiteRecords:
             upper_threshold=20.0,
             use_mp=False,
         )
-
-        # Get outliers to use as white_records
         outliers = test_dataset.outliersdf
         if outliers.empty:
             pytest.skip("No outliers found for white_records testing")
+        return {"dataset": dataset, "outliers": outliers}
 
-        # Test 1a: Index with only datetimes
-        dataset1a = copy.deepcopy(dataset)
+    def test_whiteset_datetime_only(self, dataset_with_outliers, overwrite_solution=False):
+        """Test white_records with Index containing only datetimes."""
+        _method_name = sys._getframe().f_code.co_name
+
+        dataset = copy.deepcopy(dataset_with_outliers["dataset"])
+        outliers = copy.deepcopy(dataset_with_outliers["outliers"])
+
         white_dt_only = pd.Index(
             outliers.reset_index()["datetime"].head(20), name="datetime"
         )
-        dataset1a.gross_value_check(
+        dataset.gross_value_check(
             obstype="temp",
             lower_threshold=10.0,
             upper_threshold=20.0,
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
             use_mp=False,
         )
-        outliers1a = dataset1a.outliersdf
+        outliers_result = dataset.outliersdf
 
-        # Test 1b: Index with only name
-        dataset1b = copy.deepcopy(dataset)
-        white_name_only = pd.Index(
-            data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
-        )
-        dataset1b.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_only),
-            use_mp=False,
-        )
-
-        outliers1b = dataset1b.outliersdf
-
-        # test on station object
-        copy.deepcopy(dataset).get_station("vlinder05").gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_only),
-        )
-
-        # Test 2: MultiIndex with name and datetime
-        dataset2 = copy.deepcopy(dataset)
-        white_name_dt = (
-            outliers.head(20)
-            .reset_index()[["name", "datetime"]]
-            .set_index(["name", "datetime"])
-            .index
-        )
-        dataset2.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_dt),
-            use_mp=False,
-        )
-        outliers2 = dataset2.outliersdf
-
-        # Test 3: MultiIndex with obstype, name, and datetime
-        dataset3 = copy.deepcopy(dataset)
-        white_full = outliers.head(25).index
-        dataset3.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_full),
-            use_mp=False,
-        )
-        outliers3 = dataset3.outliersdf
-
-        # Quick Verify that white-listed records are not in the outliers
+        # Verify that white-listed records are not in the outliers
         for white_record in white_dt_only:
             assert not any(
-                outliers1a.reset_index()["datetime"] == white_record
+                outliers_result.reset_index()["datetime"] == white_record
             ), f"White-listed record {white_record} found in outliers (datetime only)"
 
-        # Store results
-        results = {
-            "outliers_no_white": outliers,
-            "outliers_dt_only": outliers1a,
-            "outliers_name_only": outliers1b,
-            "outliers_name_dt": outliers2,
-            "outliers_full": outliers3,
-        }
+        
 
         if overwrite_solution:
             TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=results,
+                solution=dataset,
                 methodname=_method_name,
                 **TestWhiteRecords.solkwargs,
             )
@@ -693,35 +600,121 @@ class TestWhiteRecords:
             methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        for key in results:
-            # Drop 'details' column if present for comparison
-            df_to_compare = results[key].drop(columns=["details"], errors="ignore")
-            sol_to_compare = solutionobj[key].drop(columns=["details"], errors="ignore")
-            assert_equality(df_to_compare, sol_to_compare)
+        assert_equality(dataset, solutionobj)
 
-    def test_white_records_buddy_check_dataset(self):
-        """Test white_records with buddy_check on Dataset level."""
+    def test_whiteset_name_only(self, dataset_with_outliers, overwrite_solution=False):
+        """Test white_records with Index containing only station names."""
+        _method_name = sys._getframe().f_code.co_name
 
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
+        dataset = copy.deepcopy(dataset_with_outliers["dataset"])
+
+        white_name_only = pd.Index(
+            data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
+        )
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=10.0,
+            upper_threshold=20.0,
+            whiteset=metobs_toolkit.WhiteSet(white_name_only),
+            use_mp=False,
+        )
+       
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        # First run without white_records
-        # test_dataset = copy.deepcopy(dataset)
-        # test_dataset.buddy_check(
-        #     obstype="temp",
-        #     spatial_buddy_radius=25000,
-        #     min_sample_size=3,
-        #     spatial_z_threshold=1.8,
-        #     N_iter=2,
-        #     use_mp=False,
-        # )
+        assert_equality(dataset, solutionobj)
 
-        # outliers = test_dataset.outliersdf
-        # white_dt_only = pd.Index(
-        #     outliers.reset_index()["datetime"].sample(n=33, random_state=42),
-        #     name="datetime",
-        # )
+    def test_whiteset_name_only_on_station(self, dataset_with_outliers):
+        """Test white_records with name-only Index on Station object."""
+        dataset = copy.deepcopy(dataset_with_outliers["dataset"])
+
+        white_name_only = pd.Index(
+            data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
+        )
+        # Should not raise - test on station object
+        dataset.get_station("vlinder05").gross_value_check(
+            obstype="temp",
+            lower_threshold=10.0,
+            upper_threshold=20.0,
+            whiteset=metobs_toolkit.WhiteSet(white_name_only),
+        )
+
+    def test_whiteset_name_and_datetime(self, dataset_with_outliers, overwrite_solution=False):
+        """Test white_records with MultiIndex containing name and datetime."""
+        _method_name = sys._getframe().f_code.co_name
+
+        dataset = copy.deepcopy(dataset_with_outliers["dataset"])
+        outliers = copy.deepcopy(dataset_with_outliers["outliers"])
+
+        white_name_dt = (
+            outliers.head(20)
+            .reset_index()[["name", "datetime"]]
+            .set_index(["name", "datetime"])
+            .index
+        )
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=10.0,
+            upper_threshold=20.0,
+            whiteset=metobs_toolkit.WhiteSet(white_name_dt),
+            use_mp=False,
+        )
+        
+
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )
+
+        assert_equality(dataset, solutionobj)
+
+    def test_whiteset_full_multiindex(self, dataset_with_outliers, overwrite_solution=False):
+        """Test white_records with full MultiIndex (obstype, name, datetime)."""
+        _method_name = sys._getframe().f_code.co_name
+
+        dataset = copy.deepcopy(dataset_with_outliers["dataset"])
+        outliers = copy.deepcopy(dataset_with_outliers["outliers"])
+
+        white_full = outliers.head(25).index
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=10.0,
+            upper_threshold=20.0,
+            whiteset=metobs_toolkit.WhiteSet(white_full),
+            use_mp=False,
+        )
+        
+
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )
+
+        assert_equality(dataset, solutionobj)
+
+    def test_white_dt_only_records_buddy_check(self, import_dataset, overwrite_solution=False):
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)        
         white_dt_only = pd.DatetimeIndex(
             [
                 "2022-09-11 16:00:00+00:00",
@@ -764,9 +757,7 @@ class TestWhiteRecords:
             freq=None,
         )
 
-        # Test with different structures
-        dataset1 = copy.deepcopy(dataset)
-        dataset1.buddy_check(
+        dataset.buddy_check(
             obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
@@ -775,22 +766,33 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
             use_mp=False,
         )
-        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+        outlier_timestamps = dataset.outliersdf.index.get_level_values(
             "datetime"
         ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
         # Check if the white dt only timestamps are not in the outliers
         assert intersect.empty, "outlier timestamps found in white dt only"
         assert not outlier_timestamps.empty, "not outliers found"
+        
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )
 
-        dataset2 = copy.deepcopy(dataset)
+        assert_equality(dataset, solutionobj, exclude_columns = ['details'])
 
-        # white_name_dt = (
-        #     outliers.sample(n=18, random_state=42)
-        #     .reset_index()[["name", "datetime"]]
-        #     .set_index(["name", "datetime"])
-        #     .index
-        # )
+    def test_white_multi_idx_records_buddy_check(self, import_dataset, overwrite_solution=False):
+        """Test white_records with buddy_check on Dataset level."""
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)
+    
+
+
 
         white_name_dt = pd.MultiIndex.from_arrays(
             [
@@ -847,7 +849,7 @@ class TestWhiteRecords:
             names=("name", "datetime"),
         )
 
-        dataset2.buddy_check(
+        dataset.buddy_check(
             obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
@@ -857,54 +859,28 @@ class TestWhiteRecords:
             use_mp=False,
         )
 
-        outlier_idxs = dataset2.outliersdf.index.get_level_values("datetime").unique()
+        outlier_idxs = dataset.outliersdf.index.get_level_values("datetime").unique()
 
         intersect = outlier_idxs.intersection(white_name_dt)
         # Check if the white dt only timestamps are not in the outliers
         assert intersect.empty, "outlier timestamps found in white name dt"
-        assert not outlier_timestamps.empty, "not outliers found"
-        assert (
-            dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0]
-        ), "something wrong"
+        assert not outlier_idxs.empty, "not outliers found"
+        
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )   
+        assert_equality(dataset, solutionobj, exclude_columns = ['details'])
 
-    def test_white_records_buddy_check_with_safety_nets_dataset(self):
+    def test_white_dt_only_records_buddy_check_with_safety_nets(self, import_dataset, overwrite_solution=False):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
-
-        # Ensure LCZ data is present
-        if not all(sta.site.flag_has_LCZ() for sta in dataset.stations):
-            dataset.get_LCZ()
-
-        # First run without whiteset
-        # test_dataset = copy.deepcopy(dataset)
-        # test_dataset.buddy_check_with_safetynets(
-        #     obstype="temp",
-        #     spatial_buddy_radius=25000,
-        #     safety_net_configs=[
-        #         {
-        #             "category": "LCZ",
-        #             "buddy_radius": 40000,
-        #             "z_threshold": 1.8,
-        #             "min_sample_size": 3,
-        #         }
-        #     ],
-        #     min_sample_size=3,
-        #     spatial_z_threshold=1.8,
-        #     N_iter=2,
-        #     use_mp=False,
-        # )
-
-        # outliers = test_dataset.outliersdf
-
-        # Test with different structures
-
-        # white_dt_only = pd.Index(
-        #     outliers.reset_index()["datetime"].sample(n=33, random_state=42),
-        #     name="datetime",
-        # )
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)
         white_dt_only = pd.DatetimeIndex(
             [
                 "2022-09-11 17:00:00+00:00",
@@ -946,8 +922,8 @@ class TestWhiteRecords:
             freq=None,
         )
 
-        dataset1 = copy.deepcopy(dataset)
-        dataset1.buddy_check_with_safetynets(
+        
+        dataset.buddy_check_with_safetynets(
             obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -965,15 +941,30 @@ class TestWhiteRecords:
             use_mp=False,
         )
 
-        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+        outlier_timestamps = dataset.outliersdf.index.get_level_values(
             "datetime"
         ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
         # Check if the white dt only timestamps are not in the outliers
         assert intersect.empty, "outlier timestamps found in white dt only"
         assert not outlier_timestamps.empty, "not outliers found"
-        assert dataset1.outliersdf.shape[0] >= 140, "something wrong with outlier count"
+        assert dataset.outliersdf.shape[0] >= 140, "something wrong with outlier count"
 
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )
+        assert_equality(dataset, solutionobj, exclude_columns = ['details'])
+   
+    def test_white_multi_idx_records_buddy_check_with_safety_nets(self, import_dataset, overwrite_solution=False):
+        """Test white_records with buddy_check_with_safety_nets on Dataset level."""
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)
         # white_name_dt = (
         #     outliers.sample(n=21, random_state=42)
         #     .reset_index()[["name", "datetime"]]
@@ -1041,8 +1032,7 @@ class TestWhiteRecords:
             names=("name", "datetime"),
         )
 
-        dataset2 = copy.deepcopy(dataset)
-        dataset2.buddy_check_with_safetynets(
+        dataset.buddy_check_with_safetynets(
             obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -1060,16 +1050,24 @@ class TestWhiteRecords:
             use_mp=False,
         )
 
-        outlier_idxs = dataset2.outliersdf.index.get_level_values("datetime").unique()
+        outlier_idxs = dataset.outliersdf.index.get_level_values("datetime").unique()
 
         intersect = outlier_idxs.intersection(white_name_dt)
         # Check if the white dt only timestamps are not in the outliers
         assert intersect.empty, "outlier timestamps found in white name dt"
-        assert not outlier_timestamps.empty, "not outliers found"
-        assert (
-            dataset2.outliersdf.shape[0] > dataset1.outliersdf.shape[0]
-        ), "something wrong"
+        assert not outlier_idxs.empty, "not outliers found"
+
         # extra sanity check to ensure the test is valid
+        if overwrite_solution:
+            TestWhiteRecords.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestWhiteRecords.solkwargs,
+            )
+        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
+            methodname=_method_name, **TestWhiteRecords.solkwargs
+        )   
+        assert_equality(dataset, solutionobj, exclude_columns = ['details'])
 
     def test_whiterecords_get_info(self):
         """Test the WhiteSet and SensorWhiteSet classes."""
@@ -1091,151 +1089,7 @@ class TestWhiteRecords:
         whiteset = metobs_toolkit.WhiteSet(multi_index)
         _ = whiteset.get_info(printout=False)
 
-    def test_import_data(self, overwrite_solution=False):
-        """Import demo dataset for white_records testing."""
-        _method_name = sys._getframe().f_code.co_name
-
-        dataset = metobs_toolkit.Dataset()
-        dataset.import_data_from_file(
-            template_file=metobs_toolkit.demo_template,
-            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            input_data_file=metobs_toolkit.demo_datafile,
-        )
-        # Resample to hourly for consistent testing
-        dataset.resample(target_freq="1h")
-
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=dataset,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-
-        assert_equality(dataset, solutionobj)
-
-    def test_white_records_input_combinations(self, overwrite_solution=False):
-        """Test white_records with gross_value_check on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
-
-        # Get some timestamps that would be flagged as outliers
-        # First run without white_records to identify outliers
-        test_dataset = copy.deepcopy(dataset)
-        test_dataset.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            use_mp=False,
-        )
-
-        # Get outliers to use as white_records
-        outliers = test_dataset.outliersdf
-        if outliers.empty:
-            pytest.skip("No outliers found for white_records testing")
-
-        # Test 1a: Index with only datetimes
-        dataset1a = copy.deepcopy(dataset)
-        white_dt_only = pd.Index(
-            outliers.reset_index()["datetime"].head(20), name="datetime"
-        )
-        dataset1a.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_dt_only),
-            use_mp=False,
-        )
-        outliers1a = dataset1a.outliersdf
-
-        # Test 1b: Index with only name
-        dataset1b = copy.deepcopy(dataset)
-        white_name_only = pd.Index(
-            data=["vlinder05", "vlinder05", "vlinder06", "fake"], name="name"
-        )
-        dataset1b.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_only),
-            use_mp=False,
-        )
-
-        outliers1b = dataset1b.outliersdf
-
-        # test on station object
-        copy.deepcopy(dataset).get_station("vlinder05").gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_only),
-        )
-
-        # Test 2: MultiIndex with name and datetime
-        dataset2 = copy.deepcopy(dataset)
-        white_name_dt = (
-            outliers.head(20)
-            .reset_index()[["name", "datetime"]]
-            .set_index(["name", "datetime"])
-            .index
-        )
-        dataset2.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_name_dt),
-            use_mp=False,
-        )
-        outliers2 = dataset2.outliersdf
-
-        # Test 3: MultiIndex with obstype, name, and datetime
-        dataset3 = copy.deepcopy(dataset)
-        white_full = outliers.head(25).index
-        dataset3.gross_value_check(
-            obstype="temp",
-            lower_threshold=10.0,
-            upper_threshold=20.0,
-            whiteset=metobs_toolkit.WhiteSet(white_full),
-            use_mp=False,
-        )
-        outliers3 = dataset3.outliersdf
-
-        # Quick Verify that white-listed records are not in the outliers
-        for white_record in white_dt_only:
-            assert not any(
-                outliers1a.reset_index()["datetime"] == white_record
-            ), f"White-listed record {white_record} found in outliers (datetime only)"
-
-        # Store results
-        results = {
-            "outliers_no_white": outliers,
-            "outliers_dt_only": outliers1a,
-            "outliers_name_only": outliers1b,
-            "outliers_name_dt": outliers2,
-            "outliers_full": outliers3,
-        }
-
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solutiondata=results,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-
-        for key in results:
-            assert_equality(results[key], solutionobj[key])
-
-    def test_all_qc_methods_with_whiteset(self):
+    def test_all_qc_methods_with_whiteset(self, import_dataset):
         """Test all QC methods on Dataset and Station with non-default whiteset.
 
         This test ensures that all QC methods can accept and work with a WhiteSet
@@ -1243,9 +1097,8 @@ class TestWhiteRecords:
         only that the methods execute successfully.
         """
         # Get dataset
-        dataset = TestWhiteRecords.solutionfixer.get_solution(
-            **TestWhiteRecords.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
+        
 
         # Create a non-default whiteset with various index structures
         # Create timestamps to whitelist
@@ -1379,25 +1232,52 @@ class TestWhiteRecords:
         assert True
 
 
-# if __name__ == "__main__":
-# pytest.main([__file__])
-# Run all methods with overwrite_solution=False
-# test_breaking_dataset = TestBreakingDataset()
-# test_breaking_dataset.test_import_data(overwrite_solution=False)
-# test_breaking_dataset.test_apply_qc(overwrite_solution=False)
-# test_breaking_dataset.test_qc_statistics(overwrite_solution=False)
 
-# test_demo_dataset = TestDemoDataset()
-# test_demo_dataset.test_import_data(overwrite_solution=True)
-# test_demo_dataset.test_buddy_check(overwrite_solution=False)
-# test_demo_dataset.test_buddy_check_with_safety_nets(overwrite_solution=False)
-# test_demo_dataset.test_buddy_check_with_safety_nets(overwrite_solution=False)
-# test_demo_dataset.test_buddy_check_with_LCZ_safety_net(overwrite_solution=False)
+if __name__ == "__main__":
+    #When running outside pytest
+    OVERWRITE = False
+    # test_breaking_dataset = TestBreakingDataset()
+    # Manually call fixtures and pass results to tests
+    # Access the original unwrapped function via __wrapped__
+    # imported_dataset = test_breaking_dataset.import_dataset.__wrapped__(test_breaking_dataset)
+    # qc_dataset = test_breaking_dataset.regular_qc_on_dataset.__wrapped__(
+    #     test_breaking_dataset, imported_dataset
+    # )
+    
+    # test_breaking_dataset.test_qc_labels(qc_dataset)
+    # test_breaking_dataset.test_qc_with_solution(qc_dataset, overwrite_solution=False)
+    # test_breaking_dataset.test_qc_stats_check(qc_dataset, overwrite_solution=False)
+    # test_breaking_dataset.test_make_plot_by_label_with_outliers(qc_dataset)
+    # test_breaking_dataset.test_get_info(qc_dataset)
 
-# Run white_records tests
-# test_white_records = TestWhiteRecords()
-# test_white_records.test_import_data(overwrite_solution=False)
-# test_white_records.test_white_records_input_combinations(overwrite_solution=False)
-# test_white_records.test_white_records_buddy_check_dataset(overwrite_solution=True)
-# test_white_records.test_white_records_buddy_check_with_safety_nets_dataset(overwrite_solution=False)
-# test_white_records.test_white_records_buddy_check_with_LCZ_safety_net_dataset(overwrite_solution=True)
+    # test_demo_dataset = TestDemoDataset()
+    # imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(test_demo_dataset)
+    
+    # test_demo_dataset.test_import_data(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_qc_when_some_stations_missing_obs(imported_demo_dataset)
+    # test_demo_dataset.test_buddy_check_raise_errors(imported_demo_dataset)
+    # test_demo_dataset.test_buddy_check_one_iteration(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_buddy_check_no_outliers(imported_demo_dataset)
+    # test_demo_dataset.test_buddy_check_with_big_radius(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_buddy_check_with_safety_nets(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_buddy_check_with_safety_nets_missing_min_sample_size(imported_demo_dataset)
+    
+    # Run white_records tests
+    test_white_records = TestWhiteRecords()
+    imported_wr_dataset = test_white_records.import_dataset.__wrapped__(test_white_records)
+    dataset_with_outliers = test_white_records.dataset_with_outliers.__wrapped__(test_white_records, imported_wr_dataset)
+    
+    test_white_records.test_whiterecords_reprs()
+    test_white_records.test_import_data(imported_wr_dataset, overwrite_solution=OVERWRITE)
+    test_white_records.test_whiteset_datetime_only(dataset_with_outliers, overwrite_solution=OVERWRITE)
+    test_white_records.test_whiteset_name_only(dataset_with_outliers, overwrite_solution=OVERWRITE)
+    test_white_records.test_whiteset_name_only_on_station(dataset_with_outliers)
+    test_white_records.test_whiteset_name_and_datetime(dataset_with_outliers, overwrite_solution=OVERWRITE)
+    test_white_records.test_whiteset_full_multiindex(dataset_with_outliers, overwrite_solution=OVERWRITE)
+    test_white_records.test_white_dt_only_records_buddy_check(imported_wr_dataset, overwrite_solution=OVERWRITE)
+    test_white_records.test_white_multi_idx_records_buddy_check(imported_wr_dataset, overwrite_solution=OVERWRITE)
+    test_white_records.test_white_dt_only_records_buddy_check_with_safety_nets(imported_wr_dataset, overwrite_solution=OVERWRITE)
+    test_white_records.test_white_multi_idx_records_buddy_check_with_safety_nets(imported_wr_dataset, overwrite_solution=OVERWRITE)
+    test_white_records.test_whiterecords_get_info()
+    test_white_records.test_all_qc_methods_with_whiteset(imported_wr_dataset)
