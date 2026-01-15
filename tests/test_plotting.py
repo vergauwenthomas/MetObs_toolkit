@@ -52,6 +52,7 @@ class TestDemoDataset:
         # To hourly !!
         dataset.resample(target_freq="1h")
         return dataset
+    
     @pytest.fixture(autouse=True)
     def import_dataset_with_era5(self):
         dataset = metobs_toolkit.Dataset()
@@ -81,6 +82,7 @@ class TestDemoDataset:
         assert era5_data.shape == (532, 1)
         return dataset
 
+    @pytest.mark.dependency()
     def test_import_data(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
@@ -90,7 +92,7 @@ class TestDemoDataset:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -103,16 +105,17 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
     
+    @pytest.mark.dependency()
     def test_import_data_with_era5(self, import_dataset_with_era5, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        dataset = copy.deepcopy(import_dataset)
+        dataset = copy.deepcopy(import_dataset_with_era5)
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -394,28 +397,44 @@ class TestDemoDataset:
 
 if __name__ == "__main__":
     print(
-        "To Overwrite the solutions, run: \n pytest test_plotting.py  --mpl --mpl-generate-path=baseline"
+        "To Overwrite the solutions, run: \n pytest test_plotting.py --mpl --mpl-generate-path=baseline"
     )
 
     print(
-        "To checkout the differences, run: \n pytest test_plotting.py --mpl --mpl-generate-summary=html "
+        "To checkout the differences, run: \n pytest test_plotting.py --mpl --mpl-generate-summary=html"
     )
 
-    test = TestDemoDataset()
-    # test.test_import_data(overwrite_solution=True)
-    # test.test_import_data(overwrite_solution=True)
-    # test.test_dataset_timeseries_plotting_by_label()
-    # test.test_dataset_timeseries_plotting_by_station()
-    # test.test_station_timeseries_plotting_existing_ax()
-    # test.test_station_timeseries_with_modeldata()
-    # test.test_station_modeldata_timeseries()
-    # test.test_dataset_modeldata_timeseries_plot()
-    # test.test_dataset_color_by_station_and_modeldata_timeseries_plot()
-    # test.test_dataset_color_by_label_and_modeldata_timeseries_plot()
+    OVERWRITE_SOLUTION = False
 
-    # test_gaps = TestDataWithGaps()
-    # test_gaps.test_interpolated_timeseries_plot()
-    # test_gaps.test_raw_modeldata_gf_timeseries_plot()
-    # test_gaps.test_debias_modeldata_gf_timeseries_plot()
-    # test_gaps.test_diurnal_debias_modeldata_gf_timeseries_plot()
-    # test_gaps.test_weighted_diurnal_debias_modeldata_gf_timeseries_plot()
+    tester = TestDemoDataset()
+    
+    # Prepare fixtures
+    import_dataset = tester.import_dataset.__wrapped__(tester)
+    import_dataset_with_era5 = tester.import_dataset_with_era5.__wrapped__(tester)
+    
+    # Run tests with solutions
+    tester.test_import_data(import_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    tester.test_import_data_with_era5(import_dataset_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    
+    # # Run plotting tests (using import_dataset)
+    # tester.test_dataset_timeseries_plotting_by_label(import_dataset)
+    # tester.test_dataset_timeseries_plotting_by_station(import_dataset)
+    # tester.test_dataset_test_show_outliers_labelby_station(import_dataset)
+    # tester.test_dataset_test_show_outliers_labelby_labels(import_dataset)
+    # tester.test_station_timeseries_plotting_existing_ax(import_dataset)
+    
+    # # Run plotting tests (using import_dataset_with_era5)
+    # tester.test_station_timeseries_with_modeldata(import_dataset_with_era5)
+    # tester.test_station_modeldata_timeseries(import_dataset_with_era5)
+    # tester.test_station_plot_of_modeldata_with_modelname(import_dataset_with_era5)
+    # tester.test_dataset_plot_of_modeldata_with_modelname(import_dataset_with_era5)
+    # tester.test_station_plot_humidity_with_temp_modeldata(import_dataset_with_era5)
+    # tester.test_station_plot_temp_with_modeldata_kwargs(import_dataset_with_era5)
+    # tester.test_dataset_plot_humidity_with_modelvariable(import_dataset_with_era5)
+    # tester.test_modeldatatimeseries_timeseries(import_dataset_with_era5)
+    # tester.test_dataset_modeldata_timeseries_plot(import_dataset_with_era5)
+    # tester.test_dataset_color_by_station_and_modeldata_timeseries_plot(import_dataset_with_era5)
+    # tester.test_dataset_color_by_label_and_modeldata_timeseries_plot(import_dataset_with_era5)
+    # tester.test_sensordata_pd_plot(import_dataset_with_era5)
+    # tester.test_sensordata_pd_plot_with_filters(import_dataset_with_era5)
+    # tester.test_modeltimeseries_pd_plot(import_dataset_with_era5)
