@@ -98,6 +98,8 @@ class SolutionFixer2:
         
         elif isinstance(solution, pd.DataFrame):
             store_pandasdf(solution, base_path)
+        elif isinstance(solution, dict):
+            store_dict(solution, base_path)
         else:
             raise NotImplementedError(
                 "SolutionFixer2.create_solution only supports Dataset, Station, and Analysis objects.")
@@ -115,28 +117,85 @@ class SolutionFixer2:
             metobsobj = json.load(f)
         
         solutionclass = metobsobj.get("class")
-        if solutionclass in ['Dataset', 'Station']:
-            def file_to_attr(fpath: Path) -> str:
-                return fpath.stem.replace("solution_", "")
+        
 
-            result = {}
-            for f in base_path.glob("solution_*.parquet"):
-                result[file_to_attr(f)] = pd.read_parquet(f)
-            
-            if solutionclass == 'Dataset':
-                return SerializedDataset(result)
-            else:
-                return SerializedStation(result)
-         
+        if solutionclass == 'Dataset':
+            return read_dataset(base_path)
+        elif solutionclass == 'Station':
+            return read_station(base_path)
+        elif solutionclass == 'Dict':
+            return read_dict(base_path)
         elif solutionclass == 'DataFrame':
-            df = pd.read_parquet(base_path / "solution_df.parquet")
-            return df
-            
+            return read_pandasdf(base_path)
+        
         else:
             raise NotImplementedError(
                 "SolutionFixer2.get_solution only supports Dataset, Station, and DataFrame objects.")
             
         
+def store_dict(data_dict: dict, dir: Path):
+    """Store the dataset as a json-serializable dict."""
+    
+    dir.mkdir(parents=True, exist_ok=True)
+    with open(dir / "datatype.json", "w") as f:
+            json.dump({"class": "Dict"}, f)
+            
+    for key, val in data_dict.items():
+        keydir = dir / f"{key}"
+        if val.__class__.__name__ == "Dataset":
+            store_dataset(val, keydir)
+            
+        elif val.__class__.__name__ == "Station":  
+            store_station(val, keydir)
+        
+        elif isinstance(val, pd.DataFrame):
+            store_pandasdf(df=val, dir=keydir)
+        else:
+            raise NotImplementedError(
+                "store_dict only supports Dataset, Station, and DataFrame objects.")
+def read_dict(dir: Path) -> dict:
+    returndict = {}
+    for subdir in dir.iterdir():
+        if subdir.is_dir():
+            with open(subdir / "datatype.json", "r") as f:
+                metobsobj = json.load(f)
+            solutionclass = metobsobj.get("class")
+            if solutionclass == 'Dataset':
+                returndict[subdir.stem] = read_dataset(subdir)
+            elif solutionclass == 'Station':
+                returndict[subdir.stem] = read_station(subdir)
+            elif solutionclass == 'DataFrame':
+                returndict[subdir.stem] = read_pandasdf(subdir)
+            else:
+                raise NotImplementedError(
+                    "read_dict only supports Dataset, Station, and DataFrame objects.")
+    return returndict
+    
+    
+    
+def read_dataset(dir: Path):
+    def file_to_attr(fpath: Path) -> str:
+        return fpath.stem.replace("solution_", "")
+
+    result = {}
+    for f in dir.glob("solution_*.parquet"):
+        result[file_to_attr(f)] = pd.read_parquet(f)
+    return SerializedDataset(result)
+
+def read_station(dir: Path):
+    def file_to_attr(fpath: Path) -> str:
+        return fpath.stem.replace("solution_", "")
+
+    result = {}
+    for f in dir.glob("solution_*.parquet"):
+        result[file_to_attr(f)] = pd.read_parquet(f)
+    return SerializedStation(result)
+
+def read_pandasdf(dir: Path) -> pd.DataFrame:
+    df = pd.read_parquet(dir / "solution_df.parquet")
+    return df
+
+
         
 def store_dataset(dataset, dir: Path):
     """Store the dataset as a json-serializable dict."""
@@ -221,11 +280,35 @@ def assert_equality(to_check, solution, **kwargs):
     if ((to_check.__class__.__name__ == "Dataset") and 
         (solution.__class__.__name__ == "SerializedDataset")):
         seriealize_comparison(to_check, solution, **kwargs)
-        
     
+    elif ((to_check.__class__.__name__ == "Dataset") and 
+        (solution.__class__.__name__ == "Dataset")):
+        
+        compare_df_attr(to_check, solution, "metadf", **kwargs)
+        compare_df_attr(to_check, solution, "gapsdf", **kwargs)
+        compare_df_attr(to_check, solution, "modeldatadf", **kwargs)
+        compare_df_attr(to_check, solution, "outliersdf", **kwargs)
+        compare_df_attr(to_check, solution, "df", **kwargs)
+        assert (
+            to_check.obstypes == solution.obstypes
+        ), "There is a mismatch in obstypes with the solution!"
+        
+        
+        
     elif ((to_check.__class__.__name__ == "Station") and 
         (solution.__class__.__name__ == "SerializedStation")):
         seriealize_comparison(to_check, solution, **kwargs)
+        
+        
+    elif ((to_check.__class__.__name__ == "Station") and 
+        (solution.__class__.__name__ == "Station")):
+        
+        compare_df_attr(to_check, solution, "metadf", **kwargs)
+        compare_df_attr(to_check, solution, "gapsdf", **kwargs)
+        compare_df_attr(to_check, solution, "modeldatadf", **kwargs)
+        compare_df_attr(to_check, solution, "outliersdf", **kwargs)
+        compare_df_attr(to_check, solution, "df", **kwargs)
+        
          
     
     # type equal test
@@ -305,14 +388,7 @@ def assert_equality(to_check, solution, **kwargs):
 
     # # metobs_toolkit.Dataset test
     # elif to_check.__class__.__name__ == "Dataset":
-    #     compare_df_attr(to_check, solution, "metadf")
-    #     compare_df_attr(to_check, solution, "gapsdf")
-    #     compare_df_attr(to_check, solution, "modeldatadf")
-    #     compare_df_attr(to_check, solution, "outliersdf", exclude_columns="details")
-    #     compare_df_attr(to_check, solution, "df")
-    #     assert (
-    #         to_check.obstypes == solution.obstypes
-    #     ), "There is a mismatch in obstypes with the solution!"
+    #     
 
     # # metobs_toolkit.Station test
     # elif to_check.__class__.__name__ == "Station":
