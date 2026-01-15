@@ -86,8 +86,8 @@ echo "========================================="
 TEST_LOG=${DEPLOY_DIR}/pytest_tests_log.log
 rm -f ${TEST_LOG} #clean start
 touch ${TEST_LOG}
-cd ${REPODIR}/tests
-poetry run pytest . --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
+cd ${REPODIR} #Run from repo root
+poetry run pytest tests/. --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
 echo ""
 
 #4. Run notebook example as tests
