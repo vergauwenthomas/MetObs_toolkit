@@ -158,6 +158,7 @@ class TestBreakingDataset:
         dataset = copy.deepcopy(regular_qc_on_dataset)
         ax = dataset.make_plot(colorby="label", obstype="temp")
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
         return fig
 
 
