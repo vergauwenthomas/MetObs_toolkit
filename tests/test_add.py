@@ -12,7 +12,7 @@ import pandas as pd
 import metobs_toolkit
 
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
+from solutionclass import SolutionFixer2, assert_equality, datadir
 
 file_with_era5_data = (
     libfolder
@@ -22,32 +22,42 @@ file_with_era5_data = (
 )
 
 
-def get_demo_dataset():
-    dataset = metobs_toolkit.Dataset()
-    dataset.import_data_from_file(
-        template_file=metobs_toolkit.demo_template,
-        input_metadata_file=metobs_toolkit.demo_metadatafile,
-        input_data_file=metobs_toolkit.demo_datafile,
-    )
-    dataset.resample(target_freq="15min")
-    return dataset
-
-
-def get_demo_dataset_with_modeldata():
-    dataset = get_demo_dataset()
-
-    era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
-    dataset.import_gee_data_from_file(
-        filepath=file_with_era5_data, gee_dynamic_manager=era5_manager
-    )
-
-    return dataset
-
-
 class TestAddMethods:
-    def test_add_sensordata(self):
+    solkwargs = {"testfile": Path(__file__).name, "classname": "testaddmethods"}
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
+    @pytest.fixture(scope='class')
+    def import_demodata(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        dataset.resample(target_freq="15min")
+        return dataset
+    
+    @pytest.fixture(scope='class')
+    def import_demodata_with_era(self):
+        
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        dataset.resample(target_freq="15min")
+
+        era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+        dataset.import_gee_data_from_file(
+            filepath=file_with_era5_data, gee_dynamic_manager=era5_manager
+        )
+
+        return dataset
+    
+    
+    def test_add_sensordata(self, import_demodata):
         # Get two SensorData objects with non-overlapping timestamps
-        ds = get_demo_dataset()
+        ds = copy.deepcopy(import_demodata)
         sta = ds.get_station("vlinder01")
         sd1 = copy.deepcopy(sta.get_sensor("temp"))
 
@@ -75,8 +85,8 @@ class TestAddMethods:
         n_records = int((sd_other.end_datetime - sd1.start_datetime) / sd1.freq)
         assert sd_sum.df.shape[0] == n_records + 1
 
-    def test_add_sensordata_different_obstypes(self):
-        ds = get_demo_dataset()
+    def test_add_sensordata_different_obstypes(self, import_demodata):
+        ds = copy.deepcopy(import_demodata)
         sta = ds.get_station("vlinder01")
         sd1 = copy.deepcopy(sta.get_sensor("temp"))
         sd_other = copy.deepcopy(sta.get_sensor("temp"))
@@ -117,8 +127,8 @@ class TestAddMethods:
             sd_sum.obstype.description != sd1.obstype.description
         )  # combination of both
 
-    def test_add_sensordata_different_timezones(self):
-        ds = get_demo_dataset()
+    def test_add_sensordata_different_timezones(self, import_demodata):
+        ds = copy.deepcopy(import_demodata)
         sta = ds.get_station("vlinder01")
         sd1 = copy.deepcopy(sta.get_sensor("temp"))
         sd_other = copy.deepcopy(sta.get_sensor("temp"))
@@ -133,8 +143,8 @@ class TestAddMethods:
 
         assert sd_sum.end_datetime == max_timestamp
 
-    def test_add_sensordata_with_qc(self):
-        ds = get_demo_dataset()
+    def test_add_sensordata_with_qc(self, import_demodata):
+        ds = copy.deepcopy(import_demodata)
         sta = ds.get_station("vlinder01")
         sd_other = copy.deepcopy(sta.get_sensor("temp"))
         sd_other.series.index = sd_other.series.index + pd.Timedelta("30D")
@@ -149,8 +159,8 @@ class TestAddMethods:
         assert sd1.outliersdf.shape[0] != 0
         assert sd_sum.outliersdf.shape[0] == 0  # outliers must be removed
 
-    def test_add_site_with_different_attributes(self):
-        ds = get_demo_dataset()
+    def test_add_site_with_different_attributes(self, import_demodata):
+        ds = copy.deepcopy(import_demodata)
         sta = ds.get_station("vlinder01")
         sta1 = copy.deepcopy(sta)
         sta1.get_landcover_fractions(buffers=[50])
@@ -175,8 +185,8 @@ class TestAddMethods:
         with pytest.raises(MetObsAdditionError):
             _ = site1 + site2
 
-    def test_add_station_with_other_sensordata(self):
-        ds = get_demo_dataset()
+    def test_add_station_with_other_sensordata(self, import_demodata):
+        ds = copy.deepcopy(import_demodata)
         sta_orig = copy.deepcopy(ds.get_station("vlinder01"))
         sta1 = copy.deepcopy(ds.get_station("vlinder01"))
         sta2 = copy.deepcopy(ds.get_station("vlinder01"))
@@ -207,8 +217,8 @@ class TestAddMethods:
         with pytest.raises(MetObsAdditionError):
             _ = sta1 + sta2
 
-    def test_add_dataset(self):
-        ds_orig = get_demo_dataset()
+    def test_add_dataset(self, import_demodata):
+        ds_orig = copy.deepcopy(import_demodata)
         # 1. Combine identical
         ds1 = copy.deepcopy(ds_orig)
         ds2 = copy.deepcopy(ds_orig)
@@ -234,8 +244,8 @@ class TestAddMethods:
         assert_equality(combds.df, ds_orig.df)
         assert "altitude" in combds.metadf
 
-    def test_modeldata_addition(self):
-        ds_orig = get_demo_dataset_with_modeldata()
+    def test_modeldata_addition(self, import_demodata_with_era):
+        ds_orig = copy.deepcopy(import_demodata_with_era)
         ds1 = copy.deepcopy(ds_orig)
 
         # crop modeldata of a singel station
@@ -268,8 +278,8 @@ class TestAddMethods:
         comb = ds1 + copy.deepcopy(ds_orig)
         assert "dummy" in comb.modeldatadf.index.get_level_values("obstype").unique()
 
-    def test_avoid_pointers(self):
-        ds_orig = get_demo_dataset_with_modeldata()
+    def test_avoid_pointers(self, import_demodata_with_era):
+        ds_orig = copy.deepcopy(import_demodata_with_era)
         # 1. Combine identical
         ds1 = copy.deepcopy(ds_orig)
         ds2 = copy.deepcopy(ds_orig)
@@ -296,13 +306,20 @@ class TestAddMethods:
 
 
 if __name__ == "__main__":
-    t = TestAddMethods()
-    # t.test_add_sensordata()
-    # t.test_add_sensordata_different_obstypes()
-    # t.test_add_sensordata_different_timezones()
-    # t.test_add_sensordata_with_qc()
-    # t.test_add_site_with_different_attributes()
-    # t.test_add_station_with_other_sensordata()
-    # t.test_add_dataset()
-    # t.test_modeldata_addition()
-    # t.test_avoid_pointers()
+    tester = TestAddMethods()
+    
+    
+    demodata = tester.import_demodata.__wrapped__(tester)
+    demodata_with_era = tester.import_demodata_with_era.__wrapped__(tester)
+    
+    tester.test_add_sensordata(demodata)
+    tester.test_add_sensordata_different_obstypes(demodata)
+    tester.test_add_sensordata_different_timezones(demodata)
+    tester.test_add_sensordata_with_qc(demodata)
+    tester.test_add_site_with_different_attributes(demodata)
+    tester.test_add_station_with_other_sensordata(demodata)
+    tester.test_add_dataset(demodata)
+    tester.test_modeldata_addition(demodata_with_era)
+    tester.test_avoid_pointers(demodata_with_era)
+    
+  
