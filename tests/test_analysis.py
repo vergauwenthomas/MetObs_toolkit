@@ -1,5 +1,6 @@
 import pytest
 import sys
+import copy
 from pathlib import Path
 import pandas as pd
 
@@ -11,21 +12,16 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
+from solutionclass import SolutionFixer2, assert_equality, datadir
 
 
 class TestDemoDataset:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    def test_import_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
-
+    @pytest.fixture(scope='class')
+    def import_analysis(self):
         # 2. apply a metobs manipulation
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
@@ -37,11 +33,20 @@ class TestDemoDataset:
         # create analysis
         dataset.resample(target_freq="30min")
         ana = metobs_toolkit.Analysis(Dataholder=dataset)
+        
+        return ana
+          
+    def test_import_data(self, import_analysis, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        # 1. get_startpoint data
+        ana = copy.deepcopy(import_analysis)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=ana, methodname=_method_name, **TestDemoDataset.solkwargs
+                solution=ana, methodname=_method_name, **TestDemoDataset.solkwargs
             )
 
         # 4. Get solution
@@ -50,7 +55,7 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(ana, solutionobj)  # dataset comparison
+        assert_equality(ana, solutionobj)  # analysis comparison
 
     def test_if_analysis_can_be_created_from_station(self, overwrite_solution=False):
         # 0. Get info of the current check
@@ -74,7 +79,7 @@ class TestDemoDataset:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=ana.df,  # test dataframe
+                solution=ana,  
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -85,27 +90,33 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(ana.df, solutionobj)  # dataframe comparison
+        assert_equality(ana, solutionobj)  
 
-    def test_basic_analysis_method_calls(self):
+    def test_basic_analysis_method_calls(self, import_analysis, overwrite_solution=False):
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        ana = copy.deepcopy(import_analysis)
 
         # calls without value test
         ana.get_info()
-        ana.df
+        df = ana.df
 
-    def test_filtering(self, overwrite_solution=False):
+        if overwrite_solution:
+            TestDemoDataset.solutionfixer.create_solution(
+                solution=df,
+                methodname=sys._getframe().f_code.co_name,
+                **TestDemoDataset.solkwargs,
+            )
+        solutionobj = TestDemoDataset.solutionfixer.get_solution(
+            methodname=sys._getframe().f_code.co_name, **TestDemoDataset.solkwargs
+        )   
+        assert_equality(df, solutionobj)  # dataframe comparison
+
+    def test_filtering(self, import_analysis, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
-
+        ana =  copy.deepcopy(import_analysis)
         # filter data test
         ana.apply_filter_on_records("(wind_speed <= 2.5) & (hour > 12) & (hour < 20)")
         ana.apply_filter_on_records('season=="autumn" | season=="winter"')
@@ -114,7 +125,7 @@ class TestDemoDataset:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=ana.fulldf,
+                solution=ana,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -125,16 +136,17 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(ana.fulldf, solutionobj)  # dataframe comparison
+        assert_equality(ana, solutionobj)  # dataframe comparison
+        
+        with pytest.raises(AssertionError):
+            assert_equality(ana, copy.deepcopy(import_analysis))
 
-    def test_subsetting_time(self, overwrite_solution=False):
+    def test_subsetting_time(self, import_analysis, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        ana = copy.deepcopy(import_analysis)
 
         # filter data test
         startstr = pd.Timestamp("2022-09-04 16:29:36")
@@ -144,7 +156,7 @@ class TestDemoDataset:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=ana.fulldf,
+                solution=ana,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -155,23 +167,24 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(ana.fulldf, solutionobj)  # dataframe comparison
-
-    def test_aggregate_df_method(self, overwrite_solution=False):
+        assert_equality(ana, solutionobj)  # dataframe comparison
+        
+        with pytest.raises(AssertionError):
+            assert_equality(ana, copy.deepcopy(import_analysis))
+            
+    def test_aggregate_df_method(self, import_analysis, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        ana = copy.deepcopy(import_analysis)
 
         aggdf = ana.aggregate_df(obstype="humidity", agg=["LCZ", "season", "hour"])
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solutiondata=aggdf, methodname=_method_name, **TestDemoDataset.solkwargs
+                solution=aggdf, methodname=_method_name, **TestDemoDataset.solkwargs
             )
 
         # 4. Get solution
@@ -181,31 +194,29 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(aggdf, solutionobj)  # dataframe comparison
+        assert_equality(ana, copy.deepcopy(import_analysis))
 
     @pytest.mark.mpl_image_compare
-    def test_diurnal_cycle_plot(self):
+    def test_diurnal_cycle_plot(self, import_analysis):
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
-
+        ana = copy.deepcopy(import_analysis)
         # 2. apply a metobs manipulation
         ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ")
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.mpl_image_compare
-    def test_diurnal_cycle_plot_with_reference(self):
+    def test_diurnal_cycle_plot_with_reference(self, import_analysis):
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        ana = copy.deepcopy(import_analysis)
 
         # 2. apply a metobs manipulation
         ax = ana.plot_diurnal_cycle_with_reference_station(
             ref_station="vlinder02", obstype="temp", colorby="LCZ"
         )
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
 
@@ -218,10 +229,20 @@ if __name__ == "__main__":
         "To checkout the differences, run: \n pytest test_plotting.py --mpl --mpl-generate-summary=html "
     )
 
+    OVERWRITE_SOLUTION = False
     test = TestDemoDataset()
-    # test.test_import_data(overwrite_solution=False)
-    # test.test_if_analysis_can_be_created_from_station(overwrite_solution=False)
-    # test.test_aggregate_df_method(overwrite_solution=False)
-    # test.test_basic_analysis_method_calls()
-    # test.test_filtering(overwrite_solution=False)
-    # test.test_subsetting_time(overwrite_solution=False)
+    
+    analysis = test.import_analysis.__wrapped__(test)
+    
+    test.test_import_data(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_if_analysis_can_be_created_from_station(overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_aggregate_df_method(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_basic_analysis_method_calls(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_filtering(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_subsetting_time(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    
+    
+    
+    test.test_diurnal_cycle_plot(analysis)
+    test.test_diurnal_cycle_plot_with_reference(analysis)
+   

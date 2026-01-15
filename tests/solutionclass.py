@@ -94,6 +94,8 @@ class SolutionFixer2:
             store_dataset(solution, base_path)
         elif solution.__class__.__name__ == "Station":
             store_station(solution, base_path)
+        elif solution.__class__.__name__ == "Analysis":
+            store_analysis(solution, base_path)
         elif isinstance(solution, pd.DataFrame):
             store_pandasdf(solution, base_path)
         elif isinstance(solution, dict):
@@ -123,6 +125,8 @@ class SolutionFixer2:
             return read_dataset(base_path)
         elif solutionclass == 'Station':
             return read_station(base_path)
+        elif solutionclass == 'Analysis':
+            return read_analysis(base_path)
         elif solutionclass == 'Dict':
             return read_dict(base_path)
         elif solutionclass == 'DataFrame':
@@ -133,7 +137,9 @@ class SolutionFixer2:
         else:
             raise NotImplementedError(
                 "SolutionFixer2.get_solution only supports Dataset, Station, and DataFrame objects.")
-            
+
+
+    
 def store_string(data_str: str, dir: Path):
     """Store the dataset as a json-serializable dict."""
     
@@ -187,7 +193,23 @@ def read_dict(dir: Path) -> dict:
                     "read_dict only supports Dataset, Station, and DataFrame objects.")
     return returndict
     
+def read_analysis(dir: Path):
+    def file_to_attr(fpath: Path) -> str:
+        return fpath.stem.replace("solution_", "")
+
+    result = {}
+    for f in dir.glob("solution_*.parquet"):
+        result[file_to_attr(f)] = pd.read_parquet(f)
+    return SerializedAnalysis(result)
     
+def store_analysis(analysis, dir: Path):
+    dir.mkdir(parents=True, exist_ok=True)
+    with open(dir / "datatype.json", "w") as f:
+            json.dump({"class": "Analysis"}, f)
+            
+    analysis.df.to_parquet(dir / "solution_df.parquet")
+    analysis.fulldf.to_parquet(dir / "solution_fulldf.parquet")
+    analysis.metadf.to_parquet(dir / "solution_metadf.parquet")
     
 def read_dataset(dir: Path):
     def file_to_attr(fpath: Path) -> str:
@@ -248,6 +270,13 @@ def store_pandasdf(df: pd.DataFrame, dir: Path):
             json.dump({"class": "DataFrame"}, f)
     df.to_parquet(dir / "solution_df.parquet")
     
+class SerializedAnalysis():
+    """A class to hold the deserialized data of a Dataset for comparison."""
+    
+    def __init__(self, data: dict):
+        self.fulldf = data.get("fulldf")
+        self.metadf = format_metadata(data.get("metadf"))
+
 class SerializedDataset():
     """A class to hold the deserialized data of a Dataset for comparison."""
     
@@ -324,8 +353,20 @@ def assert_equality(to_check, solution, **kwargs):
         compare_df_attr(to_check, solution, "modeldatadf", **kwargs)
         compare_df_attr(to_check, solution, "outliersdf", **kwargs)
         compare_df_attr(to_check, solution, "df", **kwargs)
+    
+    
+    elif ((to_check.__class__.__name__ == "Analysis") and 
+        (solution.__class__.__name__ == "SerializedAnalysis")):
         
-         
+        seriealize_comparison(to_check, solution, **kwargs)
+
+    elif ((to_check.__class__.__name__ == "Analysis") and 
+        (solution.__class__.__name__ == "Analysis")):
+        
+        compare_df_attr(to_check, solution, "df", **kwargs)
+        compare_df_attr(to_check, solution, "fulldf", **kwargs)
+        compare_df_attr(to_check, solution, "metadf", **kwargs)
+
     
     # type equal test
     elif type(to_check) != type(solution):
