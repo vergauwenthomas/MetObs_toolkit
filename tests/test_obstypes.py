@@ -26,7 +26,7 @@ class TestObstype:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testobstypedata"}
     solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_dataset(self):
         # 2. apply a metobs manipulation
         dataset = metobs_toolkit.Dataset()
@@ -167,7 +167,6 @@ class TestObstype:
         _ = modeltemp.model_unit
         _ = modeltemp.get_info(printout=False)
 
-
     def test_model_unit_setter(self):
         """Test the model_unit setter of ModelObstype class."""
         # Create a base temperature obstype
@@ -227,10 +226,14 @@ if __name__ == "__main__":
     OVERWRITE_SOLUTION = False
 
     testobstype = TestObstype()
-    
+
     demodata = testobstype.import_dataset.__wrapped__(testobstype)
-    testobstype.test_import_demo_data(overwrite_solution=OVERWRITE_SOLUTION, import_dataset=demodata)
-    testobstype.test_calling_methods_without_solution_on_obstypes(import_dataset=demodata)
+    testobstype.test_import_demo_data(
+        overwrite_solution=OVERWRITE_SOLUTION, import_dataset=demodata
+    )
+    testobstype.test_calling_methods_without_solution_on_obstypes(
+        import_dataset=demodata
+    )
     testobstype.test_units_io(import_dataset=demodata)
     testobstype.test_creating_new_obstypes(import_dataset=demodata)
     testobstype.test_calling_methods_on_modelobstypes()

@@ -94,7 +94,9 @@ class SolutionFixer2:
         """Save a solution object to disk."""
         base_path = self.get_solution_dir(methodname, testfile, classname)
 
-        print(f"!! OVERWRITING SOLUTION FOR {testfile} --> {classname}:{methodname} !!!")
+        print(
+            f"!! OVERWRITING SOLUTION FOR {testfile} --> {classname}:{methodname} !!!"
+        )
 
         classname_map = {
             "Dataset": _store_dataset,
@@ -116,9 +118,14 @@ class SolutionFixer2:
                 f"create_solution does not support {obj_classname} objects."
             )
 
-    def get_solution(
-        self, methodname: str, testfile: str, classname: str
-    ) -> Union[SerializedDataset, SerializedStation, SerializedAnalysis, pd.DataFrame, dict, str]:
+    def get_solution(self, methodname: str, testfile: str, classname: str) -> Union[
+        SerializedDataset,
+        SerializedStation,
+        SerializedAnalysis,
+        pd.DataFrame,
+        dict,
+        str,
+    ]:
         """Load a solution from disk."""
         base_path = self.get_solution_dir(methodname, testfile, classname)
 

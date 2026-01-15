@@ -128,11 +128,11 @@ class TestAddFileHandler:
 
 if __name__ == "__main__":
     print("Running logging tests directly...")
-    
+
     # Cleanup handlers before tests
     logger = logging.getLogger("<metobs_toolkit>")
     logger.handlers.clear()
-    
+
     # TestAddStreamHandler
     stream_tester = TestAddStreamHandler()
     stream_tester.test_add_stream_handler_default()
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     logger.handlers.clear()
     stream_tester.test_no_duplicate_stream_handler()
     logger.handlers.clear()
-    
+
     # TestAddFileHandler
     file_tester = TestAddFileHandler()
     file_tester.test_add_file_handler_creates_file()
@@ -152,5 +152,5 @@ if __name__ == "__main__":
     logger.handlers.clear()
     file_tester.test_clearlog_overwrites_file()
     logger.handlers.clear()
-    
+
     print("All logging tests passed!")

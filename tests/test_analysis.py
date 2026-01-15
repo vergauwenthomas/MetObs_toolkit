@@ -20,7 +20,7 @@ class TestDemoDataset:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
     solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_analysis(self):
         # 2. apply a metobs manipulation
         dataset = metobs_toolkit.Dataset()
@@ -33,9 +33,9 @@ class TestDemoDataset:
         # create analysis
         dataset.resample(target_freq="30min")
         ana = metobs_toolkit.Analysis(Dataholder=dataset)
-        
+
         return ana
-          
+
     def test_import_data(self, import_analysis, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
@@ -79,7 +79,7 @@ class TestDemoDataset:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solution=ana,  
+                solution=ana,
                 methodname=_method_name,
                 **TestDemoDataset.solkwargs,
             )
@@ -90,9 +90,11 @@ class TestDemoDataset:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(ana, solutionobj)  
+        assert_equality(ana, solutionobj)
 
-    def test_basic_analysis_method_calls(self, import_analysis, overwrite_solution=False):
+    def test_basic_analysis_method_calls(
+        self, import_analysis, overwrite_solution=False
+    ):
         #  1. get_startpoint data
         ana = copy.deepcopy(import_analysis)
 
@@ -108,7 +110,7 @@ class TestDemoDataset:
             )
         solutionobj = TestDemoDataset.solutionfixer.get_solution(
             methodname=sys._getframe().f_code.co_name, **TestDemoDataset.solkwargs
-        )   
+        )
         assert_equality(df, solutionobj)  # dataframe comparison
 
     def test_filtering(self, import_analysis, overwrite_solution=False):
@@ -116,7 +118,7 @@ class TestDemoDataset:
         _method_name = sys._getframe().f_code.co_name
 
         #  1. get_startpoint data
-        ana =  copy.deepcopy(import_analysis)
+        ana = copy.deepcopy(import_analysis)
         # filter data test
         ana.apply_filter_on_records("(wind_speed <= 2.5) & (hour > 12) & (hour < 20)")
         ana.apply_filter_on_records('season=="autumn" | season=="winter"')
@@ -137,7 +139,7 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(ana, solutionobj)  # dataframe comparison
-        
+
         with pytest.raises(AssertionError):
             assert_equality(ana, copy.deepcopy(import_analysis))
 
@@ -168,10 +170,10 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(ana, solutionobj)  # dataframe comparison
-        
+
         with pytest.raises(AssertionError):
             assert_equality(ana, copy.deepcopy(import_analysis))
-            
+
     def test_aggregate_df_method(self, import_analysis, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
@@ -203,7 +205,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ")
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.mpl_image_compare
@@ -216,7 +218,7 @@ class TestDemoDataset:
             ref_station="vlinder02", obstype="temp", colorby="LCZ"
         )
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
 
@@ -231,18 +233,19 @@ if __name__ == "__main__":
 
     OVERWRITE_SOLUTION = False
     test = TestDemoDataset()
-    
+
     analysis = test.import_analysis.__wrapped__(test)
-    
+
     test.test_import_data(analysis, overwrite_solution=OVERWRITE_SOLUTION)
-    test.test_if_analysis_can_be_created_from_station(overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_if_analysis_can_be_created_from_station(
+        overwrite_solution=OVERWRITE_SOLUTION
+    )
     test.test_aggregate_df_method(analysis, overwrite_solution=OVERWRITE_SOLUTION)
-    test.test_basic_analysis_method_calls(analysis, overwrite_solution=OVERWRITE_SOLUTION)
+    test.test_basic_analysis_method_calls(
+        analysis, overwrite_solution=OVERWRITE_SOLUTION
+    )
     test.test_filtering(analysis, overwrite_solution=OVERWRITE_SOLUTION)
     test.test_subsetting_time(analysis, overwrite_solution=OVERWRITE_SOLUTION)
-    
-    
-    
+
     test.test_diurnal_cycle_plot(analysis)
     test.test_diurnal_cycle_plot_with_reference(analysis)
-   

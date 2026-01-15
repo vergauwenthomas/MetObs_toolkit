@@ -40,8 +40,8 @@ class TestDemoDataset:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
     solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
-    
-    @pytest.fixture(scope='class')
+
+    @pytest.fixture(scope="class")
     def import_dataset(self):
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
@@ -52,7 +52,7 @@ class TestDemoDataset:
         # To hourly !!
         dataset.resample(target_freq="1h")
         return dataset
-    
+
     @pytest.fixture(autouse=True)
     def import_dataset_with_era5(self):
         dataset = metobs_toolkit.Dataset()
@@ -78,7 +78,7 @@ class TestDemoDataset:
             force_direct_transfer=True,
             force_to_drive=False,
         )
-        
+
         assert era5_data.shape == (532, 1)
         return dataset
 
@@ -104,9 +104,11 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
-    
+
     @pytest.mark.dependency()
-    def test_import_data_with_era5(self, import_dataset_with_era5, overwrite_solution=False):
+    def test_import_data_with_era5(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
@@ -127,7 +129,7 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
-        
+
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
     @pytest.mark.mpl_image_compare
     def test_dataset_timeseries_plotting_by_label(self, import_dataset):
@@ -136,7 +138,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = dataset.make_plot(colorby="label", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -148,7 +150,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -160,7 +162,7 @@ class TestDemoDataset:
         dataset.repetitions_check(max_N_repetitions=8)
         ax = dataset.make_plot(colorby="station", show_outliers=False)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -173,7 +175,7 @@ class TestDemoDataset:
         dataset.repetitions_check(max_N_repetitions=8)
         ax = dataset.make_plot(colorby="label", show_outliers=False)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -187,7 +189,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = sta.make_plot(colorby="label", show_outliers=False, ax=ax)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -199,7 +201,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot(show_modeldata=True)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -211,7 +213,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot_of_modeldata(obstype="temp")
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -223,7 +225,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -236,9 +238,9 @@ class TestDemoDataset:
             obstype="temp", modelname="ERA5-land"
         )
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
-    
+
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
     @pytest.mark.mpl_image_compare
     def test_station_plot_humidity_with_temp_modeldata(self, import_dataset_with_era5):
@@ -256,7 +258,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -264,7 +266,6 @@ class TestDemoDataset:
     def test_station_plot_temp_with_modeldata_kwargs(self, import_dataset_with_era5):
         """Test station.make_plot with temp obstype and modeldata kwargs."""
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
 
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot(
@@ -276,7 +277,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -294,7 +295,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -308,7 +309,7 @@ class TestDemoDataset:
         )
         ax = modelseries.make_plot()
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -318,27 +319,31 @@ class TestDemoDataset:
 
         ax = dataset_with_era.make_plot_of_modeldata()
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
     @pytest.mark.mpl_image_compare
-    def test_dataset_color_by_station_and_modeldata_timeseries_plot(self, import_dataset_with_era5):
+    def test_dataset_color_by_station_and_modeldata_timeseries_plot(
+        self, import_dataset_with_era5
+    ):
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         ax = dataset_with_era.make_plot(colorby="station", show_modeldata=True)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
     @pytest.mark.mpl_image_compare
-    def test_dataset_color_by_label_and_modeldata_timeseries_plot(self, import_dataset_with_era5):
+    def test_dataset_color_by_label_and_modeldata_timeseries_plot(
+        self, import_dataset_with_era5
+    ):
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         ax = dataset_with_era.make_plot(colorby="label", show_modeldata=True)
         fig = ax.get_figure()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -361,7 +366,7 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -385,7 +390,7 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -409,9 +414,8 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
-        fig.set_size_inches(15, 5) 
+        fig.set_size_inches(15, 5)
         return fig
-
 
 
 if __name__ == "__main__":
@@ -426,22 +430,24 @@ if __name__ == "__main__":
     OVERWRITE_SOLUTION = False
 
     tester = TestDemoDataset()
-    
+
     # Prepare fixtures
     import_dataset = tester.import_dataset.__wrapped__(tester)
     import_dataset_with_era5 = tester.import_dataset_with_era5.__wrapped__(tester)
-    
+
     # Run tests with solutions
     tester.test_import_data(import_dataset, overwrite_solution=OVERWRITE_SOLUTION)
-    tester.test_import_data_with_era5(import_dataset_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
-    
+    tester.test_import_data_with_era5(
+        import_dataset_with_era5, overwrite_solution=OVERWRITE_SOLUTION
+    )
+
     # # Run plotting tests (using import_dataset)
     # tester.test_dataset_timeseries_plotting_by_label(import_dataset)
     # tester.test_dataset_timeseries_plotting_by_station(import_dataset)
     # tester.test_dataset_test_show_outliers_labelby_station(import_dataset)
     # tester.test_dataset_test_show_outliers_labelby_labels(import_dataset)
     # tester.test_station_timeseries_plotting_existing_ax(import_dataset)
-    
+
     # # Run plotting tests (using import_dataset_with_era5)
     # tester.test_station_timeseries_with_modeldata(import_dataset_with_era5)
     # tester.test_station_modeldata_timeseries(import_dataset_with_era5)

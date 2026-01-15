@@ -22,8 +22,6 @@ from solutionclass import SolutionFixer2, assert_equality, datadir
 import copy
 
 
-
-
 class TestModelDataImport:
     """Test importing model data from various sources."""
 
@@ -52,8 +50,11 @@ class TestModelDataImport:
         imported_df = dataset.import_gee_data_from_file(
             filepath=era5_file, gee_dynamic_manager=era5_manager, force_update=True
         )
-        assert not imported_df.empty, "Imported model data DataFrame should not be empty"
+        assert (
+            not imported_df.empty
+        ), "Imported model data DataFrame should not be empty"
         return dataset
+
     def test_import_era5_data_from_file(self, dataset_with_modeldata):
         """Test importing ERA5 data from CSV file."""
 
@@ -493,22 +494,20 @@ class TestStationModelDataMethods:
 
 
 if __name__ == "__main__":
-    #test modeldata on dataset
+    # test modeldata on dataset
     tester = TestModelDataImport()
-    
+
     dataset_era = tester.dataset_with_modeldata.__wrapped__(tester)
-    
+
     tester.test_import_era5_data_from_file(dataset_era)
     tester.test_modeltimeseries_properties(dataset_era)
-    
 
-
-    #test manager
+    # test manager
     manager_tester = TestModelDataManagers()
     manager_tester.test_gee_dataset_managers_availability()
     manager_tester.test_gee_manager_info_methods()
-    
-    #test station modeldata methods
+
+    # test station modeldata methods
     station_tester = TestStationModelDataMethods()
     station_tester.test_add_to_modeldata_basic()
     station_tester.test_add_to_modeldata_force_update()
@@ -521,4 +520,3 @@ if __name__ == "__main__":
     station_tester.test_get_modeltimeseries_no_match()
     station_tester.test_get_modeltimeseries_no_modeldata()
     station_tester.test_modeldata_property_list_format()
-    

@@ -25,7 +25,8 @@ file_with_era5_data = (
 class TestAddMethods:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testaddmethods"}
     solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
-    @pytest.fixture(scope='class')
+
+    @pytest.fixture(scope="class")
     def import_demodata(self):
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
@@ -35,10 +36,10 @@ class TestAddMethods:
         )
         dataset.resample(target_freq="15min")
         return dataset
-    
-    @pytest.fixture(scope='class')
+
+    @pytest.fixture(scope="class")
     def import_demodata_with_era(self):
-        
+
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=metobs_toolkit.demo_template,
@@ -53,8 +54,7 @@ class TestAddMethods:
         )
 
         return dataset
-    
-    
+
     def test_add_sensordata(self, import_demodata):
         # Get two SensorData objects with non-overlapping timestamps
         ds = copy.deepcopy(import_demodata)
@@ -307,11 +307,10 @@ class TestAddMethods:
 
 if __name__ == "__main__":
     tester = TestAddMethods()
-    
-    
+
     demodata = tester.import_demodata.__wrapped__(tester)
     demodata_with_era = tester.import_demodata_with_era.__wrapped__(tester)
-    
+
     tester.test_add_sensordata(demodata)
     tester.test_add_sensordata_different_obstypes(demodata)
     tester.test_add_sensordata_different_timezones(demodata)
@@ -321,5 +320,3 @@ if __name__ == "__main__":
     tester.test_add_dataset(demodata)
     tester.test_modeldata_addition(demodata_with_era)
     tester.test_avoid_pointers(demodata_with_era)
-    
-  

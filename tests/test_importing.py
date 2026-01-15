@@ -25,7 +25,7 @@ class TestDemoData:
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
     solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_dataset(self):
         """Import demo dataset fixture."""
         dataset = metobs_toolkit.Dataset()
@@ -382,7 +382,7 @@ class TestWideData:
     datafile = datadir.joinpath("wide_test_data.csv")
     templatefile = datadir.joinpath("wide_test_template.json")
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_wide_dataset(self):
         """Import wide format dataset fixture."""
         dataset = metobs_toolkit.Dataset()
@@ -461,7 +461,7 @@ class TestWideSingleStationData:
     templatefile = datadir.joinpath("single_station_template.json")
     metadatfile = datadir.joinpath("single_station_metadata.csv")
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_single_station_dataset(self):
         """Import single station dataset fixture."""
         dataset = metobs_toolkit.Dataset()
@@ -473,7 +473,9 @@ class TestWideSingleStationData:
         return dataset
 
     @pytest.mark.dependency()
-    def test_import_wide_data(self, import_single_station_dataset, overwrite_solution=False):
+    def test_import_wide_data(
+        self, import_single_station_dataset, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
@@ -498,7 +500,7 @@ class TestWideSingleStationData:
 
 
 class TestStationAddMethods:
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope="class")
     def import_dataset(self):
         """Import demo dataset fixture."""
         dataset = metobs_toolkit.Dataset()
@@ -700,21 +702,23 @@ class TestParquetData:
 
 
 if __name__ == "__main__":
-    print(
-        "To Overwrite the solutions, run: \n pytest test_importing.py -v"
-    )
+    print("To Overwrite the solutions, run: \n pytest test_importing.py -v")
 
     OVERWRITE_SOLUTION = True
-    
+
     # TestDemoData
     demo_tester = TestDemoData()
     demo_dataset = demo_tester.import_dataset.__wrapped__(demo_tester)
-    
+
     demo_tester.test_version()
-    demo_tester.test_import_demo_data(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    demo_tester.test_import_demo_data(
+        demo_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
     demo_tester.test_calling_methods_without_solution_on_dataset(demo_dataset)
     demo_tester.test_calling_methods_without_solution_on_station(demo_dataset)
-    demo_tester.test_subset_by_stations(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    demo_tester.test_subset_by_stations(
+        demo_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
     # demo_tester.test_subset_by_stations_invalid(demo_dataset, caplog)  # requires caplog fixture
     demo_tester.test_get_info(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
     demo_tester.test_get_station(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
@@ -728,20 +732,32 @@ if __name__ == "__main__":
     # TestWideData
     wide_data_tester = TestWideData()
     wide_dataset = wide_data_tester.import_wide_dataset.__wrapped__(wide_data_tester)
-    
-    wide_data_tester.test_import_wide_data(wide_dataset, overwrite_solution=OVERWRITE_SOLUTION)
-    wide_data_tester.test_sync_wide_records(wide_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+
+    wide_data_tester.test_import_wide_data(
+        wide_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+    wide_data_tester.test_sync_wide_records(
+        wide_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
 
     # TestWideSingleStationData
     single_station_tester = TestWideSingleStationData()
-    single_station_dataset = single_station_tester.import_single_station_dataset.__wrapped__(single_station_tester)
-    
-    single_station_tester.test_import_wide_data(single_station_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    single_station_dataset = (
+        single_station_tester.import_single_station_dataset.__wrapped__(
+            single_station_tester
+        )
+    )
+
+    single_station_tester.test_import_wide_data(
+        single_station_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
 
     # TestStationAddMethods
     station_add_tester = TestStationAddMethods()
-    station_add_dataset = station_add_tester.import_dataset.__wrapped__(station_add_tester)
-    
+    station_add_dataset = station_add_tester.import_dataset.__wrapped__(
+        station_add_tester
+    )
+
     station_add_tester.test_station_add_sensordata_and_modeldata(station_add_dataset)
 
     # TestParquetData

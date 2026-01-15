@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 import tempfile
 import copy
+
 # import metobs_toolkit
 import pandas as pd
 import numpy as np
@@ -34,14 +35,16 @@ class TestDemoDataset:
             input_metadata_file=metobs_toolkit.demo_metadatafile,
         )
         return dataset
-        
+
     @pytest.mark.dependency()
-    def test_import_demo_metadata(self, import_metaonly_dataset, overwrite_solution=False):
+    def test_import_demo_metadata(
+        self, import_metaonly_dataset, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
         # 2. apply a metobs manipulation
         dataset = copy.deepcopy(import_metaonly_dataset)
-       
+
         # test get info on metadata-only dataset
         dataset.get_info(printout=False)
 
@@ -57,10 +60,10 @@ class TestDemoDataset:
         solutionobj = TestDemoDataset.solutionfixer.get_solution(
             methodname=_method_name, **TestDemoDataset.solkwargs
         )
-        
-        #sanity test
+
+        # sanity test
         _ = dataset.get_info(printout=False)
-        
+
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)
 
@@ -123,12 +126,14 @@ class TestDemoDataset:
         assert dataset.stations[5].site.LCZ == "Water (LCZ G)"
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_demo_metadata"])
-    def test_altitude_extraction(self, import_metaonly_dataset, overwrite_solution=False):
+    def test_altitude_extraction(
+        self, import_metaonly_dataset, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
         # 1. get_startpoint data
         dataset = copy.deepcopy(import_metaonly_dataset)
-    
+
         alt_data = dataset.get_altitude()
 
         # 3. overwrite solution?
@@ -206,12 +211,13 @@ class TestDemoDataset:
         assert type(mapret) == geemap.Map
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_demo_metadata"])
-    def test_landcover_frac_extraction(self, import_metaonly_dataset, overwrite_solution=False):
+    def test_landcover_frac_extraction(
+        self, import_metaonly_dataset, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
         # 1. get_startpoint data
         dataset = copy.deepcopy(import_metaonly_dataset)
-
 
         landcover_data = dataset.get_landcover_fractions(
             buffers=[10, 100, 500], aggregate=False
@@ -249,7 +255,7 @@ class TestDemoDataset:
         dataset = copy.deepcopy(import_metaonly_dataset)
 
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
-        
+
         startdt_utc = pd.Timestamp("2021-01-01 16:32:25")
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_data = dataset.get_gee_timeseries_data(
@@ -263,12 +269,14 @@ class TestDemoDataset:
             force_direct_transfer=False,
             force_to_drive=False,
         )
-        #sanity check
+        # sanity check
         assert era5_data.shape == (224, 4)
         return dataset
-    
+
     @pytest.mark.dependency()
-    def test_ERA5_extraction_on_metadata_only(self, import_metaonly_dataset_with_era5, overwrite_solution=False):
+    def test_ERA5_extraction_on_metadata_only(
+        self, import_metaonly_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = (
             "test_ERA5_extraction_on_metadata_only"  # get the name of this method
@@ -308,7 +316,9 @@ class TestDemoDataset:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-    @pytest.mark.dependency(depends=["TestDemoDataset::test_ERA5_extraction_on_metadata_only"])
+    @pytest.mark.dependency(
+        depends=["TestDemoDataset::test_ERA5_extraction_on_metadata_only"]
+    )
     def test_get_info_on_modeltimeseries(self, import_metaonly_dataset_with_era5):
         # 1. get_startpoint data
         dataset = copy.deepcopy(import_metaonly_dataset_with_era5)
@@ -316,8 +326,7 @@ class TestDemoDataset:
         # test get info on metadata-only dataset
         for modeltimeseries in dataset.get_station("vlinder18").modeldata:
             _ = modeltimeseries.get_info(printout=False)
-    
-    
+
     @pytest.fixture(autouse=True)
     def import_dataset_with_era5(self):
         dataset = metobs_toolkit.Dataset()
@@ -343,15 +352,15 @@ class TestDemoDataset:
             force_direct_transfer=True,
             force_to_drive=False,
         )
-        
+
         assert era5_data.shape == (532, 1)
         return dataset
-    
+
     @pytest.mark.dependency()
-    def test_ERA5_extraction(self,import_dataset_with_era5, overwrite_solution=False):
+    def test_ERA5_extraction(self, import_dataset_with_era5, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = "test_ERA5_extraction"  # get the name of this method
-        
+
         dataset = copy.deepcopy(import_dataset_with_era5)
         # assert era5_data.shape == (532, 1)
 
@@ -370,7 +379,6 @@ class TestDemoDataset:
 
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
-
 
     def test_station_timeseries_extraction(self):
         dataset = metobs_toolkit.Dataset()
@@ -435,7 +443,7 @@ class TestDemoDataset:
         # 1. Test writing to drive file
         # Extract ERA5data and force the storing in drive
         dataset = copy.deepcopy(import_metaonly_dataset)
-        
+
         startdt_utc = pd.Timestamp("2021-01-01 16:32:25")
         enddt_utc = pd.Timestamp("2021-01-01 23:16:00")
         era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
@@ -493,18 +501,20 @@ if __name__ == "__main__":
     OVERWRITE_SOLUTION = False
 
     tester = TestDemoDataset()
-    
+
     # Prepare fixtures
     metaonly_dataset = tester.import_metaonly_dataset.__wrapped__(tester)
     # metaonly_dataset_with_era5 = tester.import_metaonly_dataset_with_era5.__wrapped__(tester, metaonly_dataset)
     # dataset_with_era5 = tester.import_dataset_with_era5.__wrapped__(tester)
-    
+
     # Run tests
     # tester.test_import_demo_metadata(metaonly_dataset, overwrite_solution=OVERWRITE_SOLUTION)
     # tester.test_gee_connect()
     # tester.test_LCZ_extraction(metaonly_dataset, overwrite_solution=OVERWRITE_SOLUTION)
     tester.test_lcz_seamask_fix(metaonly_dataset)
-    tester.test_altitude_extraction(metaonly_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    tester.test_altitude_extraction(
+        metaonly_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
     # tester.test_geemodeldata_getinfo_class()
     # tester.test_gee_static_plot(metaonly_dataset)
     # tester.test_gee_dynamic_plot(metaonly_dataset)
@@ -516,6 +526,6 @@ if __name__ == "__main__":
     # tester.test_pickling(dataset_with_era5)
     # tester.test_era5_modeldata_interactions(dataset_with_era5)
     # tester.test_ERA5_google_drive_interface(metaonly_dataset)
-    
+
     # Plotting tests
     # tester.test_modeldata_timeseries_plot(dataset_with_era5)
