@@ -92,14 +92,14 @@ class SolutionFixer2:
         #if solution is Metobs-toolkit.Dataset
         if solution.__class__.__name__ == "Dataset":
             store_dataset(solution, base_path)
-            
         elif solution.__class__.__name__ == "Station":
             store_station(solution, base_path)
-        
         elif isinstance(solution, pd.DataFrame):
             store_pandasdf(solution, base_path)
         elif isinstance(solution, dict):
             store_dict(solution, base_path)
+        elif isinstance(solution, str):
+            store_string(solution, base_path)
         else:
             raise NotImplementedError(
                 "SolutionFixer2.create_solution only supports Dataset, Station, and Analysis objects.")
@@ -127,12 +127,28 @@ class SolutionFixer2:
             return read_dict(base_path)
         elif solutionclass == 'DataFrame':
             return read_pandasdf(base_path)
+        elif solutionclass == 'String':
+            return read_string(base_path)
         
         else:
             raise NotImplementedError(
                 "SolutionFixer2.get_solution only supports Dataset, Station, and DataFrame objects.")
             
+def store_string(data_str: str, dir: Path):
+    """Store the dataset as a json-serializable dict."""
+    
+    dir.mkdir(parents=True, exist_ok=True)
+    with open(dir / "datatype.json", "w") as f:
+            json.dump({"class": "String"}, f)
+            
+    with open(dir / "solution_string.txt", "w") as f:
+        f.write(data_str)
         
+def read_string(dir: Path) -> str:
+    with open(dir / "solution_string.txt", "r") as f:
+        data_str = f.read()
+    return data_str
+
 def store_dict(data_dict: dict, dir: Path):
     """Store the dataset as a json-serializable dict."""
     
