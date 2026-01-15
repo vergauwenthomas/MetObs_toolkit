@@ -136,6 +136,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = dataset.make_plot(colorby="label", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -147,6 +148,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -158,6 +160,7 @@ class TestDemoDataset:
         dataset.repetitions_check(max_N_repetitions=8)
         ax = dataset.make_plot(colorby="station", show_outliers=False)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -170,6 +173,7 @@ class TestDemoDataset:
         dataset.repetitions_check(max_N_repetitions=8)
         ax = dataset.make_plot(colorby="label", show_outliers=False)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -183,6 +187,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         ax = sta.make_plot(colorby="label", show_outliers=False, ax=ax)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -194,6 +199,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot(show_modeldata=True)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -205,6 +211,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot_of_modeldata(obstype="temp")
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -216,6 +223,7 @@ class TestDemoDataset:
         station = dataset_with_era.get_station("vlinder05")
         ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -228,6 +236,7 @@ class TestDemoDataset:
             obstype="temp", modelname="ERA5-land"
         )
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
     
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -247,6 +256,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -266,6 +276,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -283,6 +294,7 @@ class TestDemoDataset:
             },
         )
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -296,6 +308,7 @@ class TestDemoDataset:
         )
         ax = modelseries.make_plot()
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -305,6 +318,7 @@ class TestDemoDataset:
 
         ax = dataset_with_era.make_plot_of_modeldata()
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -314,6 +328,7 @@ class TestDemoDataset:
 
         ax = dataset_with_era.make_plot(colorby="station", show_modeldata=True)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -323,6 +338,7 @@ class TestDemoDataset:
 
         ax = dataset_with_era.make_plot(colorby="label", show_modeldata=True)
         fig = ax.get_figure()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -345,6 +361,7 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -368,6 +385,7 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
+        fig.set_size_inches(15, 5) 
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -391,6 +409,7 @@ class TestDemoDataset:
         )
         ax.legend()
         fig = plt.gcf()
+        fig.set_size_inches(15, 5) 
         return fig
 
 
