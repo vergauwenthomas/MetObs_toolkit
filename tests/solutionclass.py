@@ -1,476 +1,318 @@
-from pathlib import Path
-import pickle
+"""Solution management for test fixtures.
 
-import pandas as pd
+This module provides utilities to store and retrieve test solutions as parquet files,
+enabling reproducible testing without relying on pickled objects.
+"""
+
+from pathlib import Path
+from typing import Union
+
 import geopandas as gpd
 import json
-import pandas.testing
-
-libfolder = Path(str(Path(__file__).resolve())).parent.parent
-# testdatadir
-datadir = libfolder.joinpath("tests").joinpath("data")
+import pandas as pd
 
 
-# class SolutionFixer:
-#     def __init__(self, solutiondir):
-#         self.solutiondir = Path(solutiondir)
+# Project paths
+libfolder = Path(__file__).resolve().parent.parent
+datadir = libfolder / "tests" / "data"
 
-#     def get_solution(self, testfile, classname, methodname):
-#         basefoldername = f"{str(testfile).strip('.py')}_solutions"
-#         subfoldername = f"{classname.lower()}"
-#         trgfilename = f"{str(methodname)}.pkl"
 
-#         solutionfile = (
-#             self.solutiondir.joinpath(basefoldername)
-#             .joinpath(subfoldername)
-#             .joinpath(trgfilename)
-#         )
-#         if not solutionfile.exists():
-#             raise SolutionNotExisting(
-#                 f"The solution of {testfile} -->{classname}:{methodname} does not exist (at {solutionfile})!"
-#             )
+# =============================================================================
+# Exceptions
+# =============================================================================
 
-#         with open(solutionfile, "rb") as file:
-#             solution_data = pickle.load(file)
-#         return solution_data
 
-#     def create_solution(self, solutiondata, testfile, classname, methodname):
-#         # construct path
-#         basefoldername = f"{str(testfile).strip('.py')}_solutions"
-#         subfoldername = f"{classname.lower()}"
-#         trgfilename = f"{str(methodname)}.pkl"
+class SolutionNotExisting(Exception):
+    """Raised when the solution file does not exist."""
 
-#         solutionfile = (
-#             self.solutiondir.joinpath(basefoldername)
-#             .joinpath(subfoldername)
-#             .joinpath(trgfilename)
-#         )
-#         # clear previous solutions
-#         if solutionfile.exists():
-#             print(
-#                 f"!! OVERWRITING SOLUTION FOR  {testfile} --> {classname}:{methodname} !!! "
-#             )
-#             # delete file
-#             solutionfile.unlink()
 
-#         # Create directory if it does not exist
-#         solutionfile.parent.mkdir(parents=True, exist_ok=True)
+class UnforeseenDifference(Exception):
+    """Raised when encountering an unforeseen difference case."""
 
-#         # Pickle data object
-#         with open(solutionfile, "wb") as file:
-#             pickle.dump(solutiondata, file)
+
+# =============================================================================
+# Serialized Data Classes
+# =============================================================================
+
+
+class SerializedDataset:
+    """Container for deserialized Dataset data for comparison."""
+
+    def __init__(self, data: dict):
+        self.df = data.get("df")
+        self.metadf = _format_metadata(data.get("metadf"))
+        self.gapsdf = data.get("gapsdf")
+        self.modeldatadf = data.get("modeldatadf")
+        self.outliersdf = data.get("outliersdf")
+
+
+class SerializedStation:
+    """Container for deserialized Station data for comparison."""
+
+    def __init__(self, data: dict):
+        self.df = data.get("df")
+        self.metadf = _format_metadata(data.get("metadf"))
+        self.gapsdf = data.get("gapsdf")
+        self.modeldatadf = data.get("modeldatadf")
+        self.outliersdf = data.get("outliersdf")
+
+
+class SerializedAnalysis:
+    """Container for deserialized Analysis data for comparison."""
+
+    def __init__(self, data: dict):
+        self.fulldf = data.get("fulldf")
+        self.metadf = _format_metadata(data.get("metadf"))
+
+
+# =============================================================================
+# Solution Fixer Class
+# =============================================================================
 
 
 class SolutionFixer2:
-    """Store solutions as data files, not pickled objects."""
-    
+    """Store and retrieve test solutions as parquet files."""
+
     def __init__(self, solutiondir: Path):
         self.solutiondir = solutiondir
-        
-    
-    def get_solution_dir(self, methodname: str, testfile: str, classname: str) -> Path:
 
+    def get_solution_dir(self, methodname: str, testfile: str, classname: str) -> Path:
+        """Get the directory path for a specific test solution."""
+        testfile_stem = str(testfile).rstrip(".py")
         solutiondir = (
-            self.solutiondir.joinpath(f"{str(testfile).strip('.py')}_solutions")
-            .joinpath(f"{classname.lower()}")
-            .joinpath(f"{methodname}")
+            self.solutiondir
+            / f"{testfile_stem}_solutions"
+            / classname.lower()
+            / methodname
         )
-        
-        if not solutiondir.exists():
-            solutiondir.mkdir(parents=True, exist_ok=True)
+        solutiondir.mkdir(parents=True, exist_ok=True)
         return solutiondir
-    
-    def create_solution(self, solution, methodname: str, testfile: str, classname: str):
-        """Extract and save only the data attributes."""
+
+    def create_solution(
+        self, solution, methodname: str, testfile: str, classname: str
+    ) -> None:
+        """Save a solution object to disk."""
         base_path = self.get_solution_dir(methodname, testfile, classname)
-        base_path.mkdir(exist_ok=True)
-        
-       
-        print(
-            f"!! OVERWRITING SOLUTION FOR  {testfile} --> {classname}:{methodname} !!! "
-        )
-        #if solution is Metobs-toolkit.Dataset
-        if solution.__class__.__name__ == "Dataset":
-            store_dataset(solution, base_path)
-        elif solution.__class__.__name__ == "Station":
-            store_station(solution, base_path)
-        elif solution.__class__.__name__ == "Analysis":
-            store_analysis(solution, base_path)
+
+        print(f"!! OVERWRITING SOLUTION FOR {testfile} --> {classname}:{methodname} !!!")
+
+        classname_map = {
+            "Dataset": _store_dataset,
+            "Station": _store_station,
+            "Analysis": _store_analysis,
+        }
+
+        obj_classname = solution.__class__.__name__
+        if obj_classname in classname_map:
+            classname_map[obj_classname](solution, base_path)
         elif isinstance(solution, pd.DataFrame):
-            store_pandasdf(solution, base_path)
+            _store_dataframe(solution, base_path)
         elif isinstance(solution, dict):
-            store_dict(solution, base_path)
+            _store_dict(solution, base_path)
         elif isinstance(solution, str):
-            store_string(solution, base_path)
+            _store_string(solution, base_path)
         else:
             raise NotImplementedError(
-                "SolutionFixer2.create_solution only supports Dataset, Station, and Analysis objects.")
-        
-           
-    def get_solution(self, methodname: str, testfile: str, classname: str) -> dict:
-        """Load solution data as a dict of DataFrames."""
-        base_path = self.get_solution_dir(methodname, testfile, classname)
-        if not base_path.exists():
-            raise SolutionNotExisting(
-                f"The solution at {base_path} does not exist!"
+                f"create_solution does not support {obj_classname} objects."
             )
 
+    def get_solution(
+        self, methodname: str, testfile: str, classname: str
+    ) -> Union[SerializedDataset, SerializedStation, SerializedAnalysis, pd.DataFrame, dict, str]:
+        """Load a solution from disk."""
+        base_path = self.get_solution_dir(methodname, testfile, classname)
+
+        if not base_path.exists():
+            raise SolutionNotExisting(f"The solution at {base_path} does not exist!")
+
         with open(base_path / "datatype.json", "r") as f:
-            metobsobj = json.load(f)
-        
-        solutionclass = metobsobj.get("class")
-        
+            metadata = json.load(f)
 
-        if solutionclass == 'Dataset':
-            return read_dataset(base_path)
-        elif solutionclass == 'Station':
-            return read_station(base_path)
-        elif solutionclass == 'Analysis':
-            return read_analysis(base_path)
-        elif solutionclass == 'Dict':
-            return read_dict(base_path)
-        elif solutionclass == 'DataFrame':
-            return read_pandasdf(base_path)
-        elif solutionclass == 'String':
-            return read_string(base_path)
-        
-        else:
+        solution_class = metadata.get("class")
+
+        reader_map = {
+            "Dataset": _read_dataset,
+            "Station": _read_station,
+            "Analysis": _read_analysis,
+            "Dict": _read_dict,
+            "DataFrame": _read_dataframe,
+            "String": _read_string,
+        }
+
+        if solution_class not in reader_map:
             raise NotImplementedError(
-                "SolutionFixer2.get_solution only supports Dataset, Station, and DataFrame objects.")
+                f"get_solution does not support {solution_class} objects."
+            )
+
+        return reader_map[solution_class](base_path)
 
 
-    
-def store_string(data_str: str, dir: Path):
-    """Store the dataset as a json-serializable dict."""
-    
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "String"}, f)
-            
-    with open(dir / "solution_string.txt", "w") as f:
+# =============================================================================
+# Storage Functions
+# =============================================================================
+
+
+def _write_datatype(dir_path: Path, class_name: str) -> None:
+    """Write the datatype metadata file."""
+    dir_path.mkdir(parents=True, exist_ok=True)
+    with open(dir_path / "datatype.json", "w") as f:
+        json.dump({"class": class_name}, f)
+
+
+def _store_string(data_str: str, dir_path: Path) -> None:
+    """Store a string solution."""
+    _write_datatype(dir_path, "String")
+    with open(dir_path / "solution_string.txt", "w") as f:
         f.write(data_str)
-        
-def read_string(dir: Path) -> str:
-    with open(dir / "solution_string.txt", "r") as f:
-        data_str = f.read()
-    return data_str
 
-def store_dict(data_dict: dict, dir: Path):
-    """Store the dataset as a json-serializable dict."""
-    
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "Dict"}, f)
-            
+
+def _store_dataframe(df: pd.DataFrame, dir_path: Path) -> None:
+    """Store a DataFrame solution."""
+    _write_datatype(dir_path, "DataFrame")
+    df.to_parquet(dir_path / "solution_df.parquet")
+
+
+def _store_dataset(dataset, dir_path: Path) -> None:
+    """Store a Dataset solution."""
+    _write_datatype(dir_path, "Dataset")
+    dataset.df.to_parquet(dir_path / "solution_df.parquet")
+    dataset.metadf.to_parquet(dir_path / "solution_metadf.parquet")
+    dataset.gapsdf.to_parquet(dir_path / "solution_gapsdf.parquet")
+    dataset.modeldatadf.to_parquet(dir_path / "solution_modeldatadf.parquet")
+    dataset.outliersdf.to_parquet(dir_path / "solution_outliersdf.parquet")
+
+
+def _store_station(station, dir_path: Path) -> None:
+    """Store a Station solution."""
+    _write_datatype(dir_path, "Station")
+    station.df.to_parquet(dir_path / "solution_df.parquet")
+    station.metadf.to_parquet(dir_path / "solution_metadf.parquet")
+    station.gapsdf.to_parquet(dir_path / "solution_gapsdf.parquet")
+    station.modeldatadf.to_parquet(dir_path / "solution_modeldatadf.parquet")
+    station.outliersdf.to_parquet(dir_path / "solution_outliersdf.parquet")
+
+
+def _store_analysis(analysis, dir_path: Path) -> None:
+    """Store an Analysis solution."""
+    _write_datatype(dir_path, "Analysis")
+    analysis.df.to_parquet(dir_path / "solution_df.parquet")
+    analysis.fulldf.to_parquet(dir_path / "solution_fulldf.parquet")
+    analysis.metadf.to_parquet(dir_path / "solution_metadf.parquet")
+
+
+def _store_dict(data_dict: dict, dir_path: Path) -> None:
+    """Store a dict solution containing Dataset, Station, or DataFrame values."""
+    _write_datatype(dir_path, "Dict")
+
     for key, val in data_dict.items():
-        keydir = dir / f"{key}"
-        if val.__class__.__name__ == "Dataset":
-            store_dataset(val, keydir)
-            
-        elif val.__class__.__name__ == "Station":  
-            store_station(val, keydir)
-        
+        key_dir = dir_path / str(key)
+        obj_classname = val.__class__.__name__
+
+        if obj_classname == "Dataset":
+            _store_dataset(val, key_dir)
+        elif obj_classname == "Station":
+            _store_station(val, key_dir)
         elif isinstance(val, pd.DataFrame):
-            store_pandasdf(df=val, dir=keydir)
+            _store_dataframe(val, key_dir)
         else:
             raise NotImplementedError(
-                "store_dict only supports Dataset, Station, and DataFrame objects.")
-def read_dict(dir: Path) -> dict:
-    returndict = {}
-    for subdir in dir.iterdir():
-        if subdir.is_dir():
-            with open(subdir / "datatype.json", "r") as f:
-                metobsobj = json.load(f)
-            solutionclass = metobsobj.get("class")
-            if solutionclass == 'Dataset':
-                returndict[subdir.stem] = read_dataset(subdir)
-            elif solutionclass == 'Station':
-                returndict[subdir.stem] = read_station(subdir)
-            elif solutionclass == 'DataFrame':
-                returndict[subdir.stem] = read_pandasdf(subdir)
-            else:
-                raise NotImplementedError(
-                    "read_dict only supports Dataset, Station, and DataFrame objects.")
-    return returndict
-    
-def read_analysis(dir: Path):
-    def file_to_attr(fpath: Path) -> str:
-        return fpath.stem.replace("solution_", "")
+                f"store_dict does not support {obj_classname} objects."
+            )
 
+
+# =============================================================================
+# Reading Functions
+# =============================================================================
+
+
+def _read_parquet_files(dir_path: Path) -> dict:
+    """Read all solution parquet files from a directory."""
     result = {}
-    for f in dir.glob("solution_*.parquet"):
-        result[file_to_attr(f)] = pd.read_parquet(f)
-    return SerializedAnalysis(result)
-    
-def store_analysis(analysis, dir: Path):
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "Analysis"}, f)
-            
-    analysis.df.to_parquet(dir / "solution_df.parquet")
-    analysis.fulldf.to_parquet(dir / "solution_fulldf.parquet")
-    analysis.metadf.to_parquet(dir / "solution_metadf.parquet")
-    
-def read_dataset(dir: Path):
-    def file_to_attr(fpath: Path) -> str:
-        return fpath.stem.replace("solution_", "")
+    for f in dir_path.glob("solution_*.parquet"):
+        attr_name = f.stem.replace("solution_", "")
+        result[attr_name] = pd.read_parquet(f)
+    return result
 
+
+def _read_string(dir_path: Path) -> str:
+    """Read a string solution."""
+    with open(dir_path / "solution_string.txt", "r") as f:
+        return f.read()
+
+
+def _read_dataframe(dir_path: Path) -> pd.DataFrame:
+    """Read a DataFrame solution."""
+    return pd.read_parquet(dir_path / "solution_df.parquet")
+
+
+def _read_dataset(dir_path: Path) -> SerializedDataset:
+    """Read a Dataset solution."""
+    return SerializedDataset(_read_parquet_files(dir_path))
+
+
+def _read_station(dir_path: Path) -> SerializedStation:
+    """Read a Station solution."""
+    return SerializedStation(_read_parquet_files(dir_path))
+
+
+def _read_analysis(dir_path: Path) -> SerializedAnalysis:
+    """Read an Analysis solution."""
+    return SerializedAnalysis(_read_parquet_files(dir_path))
+
+
+def _read_dict(dir_path: Path) -> dict:
+    """Read a dict solution."""
     result = {}
-    for f in dir.glob("solution_*.parquet"):
-        result[file_to_attr(f)] = pd.read_parquet(f)
-    return SerializedDataset(result)
+    for subdir in dir_path.iterdir():
+        if not subdir.is_dir():
+            continue
 
-def read_station(dir: Path):
-    def file_to_attr(fpath: Path) -> str:
-        return fpath.stem.replace("solution_", "")
+        with open(subdir / "datatype.json", "r") as f:
+            metadata = json.load(f)
 
-    result = {}
-    for f in dir.glob("solution_*.parquet"):
-        result[file_to_attr(f)] = pd.read_parquet(f)
-    return SerializedStation(result)
+        solution_class = metadata.get("class")
 
-def read_pandasdf(dir: Path) -> pd.DataFrame:
-    df = pd.read_parquet(dir / "solution_df.parquet")
-    return df
+        if solution_class == "Dataset":
+            result[subdir.stem] = _read_dataset(subdir)
+        elif solution_class == "Station":
+            result[subdir.stem] = _read_station(subdir)
+        elif solution_class == "DataFrame":
+            result[subdir.stem] = _read_dataframe(subdir)
+        else:
+            raise NotImplementedError(
+                f"read_dict does not support {solution_class} objects."
+            )
+
+    return result
 
 
-        
-def store_dataset(dataset, dir: Path):
-    """Store the dataset as a json-serializable dict."""
-    
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "Dataset"}, f)
-    dataset.df.to_parquet(dir / "solution_df.parquet")
-    dataset.metadf.to_parquet(dir / "solution_metadf.parquet")
-    dataset.gapsdf.to_parquet(dir / "solution_gapsdf.parquet")
-    dataset.modeldatadf.to_parquet(dir / "solution_modeldatadf.parquet")
-    dataset.outliersdf.to_parquet(dir / "solution_outliersdf.parquet")
-    
-    #Specific attributes
-    # solution.obstypes.to_parquet(dir / "solution_obstypes.parquet")
-    
-def store_station(station, dir: Path):
-    """Store the dataset as a json-serializable dict."""
-    
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "Station"}, f)
-    station.df.to_parquet(dir / "solution_df.parquet")
-    station.metadf.to_parquet(dir / "solution_metadf.parquet")
-    station.gapsdf.to_parquet(dir / "solution_gapsdf.parquet")
-    station.modeldatadf.to_parquet(dir / "solution_modeldatadf.parquet")
-    station.outliersdf.to_parquet(dir / "solution_outliersdf.parquet")
+# =============================================================================
+# Utility Functions
+# =============================================================================
 
-def store_pandasdf(df: pd.DataFrame, dir: Path):
-    """Store the dataset as a json-serializable dict."""
-    
-    dir.mkdir(parents=True, exist_ok=True)
-    with open(dir / "datatype.json", "w") as f:
-            json.dump({"class": "DataFrame"}, f)
-    df.to_parquet(dir / "solution_df.parquet")
-    
-class SerializedAnalysis():
-    """A class to hold the deserialized data of a Dataset for comparison."""
-    
-    def __init__(self, data: dict):
-        self.fulldf = data.get("fulldf")
-        self.metadf = format_metadata(data.get("metadf"))
 
-class SerializedDataset():
-    """A class to hold the deserialized data of a Dataset for comparison."""
-    
-    def __init__(self, data: dict):
-        self.df = data.get("df")
-        self.metadf = format_metadata(data.get("metadf"))
-        self.gapsdf = data.get("gapsdf")
-        self.modeldatadf = data.get("modeldatadf")
-        self.outliersdf = data.get("outliersdf")
-        
-        
-class SerializedStation():
-    """A class to hold the deserialized data of a Dataset for comparison."""
-    
-    def __init__(self, data: dict):
-        self.df = data.get("df")
-        self.metadf = format_metadata(data.get("metadf"))
-        self.gapsdf = data.get("gapsdf")
-        self.modeldatadf = data.get("modeldatadf")
-        self.outliersdf = data.get("outliersdf")
-       
-def format_metadata(metadf):
-    
-    #geoseries not serializable to json, so recreate
-    if 'geometry' in metadf.columns:
-        metadf = gpd.GeoDataFrame(metadf, geometry=gpd.points_from_xy(metadf['lon'],
-                                                                      metadf['lat']))
+def _format_metadata(metadf: pd.DataFrame) -> pd.DataFrame:
+    """Convert metadata DataFrame to GeoDataFrame if geometry column exists."""
+    if metadf is not None and "geometry" in metadf.columns:
+        metadf = gpd.GeoDataFrame(
+            metadf, geometry=gpd.points_from_xy(metadf["lon"], metadf["lat"])
+        )
     return metadf
 
 
+# =============================================================================
+# Comparison Functions
+# =============================================================================
 
 
-
-
-def assert_equality(to_check, solution, **kwargs):
-    """Returns some debug help when the to_check is not equalt to the solution
-
-    This output is used for developping to point in more details why a test
-    is failing.
-
-    The object retured can have differnt types, and is desined for the developper
-    to help in the debugging process.
-
-    """
-
-    if ((to_check.__class__.__name__ == "Dataset") and 
-        (solution.__class__.__name__ == "SerializedDataset")):
-        seriealize_comparison(to_check, solution, **kwargs)
-    
-    elif ((to_check.__class__.__name__ == "Dataset") and 
-        (solution.__class__.__name__ == "Dataset")):
-        
-        compare_df_attr(to_check, solution, "metadf", **kwargs)
-        compare_df_attr(to_check, solution, "gapsdf", **kwargs)
-        compare_df_attr(to_check, solution, "modeldatadf", **kwargs)
-        compare_df_attr(to_check, solution, "outliersdf", **kwargs)
-        compare_df_attr(to_check, solution, "df", **kwargs)
-        assert (
-            to_check.obstypes == solution.obstypes
-        ), "There is a mismatch in obstypes with the solution!"
-        
-        
-        
-    elif ((to_check.__class__.__name__ == "Station") and 
-        (solution.__class__.__name__ == "SerializedStation")):
-        seriealize_comparison(to_check, solution, **kwargs)
-        
-        
-    elif ((to_check.__class__.__name__ == "Station") and 
-        (solution.__class__.__name__ == "Station")):
-        
-        compare_df_attr(to_check, solution, "metadf", **kwargs)
-        compare_df_attr(to_check, solution, "gapsdf", **kwargs)
-        compare_df_attr(to_check, solution, "modeldatadf", **kwargs)
-        compare_df_attr(to_check, solution, "outliersdf", **kwargs)
-        compare_df_attr(to_check, solution, "df", **kwargs)
-    
-    
-    elif ((to_check.__class__.__name__ == "Analysis") and 
-        (solution.__class__.__name__ == "SerializedAnalysis")):
-        
-        seriealize_comparison(to_check, solution, **kwargs)
-
-    elif ((to_check.__class__.__name__ == "Analysis") and 
-        (solution.__class__.__name__ == "Analysis")):
-        
-        compare_df_attr(to_check, solution, "df", **kwargs)
-        compare_df_attr(to_check, solution, "fulldf", **kwargs)
-        compare_df_attr(to_check, solution, "metadf", **kwargs)
-
-    
-    # type equal test
-    elif type(to_check) != type(solution):
-        retstr = f"DIFF: to_check type is {type(to_check)}, while solution is of type {type(solution)} "
-        raise AssertionError(retstr)
-
-    # float test
-    elif isinstance(to_check, float):
-        if to_check != solution:
-            retstr = f"DIFF: to_check is not equal to solution {to_check} !== {solution} (float comparison)"
-            raise AssertionError(retstr)
-
-    # int test
-    elif isinstance(to_check, int):
-        if to_check != solution:
-            retstr = f"DIFF: to_check is not equal to solution {to_check} !== {solution} (int comparison)"
-            raise AssertionError(retstr)
-
-    # sting test
-    elif isinstance(to_check, str):
-        if to_check != solution:
-            retstr = f"DIFF: to_check is not equal to solution (string comparison)"
-            retstr += f"to check: \n =================== \n{to_check}"
-            retstr += f"solution: \n =================== \n{solution}"
-            raise AssertionError(retstr)
-
-    # tuple comparison
-    elif isinstance(to_check, tuple):
-        if to_check != solution:
-            retstr = f"DIFF: to_check is not equal to solution {to_check} !== {solution} (tuple comparison)"
-            raise AssertionError(retstr)
-
-    # list test
-    elif isinstance(to_check, list):
-        if to_check != solution:
-            # length
-            if len(to_check) != len(solution):
-                retstr = f"DIFF: to_check length is {len(to_check)} !== {len(solution)} (list comparison)"
-                raise AssertionError(retstr)
-            # set check
-            if set(to_check) == set(solution):
-                retstr = f"DIFF: to_check list {len(to_check)}!== {len(solution)} (list comparison), BUT if converted to sets they are identical !! "
-                raise AssertionError(retstr)
-            else:
-                retstr = f"DIFF: to_check list {len(to_check)}!== {len(solution)} (list comparison), no hints found, debug further."
-                raise AssertionError(retstr)
-    # set test
-    elif isinstance(to_check, set):
-        if to_check != solution:
-            # length
-            if len(to_check) != len(solution):
-                retstr = f"DIFF: to_check length is {len(to_check)} !== {len(solution)} (set comparison)"
-                raise AssertionError(retstr)
-            else:
-                retstr = f"DIFF: to_check list {len(to_check)}!== {len(solution)} (set comparison), no hints found, debug further."
-                raise AssertionError(retstr)
-
-    # pandas seriers
-    elif isinstance(to_check, pd.Series):
-        pd.testing.assert_series_equal(
-            left=to_check,
-            right=solution,
-            check_exact=False,
-            rtol=0.001,
-            
-        )
-
-    # pandas dataframes
-    elif isinstance(to_check, pd.DataFrame):
-        pd.testing.assert_frame_equal(
-            left=to_check,
-            right=solution,
-            check_exact=False,
-            rtol=0.001,
-        )
-
-    # # metobs_toolkit.Dataset test
-    # elif to_check.__class__.__name__ == "Dataset":
-    #     
-
-    # # metobs_toolkit.Station test
-    # elif to_check.__class__.__name__ == "Station":
-    #     compare_df_attr(to_check, solution, "metadf")
-    #     compare_df_attr(to_check, solution, "gapsdf")
-    #     compare_df_attr(to_check, solution, "modeldatadf")
-    #     compare_df_attr(to_check, solution, "outliersdf", exclude_columns="details")
-    #     compare_df_attr(to_check, solution, "df")
-    # # metobs_toolkit.Station test
-    # elif to_check.__class__.__name__ == "Analysis":
-    #     compare_df_attr(to_check, solution, "metadf")
-    #     compare_df_attr(to_check, solution, "df")
-
-    # Else
-    else:
-        retstr = f"DIFF: to_check list {to_check}!== {solution} (NotImplemented type comparison), no hints found, debug further."
-        raise AssertionError(retstr)
-
-
-def compare_df_attr(testobj, solutionobj, attr, exclude_columns=None):
+def _compare_df_attr(
+    testobj, solutionobj, attr: str, exclude_columns: Union[str, list, None] = None
+) -> None:
+    """Compare a DataFrame attribute between test and solution objects."""
     try:
         left_df = getattr(testobj, attr)
         right_df = getattr(solutionobj, attr)
 
-        # Exclude specified columns if provided
         if exclude_columns:
             if isinstance(exclude_columns, str):
                 exclude_columns = [exclude_columns]
@@ -481,27 +323,123 @@ def compare_df_attr(testobj, solutionobj, attr, exclude_columns=None):
                 columns=[c for c in exclude_columns if c in right_df.columns]
             )
 
-        pd.testing.assert_frame_equal(
-            left=left_df,
-            right=right_df,
-            check_exact=False,
-        )
+        pd.testing.assert_frame_equal(left=left_df, right=right_df, check_exact=False)
     except AssertionError as e:
-        raise AssertionError(f"DIFF in {attr}-attribute:\n " + str(e))
-
-def seriealize_comparison(to_check, solution, **kwargs):
-    solutiondict = solution.__dict__
-    for key in solutiondict.keys():
-        compare_df_attr(testobj=to_check, solutionobj=solution, attr=key, **kwargs)
-        
-    
-    
+        raise AssertionError(f"DIFF in {attr}-attribute:\n {e}")
 
 
+def _serialized_comparison(to_check, solution, **kwargs) -> None:
+    """Compare all attributes from a serialized solution."""
+    for key in solution.__dict__.keys():
+        _compare_df_attr(testobj=to_check, solutionobj=solution, attr=key, **kwargs)
 
-class UnforseenDifference(Exception):
-    """Raise when encountering an unforseen difference case"""
 
+def assert_equality(to_check, solution, **kwargs) -> None:
+    """Assert equality between a test result and a solution.
 
-class SolutionNotExisting(Exception):
-    """Raise when the solutionfile does not exist"""
+    Provides detailed debug information when differences are found.
+    Supports Dataset, Station, Analysis, DataFrame, Series, and primitive types.
+    """
+    to_check_class = to_check.__class__.__name__
+    solution_class = solution.__class__.__name__
+
+    # Dataset comparisons
+    if to_check_class == "Dataset" and solution_class == "SerializedDataset":
+        _serialized_comparison(to_check, solution, **kwargs)
+        return
+
+    if to_check_class == "Dataset" and solution_class == "Dataset":
+        for attr in ["metadf", "gapsdf", "modeldatadf", "outliersdf", "df"]:
+            _compare_df_attr(to_check, solution, attr, **kwargs)
+        assert to_check.obstypes == solution.obstypes, "Mismatch in obstypes!"
+        return
+
+    # Station comparisons
+    if to_check_class == "Station" and solution_class == "SerializedStation":
+        _serialized_comparison(to_check, solution, **kwargs)
+        return
+
+    if to_check_class == "Station" and solution_class == "Station":
+        for attr in ["metadf", "gapsdf", "modeldatadf", "outliersdf", "df"]:
+            _compare_df_attr(to_check, solution, attr, **kwargs)
+        return
+
+    # Analysis comparisons
+    if to_check_class == "Analysis" and solution_class == "SerializedAnalysis":
+        _serialized_comparison(to_check, solution, **kwargs)
+        return
+
+    if to_check_class == "Analysis" and solution_class == "Analysis":
+        for attr in ["df", "fulldf", "metadf"]:
+            _compare_df_attr(to_check, solution, attr, **kwargs)
+        return
+
+    # Type mismatch
+    if type(to_check) != type(solution):
+        raise AssertionError(
+            f"DIFF: to_check type is {type(to_check)}, "
+            f"while solution is of type {type(solution)}"
+        )
+
+    # Primitive type comparisons
+    if isinstance(to_check, (float, int)):
+        if to_check != solution:
+            raise AssertionError(
+                f"DIFF: {to_check} !== {solution} ({type(to_check).__name__} comparison)"
+            )
+        return
+
+    if isinstance(to_check, str):
+        if to_check != solution:
+            raise AssertionError(
+                f"DIFF: string mismatch\n"
+                f"to_check:\n===================\n{to_check}\n"
+                f"solution:\n===================\n{solution}"
+            )
+        return
+
+    if isinstance(to_check, tuple):
+        if to_check != solution:
+            raise AssertionError(f"DIFF: {to_check} !== {solution} (tuple comparison)")
+        return
+
+    # Collection comparisons
+    if isinstance(to_check, list):
+        if to_check != solution:
+            if len(to_check) != len(solution):
+                raise AssertionError(
+                    f"DIFF: list length {len(to_check)} !== {len(solution)}"
+                )
+            if set(to_check) == set(solution):
+                raise AssertionError(
+                    f"DIFF: lists differ but sets are identical (order mismatch?)"
+                )
+            raise AssertionError("DIFF: lists differ, debug further.")
+        return
+
+    if isinstance(to_check, set):
+        if to_check != solution:
+            if len(to_check) != len(solution):
+                raise AssertionError(
+                    f"DIFF: set length {len(to_check)} !== {len(solution)}"
+                )
+            raise AssertionError("DIFF: sets differ, debug further.")
+        return
+
+    # Pandas comparisons
+    if isinstance(to_check, pd.Series):
+        pd.testing.assert_series_equal(
+            left=to_check, right=solution, check_exact=False, rtol=0.001
+        )
+        return
+
+    if isinstance(to_check, pd.DataFrame):
+        pd.testing.assert_frame_equal(
+            left=to_check, right=solution, check_exact=False, rtol=0.001
+        )
+        return
+
+    # Fallback
+    raise AssertionError(
+        f"DIFF: {to_check} !== {solution} (unsupported type comparison)"
+    )
