@@ -46,7 +46,7 @@ poetry update
 poetry show
 poetry build
 #poetry install --all-extras --no-root
-poetry install --all-extras
+poetry install --all-extras --no-cache
 echo ""
 
 
@@ -75,7 +75,8 @@ BLACK_LOG=${DEPLOY_DIR}/black_log.log
 rm -f ${BLACK_LOG} #clean start
 touch ${BLACK_LOG}
 cd $REPODIR
-poetry run black . 2>&1 | tee -a ${BLACK_LOG}
+poetry run black src/metobs_toolkit 2>&1 | tee -a ${BLACK_LOG}
+# poetry run black . 2>&1 | tee -a ${BLACK_LOG}
 echo ""
 
 
