@@ -16,62 +16,68 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
+from solutionclass import SolutionFixer2, assert_equality, datadir
 
 
 class TestDataWithGaps:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdatawithgaps"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    def test_import_data(self, overwrite_solution=False):
+    @pytest.fixture(autouse=True)
+    def import_dataset_with_era5(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=datadir.joinpath("testdata_with_gaps.csv"),
+        )
+        dataset.resample(target_freq="15min")
+
+        era5_model = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+
+        startdt_utc = pd.Timestamp("2022-08-31 18:32:25")
+        enddt_utc = pd.Timestamp("2022-09-01 12:16:00")
+        era5_data = dataset.get_gee_timeseries_data(
+            gee_dynamic_manager=era5_model,
+            startdt_utc=startdt_utc,
+            enddt_utc=enddt_utc,
+            obstypes=["temp"],
+            get_all_bands=False,
+            drive_filename=None,
+            drive_folder="gee_timeseries_data",
+            force_direct_transfer=True,
+            force_to_drive=False,
+        )
+
+        # To other resolution!!
+        dataset.resample(target_freq="15min")
+
+        # extracting modeldata
+        era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+        era5_data = dataset.get_gee_timeseries_data(
+            gee_dynamic_manager=era5_manager,
+            startdt_utc=None,  # raises error in metadata-only case
+            enddt_utc=None,
+            obstypes=["temp"],
+            get_all_bands=False,
+            drive_filename=None,
+            # drive_folder="gee_timeseries_data",
+            force_direct_transfer=True,
+            force_to_drive=False,
+        )
+        return dataset
+
+    @pytest.mark.dependency()
+    def test_import_data(self, import_dataset_with_era5, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
-        # 1. get_startpoint data
-        if overwrite_solution:  # GEE INTERACTION !!
-            dataset = metobs_toolkit.Dataset()
-            dataset.import_data_from_file(
-                template_file=metobs_toolkit.demo_template,
-                input_metadata_file=metobs_toolkit.demo_metadatafile,
-                input_data_file=datadir.joinpath("testdata_with_gaps.csv"),
-            )
-            # To other resolution!!
-            dataset.resample(target_freq="15min")
-
-            # extracting modeldata
-            era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
-            era5_data = dataset.get_gee_timeseries_data(
-                gee_dynamic_manager=era5_manager,
-                startdt_utc=None,  # raises error in metadata-only case
-                enddt_utc=None,
-                obstypes=["temp"],
-                get_all_bands=False,
-                drive_filename=None,
-                # drive_folder="gee_timeseries_data",
-                force_direct_transfer=True,
-                force_to_drive=False,
-            )
-
-            dataset.save_dataset_to_pkl(
-                target_folder=(
-                    solutionsdir.joinpath("test_gf_solutions").joinpath(
-                        "testdatawithgaps"
-                    )
-                ),
-                filename="test_import_data.pkl",
-                overwrite=True,
-            )
-        else:
-            dataset = metobs_toolkit.import_dataset_from_pkl(
-                solutionsdir.joinpath("test_gf_solutions")
-                .joinpath("testdatawithgaps")
-                .joinpath("test_import_data.pkl")
-            )
         # 3. overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 methodname=_method_name,
                 **TestDataWithGaps.solkwargs,
             )
@@ -84,13 +90,13 @@ class TestDataWithGaps:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_interpolation_on_station(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_interpolation_on_station(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_interpolation_on_station"
-        #  1. get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         sta = dataset.get_station("vlinder01")
 
@@ -117,7 +123,7 @@ class TestDataWithGaps:
         #  3. overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=sta,
+                solution=sta,
                 **TestDataWithGaps.solkwargs,
                 methodname=_method_name,
             )
@@ -133,14 +139,15 @@ class TestDataWithGaps:
         # Test plotting
         _statsdf = sta.make_plot()
 
-    def test_interpolation_on_dataset(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_interpolation_on_dataset(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_interpolation_on_dataset"
 
         #  1. get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # ------------------------------------------
         #   A: Test higher order interpolation on dataset scale
@@ -161,19 +168,46 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_A",
+                methodname=_method_name,
             )
 
         # Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
 
         # Construct the equlity tests on dataset level
-        assert_equality(dataset, solutionobj_A)
+        assert_equality(dataset, solutionobj)
 
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_interpolation_chaining_on_dataset(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
+        # 0. Get info of the current check
+        _method_name = "test_interpolation_chaining_on_dataset"
+
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # ------------------------------------------
+        #   A: Test higher order interpolation on dataset scale
+        # ------------------------------------------
+        # test interpolation using higher order cubic spline
+        dataset.interpolate_gaps(
+            obstype="temp",
+            method="cubicspline",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            n_leading_anchors=3,
+            n_trailing_anchors=2,  # only 1 is used
+            max_lead_to_gap_distance=pd.Timedelta("3h"),
+            max_trail_to_gap_distance=None,
+            overwrite_fill=False,
+            method_kwargs={"order": 3},
+        )
+
+        dataset_a = copy.deepcopy(dataset)
         # ------------------------------------------
         #    B: test overwrite_fill argument
         # ------------------------------------------
@@ -189,7 +223,7 @@ class TestDataWithGaps:
             overwrite_fill=False,  # This should not do anything, since gaps are already filled
             method_kwargs={"order": 2},
         )
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(dataset, dataset_a)  # dataset comparison
 
         # regular interpolation iwht overwrite_fill == True -> should overwrite the data!
         dataset.interpolate_gaps(
@@ -197,22 +231,21 @@ class TestDataWithGaps:
             overwrite_fill=True,
         )
 
-        assert dataset != solutionobj_A
+        assert dataset != dataset_a
 
         #  3. overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_B",
+                methodname=_method_name,
             )
 
         # 4. Get solution
-        solutionobj_B = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_B"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
-
-        assert_equality(dataset, solutionobj_B)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
     def test_interpolating_with_station_without_that_obstype(self):
         # goal is to test if metobs is able to interpolate on a dataset,
@@ -242,13 +275,13 @@ class TestDataWithGaps:
         dataset.convert_outliers_to_gaps()
         dataset.interpolate_gaps(obstype="temp", method="linear")
 
-    def test_raw_modeldata_gapfill(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_raw_modeldata_gapfill(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_raw_modeldata_gapfill"
-        #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # test raw gapfill on dataset
         dataset.fill_gaps_with_raw_modeldata(
@@ -260,17 +293,18 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_A",
+                methodname=_method_name,
             )
 
         #  Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
 
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
+        valid_dataset = copy.deepcopy(dataset)
 
         from metobs_toolkit.backend_collection.errorclasses import MetObsModelDataError
 
@@ -282,9 +316,7 @@ class TestDataWithGaps:
         # test on station and dataset
 
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_raw_modeldata(
             obstype="temp",
@@ -293,13 +325,11 @@ class TestDataWithGaps:
         )
 
         assert_equality(
-            sta, solutionobj_A.get_station("vlinder01")
+            sta, valid_dataset.get_station("vlinder01")
         )  # station comparison
 
         # test the overwrite is true option
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
         dataset.interpolate_gaps(obstype="temp", overwrite_fill=False)
         dataset.fill_gaps_with_raw_modeldata(
             obstype="temp",
@@ -307,18 +337,19 @@ class TestDataWithGaps:
             overwrite_fill=True,
         )
 
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
         # test the plot
         dataset.make_plot()
 
-    def test_chaining_gapfill_methods(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_chaining_gapfill_methods(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_chaining_gapfill_methods"
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         dataset.interpolate_gaps(
             obstype="temp",
@@ -338,26 +369,27 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
                 methodname=f"{_method_name}",
             )
 
         #  Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
             **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
         )
 
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_debias_modeldata_gapfill(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_debias_modeldata_gapfill(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_debias_modeldata_gapfill"
 
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # test debias gapfill on dataset
         dataset.fill_gaps_with_debiased_modeldata(
@@ -373,23 +405,22 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}",
+                methodname=_method_name,
             )
 
         #  Get solution
         solutionobj = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
 
         # test equality
         assert_equality(to_check=dataset, solution=solutionobj)
+        valid_dataset = copy.deepcopy(dataset)
 
         # test on station and dataset
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_debiased_modeldata(
             obstype="temp",
@@ -401,16 +432,17 @@ class TestDataWithGaps:
             overwrite_fill=False,
         )
 
-        assert_equality(sta, solutionobj.get_station("vlinder01"))
+        assert_equality(sta, valid_dataset.get_station("vlinder01"))
 
-    def test_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_diurnal_debias_modeldata_gapfill(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # test diurnal debias gapfill on dataset
         dataset.fill_gaps_with_diurnal_debiased_modeldata(
@@ -424,21 +456,20 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_A",
+                methodname=_method_name,
             )
 
         #  Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
+        valid_dataset = copy.deepcopy(dataset)
 
         # test on station and dataset
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
         sta = dataset.get_station("vlinder01")
         sta.fill_gaps_with_diurnal_debiased_modeldata(
             obstype="temp",
@@ -450,15 +481,13 @@ class TestDataWithGaps:
         )
 
         assert_equality(
-            sta, solutionobj_A.get_station("vlinder01")
+            sta, valid_dataset.get_station("vlinder01")
         )  # station comparison
 
-    def test_get_info_on_objects(self):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_get_info_on_objects(self, import_dataset_with_era5):
         #   get_startpoint data
-        dataset_gf = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs,
-            methodname="test_diurnal_debias_modeldata_gapfill_A",
-        )
+        dataset_gf = copy.deepcopy(import_dataset_with_era5)
 
         # test on dataset with gapfilled data
         _ = dataset_gf.get_info(printout=False)
@@ -471,17 +500,39 @@ class TestDataWithGaps:
             .get_info(printout=False)
         )
 
-    def test_weighted_diurnal_debias_modeldata_gapfill(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_weighted_diurnal_debias_modeldata_gapfill(
+        self, apply_weighted_diurn_debias_gapfill, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
 
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        gf_dataset = copy.deepcopy(apply_weighted_diurn_debias_gapfill)
 
-        # test diurnal debias gapfill on dataset
-        dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+        #  overwrite solution?
+        if overwrite_solution:
+            TestDataWithGaps.solutionfixer.create_solution(
+                solution=gf_dataset,
+                **TestDataWithGaps.solkwargs,
+                methodname=_method_name,
+            )
+
+        #  Get solution
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
+        )
+        assert_equality(gf_dataset, solutionobj)  # dataset comparison
+
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_weighted_diurnal_debias_gf_on_station(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
+        # test on station and dataset
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset_with_era5)
+        sta = dataset.get_station("vlinder01")
+        sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
             obstype="temp",
             leading_period_duration=pd.Timedelta("24h"),
             trailing_period_duration=pd.Timedelta("24h"),
@@ -493,43 +544,26 @@ class TestDataWithGaps:
         #  overwrite solution?
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=sta,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}_A",
+                methodname=_method_name,
             )
 
         #  Get solution
-        solutionobj_A = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}_A"
+        solutionobj = TestDataWithGaps.solutionfixer.get_solution(
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
-        assert_equality(dataset, solutionobj_A)  # dataset comparison
+        assert_equality(sta, solutionobj)  # station comparison
 
-        # test on station and dataset
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
-        sta = dataset.get_station("vlinder01")
-        sta.fill_gaps_with_weighted_diurnal_debiased_modeldata(
-            obstype="temp",
-            leading_period_duration=pd.Timedelta("24h"),
-            trailing_period_duration=pd.Timedelta("24h"),
-            min_lead_debias_sample_size=1,
-            min_trail_debias_sample_size=0,  # just testing
-            overwrite_fill=False,
-        )
-
-        assert_equality(
-            sta, solutionobj_A.get_station("vlinder01")
-        )  # station comparison
-
-    def test_partially_filled_gaps(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_partially_filled_gaps(
+        self, import_dataset_with_era5, overwrite_solution=False
+    ):
         # 0. Get info of the current check
         _method_name = "test_partially_filled_gaps"
 
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # create outliers
         dataset.repetitions_check(max_N_repetitions=8)
@@ -552,14 +586,14 @@ class TestDataWithGaps:
 
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=dataset,
+                solution=dataset,
                 **TestDataWithGaps.solkwargs,
-                methodname=f"{_method_name}",
+                methodname=_method_name,
             )
 
         #  Get solution
         solutionobj = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname=f"{_method_name}"
+            **TestDataWithGaps.solkwargs, methodname=_method_name
         )
 
         assert_equality(dataset, solutionobj)  # dataset comparison
@@ -575,35 +609,15 @@ class TestDataWithGaps:
         )
         dataset.stations[0].make_plot(colorby="label")
 
-    def test_chaining_on_partially_filled_gaps(self):
-
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_partially_filled_gaps"
-        )
         assert (
-            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
+            "partially successful gapfill"
+            not in dataset.gap_overview_df()["label"].values
         )
 
-        # Test chaining after partially filled gaps:
-        # Choice: when force=False, a partially filled gap will BE filled again when chaining !!
-
-        dataset.stations[0].interpolate_gaps(
-            obstype="temp",
-            max_gap_duration_to_fill=pd.Timedelta("25h"),
-            overwrite_fill=False,
-        )
-
-        # dataset.stations[0].make_plot(colorby="label")
-
-        assert not (
-            "partially successful gapfill" in dataset.gap_overview_df()["label"].values
-        )
-
-    def test_add_modeldata_to_station(self):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_add_modeldata_to_station(self, import_dataset_with_era5):
         #   get_startpoint data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
         sta = dataset.get_station("vlinder02")
 
         # create a fake new modeltimesries
@@ -635,15 +649,14 @@ class TestDataWithGaps:
 
         assert len(sta.modeldata) == 3
 
-    def test_gap_status_df(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_gap_status_df(self, import_dataset_with_era5, overwrite_solution=False):
         """Test gap_overview_df methods on Dataset, Station, and SensorData classes."""
         # 0. Get info of the current check
         _method_name = "test_gap_status_df"
 
         # 1. Get starting data without gaps/fills
-        dataset_original = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset_original = copy.deepcopy(import_dataset_with_era5)
 
         # Test 1: Dataset without gaps (original data)
         gap_status_dataset_no_gaps = dataset_original.gap_overview_df()
@@ -672,8 +685,17 @@ class TestDataWithGaps:
         gap_status_sensordata_with_gaps = sensordata_with_gaps.gap_overview_df()
 
         # 3. Get data with gap filling applied
-        dataset_filled = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_interpolation_on_dataset_A"
+        dataset_filled = copy.deepcopy(import_dataset_with_era5)
+        dataset_filled.interpolate_gaps(
+            obstype="temp",
+            method="cubicspline",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            n_leading_anchors=3,
+            n_trailing_anchors=2,
+            max_lead_to_gap_distance=pd.Timedelta("3h"),
+            max_trail_to_gap_distance=None,
+            overwrite_fill=False,
+            method_kwargs={"order": 3},
         )
 
         # Test 7: Dataset with gap filling
@@ -703,7 +725,7 @@ class TestDataWithGaps:
         # 5. Overwrite solution if requested
         if overwrite_solution:
             TestDataWithGaps.solutionfixer.create_solution(
-                solutiondata=test_results,
+                solution=test_results,
                 **TestDataWithGaps.solkwargs,
                 methodname=_method_name,
             )
@@ -717,12 +739,11 @@ class TestDataWithGaps:
         for key in test_results:
             assert_equality(test_results[key], solutionobj[key])
 
-    def test_min_max_value_clipping(self):
+    @pytest.mark.dependency(depends=["TestDataWithGaps::test_import_data"])
+    def test_min_max_value_clipping(self, import_dataset_with_era5):
         """Test that min_value and max_value parameters work for all model-based gap filling methods."""
         # Get test data
-        dataset = TestDataWithGaps.solutionfixer.get_solution(
-            **TestDataWithGaps.solkwargs, methodname="test_import_data"
-        )
+        dataset = copy.deepcopy(import_dataset_with_era5)
 
         # Test parameters
         obstype = "temp"
@@ -825,28 +846,240 @@ class TestDataWithGaps:
         )
 
     # ------------------------------------------
-    #    Plotting tests are present in the test_plotting.py
+    #    data creators
     # ------------------------------------------
+    @pytest.fixture(autouse=True)
+    def apply_interpolation_on_dataset(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # test interpolation using higher order cubic spline
+        dataset.interpolate_gaps(
+            obstype="temp",
+            method="cubicspline",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            n_leading_anchors=3,
+            n_trailing_anchors=2,  # only 1 is used
+            max_lead_to_gap_distance=pd.Timedelta("3h"),
+            max_trail_to_gap_distance=None,
+            overwrite_fill=False,
+            method_kwargs={"order": 3},
+        )
+        # Will have unfilled gaps still
+        return dataset
+
+    @pytest.fixture(autouse=True)
+    def apply_interpolation_chaining_on_dataset(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # ------------------------------------------
+        #   A: Test higher order interpolation on dataset scale
+        # ------------------------------------------
+        # test interpolation using higher order cubic spline
+        dataset.interpolate_gaps(
+            obstype="temp",
+            method="cubicspline",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            n_leading_anchors=3,
+            n_trailing_anchors=2,  # only 1 is used
+            max_lead_to_gap_distance=pd.Timedelta("3h"),
+            max_trail_to_gap_distance=None,
+            overwrite_fill=False,
+            method_kwargs={"order": 3},
+        )
+
+        # Now second fill with overwrite = False to only fill unfilled gaps
+        dataset.interpolate_gaps(
+            obstype="temp",
+            method="spline",
+            max_gap_duration_to_fill=pd.Timedelta("5h"),
+            n_leading_anchors=3,
+            n_trailing_anchors=2,  # only 1 is used
+            max_lead_to_gap_distance=pd.Timedelta("3h"),
+            max_trail_to_gap_distance=None,
+            overwrite_fill=False,  # This should not do anything, since gaps are already filled
+            method_kwargs={"order": 2},
+        )
+        return dataset
+
+    @pytest.fixture(autouse=True)
+    def apply_raw_modeldata_gapfill(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # test raw gapfill on dataset
+        dataset.fill_gaps_with_raw_modeldata(
+            obstype="temp",
+            max_gap_duration_to_fill=pd.Timedelta("6h"),
+            overwrite_fill=False,
+        )
+        return dataset
+
+    @pytest.fixture(autouse=True)
+    def apply_debias_modeldata_gapfill(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        #   get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # test debias gapfill on dataset
+        dataset.fill_gaps_with_debiased_modeldata(
+            obstype="temp",
+            leading_period_duration=pd.Timedelta("6h"),
+            min_leading_records_total=5,
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_trailing_records_total=8,
+            max_gap_duration_to_fill=pd.Timedelta("12h"),
+            overwrite_fill=False,
+        )
+        return dataset
+
+    @pytest.fixture(autouse=True)
+    def apply_diurnal_debias_modeldata_gapfill(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        #   get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # test diurnal debias gapfill on dataset
+        dataset.fill_gaps_with_diurnal_debiased_modeldata(
+            obstype="temp",
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_debias_sample_size=2,
+            overwrite_fill=False,
+        )
+
+        return dataset
+
+    @pytest.fixture(autouse=True)
+    def apply_weighted_diurn_debias_gapfill(
+        self, import_dataset_with_era5
+    ) -> metobs_toolkit.Dataset:
+        #   get_startpoint data
+        dataset = copy.deepcopy(import_dataset_with_era5)
+
+        # test diurnal debias gapfill on dataset
+        dataset.fill_gaps_with_weighted_diurnal_debiased_modeldata(
+            obstype="temp",
+            leading_period_duration=pd.Timedelta("24h"),
+            trailing_period_duration=pd.Timedelta("24h"),
+            min_lead_debias_sample_size=1,
+            min_trail_debias_sample_size=0,  # just testing
+            overwrite_fill=False,
+        )
+
+        return dataset
+
+    # ------------------------------------------
+    #    Plotting tests
+    # ------------------------------------------
+
+    @pytest.mark.mpl_image_compare
+    def test_interpolation_on_dataset_plot(self, apply_interpolation_on_dataset):
+        dataset_with_gf = copy.deepcopy(apply_interpolation_on_dataset)
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)  # width=1500px, height=500px at 100 dpi
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_interpolated_timeseries_plot(
+        self, apply_interpolation_chaining_on_dataset
+    ):
+        dataset_with_gf = copy.deepcopy(apply_interpolation_chaining_on_dataset)
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_debias_modeldata_gf_timeseries_plot(self, apply_debias_modeldata_gapfill):
+        dataset_with_gf = copy.deepcopy(apply_debias_modeldata_gapfill)
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_diurnal_debias_modeldata_gf_timeseries_plot(
+        self, apply_diurnal_debias_modeldata_gapfill
+    ):
+        dataset_with_gf = copy.deepcopy(apply_diurnal_debias_modeldata_gapfill)
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_dataset_test_show_gaps_labelby_labels(
+        self, apply_weighted_diurn_debias_gapfill
+    ):
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(apply_weighted_diurn_debias_gapfill)
+        ax = dataset.make_plot(colorby="label", show_gaps=False)
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_raw_modeldata_gf_timeseries_plot(self, apply_raw_modeldata_gapfill):
+        dataset_with_gf = copy.deepcopy(apply_raw_modeldata_gapfill)
+        ax = dataset_with_gf.make_plot(colorby="label")
+        fig = ax.get_figure()
+        fig.set_size_inches(15, 5)
+        return fig
 
 
 if __name__ == "__main__":
     print(
-        "To Overwrite the solutions, run: \n pytest test_plotting.py  --mpl --mpl-generate-path=baseline"
+        "To Overwrite the solutions, run: \n pytest test_plotting.py  --mpl --mpl-generate-path=baseline "
     )
 
     print(
         "To checkout the differences, run: \n pytest test_plotting.py --mpl --mpl-generate-summary=html "
     )
 
+    OVERWRITE_SOLUTION = False
+
     tester = TestDataWithGaps()
-    # tester.test_import_data(overwrite_solution=False)
-    # tester.test_interpolation_on_station(overwrite_solution=False)
-    # tester.test_interpolation_on_dataset(overwrite_solution=False)
-    # tester.test_raw_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_partially_filled_gaps(overwrite_solution=False)
-    # tester.test_chaining_gapfill_methods(overwrite_solution=False)
-    # tester.test_debias_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_weighted_diurnal_debias_modeldata_gapfill(overwrite_solution=False)
-    # tester.test_gap_status_df(overwrite_solution=False)
-    # tester.test_min_max_value_clipping()
+    data_with_era5 = tester.import_dataset_with_era5.__wrapped__(tester)
+
+    # tester.test_import_data(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_interpolation_on_station(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_interpolation_on_dataset(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_interpolation_chaining_on_dataset(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_interpolating_with_station_without_that_obstype()
+    # tester.test_raw_modeldata_gapfill(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_chaining_gapfill_methods(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_debias_modeldata_gapfill(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_diurnal_debias_modeldata_gapfill(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_get_info_on_objects(data_with_era5)
+    # tester.test_weighted_diurnal_debias_modeldata_gapfill(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_weighted_diurnal_debias_gf_on_station(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_partially_filled_gaps(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_add_modeldata_to_station(data_with_era5)
+    # tester.test_gap_status_df(data_with_era5, overwrite_solution=OVERWRITE_SOLUTION)
+    # tester.test_min_max_value_clipping(data_with_era5)
+
+    # Plotting tests - prepare fixtures
+    # interpolation_dataset = tester.apply_interpolation_on_dataset.__wrapped__(tester, data_with_era5)
+    # interpolation_chaining_dataset = tester.apply_interpolation_chaining_on_dataset.__wrapped__(tester, data_with_era5)
+    # raw_modeldata_dataset = tester.apply_raw_modeldata_gapfill.__wrapped__(tester, data_with_era5)
+    # debias_modeldata_dataset = tester.apply_debias_modeldata_gapfill.__wrapped__(tester, data_with_era5)
+    # diurnal_debias_dataset = tester.apply_diurnal_debias_modeldata_gapfill.__wrapped__(tester, data_with_era5)
+    # weighted_diurn_debias_dataset = tester.apply_weighted_diurn_debias_gapfill.__wrapped__(tester, data_with_era5)
+
+    # # Run plotting tests
+    # tester.test_interpolation_on_dataset_plot(interpolation_dataset)
+    # tester.test_interpolated_timeseries_plot(interpolation_chaining_dataset)
+    # tester.test_debias_modeldata_gf_timeseries_plot(debias_modeldata_dataset)
+    # tester.test_diurnal_debias_modeldata_gf_timeseries_plot(diurnal_debias_dataset)
+    # tester.test_dataset_test_show_gaps_labelby_labels(weighted_diurn_debias_dataset)
+    # tester.test_raw_modeldata_gf_timeseries_plot(raw_modeldata_dataset)

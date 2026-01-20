@@ -223,7 +223,8 @@ def _find_category_buddies(
     # Intersection of both buddy definitions
     final_buddies = {}
     for refstation in category_buddies.keys():
-        final_buddies[refstation] = list(
+        # Sort the result to ensure deterministic ordering
+        final_buddies[refstation] = sorted(
             set(category_buddies[refstation]).intersection(
                 set(spatial_buddies[refstation])
             )
@@ -353,16 +354,20 @@ def create_groups_of_buddies(buddydict: Dict) -> List[Tuple]:
     -------
     list of tuple
         List of tuples, each containing a group of station names.
+        Groups are sorted to ensure deterministic processing order.
     """
 
     grouped_stations = []
     groups = []
-    for refstation, buddies in buddydict.items():
+    # Iterate in sorted order for deterministic results
+    for refstation in sorted(buddydict.keys()):
+        buddies = buddydict[refstation]
         if not bool(buddies):
             continue
         if refstation in grouped_stations:
             continue
-        group = tuple([refstation, *buddies])
+        # Sort the group members for deterministic column ordering
+        group = tuple(sorted([refstation, *buddies]))
 
         grouped_stations.extend([*group])
         groups.append(group)

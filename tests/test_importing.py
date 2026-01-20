@@ -17,14 +17,24 @@ from metobs_toolkit.backend_collection import errorclasses as err
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
-import shutil
+from solutionclass import SolutionFixer2, assert_equality, datadir
 
 
 class TestDemoData:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
+
+    @pytest.fixture(scope="class")
+    def import_dataset(self):
+        """Import demo dataset fixture."""
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        return dataset
 
     def test_version(self):
         # check if the local version is used
@@ -40,26 +50,18 @@ class TestDemoData:
         assert metobs_toolkit.__version__ == local_version
         assert isinstance(metobs_toolkit.__version__, str)
 
-    def test_import_demo_data(self, overwrite_solution=False):
+    @pytest.mark.dependency()
+    def test_import_demo_data(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        pass
-
-        # 2. apply a metobs manipulation
-        dataset = metobs_toolkit.Dataset()
-        dataset.import_data_from_file(
-            template_file=metobs_toolkit.demo_template,
-            input_metadata_file=metobs_toolkit.demo_metadatafile,
-            input_data_file=metobs_toolkit.demo_datafile,
-        )
-        data_to_test = dataset
+        dataset = copy.deepcopy(import_dataset)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=dataset,
                 methodname=_method_name,
                 **TestDemoData.solkwargs,
             )
@@ -70,13 +72,12 @@ class TestDemoData:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(data_to_test, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_calling_methods_without_solution_on_dataset(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_calling_methods_without_solution_on_dataset(self, import_dataset):
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # run methods, and see if something breaks
 
         # testing specials
@@ -100,11 +101,10 @@ class TestDemoData:
             renamedict={"vlinder01": "fakename", "vlider14": "fakename2"}
         )
 
-    def test_calling_methods_without_solution_on_station(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_calling_methods_without_solution_on_station(self, import_dataset):
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # run methods, and see if something breaks
         station = dataset.stations[0]
 
@@ -125,14 +125,13 @@ class TestDemoData:
         # make plot
         station.make_plot()
 
-    def test_subset_by_stations(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_subset_by_stations(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         # 2. apply a metobs manipulation
         # Subset by valid stations
@@ -143,7 +142,7 @@ class TestDemoData:
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=data_to_test,
                 **TestDemoData.solkwargs,
                 methodname=_method_name,
             )
@@ -156,11 +155,10 @@ class TestDemoData:
         # 5. Construct the equality tests
         assert_equality(data_to_test, solutionobj)  # Dataset comparison
 
-    def test_subset_by_stations_invalid(self, caplog):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_subset_by_stations_invalid(self, import_dataset, caplog):
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         #  Test invalid input IDs
         with pytest.raises(ValueError):
             dataset.subset_by_stations(stationnames="vlinder01")
@@ -174,21 +172,20 @@ class TestDemoData:
             dataset.subset_by_stations(stationnames=["a", "b"])
         assert "No stations matched the provided station names" in caplog.text
 
-    def test_get_info(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_get_info(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # 2. apply a metobs manipulation
         data_to_test = dataset.get_info(printout=False)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=data_to_test,
                 **TestDemoData.solkwargs,
                 methodname=_method_name,
             )
@@ -200,21 +197,20 @@ class TestDemoData:
         # 5. Construct the equlity tests
         assert_equality(data_to_test, solutionobj)  # string comparison
 
-    def test_get_station(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_get_station(self, import_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # 2. apply a metobs manipulation
         data_to_test = dataset.get_station("vlinder05")
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestDemoData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=data_to_test,
                 **TestDemoData.solkwargs,
                 methodname=_method_name,
             )
@@ -227,14 +223,13 @@ class TestDemoData:
         # 5. Construct the equlity tests
         assert_equality(data_to_test, solutionobj)  # Station comparison
 
-    def test_pickling_dataset(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_pickling_dataset(self, import_dataset):
         # 0. Get info of the current check
         # _method_name = sys._getframe().f_code.co_name #get the name of this method
 
         # 1. get_startpoint data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         # Create a tmp dir
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -248,12 +243,11 @@ class TestDemoData:
         # test if the pickled dataset is equal to the original
         assert_equality(dataset, dataset2)
 
-    def test_dataset_to_parquet(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_dataset_to_parquet(self, import_dataset):
         """Test Dataset.to_parquet method"""
         # 1. get dataset data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
             # Save to parquet
@@ -265,14 +259,13 @@ class TestDemoData:
             df_read = pd.read_parquet(parquet_file)
 
         # Test if dataframes are equal
-        pd.testing.assert_frame_equal(df_original, df_read)
+        assert_equality(df_original, df_read)
 
-    def test_dataset_to_csv(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_dataset_to_csv(self, import_dataset):
         """Test Dataset.to_csv method"""
         # 1. get dataset data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = Path(tmpdir)
@@ -294,14 +287,13 @@ class TestDemoData:
             df_read["value"] = df_read["value"].astype("float32")
 
         # Test if dataframes are equal
-        pd.testing.assert_frame_equal(df_original, df_read)
+        assert_equality(df_original, df_read)
 
-    def test_station_to_parquet(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_station_to_parquet(self, import_dataset):
         """Test Station.to_parquet method"""
         # 1. get dataset data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         # Get a station
         station = dataset.get_station("vlinder05")
@@ -318,14 +310,13 @@ class TestDemoData:
             df_read = pd.read_parquet(parquet_file)
 
         # Test if dataframes are equal
-        pd.testing.assert_frame_equal(df_original, df_read)
+        assert_equality(df_original, df_read)
 
-    def test_station_to_csv(self):
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_station_to_csv(self, import_dataset):
         """Test Station.to_csv method"""
         # 1. get dataset data
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         # Get a station
         station = dataset.get_station("vlinder05")
@@ -352,7 +343,7 @@ class TestDemoData:
             df_read["value"] = df_read["value"].astype("float32")
 
         # Test if dataframes are equal
-        pd.testing.assert_frame_equal(df_original, df_read)
+        assert_equality(df_original, df_read)
 
     def test_importing_data_with_nans_for_single_station(self):
         # goal is to test if metobs is able to import a datafile,
@@ -385,20 +376,15 @@ class TestDemoData:
 class TestWideData:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testwidedata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
     # paths to data
     datafile = datadir.joinpath("wide_test_data.csv")
     templatefile = datadir.joinpath("wide_test_template.json")
 
-    def test_import_wide_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
-
-        # 2. apply a metobs manipulation
+    @pytest.fixture(scope="class")
+    def import_wide_dataset(self):
+        """Import wide format dataset fixture."""
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=TestWideData.templatefile,
@@ -409,13 +395,20 @@ class TestWideData:
             origin_simplify_tolerance="5min",
             timestamp_tolerance="4min",
         )
+        return dataset
 
-        data_to_test = dataset
+    @pytest.mark.dependency()
+    def test_import_wide_data(self, import_wide_dataset, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        # 1. get_startpoint data
+        dataset = copy.deepcopy(import_wide_dataset)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestWideData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=dataset,
                 methodname=_method_name,
                 **TestWideData.solkwargs,
             )
@@ -426,16 +419,15 @@ class TestWideData:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(data_to_test, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_sync_wide_records(self, overwrite_solution=False):
+    @pytest.mark.dependency(depends=["TestWideData::test_import_wide_data"])
+    def test_sync_wide_records(self, import_wide_dataset, overwrite_solution=False):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name  # get the name of this method
 
         # 1. get_startpoint data
-        dataset = TestWideData.solutionfixer.get_solution(
-            **TestWideData.solkwargs, methodname="test_import_wide_data"
-        )
+        dataset = copy.deepcopy(import_wide_dataset)
         # 2. apply a metobs manipulation
         dataset.sync_records(
             timestamp_shift_tolerance="5min2s", freq_shift_tolerance="2min"
@@ -444,7 +436,7 @@ class TestWideData:
         # 3. overwrite solution?
         if overwrite_solution:
             TestWideData.solutionfixer.create_solution(
-                solutiondata=dataset, **TestWideData.solkwargs, methodname=_method_name
+                solution=dataset, **TestWideData.solkwargs, methodname=_method_name
             )
         # 4. Get solution
         solutionobj = TestWideData.solutionfixer.get_solution(
@@ -462,34 +454,38 @@ class TestWideSingleStationData:
         "testfile": Path(__file__).name,
         "classname": "testwidesinglestationdata",
     }
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
     # paths to data
     datafile = datadir.joinpath("single_station.csv")
     templatefile = datadir.joinpath("single_station_template.json")
     metadatfile = datadir.joinpath("single_station_metadata.csv")
 
-    def test_import_wide_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
-
-        # 2. apply a metobs manipulation
+    @pytest.fixture(scope="class")
+    def import_single_station_dataset(self):
+        """Import single station dataset fixture."""
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
             template_file=TestWideSingleStationData.templatefile,
             input_metadata_file=TestWideSingleStationData.metadatfile,
             input_data_file=TestWideSingleStationData.datafile,
         )
+        return dataset
 
-        data_to_test = dataset
+    @pytest.mark.dependency()
+    def test_import_wide_data(
+        self, import_single_station_dataset, overwrite_solution=False
+    ):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        # 1. get_startpoint data
+        dataset = copy.deepcopy(import_single_station_dataset)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestWideSingleStationData.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=dataset,
                 methodname=_method_name,
                 **TestWideSingleStationData.solkwargs,
             )
@@ -500,15 +496,24 @@ class TestWideSingleStationData:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(data_to_test, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
 
 class TestStationAddMethods:
-    def test_station_add_sensordata_and_modeldata(self):
-        # Get a dataset and a station
-        dataset = TestDemoData.solutionfixer.get_solution(
-            **TestDemoData.solkwargs, methodname="test_import_demo_data"
+    @pytest.fixture(scope="class")
+    def import_dataset(self):
+        """Import demo dataset fixture."""
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
         )
+        return dataset
+
+    def test_station_add_sensordata_and_modeldata(self, import_dataset):
+        # Get a dataset and a station
+        dataset = copy.deepcopy(import_dataset)
         station = dataset.get_station("vlinder01")
 
         # --- Test add_to_sensordata ---
@@ -535,7 +540,7 @@ class TestStationAddMethods:
 class TestParquetData:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testparquetdata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
     def test_import_single_station(self):
         # 1. csv to parquet
@@ -697,21 +702,68 @@ class TestParquetData:
 
 
 if __name__ == "__main__":
-    # pytest.main([__file__])
+    print("To Overwrite the solutions, run: \n pytest test_importing.py -v")
+
+    OVERWRITE_SOLUTION = True
+
+    # TestDemoData
     demo_tester = TestDemoData()
-    # demo_tester.test_version()
-    # demo_tester.test_import_demo_data(overwrite_solution=True)
-    # demo_tester.test_calling_methods_without_solution_on_dataset()
-    # demo_tester.test_calling_methods_without_solution_on_station()
-    # demo_tester.test_subset_by_stations(overwrite_solution=False)
-    # demo_tester.test_subset_by_stations_invalid()
-    # demo_tester.test_get_info(overwrite_solution=False)
-    # demo_tester.test_get_station(overwrite_solution=False)
-    # demo_tester.test_pickling_dataset()
+    demo_dataset = demo_tester.import_dataset.__wrapped__(demo_tester)
 
+    demo_tester.test_version()
+    demo_tester.test_import_demo_data(
+        demo_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+    demo_tester.test_calling_methods_without_solution_on_dataset(demo_dataset)
+    demo_tester.test_calling_methods_without_solution_on_station(demo_dataset)
+    demo_tester.test_subset_by_stations(
+        demo_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+    # demo_tester.test_subset_by_stations_invalid(demo_dataset, caplog)  # requires caplog fixture
+    demo_tester.test_get_info(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    demo_tester.test_get_station(demo_dataset, overwrite_solution=OVERWRITE_SOLUTION)
+    demo_tester.test_pickling_dataset(demo_dataset)
+    demo_tester.test_dataset_to_parquet(demo_dataset)
+    demo_tester.test_dataset_to_csv(demo_dataset)
+    demo_tester.test_station_to_parquet(demo_dataset)
+    demo_tester.test_station_to_csv(demo_dataset)
+    demo_tester.test_importing_data_with_nans_for_single_station()
+
+    # TestWideData
     wide_data_tester = TestWideData()
-    # wide_data_tester.test_import_wide_data(overwrite_solution=False)
-    # wide_data_tester.test_sync_wide_records(overwrite_solution=False)
+    wide_dataset = wide_data_tester.import_wide_dataset.__wrapped__(wide_data_tester)
 
+    wide_data_tester.test_import_wide_data(
+        wide_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+    wide_data_tester.test_sync_wide_records(
+        wide_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+
+    # TestWideSingleStationData
     single_station_tester = TestWideSingleStationData()
-    # single_station_tester.test_import_wide_data(overwrite_solution=False)
+    single_station_dataset = (
+        single_station_tester.import_single_station_dataset.__wrapped__(
+            single_station_tester
+        )
+    )
+
+    single_station_tester.test_import_wide_data(
+        single_station_dataset, overwrite_solution=OVERWRITE_SOLUTION
+    )
+
+    # TestStationAddMethods
+    station_add_tester = TestStationAddMethods()
+    station_add_dataset = station_add_tester.import_dataset.__wrapped__(
+        station_add_tester
+    )
+
+    station_add_tester.test_station_add_sensordata_and_modeldata(station_add_dataset)
+
+    # TestParquetData
+    parquet_tester = TestParquetData()
+    parquet_tester.test_import_single_station()
+    parquet_tester.test_import_demo_data()
+    parquet_tester.test_import_demo_metadata_only()
+    parquet_tester.test_import_wide_data()
+    parquet_tester.test_import_with_timezone()
