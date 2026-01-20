@@ -70,23 +70,24 @@ def repetitions_check(
     outlier_groups = group_sizes[group_sizes > max_N_repetitions]
 
     
-    # if outlier_groups.empty:
-    #     logger.debug("No outliers detected. Exiting repetitions_check function.")
-        
-    #     return timestamps_to_datetimeindex(
-    #         timestamps=[], name="datetime", current_tz=None
-    #     )
+    if outlier_groups.empty:
+        logger.debug("No outliers detected. Exiting repetitions_check function.")
+        outliers_idx =  timestamps_to_datetimeindex(
+                        timestamps=[], name="datetime", current_tz=None
+                    )
+        outliers = pd.Series(index=outliers_idx)
+    else:
     
-    # Combine all outlier groups
-    outliers = pd.concat(
-        [
-            groups.get_group(
-                outlgroup,
-            )
-            for outlgroup in outlier_groups.index
-        ]
-    )
-    logger.debug("Outliers detected. Exiting repetitions_check function.")
+        # Combine all outlier groups
+        outliers = pd.concat(
+            [
+                groups.get_group(
+                    outlgroup,
+                )
+                for outlgroup in outlier_groups.index
+            ]
+        )
+       
 
     # Catch the white records
     outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers.index)
