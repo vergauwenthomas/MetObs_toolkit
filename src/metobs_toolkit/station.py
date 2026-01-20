@@ -46,7 +46,7 @@ from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
+    from matplotlib.pyplot import Axes, Figure
     from os import PathLike
     from xarray import Dataset as xrDataset
     from metobs_toolkit.sensordata import SensorData
@@ -1615,56 +1615,52 @@ class Station:
     @log_entry
     def get_qc_stats(
         self, obstype: str = "temp", make_plot: bool = True
-    ) -> pd.DataFrame:
+    ) -> Union[dict[str, pd.Series], Figure]:
         """
-        Generate quality control (QC) frequency statistics.
+        Summarize QC label frequencies for one station and optionally plot pies.
 
-        This method calculates the frequency statistics for various QC checks
-        applied, and other labels. The order of checks is taken into
-        account.
-
-        Frequency of labels is computed based on the set of all labels (for all
-        records including gaps). The effectiveness of a check is shown by
-        the frequency of outliers with respect to the number of records that were given
-        to the check (thus taking into account the order of checks).
-
-        The frequencies are returned in a dataframe, and can be plotted
-        as pie charts.
+        The method gathers:
+        * final label counts across all records (including gaps) from ``SensorData.df``;
+        * outlier-only label counts from ``SensorData.outliersdf``;
+        * per-check outcome counts (flags per QC check) via ``SensorData.get_qc_freq_statistics``.
+        When ``make_plot`` is True, these counts are visualized with
+        ``plotting.qc_overview_pies``.
 
         Parameters
         ----------
         obstype : str, optional
-            The target observation type for which to compute frequency statistics, by default "temp".
+            Observation type to evaluate, by default "temp".
         make_plot : bool, optional
-            If True, a figure with pie charts representing the frequencies is generated. The default is True.
+            If True, return a figure with pie charts; if False, no figure is created. Default is True.
 
         Returns
         -------
-        pandas.DataFrame
-            A DataFrame containing the QC frequency statistics. The DataFrame
-            has a multi-index with the station name and QC check label, and
-            includes the following columns:
-
-            * `N_all`: Total number of records in the dataset (including gaps).
-            * `N_labeled`: Number of records with the specific label.
-            * `N_checked`: Number of records checked for the specific QC check.
-
+        matplotlib.figure.Figure or dict[str, pandas.Series]
+            Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
+            keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``.
         """
         # argument checks
         self._obstype_is_known_check(obstype)
         # get freq statistics
-        qc_df = self.get_sensor(obstype).get_qc_freq_statistics()
-
+        qc_specific_counts = self.get_sensor(obstype).get_qc_freq_statistics()
+        qc_labels_from_df = self.get_sensor(obstype).df['label'].value_counts()
+        qc_labels_from_outliers = self.get_sensor(obstype).outliersdf['label'].value_counts()
+        
         if make_plot:
-            plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
-
-            fig = plotting.qc_overview_pies(df=plotdf)
-            fig.suptitle(
-                f"QC frequency statistics of {obstype} on Station level: {self.name}."
-            )
+            fig = plotting.qc_overview_pies(
+                end_labels_from_df=qc_labels_from_df,
+                end_labels_from_outliers=qc_labels_from_outliers,
+                per_check_labels=qc_specific_counts,
+                fig_title = f"QC frequency statistics of {obstype} on Sensor level: {self.name}.")
+            
             return fig
-        else:
-            return qc_df
+        
+        return {
+            "all_labels": qc_labels_from_df,
+            "outlier_labels": qc_labels_from_outliers,
+            "per_check_labels": qc_specific_counts,
+        }
+        
 
     @log_entry
     def make_plot_of_modeldata(

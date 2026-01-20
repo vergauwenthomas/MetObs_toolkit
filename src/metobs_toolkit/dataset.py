@@ -12,9 +12,11 @@ import pandas as pd
 import numpy as np
 import concurrent.futures
 
+
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
+    from matplotlib.pyplot import Figure
 
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
@@ -2359,29 +2361,80 @@ class Dataset:
         
 
 
-    @copy_doc(Station.get_qc_stats)
     @log_entry
     def get_qc_stats(
         self, obstype: str = "temp", make_plot: bool = True
-    ) -> Union[pd.DataFrame, None]:
-        freqdf_list = [
-            sta.get_qc_stats(obstype=obstype, make_plot=False) for sta in self.stations
+    ) -> Union[dict[str, pd.Series], Figure]:
+        """
+        Summarize QC label frequencies across all stations for a given observation type.
+
+        This aggregates three series over every station that has the requested ``obstype``:
+
+        * final label counts from each ``SensorData.df['label'].value_counts()``;
+        * outlier-only label counts from ``SensorData.outliersdf['label'].value_counts()``;
+        * per-check outcome counts from ``SensorData.get_qc_freq_statistics()``
+          (MultiIndex ``['checkname', 'flag']``).
+
+        When ``make_plot`` is True, the aggregated counts are visualized with
+        ``plotting.qc_overview_pies``. When False, the aggregated series are returned for
+        programmatic use.
+
+        Parameters
+        ----------
+        obstype : str, optional
+            Observation type to evaluate, by default "temp".
+        make_plot : bool, optional
+            If True, return a figure with pie charts; if False, return the aggregated counts.
+            Default is True.
+
+        Returns
+        -------
+        matplotlib.figure.Figure or dict[str, pandas.Series]
+            Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
+            keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``. Returns None when
+            no stations provide the requested ``obstype``.
+        """
+
+        # collect stations that actually have the target obstype
+        target_stations = [
+            sta for sta in self.stations if obstype in sta.obsdata
         ]
 
-        dfagg = (
-            pd.concat(freqdf_list)
-            .reset_index()
-            .groupby(["qc_check"])
-            .sum()
-            .drop(columns=["name"])
-        )
+        if not target_stations:
+            logger.warning("No stations with obstype '%s' found for QC stats.", obstype)
+            return None
+
+        
+        all_label_counts = self.df.xs(obstype, level="obstype")["label"].value_counts()
+        outlier_label_counts = self.outliersdf.xs(obstype, level="obstype")["label"].value_counts()
+        
+        
+        per_check_counts = []
+        for sta in target_stations:
+            sensor_counts = sta.get_sensor(obstype).get_qc_freq_statistics()
+            #add the name of the station as a index level
+            sensor_counts.index = pd.MultiIndex.from_frame(
+                sensor_counts.index.to_frame().assign(name=sta.name))
+ 
+            per_check_counts.append(sensor_counts)  
+            
+        per_check_counts = pd.concat(per_check_counts).groupby(level=["checkname", "flag"]).sum()   
 
         if make_plot:
-            fig = plotting.qc_overview_pies(df=dfagg)
-            fig.suptitle(f"QC frequency statistics of {obstype} on Dataset level.")
+            fig = plotting.qc_overview_pies(
+                end_labels_from_df=all_label_counts,
+                end_labels_from_outliers=outlier_label_counts,
+                per_check_labels=per_check_counts,
+                fig_title = f"QC frequency statistics of {obstype} on Dataset level."
+            )
+           
             return fig
-        else:
-            return dfagg
+
+        return {
+            "all_labels": all_label_counts,
+            "outlier_labels": outlier_label_counts,
+            "per_check_labels": per_check_counts,
+        }
 
     # ------------------------------------------
     #    Other methods
