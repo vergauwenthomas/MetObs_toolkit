@@ -39,8 +39,12 @@ default_plot_settings["pie_charts"] = {
     # "anchor_legend_small": (-3.5, 2.2),
     "radius_big": 1.0,
     "radius_small": 0.7,
-    "txt_size_big_pies": 7,
-    "txt_size_small_pies": 5,
+    "txt_label_size_big_pies": 7,
+    "txt_label_size_small_pies": 5,
+    "fig_title_kwargs": {"fontsize": 16},
+    "big_pie_title_kwargs": {"fontsize": 14},
+    "small_pie_title_kwargs": {"fontsize": 10},
+    
 }
 
 # =============================================================================

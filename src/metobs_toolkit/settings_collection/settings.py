@@ -26,7 +26,9 @@ from metobs_toolkit.settings_collection.label_defenitions import (
     scatter,
     line,
     vline,
+    per_check_possible_labels,
 )
+
 from metobs_toolkit.settings_collection.plotting_defaults import default_plot_settings
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -74,6 +76,8 @@ class Settings:
         "gapfill_label_group": gapfill_label_group,
         "failed_gapfill_label_group": failed_gapfill_label_group,
         "qc_label_group": qc_label_group,
+        "qc_status_labels_per_check": per_check_possible_labels,
+           
         # Logging defaults
         "log_level": "WARNING",
         "log_format": "LOG:: %(levelname)s - %(message)s",

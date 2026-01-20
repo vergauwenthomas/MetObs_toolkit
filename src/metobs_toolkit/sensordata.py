@@ -39,6 +39,7 @@ from metobs_toolkit.qcresult import (
     flagged_cond,
     unmet_cond,
     saved_cond,
+    unchecked_cond
 )
 from metobs_toolkit.plot_collection import sensordata_simple_pd_plot
 import metobs_toolkit.backend_collection.printing_collection as printing
@@ -914,43 +915,64 @@ class SensorData:
               excluded from the check due to previous QC checks.
 
         """
+        
+        
+        empty_flags = {
+            flagged_cond: 0,
+            pass_cond: 0,
+            unmet_cond: 0,
+            saved_cond: 0,
+            unchecked_cond: 0}
+        
+        qcdict = {}
+        for qcres in self.outliers:
+            qcdict[qcres.checkname] = empty_flags | qcres.flags.value_counts().to_dict()
+    
+        #Convert to a pandas series with  multiindex ['checkname', 'flag'] and the name is 'counts'
 
-        infodict = {}  # checkname : details
-        ntotal = self.series.shape[0]  # gaps included !!
-        already_rejected = self.gapsdf.shape[0]  # initial gap records
-        # add the 'ok' labels
-        infodict[Settings.get("label_def.goodrecord.label")] = {
-            "N_all": ntotal,
-            "N_labeled": self.series[self.series.notnull()].shape[0],
-        }
-        # add the 'gap' labels
-        # TODO: I think the filled and failed labels must be included as well
-        infodict[Settings.get("label_def.regular_gap.label")] = {
-            "N_all": ntotal,
-            "N_labeled": already_rejected,
-        }
+        qcdf = pd.DataFrame.from_dict(qcdict, orient='index')
+        qcdf.index.name = 'checkname'
+        qcseries = qcdf.stack(future_stack=True)
+        qcseries.index = qcseries.index.set_names('flag', level=-1)
+        qcseries.name = 'counts'    
+        return qcseries
+        
+        # infodict = {}  # checkname : details
+        # ntotal = self.series.shape[0]  # gaps included !!
+        # already_rejected = self.gapsdf.shape[0]  # initial gap records
+        # # add the 'ok' labels
+        # infodict[Settings.get("label_def.goodrecord.label")] = {
+        #     "N_all": ntotal,
+        #     "N_labeled": self.series[self.series.notnull()].shape[0],
+        # }
+        # # add the 'gap' labels
+        # # TODO: I think the filled and failed labels must be included as well
+        # infodict[Settings.get("label_def.regular_gap.label")] = {
+        #     "N_all": ntotal,
+        #     "N_labeled": already_rejected,
+        # }
 
-        # add the qc check labels
-        for check in self.outliers:
-            n_outliers = check["df"].shape[0]
-            n_checked = ntotal - already_rejected
-            outlierlabel = Settings.get(f"label_def.{check['checkname']}.label")
-            infodict[outlierlabel] = {
-                "N_labeled": n_outliers,
-                "N_checked": n_checked,
-                "N_all": ntotal,
-            }
+        # # add the qc check labels
+        # for check in self.outliers:
+        #     n_outliers = check["df"].shape[0]
+        #     n_checked = ntotal - already_rejected
+        #     outlierlabel = Settings.get(f"label_def.{check['checkname']}.label")
+        #     infodict[outlierlabel] = {
+        #         "N_labeled": n_outliers,
+        #         "N_checked": n_checked,
+        #         "N_all": ntotal,
+        #     }
 
-            # remove the outliers of the previous check
-            already_rejected = already_rejected + n_outliers
+        #     # remove the outliers of the previous check
+        #     already_rejected = already_rejected + n_outliers
 
-        # Convert to a dataframe
-        checkdf = pd.DataFrame(infodict).transpose()
-        checkdf.index.name = "qc_check"
-        checkdf["name"] = self.stationname
-        checkdf = checkdf.reset_index().set_index(["name", "qc_check"])
+        # # Convert to a dataframe
+        # checkdf = pd.DataFrame(infodict).transpose()
+        # checkdf.index.name = "qc_check"
+        # checkdf["name"] = self.stationname
+        # checkdf = checkdf.reset_index().set_index(["name", "qc_check"])
 
-        return checkdf
+        # return checkdf
 
     # ------------------------------------------
     #    Gaps related

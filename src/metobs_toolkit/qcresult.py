@@ -10,11 +10,12 @@ from metobs_toolkit.settings_collection.settings import Settings
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-pass_cond = 'passed' #checked and successfull pass
-flagged_cond = 'flagged' # checked and flagged as outlier
-unmet_cond = 'condition_unmet' #not checked due to unmet specific conditions
-saved_cond = 'saved' #checked and flagged but saved due to whitelist
-unchecked_cond = 'unchecked' #not checked (was nan/gap before check)
+
+pass_cond = Settings.get("qc_status_labels_per_check.pass.label") #checked and successfull pass
+flagged_cond =  Settings.get("qc_status_labels_per_check.flagged.label") # checked and flagged as outlier
+unmet_cond = Settings.get("qc_status_labels_per_check.condition_unmet.label") #not checked due to unmet specific conditions
+saved_cond = Settings.get("qc_status_labels_per_check.saved_whitelist.label") #checked and flagged but saved due to whitelist
+unchecked_cond = Settings.get("qc_status_labels_per_check.unchecked.label") #not checked (was nan/gap before check)
 
 class QCresult:
     """Store results of a quality control check.
