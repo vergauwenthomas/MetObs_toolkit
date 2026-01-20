@@ -136,9 +136,10 @@ class TestDemoDataset:
         #  1. get_startpoint data
         dataset = copy.deepcopy(import_dataset)
         # 2. apply a metobs manipulation
-        ax = dataset.make_plot(colorby="label", figkwargs={"figsize": (10, 5)})
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = dataset.make_plot(colorby="label", figkwargs={"figsize": (10, 5)}, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -148,9 +149,10 @@ class TestDemoDataset:
         dataset = copy.deepcopy(import_dataset)
 
         # 2. apply a metobs manipulation
-        ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)})
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = dataset.make_plot(colorby="station", figkwargs={"figsize": (10, 5)}, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -160,9 +162,10 @@ class TestDemoDataset:
         dataset = copy.deepcopy(import_dataset)
         # 2. apply a metobs manipulation
         dataset.repetitions_check(max_N_repetitions=8)
-        ax = dataset.make_plot(colorby="station", show_outliers=False)
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = dataset.make_plot(colorby="station", show_outliers=False, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -173,9 +176,10 @@ class TestDemoDataset:
 
         # 2. apply a metobs manipulation
         dataset.repetitions_check(max_N_repetitions=8)
-        ax = dataset.make_plot(colorby="label", show_outliers=False)
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = dataset.make_plot(colorby="label", show_outliers=False, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data"])
@@ -190,6 +194,7 @@ class TestDemoDataset:
         ax = sta.make_plot(colorby="label", show_outliers=False, ax=ax)
         fig = ax.get_figure()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -199,9 +204,10 @@ class TestDemoDataset:
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         station = dataset_with_era.get_station("vlinder05")
-        ax = station.make_plot(show_modeldata=True)
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = station.make_plot(show_modeldata=True, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -209,11 +215,11 @@ class TestDemoDataset:
     def test_station_modeldata_timeseries(self, import_dataset_with_era5):
         #  1. get_startpoint data
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
         station = dataset_with_era.get_station("vlinder05")
-        ax = station.make_plot_of_modeldata(obstype="temp")
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = station.make_plot_of_modeldata(obstype="temp", ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -223,9 +229,10 @@ class TestDemoDataset:
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         station = dataset_with_era.get_station("vlinder05")
-        ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land")
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land", ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -233,12 +240,13 @@ class TestDemoDataset:
     def test_dataset_plot_of_modeldata_with_modelname(self, import_dataset_with_era5):
         """Test Dataset.make_plot_of_modeldata with modelname argument."""
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = dataset_with_era.make_plot_of_modeldata(
-            obstype="temp", modelname="ERA5-land"
+            obstype="temp", modelname="ERA5-land",
+            ax=ax
         )
-        fig = ax.get_figure()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -248,6 +256,7 @@ class TestDemoDataset:
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         station = dataset_with_era.get_station("vlinder05")
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = station.make_plot(
             obstype="humidity",
             modelobstype="temp",
@@ -256,9 +265,10 @@ class TestDemoDataset:
                 "modelname": "ERA5-land",
                 "modelvariable": "temperature_2m",
             },
+            ax=ax,
         )
-        fig = ax.get_figure()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -268,6 +278,7 @@ class TestDemoDataset:
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
 
         station = dataset_with_era.get_station("vlinder05")
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = station.make_plot(
             obstype="temp",
             show_modeldata=True,
@@ -275,9 +286,10 @@ class TestDemoDataset:
                 "modelname": "ERA5-land",
                 "modelvariable": "temperature_2m",
             },
+            ax=ax,
         )
-        fig = ax.get_figure()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -285,7 +297,7 @@ class TestDemoDataset:
     def test_dataset_plot_humidity_with_modelvariable(self, import_dataset_with_era5):
         """Test dataset.make_plot with humidity obstype and modelvariable."""
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = dataset_with_era.make_plot(
             obstype="humidity",
             show_modeldata=True,
@@ -293,9 +305,10 @@ class TestDemoDataset:
             modeldata_kwargs={
                 "modelvariable": "temperature_2m",
             },
+            ax=ax,
         )
-        fig = ax.get_figure()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -307,19 +320,20 @@ class TestDemoDataset:
         modelseries = dataset_with_era.get_station("vlinder05").get_modeltimeseries(
             "temp"
         )
-        ax = modelseries.make_plot()
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = modelseries.make_plot(ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
     @pytest.mark.mpl_image_compare
     def test_dataset_modeldata_timeseries_plot(self, import_dataset_with_era5):
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
-        ax = dataset_with_era.make_plot_of_modeldata()
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax = dataset_with_era.make_plot_of_modeldata(ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -327,11 +341,12 @@ class TestDemoDataset:
     def test_dataset_color_by_station_and_modeldata_timeseries_plot(
         self, import_dataset_with_era5
     ):
+        
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
-        ax = dataset_with_era.make_plot(colorby="station", show_modeldata=True)
-        fig = ax.get_figure()
+        fig, ax = plt.subplots(figsize=(15, 5))
+        ax = dataset_with_era.make_plot(colorby="station", show_modeldata=True, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -339,11 +354,11 @@ class TestDemoDataset:
     def test_dataset_color_by_label_and_modeldata_timeseries_plot(
         self, import_dataset_with_era5
     ):
+        fig, ax = plt.subplots(figsize=(15, 5))
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
-
-        ax = dataset_with_era.make_plot(colorby="label", show_modeldata=True)
-        fig = ax.get_figure()
+        ax = dataset_with_era.make_plot(colorby="label", show_modeldata=True, ax=ax)
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -356,6 +371,7 @@ class TestDemoDataset:
         sensordata = station.get_sensor("temp")
 
         # Test with specific pandas plot kwargs
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = sensordata.pd_plot(
             show_labels=["ok"],
             color="red",
@@ -363,10 +379,11 @@ class TestDemoDataset:
             linestyle="-.",
             alpha=0.8,
             figsize=(10, 6),
+            ax=ax
         )
         ax.legend()
-        fig = plt.gcf()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -380,6 +397,7 @@ class TestDemoDataset:
         sensordata = station.get_sensor("temp")
 
         # Test with specific pandas plot kwargs
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = sensordata.pd_plot(
             show_labels=["ok"],  # outliers are not present
             color="red",
@@ -387,10 +405,11 @@ class TestDemoDataset:
             linestyle="-.",
             alpha=0.8,
             figsize=(10, 6),
+            ax=ax
         )
         ax.legend()
-        fig = plt.gcf()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.dependency(depends=["TestDemoDataset::test_import_data_with_era5"])
@@ -403,6 +422,7 @@ class TestDemoDataset:
         modeltimeseries = station.get_modeltimeseries("temp")
 
         # Test with specific pandas plot kwargs
+        fig, ax = plt.subplots(figsize=(15, 5))
         ax = modeltimeseries.pd_plot(
             color="blue",
             linewidth=3,
@@ -411,10 +431,11 @@ class TestDemoDataset:
             markersize=4,
             alpha=0.7,
             figsize=(12, 8),
+            ax=ax
         )
         ax.legend()
-        fig = plt.gcf()
         fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
 
