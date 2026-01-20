@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "1.0.0"
+version = "1.0.0a1"
 license = "LICENSE"
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@ugent.be"}]
 description = "A Meteorological observations toolkit for scientists"
@@ -48,6 +48,9 @@ dependencies=[
   "netcdf4 (>=1.7.2,<2.0.0)"
 ]
 
+[tool.poetry]
+packages = [{include = "metobs_toolkit", from = "src"}]
+
 [tool.poetry.group.dev.dependencies]
 jedi = "^0.19"
 nbconvert = "^7.16.6"
@@ -59,6 +62,7 @@ pretty-errors = "^1.2.25"
 pytest = "^8.3.5"
 pytest-mpl = "^0.17.0"
 pytest-cov = "^6.1.1"
+pytest-dependency = ">=0.6.0,<0.7.0"
 nbval = "^0.11.0"
 black = "^25.1.0"
 jupyter = "^1.1.1"
