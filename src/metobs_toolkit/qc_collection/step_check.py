@@ -106,7 +106,7 @@ def step_check(
     #Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = 'step >' + str(max_increase_per_second) + ' per second or step <' + str(max_decrease_per_second) + ' per second',
+            data = f'step > {max_increase_per_second:.4g} per second or step < {max_decrease_per_second:.4g} per second',
             index = outliers_after_white_idx
         )
         qcresult.add_details_by_series(detail_series = detailseries)

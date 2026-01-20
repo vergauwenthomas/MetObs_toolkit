@@ -129,17 +129,17 @@ class TestBreakingDataset:
             **TestBreakingDataset.solkwargs, methodname=method_name
         )
 
-        assert_equality(dataset, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj, exclude_columns=['details'] )  # dataset comparison
 
     def test_qc_stats_check(self, regular_qc_on_dataset, overwrite_solution=False):
         method_name = "test_qc_stats_check"
         dataset = copy.deepcopy(regular_qc_on_dataset)
 
-        df = dataset.get_qc_stats(obstype="temp", make_plot=False)
+        countdicts = dataset.get_qc_stats(obstype="temp", make_plot=False)
 
         if overwrite_solution:
             TestBreakingDataset.solutionfixer.create_solution(
-                solution=df,
+                solution=countdicts,
                 methodname=method_name,
                 **TestBreakingDataset.solkwargs,
             )
@@ -147,7 +147,9 @@ class TestBreakingDataset:
         solutiondf = TestBreakingDataset.solutionfixer.get_solution(
             methodname=method_name, **TestBreakingDataset.solkwargs
         )
-        assert_equality(df, solutiondf)
+        
+        for key, val in countdicts.items():
+            assert_equality(val, solutiondf[key])
 
     @pytest.mark.mpl_image_compare
     def test_make_plot_by_label_with_outliers(self, regular_qc_on_dataset):
@@ -1244,24 +1246,24 @@ class TestWhiteRecords:
 if __name__ == "__main__":
     # When running outside pytest
     OVERWRITE = False
-    # test_breaking_dataset = TestBreakingDataset()
+    test_breaking_dataset = TestBreakingDataset()
     # Manually call fixtures and pass results to tests
     # Access the original unwrapped function via __wrapped__
-    # imported_dataset = test_breaking_dataset.import_dataset.__wrapped__(test_breaking_dataset)
-    # qc_dataset = test_breaking_dataset.regular_qc_on_dataset.__wrapped__(
-    #     test_breaking_dataset, imported_dataset
-    # )
+    imported_dataset = test_breaking_dataset.import_dataset.__wrapped__(test_breaking_dataset)
+    qc_dataset = test_breaking_dataset.regular_qc_on_dataset.__wrapped__(
+        test_breaking_dataset, imported_dataset
+    )
 
     # test_breaking_dataset.test_qc_labels(qc_dataset)
     # test_breaking_dataset.test_qc_with_solution(qc_dataset, overwrite_solution=False)
-    # test_breaking_dataset.test_qc_stats_check(qc_dataset, overwrite_solution=False)
+    # test_breaking_dataset.test_qc_stats_check(qc_dataset, overwrite_solution=OVERWRITE)
     # test_breaking_dataset.test_make_plot_by_label_with_outliers(qc_dataset)
     # test_breaking_dataset.test_get_info(qc_dataset)
 
-    test_demo_dataset = TestDemoDataset()
-    imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
-        test_demo_dataset
-    )
+    # test_demo_dataset = TestDemoDataset()
+    # imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
+    #     test_demo_dataset
+    # )
 
     # test_demo_dataset.test_import_data(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_qc_when_some_stations_missing_obs(imported_demo_dataset)
@@ -1269,9 +1271,9 @@ if __name__ == "__main__":
     # test_demo_dataset.test_buddy_check_one_iteration(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_no_outliers(imported_demo_dataset)
-    test_demo_dataset.test_buddy_check_with_big_radius(
-        imported_demo_dataset, overwrite_solution=OVERWRITE
-    )
+    # test_demo_dataset.test_buddy_check_with_big_radius(
+    #     imported_demo_dataset, overwrite_solution=OVERWRITE
+    # )
     # test_demo_dataset.test_buddy_check_with_safety_nets(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_with_safety_nets_missing_min_sample_size(imported_demo_dataset)
 

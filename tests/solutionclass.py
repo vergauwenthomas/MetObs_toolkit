@@ -178,6 +178,11 @@ def _store_dataframe(df: pd.DataFrame, dir_path: Path) -> None:
     _write_datatype(dir_path, "DataFrame")
     df.to_parquet(dir_path / "solution_df.parquet")
 
+def _store_series(series: pd.Series, dir_path: Path) -> None:
+    """Store a Series solution."""
+    _write_datatype(dir_path, "Series")
+    series.to_frame().to_parquet(dir_path / "solution_series.parquet")
+
 
 def _store_dataset(dataset, dir_path: Path) -> None:
     """Store a Dataset solution."""
@@ -221,6 +226,8 @@ def _store_dict(data_dict: dict, dir_path: Path) -> None:
             _store_station(val, key_dir)
         elif isinstance(val, pd.DataFrame):
             _store_dataframe(val, key_dir)
+        elif isinstance(val, pd.Series):
+            _store_series(val, key_dir)
         else:
             raise NotImplementedError(
                 f"store_dict does not support {obj_classname} objects."
@@ -250,6 +257,10 @@ def _read_string(dir_path: Path) -> str:
 def _read_dataframe(dir_path: Path) -> pd.DataFrame:
     """Read a DataFrame solution."""
     return pd.read_parquet(dir_path / "solution_df.parquet")
+
+def _read_series(dir_path: Path) -> pd.Series:
+    """Read a Series solution."""
+    return pd.read_parquet(dir_path / "solution_series.parquet").iloc[:,0]
 
 
 def _read_dataset(dir_path: Path) -> SerializedDataset:
@@ -285,6 +296,8 @@ def _read_dict(dir_path: Path) -> dict:
             result[subdir.stem] = _read_station(subdir)
         elif solution_class == "DataFrame":
             result[subdir.stem] = _read_dataframe(subdir)
+        elif solution_class == "Series":
+            result[subdir.stem] = _read_series(subdir)
         else:
             raise NotImplementedError(
                 f"read_dict does not support {solution_class} objects."
