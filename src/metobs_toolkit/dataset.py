@@ -2404,9 +2404,21 @@ class Dataset:
             logger.warning("No stations with obstype '%s' found for QC stats.", obstype)
             return None
 
+        df, outliersdf = self.df, self.outliersdf 
+        if df.empty:
+            logger.warning("Dataset is empty, cannot compute QC stats.")
+            return None
+        if obstype not in df.index.get_level_values("obstype"):
+            logger.warning("No data for obstype '%s' in dataset, cannot compute QC stats.", obstype)
+            return None
         
-        all_label_counts = self.df.xs(obstype, level="obstype")["label"].value_counts()
-        outlier_label_counts = self.outliersdf.xs(obstype, level="obstype")["label"].value_counts()
+        all_label_counts = df.xs(obstype, level="obstype")["label"].value_counts()
+        if obstype in outliersdf.index.get_level_values("obstype"):
+            outlier_label_counts = outliersdf.xs(obstype, level="obstype")["label"].value_counts()
+        else:
+            outlier_label_counts = pd.Series(index=pd.Index([], dtype=int, name="label"),
+                                             dtype=int)
+            
         
         
         per_check_counts = []
