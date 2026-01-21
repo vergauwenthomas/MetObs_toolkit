@@ -23,6 +23,7 @@ BC_SAFETYNET_SAVED = "safetynet_saved"  # Flagged but saved by safetynet
 BC_SAFETYNET_OUTLIER = "safetynet_outlier"  # Flagged but not saved by safetynet
 BC_WHITELIST_SAVED = "whitelist_saved"  # Flagged but saved by whitelist
 BC_WHITELIST_NOT_SAVED = "whitelist_not_saved"  # Flagged but not saved by whitelist
+BC_CHECK_SKIPPED = "skipped" #This check was skipped, e.g. due to arugments of the user (not whitelist, not safetynets etc)
 
 if TYPE_CHECKING:
     from metobs_toolkit.station import Station
@@ -311,68 +312,68 @@ class BuddyCheckStation:
             # Remove duplicates keeping first
             self.details['whitelist_check'][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
     
-    def get_combined_status_df(self) -> pd.DataFrame:
-        """Combine all time-dependent status information into a single DataFrame.
+    # def get_combined_status_df(self) -> pd.DataFrame:
+    #     """Combine all time-dependent status information into a single DataFrame.
         
-        Combines flags and details across all iterations into a unified DataFrame.
+    #     Combines flags and details across all iterations into a unified DataFrame.
         
-        Returns
-        -------
-        pandas.DataFrame
-            DataFrame with MultiIndex (datetime, iteration) and columns:
+    #     Returns
+    #     -------
+    #     pandas.DataFrame
+    #         DataFrame with MultiIndex (datetime, iteration) and columns:
             
-            * 'check_type' : str - Type of check ('spatial_check', 'safetynet_check:<groupname>', 'whitelist_check')
-            * 'flag' : str - Status flag (BC_FLAGGED, BC_SAFETYNET_SAVED, BC_WHITELIST_SAVED)
-            * 'details' : str - Detailed message about the record
+    #         * 'check_type' : str - Type of check ('spatial_check', 'safetynet_check:<groupname>', 'whitelist_check')
+    #         * 'flag' : str - Status flag (BC_FLAGGED, BC_SAFETYNET_SAVED, BC_WHITELIST_SAVED)
+    #         * 'details' : str - Detailed message about the record
             
-            Returns empty DataFrame if no records exist.
-        """
-        records = []
+    #         Returns empty DataFrame if no records exist.
+    #     """
+    #     records = []
         
-        # Process flags DataFrame
-        if not self.flags.empty:
-            for (timestamp, iteration), row in self.flags.iterrows():
-                for col in self.flags.columns:
-                    flag_value = row[col]
-                    if pd.notna(flag_value):
-                        # Determine check_type and get details
-                        check_type = col
-                        detail = ''
+    #     # Process flags DataFrame
+    #     if not self.flags.empty:
+    #         for (timestamp, iteration), row in self.flags.iterrows():
+    #             for col in self.flags.columns:
+    #                 flag_value = row[col]
+    #                 if pd.notna(flag_value):
+    #                     # Determine check_type and get details
+    #                     check_type = col
+    #                     detail = ''
                         
-                        if col == 'spatial_check':
-                            if iteration in self.details['spatial_check']:
-                                detail_series = self.details['spatial_check'][iteration]
-                                if timestamp in detail_series.index:
-                                    detail = detail_series.loc[timestamp]
-                        elif col.startswith('safetynet_check:'):
-                            groupname = col.split(':', 1)[1]
-                            if groupname in self.details['safetynet_check']:
-                                if iteration in self.details['safetynet_check'][groupname]:
-                                    detail_series = self.details['safetynet_check'][groupname][iteration]
-                                    if timestamp in detail_series.index:
-                                        detail = detail_series.loc[timestamp]
-                        elif col == 'whitelist_check':
-                            if iteration in self.details['whitelist_check']:
-                                detail_series = self.details['whitelist_check'][iteration]
-                                if timestamp in detail_series.index:
-                                    detail = detail_series.loc[timestamp]
+    #                     if col == 'spatial_check':
+    #                         if iteration in self.details['spatial_check']:
+    #                             detail_series = self.details['spatial_check'][iteration]
+    #                             if timestamp in detail_series.index:
+    #                                 detail = detail_series.loc[timestamp]
+    #                     elif col.startswith('safetynet_check:'):
+    #                         groupname = col.split(':', 1)[1]
+    #                         if groupname in self.details['safetynet_check']:
+    #                             if iteration in self.details['safetynet_check'][groupname]:
+    #                                 detail_series = self.details['safetynet_check'][groupname][iteration]
+    #                                 if timestamp in detail_series.index:
+    #                                     detail = detail_series.loc[timestamp]
+    #                     elif col == 'whitelist_check':
+    #                         if iteration in self.details['whitelist_check']:
+    #                             detail_series = self.details['whitelist_check'][iteration]
+    #                             if timestamp in detail_series.index:
+    #                                 detail = detail_series.loc[timestamp]
                         
-                        records.append({
-                            'datetime': timestamp,
-                            'iteration': iteration,
-                            'check_type': check_type,
-                            'flag': flag_value,
-                            'details': detail
-                        })
+    #                     records.append({
+    #                         'datetime': timestamp,
+    #                         'iteration': iteration,
+    #                         'check_type': check_type,
+    #                         'flag': flag_value,
+    #                         'details': detail
+    #                     })
         
-        if not records:
-            return pd.DataFrame(columns=['check_type', 'flag', 'details'])
+    #     if not records:
+    #         return pd.DataFrame(columns=['check_type', 'flag', 'details'])
         
-        result_df = pd.DataFrame(records)
-        result_df = result_df.set_index(['datetime', 'iteration'])
-        result_df = result_df.sort_index()
+    #     result_df = pd.DataFrame(records)
+    #     result_df = result_df.set_index(['datetime', 'iteration'])
+    #     result_df = result_df.sort_index()
         
-        return result_df
+    #     return result_df
     
     def _get_iterations(self) -> List[int]:
         """Get all iterations that have been processed."""
@@ -391,8 +392,13 @@ class BuddyCheckStation:
         return sorted(iterations)
     
     def get_final_labels(self) -> pd.Series:
+        flags = self.flags
         
-        final_labels = self.flags.groupby('datetime').apply(final_label_logic)
+        #if no whitelist check has been performed, create an empyt column
+        if 'whitelist_check' not in flags.columns:
+            flags['whitelist_check'] = BC_CHECK_SKIPPED #'skipped'
+        
+        final_labels = flags.groupby('datetime').apply(final_label_logic)
         final_labels.name = 'final_label'
         return final_labels
     
@@ -629,7 +635,7 @@ def final_label_logic(subset: pd.DataFrame) -> str:
     #fail in last iteration of spatial check
     if ((subset['spatial_check'].iloc[-1] == BC_FLAGGED) and
         all(subset.iloc[-1][saftynet_cols] != BC_PASSED) and #not passed is [nan, flagged, no-buddies]
-        (subset['whitelist_check'].iloc[-1] == BC_WHITELIST_NOT_SAVED)):
+        (subset['whitelist_check'].iloc[-1] != BC_WHITELIST_SAVED)): #not saved is [nan, skipped, not-saved]
         return BC_FLAGGED
     
     #fail in any previous iteration of spatial check
