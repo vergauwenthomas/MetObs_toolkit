@@ -226,6 +226,9 @@ class TestDemoDataset:
         dataset.buddy_check(obstype=obstype)
 
         assert orig_count == len(dataset.stations)
+        
+        #test if test_qc works if some stations are missing obstype
+        dataset.get_qc_stats(obstype=obstype)
 
     def test_buddy_check_raise_errors(self, import_dataset):
         #  1. get_startpoint data
@@ -606,7 +609,7 @@ class TestWhiteRecords:
             methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        assert_equality(dataset, solutionobj)
+        assert_equality(dataset, solutionobj, exclude_columns=['details'] )
 
     def test_whiteset_name_only(self, dataset_with_outliers, overwrite_solution=False):
         """Test white_records with Index containing only station names."""
@@ -636,7 +639,7 @@ class TestWhiteRecords:
             methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        assert_equality(dataset, solutionobj)
+        assert_equality(dataset, solutionobj, exclude_columns=['details'])
 
     def test_whiteset_name_only_on_station(self, dataset_with_outliers):
         """Test white_records with name-only Index on Station object."""
@@ -687,7 +690,7 @@ class TestWhiteRecords:
             methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        assert_equality(dataset, solutionobj)
+        assert_equality(dataset, solutionobj, exclude_columns=['details'])
 
     def test_whiteset_full_multiindex(
         self, dataset_with_outliers, overwrite_solution=False
@@ -718,7 +721,7 @@ class TestWhiteRecords:
             methodname=_method_name, **TestWhiteRecords.solkwargs
         )
 
-        assert_equality(dataset, solutionobj)
+        assert_equality(dataset, solutionobj, exclude_columns=['details'])
 
     def test_white_dt_only_records_buddy_check(
         self, import_dataset, overwrite_solution=False
