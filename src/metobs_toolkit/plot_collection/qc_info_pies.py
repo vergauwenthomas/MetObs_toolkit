@@ -81,7 +81,7 @@ def qc_overview_pies(
     if end_labels_from_outliers.empty:
         # No outliers --> full pie with "No QC outliers" in the color of 'ok'
         end_labels_from_outliers = pd.Series([100], index=["No QC outliers"])
-        colors = [Settings.get("label_def.goodrecord.color")]
+        colors = [Settings._get_color_from_label('ok')]
 
     end_labels_from_outliers.plot(
         ax=ax_thr,
