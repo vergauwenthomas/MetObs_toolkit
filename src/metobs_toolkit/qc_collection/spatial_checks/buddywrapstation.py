@@ -312,68 +312,7 @@ class BuddyCheckStation:
             # Remove duplicates keeping first
             self.details['whitelist_check'][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
     
-    # def get_combined_status_df(self) -> pd.DataFrame:
-    #     """Combine all time-dependent status information into a single DataFrame.
-        
-    #     Combines flags and details across all iterations into a unified DataFrame.
-        
-    #     Returns
-    #     -------
-    #     pandas.DataFrame
-    #         DataFrame with MultiIndex (datetime, iteration) and columns:
-            
-    #         * 'check_type' : str - Type of check ('spatial_check', 'safetynet_check:<groupname>', 'whitelist_check')
-    #         * 'flag' : str - Status flag (BC_FLAGGED, BC_SAFETYNET_SAVED, BC_WHITELIST_SAVED)
-    #         * 'details' : str - Detailed message about the record
-            
-    #         Returns empty DataFrame if no records exist.
-    #     """
-    #     records = []
-        
-    #     # Process flags DataFrame
-    #     if not self.flags.empty:
-    #         for (timestamp, iteration), row in self.flags.iterrows():
-    #             for col in self.flags.columns:
-    #                 flag_value = row[col]
-    #                 if pd.notna(flag_value):
-    #                     # Determine check_type and get details
-    #                     check_type = col
-    #                     detail = ''
-                        
-    #                     if col == 'spatial_check':
-    #                         if iteration in self.details['spatial_check']:
-    #                             detail_series = self.details['spatial_check'][iteration]
-    #                             if timestamp in detail_series.index:
-    #                                 detail = detail_series.loc[timestamp]
-    #                     elif col.startswith('safetynet_check:'):
-    #                         groupname = col.split(':', 1)[1]
-    #                         if groupname in self.details['safetynet_check']:
-    #                             if iteration in self.details['safetynet_check'][groupname]:
-    #                                 detail_series = self.details['safetynet_check'][groupname][iteration]
-    #                                 if timestamp in detail_series.index:
-    #                                     detail = detail_series.loc[timestamp]
-    #                     elif col == 'whitelist_check':
-    #                         if iteration in self.details['whitelist_check']:
-    #                             detail_series = self.details['whitelist_check'][iteration]
-    #                             if timestamp in detail_series.index:
-    #                                 detail = detail_series.loc[timestamp]
-                        
-    #                     records.append({
-    #                         'datetime': timestamp,
-    #                         'iteration': iteration,
-    #                         'check_type': check_type,
-    #                         'flag': flag_value,
-    #                         'details': detail
-    #                     })
-        
-    #     if not records:
-    #         return pd.DataFrame(columns=['check_type', 'flag', 'details'])
-        
-    #     result_df = pd.DataFrame(records)
-    #     result_df = result_df.set_index(['datetime', 'iteration'])
-    #     result_df = result_df.sort_index()
-        
-    #     return result_df
+    
     
     def _get_iterations(self) -> List[int]:
         """Get all iterations that have been processed."""
