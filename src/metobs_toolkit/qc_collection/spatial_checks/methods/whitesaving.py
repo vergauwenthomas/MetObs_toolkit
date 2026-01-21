@@ -57,9 +57,6 @@ def save_whitelist_records(
         logger.debug("Whitelist is empty, no records saved")
         return outliers
     
-    # Create a name map of the wrapped stations
-    name_map = {sta.name: sta for sta in wrappedstations}
-    
     # Track which records are not saved
     # saved_records = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
     remaining_outliers = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
