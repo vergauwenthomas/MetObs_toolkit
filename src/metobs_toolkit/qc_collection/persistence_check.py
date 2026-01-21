@@ -19,6 +19,25 @@ from metobs_toolkit.backend_collection.datetime_collection import (
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+def _has_window_unique_values(window: pd.Series) -> bool:
+    """
+    Check if all non-NaN values in the window are identical.
+
+    Parameters
+    ----------
+    window : pd.Series
+        A pandas Series representing the rolling window.
+
+    Returns
+    -------
+    bool
+        True if all non-NaN values are identical, False otherwise.
+    """
+    a = window.values
+    a = a[~np.isnan(a)]
+    return (a[0] == a).all() if len(a) > 0 else False
+
+
 @log_entry
 def persistence_check(
     records: pd.Series,
@@ -88,33 +107,12 @@ def persistence_check(
             checkname="persistence",
             checksettings=locals().pop('records', None),
             flags=flags,
-            outliers=timestamps_to_datetimeindex(
-                name="datetime", timestamps=[], current_tz=None
-                ),
-            detail="Minimum number of records per window not met.",
+            outliers=pd.Series(index=timestamps_to_datetimeindex(
+                                        name="datetime", timestamps=[], current_tz=None)),
+            detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
         return qcresult
             
-
-    # Apply persistence
-    
-    def is_unique(window: pd.Series) -> bool:
-        """
-        Check if all non-NaN values in the window are identical.
-
-        Parameters
-        ----------
-        window : pd.Series
-            A pandas Series representing the rolling window.
-
-        Returns
-        -------
-        bool
-            True if all non-NaN values are identical, False otherwise.
-        """
-        a = window.values
-        a = a[~np.isnan(a)]
-        return (a[0] == a).all() if len(a) > 0 else False
 
     # This is very expensive if no coarsening is applied! Can we speed this up?
     
@@ -126,7 +124,7 @@ def persistence_check(
             center=True,
             min_periods=min_records_per_window,
         )
-        .apply(is_unique)
+        .apply(_has_window_unique_values)
     )
     # The returns are numeric values (0 --> oke, NaN --> not checked (members/window condition not met), 1 --> outlier)
     window_flags = window_flags.map(
