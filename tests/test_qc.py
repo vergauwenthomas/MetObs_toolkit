@@ -204,6 +204,16 @@ class TestDemoDataset:
         )
 
         assert_equality(dataset, solutionobj)
+        
+        
+    def test_buddy_check_with_paralelism(self, import_dataset):
+        dataset = copy.deepcopy(import_dataset)
+        obstype = "temp"
+        
+        dataset.buddy_check(obstype=obstype, use_mp=True)
+        assert not dataset.outliersdf.empty
+        
+        
 
     def test_qc_when_some_stations_missing_obs(self, import_dataset):
         #  1. get_startpoint data
