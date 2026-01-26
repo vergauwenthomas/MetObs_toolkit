@@ -73,7 +73,8 @@ def apply_safety_net(
     wideobsds: pd.DataFrame,
     safety_z_threshold: Union[int, float],
     min_sample_size: int,
-    min_std: Union[int, float],
+    min_sample_spread: Union[int, float],
+    use_z_robust_method: bool,
     iteration: int,
 ) -> pd.MultiIndex:
    
@@ -145,10 +146,11 @@ def apply_safety_net(
             buddygroupname=buddygroupname,
             widedf=widedf_subset,
             min_sample_size=min_sample_size,
-            min_std=min_std,
+            min_sample_spread=min_sample_spread,
             outlier_threshold=safety_z_threshold,
             iteration=iteration,
             check_type=f'safetynet_check:{buddygroupname}',
+            use_z_robust_method=use_z_robust_method,
         )
         
         # Get passed timestamps from the flags DataFrame

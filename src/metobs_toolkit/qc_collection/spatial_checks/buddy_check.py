@@ -37,7 +37,7 @@ def toolkit_buddy_check(
     spatial_buddy_radius: Union[int, float],
     spatial_min_sample_size: int,
     max_alt_diff: Union[int, float, None],
-    min_std: Union[int, float],
+    min_sample_spread: Union[int, float],
     spatial_z_threshold: Union[int, float],
     N_iter: int,
     instantaneous_tolerance: pd.Timedelta,
@@ -45,11 +45,14 @@ def toolkit_buddy_check(
     whiteset: WhiteSet,
     # Safety nets
     safety_net_configs: List[Dict] = None,
+    #Statistical
+    use_z_robust_method: bool = True,
     # Technical
     lapserate: Union[float, None] = None,  # -0.0065 for temperature
     use_mp: bool = True,
 ) -> List[QCresult]:
     """
+    #TODO update the docstring accordingly
     Spatial buddy check.
 
     The buddy check compares an observation against its neighbors
@@ -113,12 +116,14 @@ def toolkit_buddy_check(
             net test is not applied.
           * The safety net test is applied:
 
-            * The mean and std are computed of the category-buddy sample. If
-              the std is smaller than `min_std`, the latter is used.
-            * The z-value is computed for the target record (= flagged outlier).
-            * If the z-value is smaller than the safety net's `z_threshold`,
-              the tested outlier is "saved" and removed from the set of outliers
-              for the current iteration.
+            * If use_z_robust_method is True:
+
+              * The mean and std are computed of the category-buddy sample. If
+                the std is smaller than `min_sample_spread`, the latter is used.
+              * The z-value is computed for the target record (= flagged outlier).
+              * If the z-value is smaller than the safety net's `z_threshold`,
+                the tested outlier is "saved" and removed from the set of outliers
+                for the current iteration.
 
        #. If `whiteset` contains records, any outliers that match the white-listed
           timestamps (and optionally station names) are removed from the outlier set
@@ -143,9 +148,11 @@ def toolkit_buddy_check(
     max_alt_diff : int, float, or None
         The maximum altitude difference allowed for buddies. If None,
         no altitude filter is applied.
-    min_std : int or float
-        The minimum standard deviation for sample statistics. This should
-        represent the accuracy of the observations.
+    min_sample_spread : int or float
+        The minimum sample spread for sample statistics. When use_z_robust_method is True,
+        this is the equal to the minimum MAD to use (avoids division by near-zero). When
+        use_z_robust_method is False, this is the standard deviation. This parameter helps
+        to represent the accuracy of the observations.
     spatial_z_threshold : int or float
         The threshold, tested with z-scores, for flagging observations as outliers.
     N_iter : int
@@ -292,10 +299,11 @@ def toolkit_buddy_check(
                     'buddygroupname': 'spatial',
                     'widedf': widedf,
                     'min_sample_size': spatial_min_sample_size,
-                    'min_std': min_std,
+                    'min_sample_spread': min_sample_spread,
                     'outlier_threshold': spatial_z_threshold,
                     'iteration': i,
                     'check_type': 'spatial_check',
+                    'use_z_robust_method': use_z_robust_method,
                 }
                 for sta in valid_targets
             ]
@@ -332,7 +340,8 @@ def toolkit_buddy_check(
                     wideobsds=widedf,
                     safety_z_threshold=safety_net_config['z_threshold'],
                     min_sample_size=safety_net_config['min_sample_size'],
-                    min_std=min_std, #make this configurable?
+                    min_sample_spread=min_sample_spread, #make this configurable?
+                    use_z_robust_method=use_z_robust_method,
                     iteration=i,
                 )
             

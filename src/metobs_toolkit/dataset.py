@@ -1976,14 +1976,17 @@ class Dataset:
         spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
-        min_std: Union[int, float] = 1.0,
+        min_sample_spread: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
+        use_z_robust_method: bool = True,
         use_mp: bool = True,
+        
     ):
+        #TODO: update docstring
         """Spatial buddy check.
 
         The buddy check compares an observation against its neighbors
@@ -2082,12 +2085,13 @@ class Dataset:
             safety_net_configs=None,
             min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
-            min_std=min_std,
+            min_sample_spread=min_sample_spread,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             whiteset=whiteset,
+            use_z_robust_method=use_z_robust_method,
             use_mp=use_mp,
         )
 
@@ -2105,14 +2109,16 @@ class Dataset:
         safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
         max_alt_diff: Union[int, float, None] = None,
-        min_std: Union[int, float] = 1.0,
+        min_sample_spread: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
+        use_z_robust_method: bool = True,
         use_mp: bool = True,
     ):
+        #TODO: update docstring 
         """Spatial buddy check with configurable safety nets.
 
         The buddy check compares an observation against its neighbors
@@ -2333,7 +2339,7 @@ class Dataset:
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
             max_alt_diff=max_alt_diff,
-            min_std=min_std,
+            min_sample_spread=min_sample_spread,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
@@ -2341,6 +2347,8 @@ class Dataset:
             whiteset=whiteset,
             # Generalized safety net configuration
             safety_net_configs=safety_net_configs,
+            #statistical
+            use_z_robust_method=use_z_robust_method,
             # technical
             use_mp=use_mp,
         )

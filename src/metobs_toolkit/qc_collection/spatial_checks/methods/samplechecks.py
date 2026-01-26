@@ -21,11 +21,13 @@ def buddy_test_a_station(
     buddygroupname: str,
     widedf: pd.DataFrame,
     min_sample_size: int,
-    min_std: float,
+    min_sample_spread: float,
     outlier_threshold: float,
     iteration: int,
     check_type: str = 'spatial_check',
+    use_z_robust_method: bool = True,
 ) -> pd.MultiIndex:
+    #TODO update docstring
     """Find outliers in a buddy group and update station flags/details.
     
     This function tests whether the center station is an outlier compared to
@@ -43,8 +45,9 @@ def buddy_test_a_station(
         Wide-format DataFrame with stations as columns and timestamps as index.
     min_sample_size : int
         Minimum number of valid buddy samples required for z-score calculation.
-    min_std : float
-        Minimum standard deviation to use (avoids division by near-zero).
+    min_sample_spread : float
+        when use_z_robust_method is True, this is the equal to the minimum MAD to use (avoids division by near-zero).
+        when use_z_robust_method is False, this is the standard deviation.
     outlier_threshold : float
         Z-score threshold above which a record is flagged as outlier.
     iteration : int
@@ -130,12 +133,21 @@ def buddy_test_a_station(
     buddy_sample_sizes_filtered = buddy_sample_sizes.loc[timestamps_with_sufficient]
     
     # Compute z-scores for center station using buddy distribution
-    results_df = _compute_center_z_scores(
-        buddydf=buddydf_filtered,
-        center_values=center_filtered,
-        min_std=min_std,
-        outlier_threshold=outlier_threshold
-    )
+    if use_z_robust_method:
+        results_df = _compute_robust_z_scores(
+            buddydf=buddydf_filtered,
+            center_values=center_filtered,
+            min_mad=min_sample_spread,
+            outlier_threshold=outlier_threshold
+        )
+        
+    else:
+        results_df = _compute_center_z_scores(
+            buddydf=buddydf_filtered,
+            center_values=center_filtered,
+            min_std=min_sample_spread,
+            outlier_threshold=outlier_threshold
+        )
     
     # Separate flagged (outliers) and passed
     outlier_timestamps = results_df.index[results_df['flagged']]
@@ -151,14 +163,7 @@ def buddy_test_a_station(
         )
         
         # Create detail messages for passed
-        passed_details = pd.Series(
-            [f"Passed {buddygroupname} check (z={results_df.loc[ts, 'z_score']:.2f}, "
-             f"threshold={outlier_threshold}, n={int(buddy_sample_sizes_filtered.loc[ts])}, "
-             f"mean={results_df.loc[ts, 'buddy_mean']:.2f}, "
-             f"std={results_df.loc[ts, 'buddy_std']:.2f})"
-             for ts in passed_timestamps],
-            index=passed_timestamps
-        )
+        passed_details = f"Passed {buddygroupname} check: " + results_df.loc[passed_timestamps, 'details']
         
         if check_type == 'spatial_check':
             centerwrapstation.add_spatial_details(
@@ -180,14 +185,9 @@ def buddy_test_a_station(
         )
         
         # Create detail messages for outliers
-        outlier_details = pd.Series(
-            [f"Outlier in {buddygroupname} buddy group centered on {center_name} "
-             f"(z={results_df.loc[ts, 'z_score']:.2f}, threshold={outlier_threshold}, "
-             f"n={int(buddy_sample_sizes_filtered.loc[ts])}, mean={results_df.loc[ts, 'buddy_mean']:.2f}, "
-             f"std={results_df.loc[ts, 'buddy_std']:.2f})"
-             for ts in outlier_timestamps],
-            index=outlier_timestamps
-        )
+        outlier_details = f"Outlier in {buddygroupname} buddy group centered on {center_name}: " + results_df.loc[outlier_timestamps, 'details']
+          
+        
         
         if check_type == 'spatial_check':
             centerwrapstation.add_spatial_details(
@@ -210,57 +210,50 @@ def buddy_test_a_station(
         return pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
 
 
-# def _update_details(
-#     wrapsta: BuddyCheckStation,
-#     detail_series: pd.Series,
-#     iteration: int,
-#     check_type: str
-# ) -> None:
-#     """Update details dictionary for a wrapped station.
-    
-#     Parameters
-#     ----------
-#     wrapsta : BuddyCheckStation
-#         The wrapped station to update.
-#     detail_series : pd.Series
-#         Series with DatetimeIndex containing detail messages.
-#     iteration : int
-#         The iteration number.
-#     check_type : str
-#         The check type (e.g., 'spatial_check', 'safetynet_check:groupname').
-#     """
-#     if detail_series.empty:
-#         return
-    
-#     # Handle safetynet_check with groupname
-#     if check_type.startswith('safetynet_check:'):
-#         groupname = check_type.split(':', 1)[1]
-#         if groupname not in wrapsta.details['safetynet_check']:
-#             wrapsta.details['safetynet_check'][groupname] = {}
-        
-#         if iteration not in wrapsta.details['safetynet_check'][groupname]:
-#             wrapsta.details['safetynet_check'][groupname][iteration] = detail_series
-#         else:
-#             existing = wrapsta.details['safetynet_check'][groupname][iteration]
-#             combined = pd.concat([existing, detail_series])
-#             wrapsta.details['safetynet_check'][groupname][iteration] = combined[
-#                 ~combined.index.duplicated(keep='first')
-#             ].sort_index()
-#     else:
-#         # spatial_check or whitelist_check
-#         if iteration not in wrapsta.details[check_type]:
-#             wrapsta.details[check_type][iteration] = detail_series
-#         else:
-#             existing = wrapsta.details[check_type][iteration]
-#             combined = pd.concat([existing, detail_series])
-#             wrapsta.details[check_type][iteration] = combined[
-#                 ~combined.index.duplicated(keep='first')
-#             ].sort_index()
-
 
 # ------------------------------------------
 #    Statistical sample scoring
 # ------------------------------------------
+
+def _compute_robust_z_scores(
+    buddydf: pd.DataFrame,
+    center_values: pd.Series,
+    min_mad: float,
+    outlier_threshold: float
+    ) -> pd.DataFrame:
+    #TODO:Docstring
+     
+    buddy_not_na_counts = buddydf.notna().sum(axis=1)
+    #Calculate MADFM (Median Absolute Deviation From Median)
+    def MAD(x):
+        "MEDIAN absolute deviation from median"
+        return (x - x.median()).abs().median()
+    
+    mad_series = buddydf.apply(MAD, axis=1)
+    # Replace std below minimum with the minimum (avoid division by near-zero)
+    mad_series.loc[mad_series < min_mad] = np.float32(min_mad)
+    
+    # Calculate robust z-score for center station
+    
+    robust_z_scores = (center_values - buddydf.median(axis=1)).abs() / (1.4826 * mad_series)
+    
+    details = ('z (robust)=' + robust_z_scores.map('{:.2f}'.format) +
+               ', threshold=' + str(outlier_threshold) + 
+               ', n=' + buddy_not_na_counts.map(str) +
+               ', MAD=' + mad_series.map('{:.2f}'.format) +
+               ', median=' + buddydf.median(axis=1).map('{:.2f}'.format))
+    
+    # Build result DataFrame
+    result_df = pd.DataFrame(
+        index=buddydf.index,
+        data={
+            'z_score': robust_z_scores,
+            'flagged': robust_z_scores > outlier_threshold,
+            'details': details,
+        }
+    )
+    return result_df
+    
 
 def _compute_center_z_scores(
     buddydf: pd.DataFrame,
@@ -294,12 +287,19 @@ def _compute_center_z_scores(
     # Compute mean and std from buddies only (center station excluded)
     buddy_mean_series = buddydf.mean(axis=1)
     buddy_std_series = buddydf.std(axis=1)
-    
+    buddy_not_na_counts = buddydf.notna().sum(axis=1)
     # Replace std below minimum with the minimum (avoid division by near-zero)
     buddy_std_series.loc[buddy_std_series < min_std] = np.float32(min_std)
     
     # Calculate z-score for center station
     z_scores = (center_values - buddy_mean_series).abs() / buddy_std_series
+    
+    
+    details = ('z=' + z_scores.map('{:.2f}'.format) +
+               ', threshold=' + str(outlier_threshold) + 
+               ', n=' + buddy_not_na_counts.map(str) +
+               ', mean=' + buddy_mean_series.map('{:.2f}'.format) +
+               ', std=' + buddy_std_series.map('{:.2f}'.format))
     
     # Build result DataFrame
     result_df = pd.DataFrame(
@@ -307,8 +307,7 @@ def _compute_center_z_scores(
         data={
             'z_score': z_scores,
             'flagged': z_scores > outlier_threshold,
-            'buddy_mean': buddy_mean_series,
-            'buddy_std': buddy_std_series,
+            'details': details,
         }
     )
     return result_df
