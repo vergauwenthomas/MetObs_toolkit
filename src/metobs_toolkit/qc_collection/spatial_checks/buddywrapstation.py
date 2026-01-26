@@ -223,55 +223,77 @@ class BuddyCheckStation:
             detail_series=detail_series,
             groupname='spatial_check'
         )
-    
-    def update_safetynet_details(self,
-                                detailseries: pd.Series,
-                                iteration: int,
-                                groupname: str,
-                                is_saved: bool = True,) -> None:
-        """Update safetynet check saved information for an iteration.
         
-        Parameters
-        ----------
-        detailseries : pd.Series
-            Series with DatetimeIndex containing detail messages for saved records.
-        iteration : int
-            The iteration number.
-        groupname : str
-            The name of the safetynet group that saved the records.
-        is_saved : bool, optional
-            Whether the records were saved by the safetynet (True) or failed (False).
-            Default is True.
-        """
-        # Remove duplicates (keep first occurrence)
-        detailseries = detailseries[~detailseries.index.duplicated(keep='first')]
-        
-        if detailseries.empty:
+    def add_safetynet_details(self, iteration: int, safetynetname: str, detail_series: pd.Series) -> None:
+        if detail_series.empty:
             return
+        # Remove duplicates (keep first occurrence)
+        detail_series = detail_series[~detail_series.index.duplicated(keep='first')]
         
-        if is_saved:
-            flag = BC_SAFETYNET_SAVED
-        else:   
-            flag = BC_SAFETYNET_OUTLIER
-            
-        # Add flags to the flags DataFrame
-        column_name = f'safetynet_check:{groupname}'
-        flag_series = pd.Series(flag, index=detailseries.index)
-        self.add_flags(iteration=iteration, flag_series=flag_series, column_name=column_name)
+        # check if the groupname entry exists
+        if safetynetname not in self.details['safetynet_check']:
+            self.details['safetynet_check'][safetynetname] = {}
         
+         
         # Store details in the details dictionary
-        # Ensure the groupname entry exists
-        if groupname not in self.details['safetynet_check']:
-            self.details['safetynet_check'][groupname] = {}
-        
-        if iteration not in self.details['safetynet_check'][groupname]:
-            self.details['safetynet_check'][groupname][iteration] = detailseries
+        if iteration not in self.details['safetynet_check'][safetynetname]:
+            self.details['safetynet_check'][safetynetname][iteration] = detail_series
         else:
             # Append to existing series for this iteration
-            existing = self.details['safetynet_check'][groupname][iteration]
-            combined = pd.concat([existing, detailseries])
+            existing = self.details['safetynet_check'][safetynetname][iteration]
+            combined = pd.concat([existing, detail_series])
             # Remove duplicates keeping first
-            self.details['safetynet_check'][groupname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
+            self.details['safetynet_check'][safetynetname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
+           
+    
+    # def update_safetynet_details(self,
+    #                             detailseries: pd.Series,
+    #                             iteration: int,
+    #                             groupname: str,
+    #                             is_saved: bool = True,) -> None:
+    #     """Update safetynet check saved information for an iteration.
+        
+    #     Parameters
+    #     ----------
+    #     detailseries : pd.Series
+    #         Series with DatetimeIndex containing detail messages for saved records.
+    #     iteration : int
+    #         The iteration number.
+    #     groupname : str
+    #         The name of the safetynet group that saved the records.
+    #     is_saved : bool, optional
+    #         Whether the records were saved by the safetynet (True) or failed (False).
+    #         Default is True.
+    #     """
+    #     # Remove duplicates (keep first occurrence)
+    #     detailseries = detailseries[~detailseries.index.duplicated(keep='first')]
+        
+    #     if detailseries.empty:
+    #         return
+        
+    #     if is_saved:
+    #         flag = BC_SAFETYNET_SAVED
+    #     else:   
+    #         flag = BC_SAFETYNET_OUTLIER
+            
+    #     # Add flags to the flags DataFrame
+    #     column_name = f'safetynet_check:{groupname}'
+    #     flag_series = pd.Series(flag, index=detailseries.index)
+    #     self.add_flags(iteration=iteration, flag_series=flag_series, column_name=column_name)
+        
+    #     # Store details in the details dictionary
+    #     # Ensure the groupname entry exists
+    #     if groupname not in self.details['safetynet_check']:
+    #         self.details['safetynet_check'][groupname] = {}
+        
+    #     if iteration not in self.details['safetynet_check'][groupname]:
+    #         self.details['safetynet_check'][groupname][iteration] = detailseries
+    #     else:
+    #         # Append to existing series for this iteration
+    #         existing = self.details['safetynet_check'][groupname][iteration]
+    #         combined = pd.concat([existing, detailseries])
+    #         # Remove duplicates keeping first
+    #         self.details['safetynet_check'][groupname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
     
     def update_whitelist_details(self, whitelistseries: pd.Series,
                                  iteration: int,
@@ -354,12 +376,53 @@ class BuddyCheckStation:
             Series with DatetimeIndex containing detailed description strings.
             The series name is 'final_details'.
         """
-        final_details = self.flags.groupby('datetime').apply(
-            lambda subset: final_detail_logic(subset, self.details)
-        )
-        final_details.name = 'final_details'
-        return final_details
-    
+
+
+        detailstr = pd.Series('', index=self.details['spatial_check'][0].index)
+
+        def reindex_details(detail_series: pd.Series) -> pd.Series:
+            return detail_series.reindex(detailstr.index).fillna('NA').astype(str)
+
+        iter = 0
+        while iter in self.details['spatial_check'].keys():
+            detailstr = detailstr + f'iteration {iter}:['
+            
+            #add spatial check details
+            spatial_details = reindex_details(self.details['spatial_check'][iter])
+            detailstr = detailstr.str.cat(spatial_details, sep='')
+            
+            
+            detailstr = detailstr + " --> "
+            
+            #add safetynet details
+            if bool(self.details['safetynet_check']):
+            
+                for safetynetkey in self.details['safetynet_check'].keys():
+                    if iter in self.details['safetynet_check'][safetynetkey].keys():
+                        
+                        savedetails = reindex_details(self.details['safetynet_check'][safetynetkey][iter])
+                        detailstr = detailstr.str.cat(savedetails, sep=f'{safetynetkey}:')
+                    
+                    else:
+                        detailstr = detailstr + f'{safetynetkey}: NA '
+                        
+                    detailstr = detailstr + " --> "
+            else:
+                detailstr = detailstr +  "NA " + " --> "
+            
+            #add whitelist details
+            if iter in self.details['whitelist_check'].keys():
+                savedetails = reindex_details(self.details['whitelist_check'][iter])
+                detailstr = detailstr.str.cat(savedetails, sep='')
+            else:
+                detailstr = detailstr + 'NA'
+                
+            detailstr = detailstr + "] \n"
+            
+            iter += 1
+            
+        detailstr.name = 'final_details'
+        return detailstr
     
     def get_iteration_summary(self, iteration: int) -> Dict[str, int]:
         """Get a summary of record counts for a specific iteration.
@@ -586,107 +649,112 @@ def final_label_logic(subset: pd.DataFrame) -> str:
     raise ValueError(f"Unforeseen situartion encountered in final label logic: \n {subset}")
                 
 
-
 def final_detail_logic(subset: pd.DataFrame, details: Dict) -> str:
-    """Extract detailed description string based on the final label logic.
     
-    This function mirrors the logic of `final_label_logic` but returns
-    a detailed description string extracted from the details dictionary.
+    pass
+    print("final_detail_logic is currently disabled")
+
+
+# def final_detail_logic(subset: pd.DataFrame, details: Dict) -> str:
+#     """Extract detailed description string based on the final label logic.
     
-    Parameters
-    ----------
-    subset : pd.DataFrame
-        DataFrame subset for a single timestamp with all iterations.
-    details : dict
-        The details dictionary from BuddyCheckStation containing:
-        - 'spatial_check': {iteration: Series}
-        - 'safetynet_check': {groupname: {iteration: Series}}
-        - 'whitelist_check': {iteration: Series}
+#     This function mirrors the logic of `final_label_logic` but returns
+#     a detailed description string extracted from the details dictionary.
+    
+#     Parameters
+#     ----------
+#     subset : pd.DataFrame
+#         DataFrame subset for a single timestamp with all iterations.
+#     details : dict
+#         The details dictionary from BuddyCheckStation containing:
+#         - 'spatial_check': {iteration: Series}
+#         - 'safetynet_check': {groupname: {iteration: Series}}
+#         - 'whitelist_check': {iteration: Series}
         
-    Returns
-    -------
-    str
-        Detailed description string for the final label.
-    """
-    # Get the timestamp from the subset index
-    timestamp = subset.index.get_level_values('datetime')[0]
-    last_iteration = subset.index.get_level_values('iteration')[-1]
+#     Returns
+#     -------
+#     str
+#         Detailed description string for the final label.
+#     """
+#     # Get the timestamp from the subset index
+#     timestamp = subset.index.get_level_values('datetime')[0]
+#     last_iteration = subset.index.get_level_values('iteration')[-1]
     
-    # Helper to get detail from a specific check type and iteration
-    def get_spatial_detail(iteration: int) -> str:
-        if iteration in details['spatial_check']:
-            detail_series = details['spatial_check'][iteration]
-            if timestamp in detail_series.index:
-                return str(detail_series.loc[timestamp])
-        return ""
+#     # Helper to get detail from a specific check type and iteration
+#     def get_spatial_detail(iteration: int) -> str:
+#         if iteration in details['spatial_check']:
+#             detail_series = details['spatial_check'][iteration]
+#             if timestamp in detail_series.index:
+#                 return str(detail_series.loc[timestamp])
+#         return ""
     
-    def get_safetynet_detail(groupname: str, iteration: int) -> str:
-        if groupname in details['safetynet_check']:
-            if iteration in details['safetynet_check'][groupname]:
-                detail_series = details['safetynet_check'][groupname][iteration]
-                if timestamp in detail_series.index:
-                    return str(detail_series.loc[timestamp])
-        return ""
+#     def get_safetynet_detail(groupname: str, iteration: int) -> str:
+#         if groupname in details['safetynet_check']:
+#             if iteration in details['safetynet_check'][groupname]:
+#                 detail_series = details['safetynet_check'][groupname][iteration]
+#                 if timestamp in detail_series.index:
+#                     return str(detail_series.loc[timestamp])
+#         return ""
     
-    def get_whitelist_detail(iteration: int) -> str:
-        if iteration in details['whitelist_check']:
-            detail_series = details['whitelist_check'][iteration]
-            if timestamp in detail_series.index:
-                return str(detail_series.loc[timestamp])
-        return ""
+#     def get_whitelist_detail(iteration: int) -> str:
+#         if iteration in details['whitelist_check']:
+#             detail_series = details['whitelist_check'][iteration]
+#             if timestamp in detail_series.index:
+#                 return str(detail_series.loc[timestamp])
+#         return ""
     
-    # Apply same logic as final_label_logic to determine which detail to return
+#     # Apply same logic as final_label_logic to determine which detail to return
     
-    # Not tested condition
-    if subset['spatial_check'].apply(lambda x: x == 'not_tested').all():
-        return "Value was NaN, not tested."
+#     # Not tested condition
+#     if subset['spatial_check'].apply(lambda x: x == 'not_tested').all():
+#         return "Value was NaN, not tested."
     
-    # Passed condition - pass on last iteration of spatial check
-    if subset['spatial_check'].iloc[-1] == BC_PASSED:
-        detail = get_spatial_detail(last_iteration)
-        return detail if detail else "Passed spatial check."
+#     # Passed condition - pass on last iteration of spatial check
+#     if subset['spatial_check'].iloc[-1] == BC_PASSED:
+#         detail = get_spatial_detail(last_iteration)
+#         return detail if detail else "Passed spatial check."
     
-    # No buddies condition
-    if subset['spatial_check'].iloc[-1] == BC_NO_BUDDIES:
-        detail = get_spatial_detail(last_iteration)
-        return detail if detail else "Not enough buddies to test."
+#     # No buddies condition
+#     if subset['spatial_check'].iloc[-1] == BC_NO_BUDDIES:
+#         detail = get_spatial_detail(last_iteration)
+#         return detail if detail else "Not enough buddies to test."
     
-    # Caught by safetynet
-    saftynet_cols = [col for col in subset.columns if col.startswith('safetynet_check:')]
-    for col in saftynet_cols:
-        if subset.iloc[-1][col] == BC_PASSED:
-            groupname = col.split(':', 1)[1]
-            detail = get_safetynet_detail(groupname, last_iteration)
-            return detail if detail else f"Saved by safetynet ({groupname})."
+#     # Caught by safetynet
+#     saftynet_cols = [col for col in subset.columns if col.startswith('safetynet_check:')]
+#     for col in saftynet_cols:
+#         if subset.iloc[-1][col] == BC_PASSED:
+#             groupname = col.split(':', 1)[1]
+#             detail = get_safetynet_detail(groupname, last_iteration)
+#             return detail if detail else f"Saved by safetynet ({groupname})."
     
-    # Caught by whitelist
-    if subset['whitelist_check'].iloc[-1] == BC_WHITELIST_SAVED:
-        detail = get_whitelist_detail(last_iteration)
-        return detail if detail else "Saved by whitelist."
+#     # Caught by whitelist
+#     if subset['whitelist_check'].iloc[-1] == BC_WHITELIST_SAVED:
+#         detail = get_whitelist_detail(last_iteration)
+#         return detail if detail else "Saved by whitelist."
     
-    # Failed conditions
+#     # Failed conditions
     
-    # Fail in last iteration of spatial check
-    if ((subset['spatial_check'].iloc[-1] == BC_FLAGGED) and
-        all(subset.iloc[-1][saftynet_cols] != BC_PASSED) and
-        (subset['whitelist_check'].iloc[-1] == BC_WHITELIST_NOT_SAVED)):
-        # Combine details from spatial check and whitelist
-        spatial_detail = get_spatial_detail(last_iteration)
-        whitelist_detail = get_whitelist_detail(last_iteration)
-        parts = [p for p in [spatial_detail, whitelist_detail] if p]
-        return " | ".join(parts) if parts else "Flagged as outlier."
+#     # Fail in last iteration of spatial check
+#     if ((subset['spatial_check'].iloc[-1] == BC_FLAGGED) and
+#         all(subset.iloc[-1][saftynet_cols] != BC_PASSED) and
+#         (subset['whitelist_check'].iloc[-1] == BC_WHITELIST_NOT_SAVED)):
+#         # Combine details from spatial check and whitelist
+#         spatial_detail = get_spatial_detail(last_iteration)
+#         whitelist_detail = get_whitelist_detail(last_iteration)
+#         parts = [p for p in [spatial_detail, whitelist_detail] if p]
+#         return " | ".join(parts) if parts else "Flagged as outlier."
     
-    # Fail in any previous iteration of spatial check
-    if ((any(subset['spatial_check'] == BC_FLAGGED)) and
-        (subset['spatial_check'].iloc[-1] == BC_NOT_TESTED)):
-        # Find the iteration where it was flagged
-        for idx, row in subset.iterrows():
-            if row['spatial_check'] == BC_FLAGGED:
-                flagged_iteration = idx[1]  # iteration from MultiIndex
-                detail = get_spatial_detail(flagged_iteration)
-                return detail if detail else f"Flagged in iteration {flagged_iteration}."
+#     # Fail in any previous iteration of spatial check
+#     if ((any(subset['spatial_check'] == BC_FLAGGED)) and
+#         (subset['spatial_check'].iloc[-1] == BC_NOT_TESTED)):
+#         # Find the iteration where it was flagged
+#         for idx, row in subset.iterrows():
+#             if row['spatial_check'] == BC_FLAGGED:
+#                 flagged_iteration = idx[1]  # iteration from MultiIndex
+#                 detail = get_spatial_detail(flagged_iteration)
+#                 return detail if detail else f"Flagged in iteration {flagged_iteration}."
     
-    return "Unknown condition."
+#     return "Unknown condition."
 
 
 def _map_dt_index(pdobj: pd.Series | pd.DataFrame,

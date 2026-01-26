@@ -109,10 +109,15 @@ def buddy_test_a_station(
              for ts in timestamps_insufficient],
             index=timestamps_insufficient
         )
-        centerwrapstation.add_spatial_details(
-            iteration=iteration,
-            detail_series=no_buddies_details
-        )
+        if check_type == 'spatial_check':
+            centerwrapstation.add_spatial_details(
+                iteration=iteration,
+                detail_series=no_buddies_details
+            )
+        else:
+            centerwrapstation.add_safetynet_details(iteration=iteration,
+                                                   safetynetname=buddygroupname,
+                                                   detail_series=no_buddies_details)
     
     # ---- Handle timestamps with sufficient samples ----
     if timestamps_with_sufficient.empty:
@@ -154,11 +159,17 @@ def buddy_test_a_station(
              for ts in passed_timestamps],
             index=passed_timestamps
         )
-        centerwrapstation.add_spatial_details(
-            iteration=iteration,
-            detail_series=passed_details
-        )
-    
+        
+        if check_type == 'spatial_check':
+            centerwrapstation.add_spatial_details(
+                iteration=iteration,
+                detail_series=passed_details
+            )
+        else:
+            centerwrapstation.add_safetynet_details(iteration=iteration,
+                                                   safetynetname=buddygroupname,
+                                                   detail_series=passed_details)
+            
     # ---- Update FLAGGED (outlier) flags and details ----
     if not outlier_timestamps.empty:
         flagged_flags = pd.Series(BC_FLAGGED, index=outlier_timestamps)
@@ -177,10 +188,16 @@ def buddy_test_a_station(
              for ts in outlier_timestamps],
             index=outlier_timestamps
         )
-        centerwrapstation.add_spatial_details(
-            iteration=iteration,
-            detail_series=outlier_details
-        )
+        
+        if check_type == 'spatial_check':
+            centerwrapstation.add_spatial_details(
+                iteration=iteration,
+                detail_series=outlier_details
+            )
+        else:
+            centerwrapstation.add_safetynet_details(iteration=iteration,
+                                                   safetynetname=buddygroupname,
+                                                   detail_series=outlier_details)
     
     # ---- Return outliers as MultiIndex ----
     if not outlier_timestamps.empty:
