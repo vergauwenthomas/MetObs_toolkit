@@ -1818,7 +1818,9 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get('use_N_cores_for_MP')
+            logger.debug(f'Distributing gross_value_check computations over {num_cores} cores.')
+            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
@@ -1853,7 +1855,9 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get('use_N_cores_for_MP')
+            logger.debug(f'Distributing persistence_check computations over {num_cores} cores.')
+            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
@@ -1885,7 +1889,9 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get('use_N_cores_for_MP')
+            logger.debug(f'Distributing repetitions_check computations over {num_cores} cores.')
+            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
@@ -1919,7 +1925,9 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get('use_N_cores_for_MP')
+            logger.debug(f'Distributing step_check computations over {num_cores} cores.')
+            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
             qced_stations = list(stationgenerator)
         else:
@@ -1959,7 +1967,9 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get('use_N_cores_for_MP')
+            logger.debug(f'Distributing window_variation_check computations over {num_cores} cores.')
+            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
