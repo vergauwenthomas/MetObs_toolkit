@@ -1994,9 +1994,10 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_z_robust_method: bool = True,
         use_mp: bool = True,
-        
+        min_std = None,
     ):
         #TODO: update docstring
+
         """Spatial buddy check.
 
         The buddy check compares an observation against its neighbors
@@ -2088,6 +2089,11 @@ class Dataset:
         buddy_check_with_safetynets : Buddy check with configurable safety nets.
 
         """
+        if min_std is not None:
+            raise DeprecationWarning(
+                "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
+            )
+            
         # Delegate to buddy_check_with_safetynets with no safety nets
         self.buddy_check_with_safetynets(
             obstype=obstype,
@@ -2127,6 +2133,7 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_z_robust_method: bool = True,
         use_mp: bool = True,
+        min_std = None,
     ):
         #TODO: update docstring 
         """Spatial buddy check with configurable safety nets.
@@ -2316,6 +2323,10 @@ class Dataset:
         ... )
 
         """
+        if min_std is not None:
+            raise DeprecationWarning(
+                "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
+            )
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
         
         # Validate that the required metadata columns exist
