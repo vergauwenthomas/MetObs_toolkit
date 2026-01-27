@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 import logging
-import concurrent.futures
-from typing import Union, List, Dict, Tuple, TYPE_CHECKING, Optional
+from typing import Union, List, Dict, TYPE_CHECKING
 
-
+import os
 import numpy as np
+from concurrent.futures import ProcessPoolExecutor
+import itertools
 import pandas as pd
 
 
@@ -16,7 +16,8 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 
 from metobs_toolkit.qcresult import QCresult, flagged_cond
-from .buddywrapstation import BuddyCheckStation, to_qc_labels_map
+from .buddywrapstation import BuddyCheckStation, to_qc_labels_map, reconstruct_fractured_targets
+from metobs_toolkit.settings_collection import Settings
 from ..whitelist import WhiteSet
 # Import methods
 from . import methods as buddymethods
@@ -28,6 +29,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
+def _run_buddy_test(kwargs):
+    #executer for mutliprocessing
+    return buddymethods.buddy_test_a_station(**kwargs)
 
 @log_entry
 def toolkit_buddy_check(
@@ -252,7 +257,7 @@ def toolkit_buddy_check(
 
     # valid_targets = [budsta for budsta in targets if budsta.has_enough_buddies(
     #     groupname='spatial', min_buddies = spatial_min_sample_size)]
-    valid_targets = targets
+    
     outliersbin = []
     for i in range(N_iter):
         logger.debug("Starting iteration %s of %s", i + 1, N_iter)
@@ -265,32 +270,45 @@ def toolkit_buddy_check(
                     widedf.loc[outlier_time, outlier_station] = np.nan
 
         if use_mp:
-            #TODO: implement multiprocessing (make chunks along the time dimension)
-            pass
-            # Use multiprocessing generator (parallelization)
-            # Use multiprocessing generator (parallelization)
-            # # since this check is an instantaneous check -->
-            # # perfect for splitting the dataset in chunks in time
-            # chunks = np.array_split(combdf, num_cpus)
+        
+            num_cores = Settings.get('use_N_cores_for_MP')
 
+            logger.debug(f"Running spatial buddy check with multiprocessing on {num_cores} cores")
 
-            # inputargs = [
-            #     (
-            #         budsta,
-            #         chunk,
-            #         spatial_min_sample_size,
-            #         min_std,
-            #         spatial_z_threshold,
-            #     )
-            #     for budsta in valid_targets
-            #     for chunk in chunks
-            # ]
+            # split dataframe along time/index dimension
+            chunks = np.array_split(widedf, num_cores)
 
+            # build input arguments for each station and each chunk
+            inputargs = [
+                {
+                    'centerwrapstation': sta,
+                    'buddygroupname': 'spatial',
+                    'widedf': chunk,
+                    'min_sample_size': spatial_min_sample_size,
+                    'min_sample_spread': min_sample_spread,
+                    'outlier_threshold': spatial_z_threshold,
+                    'iteration': i,
+                    'check_type': 'spatial_check',
+                    'use_z_robust_method': use_z_robust_method,
+                }
+                for sta in targets
+                for chunk in chunks
+            ]
 
-            #     outliers = executor.map(find_buddy_group_outlier, inputargs)
-            # outliers = list(outliers)
+            logger.debug(
+                f"Submitting {len(inputargs)} multiprocessing tasks "
+                f"({len(targets)} stations × {len(chunks)} chunks)"
+            )
 
-
+            # run in parallel
+            with ProcessPoolExecutor(max_workers=num_cores) as executor:
+                buddy_output = list(
+                    executor.map(
+                        _run_buddy_test,
+                        inputargs
+                    )
+                )
+            
         else:
             # create inputargs for each buddygroup, and for each chunk in time
             inputargs = [
@@ -305,17 +323,21 @@ def toolkit_buddy_check(
                     'check_type': 'spatial_check',
                     'use_z_robust_method': use_z_robust_method,
                 }
-                for sta in valid_targets
+                for sta in targets
             ]
             
 
             logger.debug("Finding outliers in each buddy group")
-            outlier_indices = list(map(lambda kwargs: buddymethods.buddy_test_a_station(**kwargs), inputargs))
+            buddy_output = list(map(lambda kwargs: buddymethods.buddy_test_a_station(**kwargs), inputargs))
 
-        
+        #buddy output is [(MultiIndex, BuddyCheckStation), ...], that needs to be unpacked
+        outlier_indices, updated_stations = zip(*buddy_output)    
+        #overload the Buddycheckstation 
+        targets = reconstruct_fractured_targets(list(updated_stations), iteration = i)
+            
         # Concatenate all outlier MultiIndices
         # Each element is a MultiIndex with (name, datetime)
-        spatial_outliers = buddymethods.concat_multiindices(outlier_indices)
+        spatial_outliers = buddymethods.concat_multiindices(list(outlier_indices))
         
         # Start with spatial outliers for further processing
         current_outliers_idx = spatial_outliers
@@ -331,7 +353,7 @@ def toolkit_buddy_check(
                 
                 current_outliers_idx = buddymethods.apply_safety_net(    
                     outliers=current_outliers_idx,
-                    buddycheckstations = valid_targets,
+                    buddycheckstations = targets,
                     buddygroupname=safety_net_config['category'],
                     metadf = metadf,
                     distance_df = dist_matrix,
@@ -352,7 +374,7 @@ def toolkit_buddy_check(
         # Apply whitelist filtering
         current_outliers_idx = buddymethods.save_whitelist_records(
             outliers=current_outliers_idx,
-            wrappedstations=valid_targets,
+            wrappedstations=targets,
             whiteset=whiteset,
             obstype=obstype,
             iteration=i,

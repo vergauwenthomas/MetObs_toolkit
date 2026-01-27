@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Dict, Any, Optional, Union
 from copy import deepcopy
+import os
 
 # import settings modules
 
@@ -91,6 +92,9 @@ class Settings:
         },
         # Plotting defaults
         "plotting_settings": default_plot_settings,
+        
+        # Technical settings
+        "use_N_cores_for_MP": os.cpu_count() - 1 if os.cpu_count() > 1 else 1,
     }
 
     _config: Dict[str, Any] = {}

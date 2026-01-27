@@ -26,7 +26,8 @@ def buddy_test_a_station(
     iteration: int,
     check_type: str = 'spatial_check',
     use_z_robust_method: bool = True,
-) -> pd.MultiIndex:
+) -> Tuple[pd.MultiIndex, BuddyCheckStation]:
+
     #TODO update docstring
     """Find outliers in a buddy group and update station flags/details.
     
@@ -125,7 +126,7 @@ def buddy_test_a_station(
     # ---- Handle timestamps with sufficient samples ----
     if timestamps_with_sufficient.empty:
         # No timestamps to process, return empty MultiIndex
-        return pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
+        return (pd.MultiIndex.from_tuples([], names=['name', 'datetime']), centerwrapstation)
     
     # Filter to rows with enough valid buddy samples
     buddydf_filtered = buddydf.loc[timestamps_with_sufficient]
@@ -205,9 +206,10 @@ def buddy_test_a_station(
             [[center_name] * len(outlier_timestamps), outlier_timestamps],
             names=['name', 'datetime']
         )
-        return outlier_multiindex
+        #Return the updated stations, this is needed when runned in multiprocessing
+        return (outlier_multiindex, centerwrapstation)
     else:
-        return pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
+        return (pd.MultiIndex.from_tuples([], names=['name', 'datetime']), centerwrapstation)
 
 
 

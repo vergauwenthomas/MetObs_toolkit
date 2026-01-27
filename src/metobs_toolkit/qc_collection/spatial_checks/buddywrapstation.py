@@ -1,8 +1,9 @@
 from __future__ import annotations
 import os
 import logging
-import concurrent.futures
-from typing import Union, List, Dict, Tuple, TYPE_CHECKING, Optional
+
+from typing import Union, List, Dict, TYPE_CHECKING
+from collections import defaultdict
 
 from metobs_toolkit.qcresult import (
     unchecked_cond,
@@ -12,8 +13,15 @@ from metobs_toolkit.qcresult import (
     saved_cond,
 )
 
-import numpy as np
 import pandas as pd
+if TYPE_CHECKING:
+    from metobs_toolkit.station import Station
+
+logger = logging.getLogger("<metobs_toolkit>")
+
+#===============================
+# Labels 
+#===============================
 # Constants for buddy check status labels
 BC_NOT_TESTED = "not_tested"  # Value was NaN, not tested
 BC_NO_BUDDIES = "no_buddies"  # Not enough buddies to test
@@ -25,10 +33,21 @@ BC_WHITELIST_SAVED = "whitelist_saved"  # Flagged but saved by whitelist
 BC_WHITELIST_NOT_SAVED = "whitelist_not_saved"  # Flagged but not saved by whitelist
 BC_CHECK_SKIPPED = "skipped" #This check was skipped, e.g. due to arugments of the user (not whitelist, not safetynets etc)
 
-if TYPE_CHECKING:
-    from metobs_toolkit.station import Station
 
-logger = logging.getLogger("<metobs_toolkit>")
+to_qc_labels_map = {
+    BC_NOT_TESTED: unchecked_cond,  # Value was NaN, not tested
+    BC_NO_BUDDIES: unmet_cond,  # Not enough buddies to test
+    BC_PASSED : pass_cond, # Tested and passed
+    BC_FLAGGED : flagged_cond,  # Tested and flagged as outlier
+    BC_SAFETYNET_SAVED : pass_cond, # IMPORTANT !!!
+    # BC_SAFETYNET_OUTLIER : flagged_cond  # Flagged but not saved by safetynet
+    BC_WHITELIST_SAVED : saved_cond,  # Flagged but saved by whitelist
+    # BC_WHITELIST_NOT_SAVED : flagged_cond
+}
+
+#===============================
+# Buddy check station class
+#===============================
 
 class BuddyCheckStation:
     """Wrapper for a Station with buddy check-specific details.
@@ -246,55 +265,7 @@ class BuddyCheckStation:
             self.details['safetynet_check'][safetynetname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
            
     
-    # def update_safetynet_details(self,
-    #                             detailseries: pd.Series,
-    #                             iteration: int,
-    #                             groupname: str,
-    #                             is_saved: bool = True,) -> None:
-    #     """Update safetynet check saved information for an iteration.
-        
-    #     Parameters
-    #     ----------
-    #     detailseries : pd.Series
-    #         Series with DatetimeIndex containing detail messages for saved records.
-    #     iteration : int
-    #         The iteration number.
-    #     groupname : str
-    #         The name of the safetynet group that saved the records.
-    #     is_saved : bool, optional
-    #         Whether the records were saved by the safetynet (True) or failed (False).
-    #         Default is True.
-    #     """
-    #     # Remove duplicates (keep first occurrence)
-    #     detailseries = detailseries[~detailseries.index.duplicated(keep='first')]
-        
-    #     if detailseries.empty:
-    #         return
-        
-    #     if is_saved:
-    #         flag = BC_SAFETYNET_SAVED
-    #     else:   
-    #         flag = BC_SAFETYNET_OUTLIER
-            
-    #     # Add flags to the flags DataFrame
-    #     column_name = f'safetynet_check:{groupname}'
-    #     flag_series = pd.Series(flag, index=detailseries.index)
-    #     self.add_flags(iteration=iteration, flag_series=flag_series, column_name=column_name)
-        
-    #     # Store details in the details dictionary
-    #     # Ensure the groupname entry exists
-    #     if groupname not in self.details['safetynet_check']:
-    #         self.details['safetynet_check'][groupname] = {}
-        
-    #     if iteration not in self.details['safetynet_check'][groupname]:
-    #         self.details['safetynet_check'][groupname][iteration] = detailseries
-    #     else:
-    #         # Append to existing series for this iteration
-    #         existing = self.details['safetynet_check'][groupname][iteration]
-    #         combined = pd.concat([existing, detailseries])
-    #         # Remove duplicates keeping first
-    #         self.details['safetynet_check'][groupname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
-    
+   
     def update_whitelist_details(self, whitelistseries: pd.Series,
                                  iteration: int,
                                  is_saved: bool = True) -> None:
@@ -604,7 +575,10 @@ class BuddyCheckStation:
                 ts_map=timestamp_map
             )
 
-  
+#===============================
+# helpers for BCS
+#===============================
+
 def final_label_logic(subset: pd.DataFrame) -> str:
     #the flag not tested is present on ALL iterations !
     if subset['spatial_check'].apply(lambda x: x=='not_tested').all():
@@ -648,115 +622,6 @@ def final_label_logic(subset: pd.DataFrame) -> str:
     
     raise ValueError(f"Unforeseen situartion encountered in final label logic: \n {subset}")
                 
-
-def final_detail_logic(subset: pd.DataFrame, details: Dict) -> str:
-    
-    pass
-    print("final_detail_logic is currently disabled")
-
-
-# def final_detail_logic(subset: pd.DataFrame, details: Dict) -> str:
-#     """Extract detailed description string based on the final label logic.
-    
-#     This function mirrors the logic of `final_label_logic` but returns
-#     a detailed description string extracted from the details dictionary.
-    
-#     Parameters
-#     ----------
-#     subset : pd.DataFrame
-#         DataFrame subset for a single timestamp with all iterations.
-#     details : dict
-#         The details dictionary from BuddyCheckStation containing:
-#         - 'spatial_check': {iteration: Series}
-#         - 'safetynet_check': {groupname: {iteration: Series}}
-#         - 'whitelist_check': {iteration: Series}
-        
-#     Returns
-#     -------
-#     str
-#         Detailed description string for the final label.
-#     """
-#     # Get the timestamp from the subset index
-#     timestamp = subset.index.get_level_values('datetime')[0]
-#     last_iteration = subset.index.get_level_values('iteration')[-1]
-    
-#     # Helper to get detail from a specific check type and iteration
-#     def get_spatial_detail(iteration: int) -> str:
-#         if iteration in details['spatial_check']:
-#             detail_series = details['spatial_check'][iteration]
-#             if timestamp in detail_series.index:
-#                 return str(detail_series.loc[timestamp])
-#         return ""
-    
-#     def get_safetynet_detail(groupname: str, iteration: int) -> str:
-#         if groupname in details['safetynet_check']:
-#             if iteration in details['safetynet_check'][groupname]:
-#                 detail_series = details['safetynet_check'][groupname][iteration]
-#                 if timestamp in detail_series.index:
-#                     return str(detail_series.loc[timestamp])
-#         return ""
-    
-#     def get_whitelist_detail(iteration: int) -> str:
-#         if iteration in details['whitelist_check']:
-#             detail_series = details['whitelist_check'][iteration]
-#             if timestamp in detail_series.index:
-#                 return str(detail_series.loc[timestamp])
-#         return ""
-    
-#     # Apply same logic as final_label_logic to determine which detail to return
-    
-#     # Not tested condition
-#     if subset['spatial_check'].apply(lambda x: x == 'not_tested').all():
-#         return "Value was NaN, not tested."
-    
-#     # Passed condition - pass on last iteration of spatial check
-#     if subset['spatial_check'].iloc[-1] == BC_PASSED:
-#         detail = get_spatial_detail(last_iteration)
-#         return detail if detail else "Passed spatial check."
-    
-#     # No buddies condition
-#     if subset['spatial_check'].iloc[-1] == BC_NO_BUDDIES:
-#         detail = get_spatial_detail(last_iteration)
-#         return detail if detail else "Not enough buddies to test."
-    
-#     # Caught by safetynet
-#     saftynet_cols = [col for col in subset.columns if col.startswith('safetynet_check:')]
-#     for col in saftynet_cols:
-#         if subset.iloc[-1][col] == BC_PASSED:
-#             groupname = col.split(':', 1)[1]
-#             detail = get_safetynet_detail(groupname, last_iteration)
-#             return detail if detail else f"Saved by safetynet ({groupname})."
-    
-#     # Caught by whitelist
-#     if subset['whitelist_check'].iloc[-1] == BC_WHITELIST_SAVED:
-#         detail = get_whitelist_detail(last_iteration)
-#         return detail if detail else "Saved by whitelist."
-    
-#     # Failed conditions
-    
-#     # Fail in last iteration of spatial check
-#     if ((subset['spatial_check'].iloc[-1] == BC_FLAGGED) and
-#         all(subset.iloc[-1][saftynet_cols] != BC_PASSED) and
-#         (subset['whitelist_check'].iloc[-1] == BC_WHITELIST_NOT_SAVED)):
-#         # Combine details from spatial check and whitelist
-#         spatial_detail = get_spatial_detail(last_iteration)
-#         whitelist_detail = get_whitelist_detail(last_iteration)
-#         parts = [p for p in [spatial_detail, whitelist_detail] if p]
-#         return " | ".join(parts) if parts else "Flagged as outlier."
-    
-#     # Fail in any previous iteration of spatial check
-#     if ((any(subset['spatial_check'] == BC_FLAGGED)) and
-#         (subset['spatial_check'].iloc[-1] == BC_NOT_TESTED)):
-#         # Find the iteration where it was flagged
-#         for idx, row in subset.iterrows():
-#             if row['spatial_check'] == BC_FLAGGED:
-#                 flagged_iteration = idx[1]  # iteration from MultiIndex
-#                 detail = get_spatial_detail(flagged_iteration)
-#                 return detail if detail else f"Flagged in iteration {flagged_iteration}."
-    
-#     return "Unknown condition."
-
-
 def _map_dt_index(pdobj: pd.Series | pd.DataFrame,
     ts_map: pd.Series,
     datetime_level: str = 'datetime'
@@ -800,14 +665,90 @@ def _map_dt_index(pdobj: pd.Series | pd.DataFrame,
     return df
 
 
+#===============================
+# Combine multiple BCS func
+#===============================
+# combining multiple buddycheckstations is needed when buddy check is applied
+# on fractured datasets (used with multiprocessing).
 
-to_qc_labels_map = {
-    BC_NOT_TESTED: unchecked_cond,  # Value was NaN, not tested
-    BC_NO_BUDDIES: unmet_cond,  # Not enough buddies to test
-    BC_PASSED : pass_cond, # Tested and passed
-    BC_FLAGGED : flagged_cond,  # Tested and flagged as outlier
-    BC_SAFETYNET_SAVED : pass_cond, # IMPORTANT !!!
-    # BC_SAFETYNET_OUTLIER : flagged_cond  # Flagged but not saved by safetynet
-    BC_WHITELIST_SAVED : saved_cond,  # Flagged but saved by whitelist
-    # BC_WHITELIST_NOT_SAVED : flagged_cond
-}
+
+def combine_series_dicts(list_of_dicts, iteration: int):
+    #if not data is given, return empty dict
+    if all([len(d)==0 for d in list_of_dicts]):
+        return {}
+
+    combined = defaultdict(list)
+
+    # collect all series per key
+    for d in list_of_dicts:
+        for iter in d.keys():
+            if iter == iteration:
+                combined[iteration].append(d[iter])
+            else:
+                combined[iter] = d[iter]  #keep other iterations as is (overwrite, not concat else duplicates may occur)
+   
+
+    combined[iteration] = pd.concat(combined[iteration]).sort_index()
+
+    #sanity check
+    for series in combined.values():
+        if series.index.duplicated().any():
+            raise ValueError("Duplicate indices found when combining series dictionaries.")
+    return combined
+
+def combine_buddycheckstations(stations: List[BuddyCheckStation], iteration: int) -> BuddyCheckStation:
+    # Take the first element and attriute for time independent attributes
+    trgstation = stations[0].station
+    trg_buddygroups = stations[0]._buddy_groups
+    trg_flag_lapsrate_corrections = stations[0].flag_lapsrate_corrections
+    trg_cor_term = stations[0].cor_term
+    
+    # Flags DataFrame with MultiIndex (datetime, iteration)
+    trg_flags = pd.concat([st.flags for st in stations], axis=0).sort_index()
+    trg_flags = trg_flags.loc[~trg_flags.index.duplicated(keep='first')] #remove duplicates, keep first occurrence
+
+    trg_spatial_details = combine_series_dicts([st.details['spatial_check'] for st in stations], iteration=iteration)
+    trg_whitelist_check = combine_series_dicts([st.details['whitelist_check'] for st in stations], iteration=iteration)
+
+    saftygroupnames = [list(st.details['safetynet_check'].keys()) for st in stations]
+    saftygroupnames = set([item for sublist in saftygroupnames for item in sublist]) #flatten and unique
+    trg_safetynet_check = {}
+    for groupname in saftygroupnames:
+        group_series_list = []
+        for st in stations:
+            if groupname in st.details['safetynet_check']:
+                group_series_list.append(st.details['safetynet_check'][groupname])
+        trg_safetynet_check[groupname] = combine_series_dicts(group_series_list, iteration=iteration)
+        
+    
+    #Construct the new BuddyCheckStation
+    trg_buddystation = BuddyCheckStation(station=trgstation)
+    trg_buddystation._buddy_groups = trg_buddygroups
+    trg_buddystation.flag_lapsrate_corrections = trg_flag_lapsrate_corrections
+    trg_buddystation.cor_term = trg_cor_term
+    trg_buddystation._flags = trg_flags
+    
+    
+    
+    trg_buddystation.details = {
+        'spatial_check': trg_spatial_details,
+        'safetynet_check': trg_safetynet_check,
+        'whitelist_check': trg_whitelist_check,
+    }
+    
+    return trg_buddystation
+
+def reconstruct_fractured_targets(fractured_targets: List[BuddyCheckStation], iteration: int) -> List[BuddyCheckStation]:
+    combined = defaultdict(list)
+    
+    #combine fractured stations by name
+    for targ in fractured_targets:
+        combined[targ.name].append(targ)
+        
+    #combine each list of fractured stations into a single BuddyCheckStation
+    for name, comblist in combined.items():
+        combined[name] = combine_buddycheckstations(comblist, iteration=iteration) #combine into a single budycheckstation
+    
+    return list(combined.values())
+        
+    
