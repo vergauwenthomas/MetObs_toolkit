@@ -339,26 +339,52 @@ class TestDemoDataset:
     ):
         # 0. Get info of the current check
         _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
+        
 
         # test one iteration
-        dataset.buddy_check(
+        dataset_1iter = copy.deepcopy(import_dataset)
+        dataset_1iter.buddy_check(
             obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
             min_sample_spread=1.0,
             spatial_z_threshold=2.1,
-            N_iter=2,  # one iteration test
+            N_iter=1,  # one iteration test
             instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
-            use_mp=False,
+            use_mp=True,
         )
+        
+        #Test 2 iterations
+        dataset_2iter = copy.deepcopy(import_dataset)
+        dataset_2iter.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=2,  # two iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=True,
+        )
+        
+        #apply relative tests
+        outl2 = dataset_2iter.outliersdf
+        outl1 = dataset_1iter.outliersdf
+
+        #test if all oult indexes are in outl2
+        assert outl1.index.isin(outl2.index).all()
+        assert outl2.shape[0] > outl1.shape[0]
+        
+        #absolute testings
 
         # overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset,
+                solution=dataset_2iter,
                 **TestDemoDataset.solkwargs,
                 methodname=_method_name,
             )
@@ -369,7 +395,7 @@ class TestDemoDataset:
 
         # validate expression
         assert_equality(
-            dataset, solutionobj, exclude_columns=["details"]
+            dataset_2iter, solutionobj, exclude_columns=["details"]
         )  # dataset comparison
 
     def test_buddy_check_no_outliers(self, import_dataset):
@@ -394,7 +420,7 @@ class TestDemoDataset:
         assert dataset.outliersdf.empty
         
         #Extra test, same settings with non-robust z-method will make outliers
-        dataset = copy.deepcopy(import_dataset())
+        dataset = copy.deepcopy(import_dataset)
         dataset.buddy_check(
                     obstype="temp",
                     spatial_buddy_radius=25000,
