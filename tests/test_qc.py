@@ -247,6 +247,22 @@ class TestDemoDataset:
         from metobs_toolkit.backend_collection.errorclasses import (
             MetObsMetadataNotFound,
         )
+        
+        with pytest.raises(DeprecationWarning):
+            # Should raise error because no altitude info is available and lapsrate is not none
+            dataset.buddy_check(
+                obstype="temp",
+                spatial_buddy_radius=17000,
+                min_sample_size=3,
+                max_alt_diff=150,
+                min_std=1.0, #cause a deprecation warning
+                spatial_z_threshold=2.4,
+                N_iter=1,
+                instantaneous_tolerance=pd.Timedelta("4min"),
+                lapserate=-0.0065,  # -0.0065
+                use_mp=False,
+            )
+
 
         with pytest.raises(MetObsMetadataNotFound):
             # Should raise error because no altitude info is available and lapsrate is not none
@@ -255,7 +271,7 @@ class TestDemoDataset:
                 spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
-                min_std=1.0,
+                min_sample_spread=1.0,
                 spatial_z_threshold=2.4,
                 N_iter=1,
                 instantaneous_tolerance=pd.Timedelta("4min"),
@@ -274,7 +290,7 @@ class TestDemoDataset:
                 spatial_buddy_radius=17000,
                 min_sample_size=3,
                 max_alt_diff=150,
-                min_std=1.0,
+                min_sample_spread=1.0,
                 spatial_z_threshold=2.4,
                 N_iter=1,
                 instantaneous_tolerance=pd.Timedelta("4min"),
@@ -293,7 +309,7 @@ class TestDemoDataset:
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
-            min_std=1.0,
+            min_sample_spread=1.0,
             spatial_z_threshold=2.1,
             N_iter=1,  # one iteration test
             instantaneous_tolerance=pd.Timedelta("4min"),
@@ -331,7 +347,7 @@ class TestDemoDataset:
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
-            min_std=1.0,
+            min_sample_spread=1.0,
             spatial_z_threshold=2.1,
             N_iter=2,  # one iteration test
             instantaneous_tolerance=pd.Timedelta("4min"),
@@ -366,8 +382,9 @@ class TestDemoDataset:
             spatial_buddy_radius=25000,
             min_sample_size=3,
             max_alt_diff=None,
-            min_std=1.0,
-            spatial_z_threshold=5.9,  # this does noet create outliers
+            min_sample_spread=1.0,
+            spatial_z_threshold=7.4,  # this does noet create outliers
+            use_z_robust_method=True,
             N_iter=1,
             instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,  # -0.0065
@@ -375,6 +392,24 @@ class TestDemoDataset:
         )
 
         assert dataset.outliersdf.empty
+        
+        #Extra test, same settings with non-robust z-method will make outliers
+        dataset = copy.deepcopy(import_dataset())
+        dataset.buddy_check(
+                    obstype="temp",
+                    spatial_buddy_radius=25000,
+                    min_sample_size=3,
+                    max_alt_diff=None,
+                    min_sample_spread=1.0,
+                    spatial_z_threshold=7.4,  # this does noet create outliers
+                    N_iter=1,
+                    instantaneous_tolerance=pd.Timedelta("4min"),
+                    use_z_robust_method=False,
+                    lapserate=None,  # -0.0065
+                    use_mp=False,
+                )
+
+        assert not dataset.outliersdf.empty
 
     def test_buddy_check_with_big_radius(
         self, import_dataset, overwrite_solution=False
@@ -435,7 +470,7 @@ class TestDemoDataset:
             ],
             min_sample_size=3,
             max_alt_diff=None,
-            min_std=1.0,
+            min_sample_spread=1.0,
             spatial_z_threshold=2.1,
             N_iter=1,
             instantaneous_tolerance=pd.Timedelta("4min"),
@@ -1259,13 +1294,13 @@ class TestWhiteRecords:
 if __name__ == "__main__":
     # When running outside pytest
     OVERWRITE = False
-    test_breaking_dataset = TestBreakingDataset()
+    # test_breaking_dataset = TestBreakingDataset()
     # Manually call fixtures and pass results to tests
     # Access the original unwrapped function via __wrapped__
-    imported_dataset = test_breaking_dataset.import_dataset.__wrapped__(test_breaking_dataset)
-    qc_dataset = test_breaking_dataset.regular_qc_on_dataset.__wrapped__(
-        test_breaking_dataset, imported_dataset
-    )
+    # imported_dataset = test_breaking_dataset.import_dataset.__wrapped__(test_breaking_dataset)
+    # qc_dataset = test_breaking_dataset.regular_qc_on_dataset.__wrapped__(
+    #     test_breaking_dataset, imported_dataset
+    # )
 
     # test_breaking_dataset.test_qc_labels(qc_dataset)
     # test_breaking_dataset.test_qc_with_solution(qc_dataset, overwrite_solution=False)
@@ -1273,16 +1308,16 @@ if __name__ == "__main__":
     # test_breaking_dataset.test_make_plot_by_label_with_outliers(qc_dataset)
     # test_breaking_dataset.test_get_info(qc_dataset)
 
-    # test_demo_dataset = TestDemoDataset()
-    # imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
-    #     test_demo_dataset
-    # )
+    test_demo_dataset = TestDemoDataset()
+    imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
+        test_demo_dataset
+    )
 
     # test_demo_dataset.test_import_data(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_qc_when_some_stations_missing_obs(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_raise_errors(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_one_iteration(imported_demo_dataset, overwrite_solution=OVERWRITE)
-    # test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_no_outliers(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_with_big_radius(
     #     imported_demo_dataset, overwrite_solution=OVERWRITE
