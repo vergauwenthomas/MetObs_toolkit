@@ -132,7 +132,7 @@ class QCresult:
         # self.outliers.index = self.outliers.index.map(lambda ts: mapping.get(ts, ts))
         self.details.index = self.details.index.map(lambda ts: mapping.get(ts, ts))
    
-    def _flags_to_labels_map(self) -> dict:
+    def _flags_to_basic_labels(self) -> dict:
         """Create mapping from QC flag values to display labels.
         
         Constructs a dictionary mapping internal flag values ('passed', 'flagged', etc.)
@@ -152,7 +152,9 @@ class QCresult:
             unchecked_cond: Settings.get('label_def.goodrecord.label')
         }
         return label_mapping
-    def create_outliersdf(self, subset_to_outliers=True) -> pd.DataFrame:
+    def create_outliersdf(self,
+                          map_to_basic_labels=True,
+                          subset_to_outliers=True) -> pd.DataFrame:
         """Create a DataFrame summarizing detected outliers.
         
         Constructs a DataFrame containing outlier values, their corresponding labels,
@@ -181,8 +183,11 @@ class QCresult:
             targets = self.flags.loc[outl_timestamps]
         else:
             targets = self.flags
-            
-        labels = targets.map(self._flags_to_labels_map())
+        
+        if map_to_basic_labels:
+            labels = targets.map(self._flags_to_basic_labels())
+        else:
+            labels = targets
 
         
         outliers_df = pd.DataFrame({

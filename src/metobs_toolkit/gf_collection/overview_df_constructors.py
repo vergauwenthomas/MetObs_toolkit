@@ -147,7 +147,9 @@ def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
     
     to_concat = []
     for qcresult in sensor.outliers:
-        checkdf = qcresult.create_outliersdf(subset_to_outliers=False) #Get all flags
+        checkdf = qcresult.create_outliersdf(
+            map_to_basic_labels=False, #get all flags (ok, outl, notchecked, unmet, saved)
+            subset_to_outliers=False) #Get all flags
         #add checkname to the index
         checkdf["checkname"] = qcresult.checkname
         if qcresult.checkname in qc_before_timecoarsening:
