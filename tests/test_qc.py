@@ -479,11 +479,10 @@ class TestDemoDataset:
         _method_name = sys._getframe().f_code.co_name
 
         # 1. get_startpoint data
-        dataset = copy.deepcopy(import_dataset)
-
+        dataset_with_saftynet = copy.deepcopy(import_dataset)
         # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
-        dataset = copy.deepcopy(dataset)
-        dataset.buddy_check_with_safetynets(
+        dataset_with_saftynet = copy.deepcopy(dataset_with_saftynet)
+        dataset_with_saftynet.buddy_check_with_safetynets(
             obstype="temp",
             spatial_buddy_radius=25000,
             safety_net_configs=[
@@ -501,16 +500,39 @@ class TestDemoDataset:
             N_iter=1,
             instantaneous_tolerance=pd.Timedelta("4min"),
             lapserate=None,
-            use_mp=False,
+            use_mp=True,
         )
-        assert (
-            dataset.outliersdf.shape[0] == 74
-        ), f"Expected 74 outliers, got {dataset.outliersdf.shape[0]}"
+        
+        #Use same settings without saftyenet to make a relative comparison
+        dataset_without_saftynet = copy.deepcopy(import_dataset)
+        dataset_without_saftynet.buddy_check_with_safetynets(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[], # No safety nets
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,
+            use_mp=True,
+        )
+        
+        #Relative tests
+        oult_saftynet = dataset_with_saftynet.outliersdf 
+        oult_without_saftynet = dataset_without_saftynet.outliersdf
+
+
+        assert oult_saftynet.index.isin(oult_without_saftynet.index).all()
+        assert oult_without_saftynet.shape[0] > oult_saftynet.shape[0]
+        
+        
 
         # overwrite solution?
         if overwrite_solution:
             TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset,
+                solution=dataset_with_saftynet,
                 **TestDemoDataset.solkwargs,
                 methodname=_method_name,
             )
@@ -521,7 +543,7 @@ class TestDemoDataset:
         )
 
         # validate expression
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
+        assert_equality(dataset_with_saftynet, solutionobj, exclude_columns=["details"])
 
     def test_buddy_check_with_safety_nets_missing_min_sample_size(self, import_dataset):
         """Test that an error is raised when min_sample_size is missing from safety_net_configs."""
@@ -1343,12 +1365,12 @@ if __name__ == "__main__":
     # test_demo_dataset.test_qc_when_some_stations_missing_obs(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_raise_errors(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_one_iteration(imported_demo_dataset, overwrite_solution=OVERWRITE)
-    test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    # test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_no_outliers(imported_demo_dataset)
     # test_demo_dataset.test_buddy_check_with_big_radius(
     #     imported_demo_dataset, overwrite_solution=OVERWRITE
     # )
-    # test_demo_dataset.test_buddy_check_with_safety_nets(imported_demo_dataset, overwrite_solution=OVERWRITE)
+    test_demo_dataset.test_buddy_check_with_safety_nets(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_buddy_check_with_safety_nets_missing_min_sample_size(imported_demo_dataset)
 
     # Run white_records tests
