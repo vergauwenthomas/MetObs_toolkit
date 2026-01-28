@@ -99,7 +99,6 @@ def step_check(
         checkname="step",
         checksettings=locals().pop('records', None),
         flags=flags,
-        outliers = records.loc[outliers_after_white_idx],
         detail='no details'
         )
     

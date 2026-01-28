@@ -104,8 +104,6 @@ def repetitions_check(
         checkname="repetitions",
         checksettings=locals().pop('records', None),
         flags=flags,
-        outliers = records.loc[outliers_after_white_idx],
-        detail='no details'
         )
     
     #Create and add details

@@ -62,7 +62,6 @@ def gross_value_check(
         checkname="gross_value",
         checksettings=locals().pop('records', None),
         flags=flags,
-        outliers = records.loc[outliers_after_white_idx],
         detail='no details'
         )
     

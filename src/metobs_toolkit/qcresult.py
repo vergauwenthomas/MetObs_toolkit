@@ -11,11 +11,15 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 
+#Basic labels
 pass_cond = Settings.get("qc_status_labels_per_check.pass.label") #checked and successfull pass
 flagged_cond =  Settings.get("qc_status_labels_per_check.flagged.label") # checked and flagged as outlier
 unmet_cond = Settings.get("qc_status_labels_per_check.condition_unmet.label") #not checked due to unmet specific conditions
 saved_cond = Settings.get("qc_status_labels_per_check.saved_whitelist.label") #checked and flagged but saved due to whitelist
 unchecked_cond = Settings.get("qc_status_labels_per_check.unchecked.label") #not checked (was nan/gap before check)
+
+
+
 
 class QCresult:
     """Store results of a quality control check.
@@ -59,7 +63,7 @@ class QCresult:
         checkname: str,
         checksettings: dict,
         flags: pd.Series,  # index: timestamps, values: 'passed', 'flagged', 'condition_unmet', 'saved'
-        outliers: pd.Series,  # index: timestamps, values: outlier values
+        # outliers: pd.Series,  # index: timestamps, values: outlier values
         detail: str = "",
     ):
         self.checkname = checkname
@@ -71,9 +75,9 @@ class QCresult:
         
         
         
-        if not isinstance(outliers.index, pd.DatetimeIndex):
-            raise TypeError("The index of 'outliers' must be a pandas.DatetimeIndex.")
-        self.outliers = outliers 
+        # if not isinstance(outliers.index, pd.DatetimeIndex):
+        #     raise TypeError("The index of 'outliers' must be a pandas.DatetimeIndex.")
+        # self.outliers = outliers 
     
         #Set details (Index is Flags thus includes all timestamps!)
         self.details = pd.Series([detail] * len(flags),
@@ -110,7 +114,9 @@ class QCresult:
     
     def get_outlier_timestamps(self) -> pd.DatetimeIndex:
         """Return the timestamps of the outliers."""
-        return self.outliers.index
+        
+        return self.flags[self.flags == flagged_cond].index
+        # return self.outliers.index
         
         
     def remap_timestamps(self, mapping: dict) -> None:
@@ -123,7 +129,7 @@ class QCresult:
             new timestamps to map to.
         """
         self.flags.index = self.flags.index.map(lambda ts: mapping.get(ts, ts))
-        self.outliers.index = self.outliers.index.map(lambda ts: mapping.get(ts, ts))
+        # self.outliers.index = self.outliers.index.map(lambda ts: mapping.get(ts, ts))
         self.details.index = self.details.index.map(lambda ts: mapping.get(ts, ts))
    
     def _flags_to_labels_map(self) -> dict:
@@ -146,7 +152,7 @@ class QCresult:
             unchecked_cond: Settings.get('label_def.goodrecord.label')
         }
         return label_mapping
-    def create_outliersdf(self) -> pd.DataFrame:
+    def create_outliersdf(self, subset_to_outliers=True) -> pd.DataFrame:
         """Create a DataFrame summarizing detected outliers.
         
         Constructs a DataFrame containing outlier values, their corresponding labels,
@@ -162,21 +168,28 @@ class QCresult:
             - 'details': descriptive information about each outlier
             Returns empty DataFrame with correct structure if no outliers exist.
         """
-        if self.outliers.empty:
-            # return empty dataframe
-            return pd.DataFrame(
-                columns=["value", "label", "details"],
-                index=pd.DatetimeIndex([], name="datetime"),
-            )
+        outl_timestamps = self.get_outlier_timestamps()
+       
             
-        labels = self.flags.loc[self.outliers.index].map(self._flags_to_labels_map())
+        if subset_to_outliers:
+            if outl_timestamps.empty:
+                # return empty dataframe
+                return pd.DataFrame(
+                    columns=["label", "details"],
+                    index=pd.DatetimeIndex([], name="datetime"),
+                )
+            targets = self.flags.loc[outl_timestamps]
+        else:
+            targets = self.flags
+            
+        labels = targets.map(self._flags_to_labels_map())
 
         
         outliers_df = pd.DataFrame({
-            'datetime': self.outliers.index,
-            'value': self.outliers.values,
+            'datetime': targets.index,
+            # 'value': self.outliers.values,
             'label': labels.values,
-            'details': self.details.loc[self.outliers.index].values,
+            'details': self.details.loc[targets.index].values,
            
         })
         outliers_df.set_index('datetime', inplace=True)

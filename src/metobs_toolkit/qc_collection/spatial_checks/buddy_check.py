@@ -405,13 +405,10 @@ def toolkit_buddy_check(
         qcflags = final_labels.map(to_qc_labels_map)
         
         #4 Create QCresult object
-        outliers = wrapsta.station.get_sensor(obstype).series.loc[qcflags[qcflags == flagged_cond].index]
-        
         qcres = QCresult(
                     checkname='buddy_check',
                     checksettings=qcsettings,
                     flags=qcflags,
-                    outliers=outliers,
                     detail='',
                     )
         qcres.add_details_by_series(detail_series = wrapsta.get_final_details())

@@ -100,8 +100,6 @@ def window_variation_check(
             checkname="window_variation",
             checksettings=locals().pop('records', None),
             flags=flags,
-           outliers=pd.Series(index=timestamps_to_datetimeindex(
-                                        name="datetime", timestamps=[], current_tz=None)),
             detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
         return qcresult
@@ -174,7 +172,6 @@ def window_variation_check(
         checkname="window_variation",
         checksettings=locals().pop('records', None),
         flags=flags,
-        outliers = records.loc[outliers_after_white_idx],
         detail='no details'
         )
     

@@ -65,7 +65,6 @@ def duplicated_timestamp_check(records: pd.Series) -> QCresult:
         checkname="duplicated_timestamp",
         checksettings={},
         flags=flags,
-        outliers =duplicates[~duplicates.index.duplicated(keep="first")],
         detail='no details')
     
     #Create and add details
