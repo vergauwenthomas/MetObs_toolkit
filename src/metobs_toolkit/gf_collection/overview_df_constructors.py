@@ -5,6 +5,9 @@ import pandas as pd
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 
+#===============================
+# Gap overiview
+#===============================
 
 def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
     """
@@ -80,7 +83,6 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
             index=pd.Index([], name="gapstart"),
         )
 
-
 @copy_doc(sensordata_gap_status_overview_df)
 def station_gap_status_overview_df(station) -> pd.DataFrame:
     concatlist = []
@@ -127,3 +129,43 @@ def dataset_gap_status_overview_df(dataset) -> pd.DataFrame:
             ),
         )
     return combdf
+
+
+
+#===============================
+# QC overiew
+#===============================
+
+def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
+    #TODO: docstring
+    possible_timestamps = sensor.series.index
+    qc_before_timecoarsening = ['duplicated_timestamp']
+    
+    
+    to_concat = []
+    for qcresult in sensor.outliers:
+        checkdf = qcresult.create_outliersdf(subset_to_outliers=False) #Get all flags
+        #add checkname to the index
+        checkdf["checkname"] = qcresult.checkname
+        if qcresult.checkname in qc_before_timecoarsening:
+            #Subset to coarsende timestmaps only
+            checkdf = checkdf.reindex(possible_timestamps)
+
+        checkdf.set_index("checkname", append=True, inplace=True)
+        to_concat.append(checkdf)
+        
+    totaldf =  save_concat(to_concat)
+
+    if totaldf.empty:
+        return pd.DataFrame(columns=['value', 'label', 'details'],
+                                index=pd.DatetimeIndex([], name='datetime'))
+
+    #Unstack
+    totaldf = totaldf.unstack(level='checkname')
+
+    #add values
+    allvals = pd.concat([sensor.series, sensor.outliers_values_bin]) #do not sort before removing the duplicates !
+    allvals = allvals[~allvals.index.duplicated(keep='last')].sort_index()
+    totaldf['value'] = allvals.loc[totaldf.index]
+    
+    return totaldf[['value', 'label', 'details']]
