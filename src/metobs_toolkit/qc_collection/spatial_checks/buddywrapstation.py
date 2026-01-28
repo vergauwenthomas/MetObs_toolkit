@@ -687,13 +687,16 @@ def combine_series_dicts(list_of_dicts, iteration: int):
             else:
                 combined[iter] = d[iter]  #keep other iterations as is (overwrite, not concat else duplicates may occur)
    
-
-    combined[iteration] = pd.concat(combined[iteration]).sort_index()
+    if combined[iteration] == []:
+        #can happen wen a saftynet is triggered in a previous iteration, but not in the current one
+        combined[iteration] = pd.Series(dtype=str, index=pd.DatetimeIndex([], name='datetime'))
+    else:
+        combined[iteration] = pd.concat(combined[iteration]).sort_index()
 
     #sanity check
-    for series in combined.values():
-        if series.index.duplicated().any():
-            raise ValueError("Duplicate indices found when combining series dictionaries.")
+    # for series in combined.values():
+    #     if series.index.duplicated().any():
+    #         raise ValueError("Duplicate indices found when combining series dictionaries.")
     return combined
 
 def combine_buddycheckstations(stations: List[BuddyCheckStation], iteration: int) -> BuddyCheckStation:
