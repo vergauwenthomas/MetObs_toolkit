@@ -42,6 +42,7 @@ from metobs_toolkit.xrconversions import dataset_to_xr
 
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     dataset_gap_status_overview_df,
+    dataset_qc_overview_df,
 )
 from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.timestampmatcher import simplify_time
@@ -2388,7 +2389,14 @@ class Dataset:
             sensordata = self.get_station(staname).get_sensor(obstype)
             sensordata._update_outliers(qcresult=qcres, overwrite=False)
         
-
+    @copy_doc(dataset_qc_overview_df)
+    @log_entry
+    def qc_overview_df(self, 
+                       subset_stations:Union[list[str], None] = None,
+                       subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+        return dataset_qc_overview_df(self,
+                                      subset_stations=subset_stations,
+                                      subset_obstypes=subset_obstypes)
 
     @log_entry
     def get_qc_stats(

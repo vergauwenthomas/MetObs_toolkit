@@ -35,6 +35,7 @@ from metobs_toolkit.geedatasetmanagers import (
 )
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     station_gap_status_overview_df,
+    station_qc_overview_df,
 )
 from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
@@ -1611,6 +1612,11 @@ class Station:
 
         # apply check on the sensordata
         self.get_sensor(obstype).window_variation_check(**qc_kwargs)
+
+    @copy_doc(station_qc_overview_df)
+    @log_entry
+    def qc_overview_df(self, subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+        return station_qc_overview_df(self, subset_obstypes=subset_obstypes)
 
     @log_entry
     def get_qc_stats(

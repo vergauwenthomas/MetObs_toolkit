@@ -2,6 +2,7 @@
 (sensordata, station, dataset) for overviews and summaries of Gaps."""
 
 import pandas as pd
+from typing import Union
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 
@@ -138,6 +139,8 @@ def dataset_gap_status_overview_df(dataset) -> pd.DataFrame:
 
 def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
     #TODO: docstring
+    
+    #TODO rearange the order of qc columns to reflect the executeion order
     possible_timestamps = sensor.series.index
     qc_before_timecoarsening = ['duplicated_timestamp']
     
@@ -162,10 +165,74 @@ def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
 
     #Unstack
     totaldf = totaldf.unstack(level='checkname')
+    totaldf.fillna('Not applied', inplace=True)
 
     #add values
     allvals = pd.concat([sensor.series, sensor.outliers_values_bin]) #do not sort before removing the duplicates !
     allvals = allvals[~allvals.index.duplicated(keep='last')].sort_index()
     totaldf['value'] = allvals.loc[totaldf.index]
     
+    return totaldf[['value', 'label', 'details']]
+
+
+def station_qc_overview_df(station, subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+    #TODO: docstring
+    
+    if subset_obstypes is None:
+        sensortargets = station.sensordata.values() 
+    else:
+        sensortargets = []
+        for obstype in subset_obstypes:
+            if obstype in station.sensordata:
+                sensortargets.append(station.get_sensor(obstype))
+            else:
+                #Log a warning?
+                pass
+    
+    to_concat = []
+    for sensordata in sensortargets:
+        stadf = sensordata_qc_overview_df(sensordata).reset_index()
+        #add obstype to the index
+        if not stadf.empty:
+            stadf["obstype"] = sensordata.obstype.name
+            stadf = stadf.reset_index().set_index(['datetime', "obstype"])
+            to_concat.append(stadf)
+    
+    
+        
+    totaldf =  save_concat(to_concat)
+    totaldf.sort_index(inplace=True)
+
+    if totaldf.empty:
+        return pd.DataFrame(columns=['value', 'label', 'details'],
+                            index=pd.MultiIndex(
+                levels=[[], []], codes=[[], []], names=["datetime", "obstype"]))
+
+    return totaldf[['value', 'label', 'details']]
+
+def dataset_qc_overview_df(dataset, subset_stations:Union[list[str], None] = None,
+                           subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+    #TODO: docstring
+    if subset_stations is None:
+        stationtargets = dataset.stations
+    else:
+        stationtargets = [dataset.get_station(station_name) for station_name in subset_stations]
+    
+    to_concat = []
+    for station in stationtargets:
+        stadf = station_qc_overview_df(station, subset_obstypes=subset_obstypes).reset_index()
+        #add obstype to the index
+        if not stadf.empty:
+            stadf["name"] = station.name
+            stadf = stadf.reset_index().set_index(['datetime', "obstype", "name"])
+            to_concat.append(stadf)
+    
+    totaldf =  save_concat(to_concat)
+    totaldf.sort_index(inplace=True)
+
+    if totaldf.empty:
+        return pd.DataFrame(columns=['value', 'label', 'details'],
+                            index=pd.MultiIndex(
+                levels=[[], [], []], codes=[[], [], []], names=["datetime", "obstype", "name"]))
+
     return totaldf[['value', 'label', 'details']]
