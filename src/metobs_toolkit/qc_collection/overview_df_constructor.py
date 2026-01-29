@@ -40,7 +40,7 @@ def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
     totaldf.fillna('Not applied', inplace=True)
 
     #add values
-    allvals = pd.concat([sensor.series, sensor.outliers_values_bin]) #do not sort before removing the duplicates !
+    allvals = save_concat([sensor.series, sensor.outliers_values_bin]) #do not sort before removing the duplicates !
     allvals = allvals[~allvals.index.duplicated(keep='last')].sort_index()
     totaldf['value'] = allvals.loc[totaldf.index]
     
