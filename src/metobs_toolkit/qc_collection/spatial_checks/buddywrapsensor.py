@@ -15,7 +15,8 @@ from metobs_toolkit.qcresult import (
 
 import pandas as pd
 if TYPE_CHECKING:
-    from metobs_toolkit.station import Station
+    from metobs_toolkit.sensordata import SensorData
+    from metobs_toolkit.site import Site
 
 logger = logging.getLogger("<metobs_toolkit>")
 
@@ -46,22 +47,22 @@ to_qc_labels_map = {
 }
 
 #===============================
-# Buddy check station class
+# Buddy wrap sensor class
 #===============================
 
-class BuddyCheckStation:
-    """Wrapper for a Station with buddy check-specific details.
+class BuddyWrapSensor:
+    """Wrapper for a Sensor with buddy check-specific details.
     
-    This class wraps a Station object and adds information about how it is
+    This class wraps a sensor object and adds information about how it is
     handled during the buddy check process, including buddy assignment,
     filtering steps, and participation in buddy groups.
     
     Attributes
     ----------
-    station : Station
-        The wrapped Station object.
+    sensor : SensorData
+        The wrapped Sensor object.
     _buddy_groups : dict
-        Dictionary mapping group names to lists of buddy station names.
+        Dictionary mapping group names to lists of buddy sensor names.
     flag_lapsrate_corrections : bool
         Whether lapse rate corrections have been applied.
     cor_term : float
@@ -89,10 +90,11 @@ class BuddyCheckStation:
             },
         }
     """
-    station: Station
+    # station: Station
     
-    def __init__(self, station: Station):
-        self.station = station
+    def __init__(self, sensor: SensorData, site:Site):
+        self._sensor = sensor
+        self._site = site
         # Initialize instance-specific attributes (NOT class attributes!)
         self._buddy_groups: Dict[str, List[str]] = {
             'spatial': [],
@@ -113,9 +115,19 @@ class BuddyCheckStation:
         }
         
     @property
+    def sensor(self) -> SensorData:
+        """Get the wrapped SensorData object."""
+        return self._sensor
+    
+    @property
+    def site(self) -> Site:
+        """Get the wrapped Site object."""
+        return self._site
+    
+    @property
     def name(self) -> str:
         """Get the station name."""
-        return self.station.name
+        return self.sensor.stationname
     
     @property
     def flags(self) -> pd.DataFrame:
@@ -164,8 +176,16 @@ class BuddyCheckStation:
         if flag_series.empty:
             return
             
+        
+        # Subset flag_series to only include indices present in self.sensor.series.index
+        #edgcase: this can be caused because of the wideobds desing, that creates empty rows
+        # for timestamps where no observations are present.
+        valid_index = flag_series.index.intersection(self.sensor.series.index)
+        flag_series = flag_series.loc[valid_index]
         # Remove duplicates (keep first occurrence)
         flag_series = flag_series[~flag_series.index.duplicated(keep='first')]
+        
+        
         
         # Create a DataFrame with MultiIndex for the new flags
         new_flags = pd.DataFrame({
@@ -213,6 +233,12 @@ class BuddyCheckStation:
     def _update_details(self, iteration: int, detail_series: pd.Series, groupname: str) -> None:
         if detail_series.empty:
             return
+        
+        # Subset detail_series to only include indices present in self.sensor.series.index
+        #edgcase: this can be caused because of the wideobds desing, that creates empty rows
+        # for timestamps where no observations are present.
+        valid_index = detail_series.index.intersection(self.sensor.series.index)
+        detail_series = detail_series.loc[valid_index]
         # Remove duplicates (keep first occurrence)
         detail_series = detail_series[~detail_series.index.duplicated(keep='first')]
         
@@ -668,7 +694,7 @@ def _map_dt_index(pdobj: pd.Series | pd.DataFrame,
 #===============================
 # Combine multiple BCS func
 #===============================
-# combining multiple buddycheckstations is needed when buddy check is applied
+# combining multiple buddychecksensors is needed when buddy check is applied
 # on fractured datasets (used with multiprocessing).
 
 
@@ -699,58 +725,55 @@ def combine_series_dicts(list_of_dicts, iteration: int):
     #         raise ValueError("Duplicate indices found when combining series dictionaries.")
     return combined
 
-def combine_buddycheckstations(stations: List[BuddyCheckStation], iteration: int) -> BuddyCheckStation:
+def combine_buddychecksensors(sensors: List[BuddyWrapSensor], iteration: int) -> BuddyWrapSensor:
     # Take the first element and attriute for time independent attributes
-    trgstation = stations[0].station
-    trg_buddygroups = stations[0]._buddy_groups
-    trg_flag_lapsrate_corrections = stations[0].flag_lapsrate_corrections
-    trg_cor_term = stations[0].cor_term
+    trg_buddygroups = sensors[0]._buddy_groups
+    trg_flag_lapsrate_corrections = sensors[0].flag_lapsrate_corrections
+    trg_cor_term = sensors[0].cor_term
     
     # Flags DataFrame with MultiIndex (datetime, iteration)
-    trg_flags = pd.concat([st.flags for st in stations], axis=0).sort_index()
+    trg_flags = pd.concat([st.flags for st in sensors], axis=0).sort_index()
     trg_flags = trg_flags.loc[~trg_flags.index.duplicated(keep='first')] #remove duplicates, keep first occurrence
 
-    trg_spatial_details = combine_series_dicts([st.details['spatial_check'] for st in stations], iteration=iteration)
-    trg_whitelist_check = combine_series_dicts([st.details['whitelist_check'] for st in stations], iteration=iteration)
-
-    saftygroupnames = [list(st.details['safetynet_check'].keys()) for st in stations]
+    trg_spatial_details = combine_series_dicts([st.details['spatial_check'] for st in sensors], iteration=iteration)
+    trg_whitelist_check = combine_series_dicts([st.details['whitelist_check'] for st in sensors], iteration=iteration)
+    saftygroupnames = [list(st.details['safetynet_check'].keys()) for st in sensors]
     saftygroupnames = set([item for sublist in saftygroupnames for item in sublist]) #flatten and unique
     trg_safetynet_check = {}
     for groupname in saftygroupnames:
         group_series_list = []
-        for st in stations:
+        for st in sensors:
             if groupname in st.details['safetynet_check']:
                 group_series_list.append(st.details['safetynet_check'][groupname])
         trg_safetynet_check[groupname] = combine_series_dicts(group_series_list, iteration=iteration)
         
     
-    #Construct the new BuddyCheckStation
-    trg_buddystation = BuddyCheckStation(station=trgstation)
-    trg_buddystation._buddy_groups = trg_buddygroups
-    trg_buddystation.flag_lapsrate_corrections = trg_flag_lapsrate_corrections
-    trg_buddystation.cor_term = trg_cor_term
-    trg_buddystation._flags = trg_flags
+    #Construct the new BuddyWrapSensor
+    trg_buddysensor = BuddyWrapSensor(sensor=sensors[0].sensor, site=sensors[0].site)
+    trg_buddysensor._buddy_groups = trg_buddygroups
+    trg_buddysensor.flag_lapsrate_corrections = trg_flag_lapsrate_corrections
+    trg_buddysensor.cor_term = trg_cor_term
+    trg_buddysensor._flags = trg_flags
     
     
-    
-    trg_buddystation.details = {
+    trg_buddysensor.details = {
         'spatial_check': trg_spatial_details,
         'safetynet_check': trg_safetynet_check,
         'whitelist_check': trg_whitelist_check,
     }
     
-    return trg_buddystation
+    return trg_buddysensor
 
-def reconstruct_fractured_targets(fractured_targets: List[BuddyCheckStation], iteration: int) -> List[BuddyCheckStation]:
+def reconstruct_fractured_targets(fractured_targets: List[BuddyWrapSensor], iteration: int) -> List[BuddyWrapSensor]:
     combined = defaultdict(list)
     
-    #combine fractured stations by name
+    #combine fractured sensors by name
     for targ in fractured_targets:
         combined[targ.name].append(targ)
         
-    #combine each list of fractured stations into a single BuddyCheckStation
+    #combine each list of fractured sensors into a single BuddyChecksensor
     for name, comblist in combined.items():
-        combined[name] = combine_buddycheckstations(comblist, iteration=iteration) #combine into a single budycheckstation
+        combined[name] = combine_buddychecksensors(comblist, iteration=iteration) #combine into a single budychecksensor
     
     return list(combined.values())
         

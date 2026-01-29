@@ -11,32 +11,32 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 if TYPE_CHECKING:
-    from ...buddystation import BuddyCheckStation
+    from metobs_toolkit.qc_collection.spatial_checks.buddywrapsensor import BuddyWrapSensor
 
 
 
 def correct_lapse_rate(widedf: pd.DataFrame,
-                       wrappedstations: List[BuddyCheckStation],
+                       wrappedsensors: List[BuddyWrapSensor],
                        lapserate: float|None = None) -> pd.DataFrame:
     
     if lapserate is None:
         logger.debug("No lapse rate correction applied")
-        for wrapsta in wrappedstations: wrapsta.flag_lapsrate_corrections = False
+        for wrapsens in wrappedsensors: wrapsens.flag_lapsrate_corrections = False
     else: 
         logger.debug("Applying lapse rate correction with rate: %s", lapserate)
         #Test if all stations have altitude
-        has_alts = [budsta.station.site.flag_has_altitude() for budsta in wrappedstations]
+        has_alts = [budsta.site.flag_has_altitude() for budsta in wrappedsensors]
         
         if not all(has_alts):
             raise ValueError(
                 "At least one station has a NaN value for 'altitude', not lapse rate correction possible"
             )
-        for budsta in wrappedstations: 
+        for budsta in wrappedsensors: 
             budsta.flag_lapsrate_corrections = True
             
             # Since buddy check works with relative differences, correct all
             # stations to the 0m altitude
-            correction_term = budsta.station.site.altitude * (-1) * lapserate
+            correction_term = budsta.site.altitude * (-1) * lapserate
             budsta.cor_term = correction_term #update it in the buddy station
             
             #apply the correction on the wide dataframe

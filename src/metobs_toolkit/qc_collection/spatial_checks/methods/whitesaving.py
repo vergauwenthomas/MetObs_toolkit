@@ -11,13 +11,13 @@ logger = logging.getLogger("<metobs_toolkit>")
 from .findbuddies import filter_buddygroup_by_altitude
 from .samplechecks import buddy_test_a_station
 if TYPE_CHECKING:
-    from ..buddywrapstation import BuddyCheckStation
+    from ..buddywrapsensor import BuddyWrapSensor
     from ...whitelist import WhiteSet
 
 
 def save_whitelist_records(
     outliers: pd.MultiIndex,
-    wrappedstations: List[BuddyCheckStation],
+    wrappedstations: List[BuddyWrapSensor],
     whiteset: WhiteSet,
     obstype: str,
     iteration: int,

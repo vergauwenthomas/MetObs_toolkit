@@ -10,22 +10,19 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 if TYPE_CHECKING:
-    from ...buddystation import BuddyCheckStation
+    from ..buddywrapsensor import BuddyWrapSensor
 
 
-def create_wide_obs_df(wrappedstations: List[BuddyCheckStation],
-                       obstype: str,
+def create_wide_obs_df(wrappedsensors: List[BuddyWrapSensor],
                        instantaneous_tolerance: pd.Timedelta
                        ) -> Tuple[pd.DataFrame, Dict]:
-    logger.debug("Constructing wide observation DataFrame for obstype: %s", obstype)
-    concatlist = []
-    for wrapsta in wrappedstations:
-        if obstype in wrapsta.station.sensordata.keys():
-            records = wrapsta.station.get_sensor(obstype).series
-            records.name = wrapsta.name
-            concatlist.append(records)
-            
 
+    concatlist = []
+    for wrapsens in wrappedsensors:
+        records = wrapsens.sensor.series
+        records.name = wrapsens.name
+        concatlist.append(records)
+            
     # synchronize the timestamps
     logger.debug("Synchronizing timestamps")
     combdf, timestamp_map = _synchronize_series(

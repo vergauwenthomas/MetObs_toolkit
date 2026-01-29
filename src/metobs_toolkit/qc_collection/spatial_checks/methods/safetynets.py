@@ -10,10 +10,10 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 from .findbuddies import filter_buddygroup_by_altitude
 from .samplechecks import buddy_test_a_station
-from ..buddywrapstation import BC_PASSED
+from ..buddywrapsensor import BC_PASSED
 
 if TYPE_CHECKING:
-    from ..buddywrapstation import BuddyCheckStation
+    from ..buddywrapsensor import BuddyWrapSensor
 
 
 def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
@@ -64,7 +64,7 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
 
 def apply_safety_net(
     outliers: pd.Index,
-    buddycheckstations: List[BuddyCheckStation],
+    buddycheckstations: List[BuddyWrapSensor],
     buddygroupname: str,
     metadf: pd.DataFrame,
     distance_df: pd.DataFrame,

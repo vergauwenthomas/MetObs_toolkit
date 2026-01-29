@@ -16,7 +16,7 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 
 from metobs_toolkit.qcresult import QCresult, flagged_cond
-from .buddywrapstation import BuddyCheckStation, to_qc_labels_map, reconstruct_fractured_targets
+from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map, reconstruct_fractured_targets
 from metobs_toolkit.settings_collection import Settings
 from ..whitelist import WhiteSet
 # Import methods
@@ -33,6 +33,8 @@ logger = logging.getLogger("<metobs_toolkit>")
 def _run_buddy_test(kwargs):
     #executer for mutliprocessing
     return buddymethods.buddy_test_a_station(**kwargs)
+
+#TODO: Trough all modules related to the buddy check, there is often the reference to wrappedbuddystation or buddywrapstation. Replace these to buddywrapsensor
 
 @log_entry
 def toolkit_buddy_check(
@@ -198,7 +200,7 @@ def toolkit_buddy_check(
     dict
         A dictionary mapping each synchronized timestamp to its original
           timestamp.
-        A dictionary mapping station names to BuddyCheckStationDetails objects
+        A dictionary mapping sensor names to BuddyCheckSensorDetails objects
         containing detailed tracking information for each timestamp.
 
 
@@ -211,8 +213,8 @@ def toolkit_buddy_check(
       `Dataset.get_LCZ()` method.
 
     """
-    targets = [BuddyCheckStation(station=sta) for sta in target_stations]
-
+    targets = [BuddyWrapSensor(sensor=sta.get_sensor(obstype),
+                               site=sta.site) for sta in target_stations]
 
     # Validate safety net configs if provided
     buddymethods.validate_safety_net_configs(safety_net_configs)
@@ -241,14 +243,13 @@ def toolkit_buddy_check(
     # construct a wide observation dataframe
     
     widedf, timestamp_map = buddymethods.create_wide_obs_df(
-        wrappedstations=targets,
-        obstype=obstype,
+        wrappedsensors=targets,
         instantaneous_tolerance=instantaneous_tolerance,
     )
     
     # lapse rate correction
     widedf = buddymethods.correct_lapse_rate(widedf=widedf,
-                                wrappedstations=targets,
+                                wrappedsensors=targets,
                                 lapserate=lapserate)
                        
         

@@ -10,14 +10,14 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 if TYPE_CHECKING:
-    from ..buddywrapstation import BuddyCheckStation
+    from ..buddywrapsensor import BuddyWrapSensor
 
 # Import constants from buddywrapstation
-from ..buddywrapstation import BC_NO_BUDDIES, BC_PASSED, BC_FLAGGED, BC_NOT_TESTED
+from ..buddywrapsensor import BC_NO_BUDDIES, BC_PASSED, BC_FLAGGED, BC_NOT_TESTED
 
 
 def buddy_test_a_station(
-    centerwrapstation: BuddyCheckStation,
+    centerwrapstation: BuddyWrapSensor,
     buddygroupname: str,
     widedf: pd.DataFrame,
     min_sample_size: int,
@@ -26,7 +26,7 @@ def buddy_test_a_station(
     iteration: int,
     check_type: str = 'spatial_check',
     use_z_robust_method: bool = True,
-) -> Tuple[pd.MultiIndex, BuddyCheckStation]:
+) -> Tuple[pd.MultiIndex, BuddyWrapSensor]:
 
     #TODO update docstring
     """Find outliers in a buddy group and update station flags/details.
@@ -76,6 +76,9 @@ def buddy_test_a_station(
     buddy_sample_sizes = buddydf.notna().sum(axis=1)
     
     # Mark timestamps where center station has no data as NOT_TESTED
+    
+    #Edgecaase: If a station has fewer records than others, they are present as NaN in widedf 
+    #But these timestamps do not ex
     no_data = pd.Series(BC_NOT_TESTED, index=center_series[center_series.isna()].index)
     centerwrapstation.add_flags(
         iteration=iteration,
