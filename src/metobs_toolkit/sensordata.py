@@ -21,7 +21,9 @@ from metobs_toolkit.backend_collection.df_helpers import (
 )
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     sensordata_gap_status_overview_df,
-    sensordata_qc_overview_df
+)
+from metobs_toolkit.qc_collection.overview_df_constructor import (
+    sensordata_qc_overview_df,
 )
 from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.xrconversions import sensordata_to_xr
@@ -153,7 +155,7 @@ class SensorData:
         """Return a string representation of the SensorData object."""
         return f"{self.obstype.name} data of station {self.stationname}."
 
-    #TODO: update this method to handle QCresult outliers
+    #TODO: update this method to handle QCresult outliers + outliers_values_bin
     def __add__(self, other: "SensorData") -> "SensorData":
         """
         Combine two SensorData objects for the same station and obstype.
@@ -894,42 +896,7 @@ class SensorData:
         qcseries.name = 'counts'    
         return qcseries
         
-        # infodict = {}  # checkname : details
-        # ntotal = self.series.shape[0]  # gaps included !!
-        # already_rejected = self.gapsdf.shape[0]  # initial gap records
-        # # add the 'ok' labels
-        # infodict[Settings.get("label_def.goodrecord.label")] = {
-        #     "N_all": ntotal,
-        #     "N_labeled": self.series[self.series.notnull()].shape[0],
-        # }
-        # # add the 'gap' labels
-        # # TODO: I think the filled and failed labels must be included as well
-        # infodict[Settings.get("label_def.regular_gap.label")] = {
-        #     "N_all": ntotal,
-        #     "N_labeled": already_rejected,
-        # }
-
-        # # add the qc check labels
-        # for check in self.outliers:
-        #     n_outliers = check["df"].shape[0]
-        #     n_checked = ntotal - already_rejected
-        #     outlierlabel = Settings.get(f"label_def.{check['checkname']}.label")
-        #     infodict[outlierlabel] = {
-        #         "N_labeled": n_outliers,
-        #         "N_checked": n_checked,
-        #         "N_all": ntotal,
-        #     }
-
-        #     # remove the outliers of the previous check
-        #     already_rejected = already_rejected + n_outliers
-
-        # # Convert to a dataframe
-        # checkdf = pd.DataFrame(infodict).transpose()
-        # checkdf.index.name = "qc_check"
-        # checkdf["name"] = self.stationname
-        # checkdf = checkdf.reset_index().set_index(["name", "qc_check"])
-
-        # return checkdf
+        
 
     # ------------------------------------------
     #    Gaps related
