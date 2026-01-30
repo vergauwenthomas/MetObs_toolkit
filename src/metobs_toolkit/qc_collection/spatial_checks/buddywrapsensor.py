@@ -375,8 +375,10 @@ class BuddyWrapSensor:
         """
 
 
-        detailstr = pd.Series('', index=self.details['spatial_check'][0].index)
-
+        # detailstr = pd.Series('', index=self.details['spatial_check'][0].index)
+        detailstr = pd.Series('', index=self.flags.index)
+        
+        
         def reindex_details(detail_series: pd.Series) -> pd.Series:
             return detail_series.reindex(detailstr.index).fillna('NA').astype(str)
 
