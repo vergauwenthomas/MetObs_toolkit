@@ -351,6 +351,7 @@ def toolkit_buddy_check(
                 len(current_outliers_idx),
             )
             for safety_net_config in safety_net_configs:
+                logger.debug(f"Applying safety net on category {safety_net_config['category']}")
                 
                 current_outliers_idx = buddymethods.apply_safety_net(    
                     outliers=current_outliers_idx,
@@ -396,6 +397,7 @@ def toolkit_buddy_check(
     del qcsettings['target_stations']
     del qcsettings['metadf']
     for wrapsta in targets:
+        logger.debug(f"Preparing QCresult for station {wrapsta.name}")
         #1. Map timestamps back to original timestamps
         wrapsta.map_timestamps(timestamp_map=timestamp_map[wrapsta.name])
     
