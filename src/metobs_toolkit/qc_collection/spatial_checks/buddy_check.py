@@ -414,7 +414,18 @@ def toolkit_buddy_check(
                     flags=qcflags,
                     detail='',
                     )
-        qcres.add_details_by_series(detail_series = wrapsta.get_final_details())
+        #DEBUG MODE
+        try:
+            qcres.add_details_by_series(detail_series = wrapsta.get_final_details())
+        except Exception as e:
+            
+            logger.debug(f"Failed to add details for station {wrapsta.name}: {e}")
+            logger.warning(f" Here are the deatils: \n {wrapsta.__dict__}")
+            import sys
+            sys.exit(1)
+            
+            
+            
         return_results[wrapsta.name] = qcres            
     
     return return_results
