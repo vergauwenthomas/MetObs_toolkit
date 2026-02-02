@@ -69,8 +69,8 @@ def buddy_test_a_station(
     center_name = centerwrapstation.name
     
     # Subset to buddies only (for sample distribution) and center station
-    buddydf = widedf[buddies].copy()
-    center_series = widedf[center_name].copy()
+    buddydf = widedf[buddies]
+    center_series = widedf[center_name]
     
     # Count valid buddy samples per timestamp (center station NOT included)
     buddy_sample_sizes = buddydf.notna().sum(axis=1)
