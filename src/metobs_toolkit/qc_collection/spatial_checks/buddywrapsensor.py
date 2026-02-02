@@ -231,7 +231,10 @@ class BuddyWrapSensor:
     
     
     def _update_details(self, iteration: int, detail_series: pd.Series, groupname: str) -> None:
+        # Handle empty input - still store an empty entry to ensure the iteration key exists
         if detail_series.empty:
+            if iteration not in self.details[groupname]:
+                self.details[groupname][iteration] = pd.Series(dtype=str, index=pd.DatetimeIndex([], name='datetime'))
             return
         
         # Subset detail_series to only include indices present in self.sensor.series.index
@@ -242,16 +245,18 @@ class BuddyWrapSensor:
         # Remove duplicates (keep first occurrence)
         detail_series = detail_series[~detail_series.index.duplicated(keep='first')]
         
-        # Store details in the details dictionary
+        # Store details in the details dictionary (even if now empty after filtering)
         if iteration not in self.details[groupname]:
             self.details[groupname][iteration] = detail_series
         else:
-            #FIXME: i do not think this branch is ever used
             # Append to existing series for this iteration
             existing = self.details[groupname][iteration]
-            combined = pd.concat([existing, detail_series])
-            # Remove duplicates keeping first
-            self.details[groupname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
+            if existing.empty:
+                self.details[groupname][iteration] = detail_series
+            elif not detail_series.empty:
+                combined = pd.concat([existing, detail_series])
+                # Remove duplicates keeping first
+                self.details[groupname][iteration] = combined[~combined.index.duplicated(keep='first')].sort_index()
     
     def add_spatial_details(self, iteration: int, detail_series: pd.Series) -> None:
         """Add spatial check detail information for an iteration.
@@ -373,23 +378,39 @@ class BuddyWrapSensor:
             Series with DatetimeIndex containing detailed description strings.
             The series name is 'final_details'.
         """
-
-
-        # detailstr = pd.Series('', index=self.details['spatial_check'][0].index)
-        detailstr = pd.Series('', index=self.flags.index)
+        # Handle edge case: if flags are empty, return empty series
+        if self.flags.empty:
+            return pd.Series(dtype=str, name='final_details')
         
+        detailstr = pd.Series('', index=self.flags.index)
         
         def reindex_details(detail_series: pd.Series) -> pd.Series:
             return detail_series.reindex(detailstr.index).fillna('NA').astype(str)
 
-        iter = 0
-        while iter in self.details['spatial_check'].keys():
-            detailstr = detailstr + f'iteration {iter}:['
+        # Get all iterations that have been processed (using the helper method)
+        iterations = self._get_iterations()
+        
+        # If no iterations found, try to infer from flags index
+        if not iterations:
+            # Fallback: get unique iterations from the flags MultiIndex
+            if isinstance(self.flags.index, pd.MultiIndex):
+                iterations = sorted(self.flags.index.get_level_values('iteration').unique())
+            else:
+                iterations = [0]  # Default to iteration 0
+        
+        for iter_num in iterations:
+            # Check if this iteration exists in spatial_check details
+            if iter_num not in self.details['spatial_check']:
+                # If iteration doesn't exist in spatial_check, add a placeholder message
+                detailstr = detailstr + f'iteration {iter_num}:[No spatial check details available'
+            else:
+                detailstr = detailstr + f'iteration {iter_num}:['
             
             #add spatial check details
-            spatial_details = reindex_details(self.details['spatial_check'][iter])
-            detailstr = detailstr.str.cat(spatial_details, sep='')
-            
+            if iter_num in self.details['spatial_check']:
+                spatial_details = reindex_details(self.details['spatial_check'][iter_num])
+                detailstr = detailstr.str.cat(spatial_details, sep='')
+            # else: placeholder already added above
             
             detailstr = detailstr + " --> "
             
@@ -397,9 +418,9 @@ class BuddyWrapSensor:
             if bool(self.details['safetynet_check']):
             
                 for safetynetkey in self.details['safetynet_check'].keys():
-                    if iter in self.details['safetynet_check'][safetynetkey].keys():
+                    if iter_num in self.details['safetynet_check'][safetynetkey].keys():
                         
-                        savedetails = reindex_details(self.details['safetynet_check'][safetynetkey][iter])
+                        savedetails = reindex_details(self.details['safetynet_check'][safetynetkey][iter_num])
                         detailstr = detailstr.str.cat(savedetails, sep=f'{safetynetkey}:')
                     
                     else:
@@ -410,15 +431,13 @@ class BuddyWrapSensor:
                 detailstr = detailstr +  "NA " + " --> "
             
             #add whitelist details
-            if iter in self.details['whitelist_check'].keys():
-                savedetails = reindex_details(self.details['whitelist_check'][iter])
+            if iter_num in self.details['whitelist_check'].keys():
+                savedetails = reindex_details(self.details['whitelist_check'][iter_num])
                 detailstr = detailstr.str.cat(savedetails, sep='')
             else:
                 detailstr = detailstr + 'NA'
                 
             detailstr = detailstr + "] \n"
-            
-            iter += 1
             
         detailstr.name = 'final_details'
         return detailstr
@@ -701,31 +720,33 @@ def _map_dt_index(pdobj: pd.Series | pd.DataFrame,
 
 
 def combine_series_dicts(list_of_dicts, iteration: int):
-    #if not data is given, return empty dict
-    if all([len(d)==0 for d in list_of_dicts]):
-        return {}
-
+    # Always ensure we return a dict with at least the current iteration key
+    # This prevents KeyError when accessing details['spatial_check'][iteration]
     combined = defaultdict(list)
-
-    # collect all series per key
+    
+    # Collect all series per key
     for d in list_of_dicts:
-        for iter in d.keys():
-            if iter == iteration:
-                combined[iteration].append(d[iter])
+        for iter_key in d.keys():
+            if iter_key == iteration:
+                combined[iteration].append(d[iter_key])
             else:
-                combined[iter] = d[iter]  #keep other iterations as is (overwrite, not concat else duplicates may occur)
+                # Keep other iterations as is (overwrite, not concat else duplicates may occur)
+                combined[iter_key] = d[iter_key]
    
+    # Ensure the current iteration key always exists
     if combined[iteration] == []:
-        #can happen wen a saftynet is triggered in a previous iteration, but not in the current one
+        # Can happen when a safetynet is triggered in a previous iteration, but not in the current one
+        # Or when all input dicts are empty - we still need the iteration key to exist
         combined[iteration] = pd.Series(dtype=str, index=pd.DatetimeIndex([], name='datetime'))
     else:
-        combined[iteration] = pd.concat(combined[iteration]).sort_index()
+        # Filter out empty series before concatenating to avoid issues
+        non_empty_series = [s for s in combined[iteration] if not s.empty]
+        if non_empty_series:
+            combined[iteration] = pd.concat(non_empty_series).sort_index()
+        else:
+            combined[iteration] = pd.Series(dtype=str, index=pd.DatetimeIndex([], name='datetime'))
 
-    #sanity check
-    # for series in combined.values():
-    #     if series.index.duplicated().any():
-    #         raise ValueError("Duplicate indices found when combining series dictionaries.")
-    return combined
+    return dict(combined)  # Convert from defaultdict to regular dict
 
 def combine_buddychecksensors(sensors: List[BuddyWrapSensor], iteration: int) -> BuddyWrapSensor:
     # Take the first element and attriute for time independent attributes
