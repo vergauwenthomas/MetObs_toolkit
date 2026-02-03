@@ -392,6 +392,7 @@ def toolkit_buddy_check(
         #buddy output is [(MultiIndex, BuddyCheckStation), ...], that needs to be unpacked
         outlier_indices, updated_stations = zip(*buddy_output)    
         #overload the Buddycheckstation 
+        #TODO: Now that the parallelization is done by station, this step is not needed anymore! 
         targets = reconstruct_fractured_targets(list(updated_stations), iteration = i)
             
         # Concatenate all outlier MultiIndices
