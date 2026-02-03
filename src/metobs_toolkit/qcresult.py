@@ -205,7 +205,7 @@ class QCresult:
 # Helpers
 #===============================
 
-def fmt_checksettingsdict(checksettings: dict) -> str:
+def fmt_checksettingsdict(checksettings: dict) -> dict:
     
     blackkeys = ['executor']
     
@@ -214,4 +214,6 @@ def fmt_checksettingsdict(checksettings: dict) -> str:
     for key in blackkeys:
         if key in checksettings:
             del checksettings[key]
+    
+    return checksettings
             
