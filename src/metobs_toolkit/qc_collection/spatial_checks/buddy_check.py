@@ -281,6 +281,20 @@ def toolkit_buddy_check(
       `Dataset.get_LCZ()` method.
 
     """
+    checksettings = {
+        "obstype": obstype,
+        "spatial_buddy_radius": spatial_buddy_radius,
+        "spatial_min_sample_size": spatial_min_sample_size,
+        "max_alt_diff": max_alt_diff,
+        "min_sample_spread": min_sample_spread,
+        "spatial_z_threshold": spatial_z_threshold,
+        "N_iter": N_iter,
+        "instantaneous_tolerance": instantaneous_tolerance,
+        "whiteset": whiteset,
+        "safety_net_configs": safety_net_configs,
+        "lapserate": lapserate,
+    }
+    
     targets = [BuddyWrapSensor(sensor=sta.get_sensor(obstype),
                                site=sta.site) for sta in target_stations]
 
@@ -452,9 +466,6 @@ def toolkit_buddy_check(
     
     #Prepare for output
     return_results = {} 
-    qcsettings = locals()
-    del qcsettings['target_stations']
-    del qcsettings['metadf']
     for wrapsta in targets:
         logger.debug(f"Preparing QCresult for station {wrapsta.name}")
         #1. Map timestamps back to original timestamps
@@ -469,7 +480,7 @@ def toolkit_buddy_check(
         #4 Create QCresult object
         qcres = QCresult(
                     checkname='buddy_check',
-                    checksettings=qcsettings,
+                    checksettings=checksettings,
                     flags=qcflags,
                     detail='',
                     )

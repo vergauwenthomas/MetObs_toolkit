@@ -52,7 +52,11 @@ def repetitions_check(
     The persistence check uses thresholds that are meteorologically based (e.g., the moving window is defined by a duration),
     in contrast to the repetitions check whose thresholds are instrumentally based (e.g., the "window" is defined by a number of records).
     """
-
+    
+    checksettings = {
+        "max_N_repetitions": max_N_repetitions,
+        "sensorwhiteset": sensorwhiteset,
+    }
     # Drop outliers from the series (these are NaNs)
     to_check_records = records.dropna()
 
@@ -102,7 +106,7 @@ def repetitions_check(
 
     qcresult = QCresult(
         checkname="repetitions",
-        checksettings=locals().pop('records', None),
+        checksettings=checksettings,
         flags=flags,
         )
     

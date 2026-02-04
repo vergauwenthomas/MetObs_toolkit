@@ -54,7 +54,12 @@ def step_check(
     threshold. This is because a temperature drop is meteorologically more
     common than a sudden increase, which is often the result of a radiation error.
     """
-
+    checksettings = {
+        "max_increase_per_second": max_increase_per_second,
+        "max_decrease_per_second": max_decrease_per_second,
+        "sensorwhiteset": sensorwhiteset,
+    }
+    
     # Validate argument values
     if max_decrease_per_second > 0:
         raise ValueError("max_decrease_per_second must be negative!")
@@ -97,7 +102,7 @@ def step_check(
 
     qcresult = QCresult(
         checkname="step",
-        checksettings=locals().pop('records', None),
+        checksettings=checksettings,
         flags=flags,
         detail='no details'
         )

@@ -58,9 +58,15 @@ def gross_value_check(
         outliers_after_white_idx=outliers_after_white_idx,
     )
 
+    checksettings = {
+        "lower_threshold": lower_threshold,
+        "upper_threshold": upper_threshold,
+        "sensorwhiteset": sensorwhiteset,
+    }
+    
     qcresult = QCresult(
         checkname="gross_value",
-        checksettings=locals().pop('records', None),
+        checksettings=checksettings,
         flags=flags,
         detail='no details'
         )

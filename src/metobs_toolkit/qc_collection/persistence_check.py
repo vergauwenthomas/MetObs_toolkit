@@ -85,6 +85,11 @@ def persistence_check(
     If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
     returns an empty DatetimeIndex.
     """
+    checksettings = {
+        "timewindow": timewindow,
+        "min_records_per_window": min_records_per_window,
+        "sensorwhiteset": sensorwhiteset,
+    }
 
     to_check_records = records.dropna() # Exclude outliers and gaps
     # Test if the conditions for the moving window are met by the records frequency
@@ -105,7 +110,7 @@ def persistence_check(
         )
         qcresult = QCresult(
             checkname="persistence",
-            checksettings=locals().pop('records', None),
+            checksettings=checksettings,
             flags=flags,
             detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
@@ -144,7 +149,7 @@ def persistence_check(
     
     qcresult = QCresult(
         checkname="persistence",
-        checksettings=locals().pop('records', None),
+        checksettings=checksettings,
         flags=flags,
         detail='no details'
         )

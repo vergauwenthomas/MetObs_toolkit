@@ -76,6 +76,14 @@ def window_variation_check(
     if max_increase_per_second < 0:
         raise ValueError("max_increase_per_second must be positive!")
 
+    checksettings = {
+        "timewindow": timewindow,
+        "min_records_per_window": min_records_per_window,
+        "max_increase_per_second": max_increase_per_second,
+        "max_decrease_per_second": max_decrease_per_second,
+        "sensorwhiteset": sensorwhiteset,
+    }
+
     # Drop outliers from the series (these are NaNs)
     to_check_records = records.dropna()
     
@@ -98,7 +106,7 @@ def window_variation_check(
         
         qcresult = QCresult(
             checkname="window_variation",
-            checksettings=locals().pop('records', None),
+            checksettings=checksettings,
             flags=flags,
             detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
@@ -170,7 +178,7 @@ def window_variation_check(
     
     qcresult = QCresult(
         checkname="window_variation",
-        checksettings=locals().pop('records', None),
+        checksettings=checksettings,
         flags=flags,
         detail='no details'
         )

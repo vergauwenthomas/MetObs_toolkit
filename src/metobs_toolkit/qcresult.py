@@ -67,7 +67,7 @@ class QCresult:
         detail: str = "",
     ):
         self.checkname = checkname
-        self.checksettings = fmt_checksettingsdict(checksettings)
+        self.checksettings = checksettings
         
         if not isinstance(flags.index, pd.DatetimeIndex):
             raise TypeError("The index of 'flags' must be a pandas.DatetimeIndex.")
@@ -201,19 +201,3 @@ class QCresult:
         outliers_df.set_index('datetime', inplace=True)
         return outliers_df
     
-#===============================
-# Helpers
-#===============================
-
-def fmt_checksettingsdict(checksettings: dict) -> dict:
-    
-    blackkeys = ['executor']
-    
-    #exector is added when using multiprocessing, it is not serializable and thus pkling fails.
-    
-    for key in blackkeys:
-        if key in checksettings:
-            del checksettings[key]
-    
-    return checksettings
-            
