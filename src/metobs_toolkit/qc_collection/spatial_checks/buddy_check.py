@@ -14,7 +14,7 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 
 from metobs_toolkit.qcresult import QCresult, flagged_cond
-from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map, reconstruct_fractured_targets
+from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map
 from metobs_toolkit.settings_collection import Settings
 from ..whitelist import WhiteSet
 # Import methods
@@ -406,8 +406,7 @@ def toolkit_buddy_check(
         #buddy output is [(MultiIndex, BuddyCheckStation), ...], that needs to be unpacked
         outlier_indices, updated_stations = zip(*buddy_output)    
         #overload the Buddycheckstation 
-        #TODO: Now that the parallelization is done by station, this step is not needed anymore! 
-        targets = reconstruct_fractured_targets(list(updated_stations), iteration = i)
+        targets = list(updated_stations)
             
         # Concatenate all outlier MultiIndices
         # Each element is a MultiIndex with (name, datetime)
