@@ -8,7 +8,7 @@ import pandas as pd
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-from .findbuddies import filter_buddygroup_by_altitude
+from .findbuddies import filter_buddygroup_by_altitude, subset_buddies_to_nearest
 from .samplechecks import buddy_test_a_station
 from ..buddywrapsensor import BC_PASSED
 
@@ -36,6 +36,7 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
         return None
 
     required_keys = {"category", "buddy_radius", "z_threshold", "min_sample_size"}
+    optional_keys = {"max_sample_size"}
 
     if not isinstance(safety_net_configs, list):
         raise ValueError(
@@ -57,6 +58,18 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
                 f"Required keys are: {', '.join(sorted(required_keys))}"
             )
 
+        # Validate optional max_sample_size
+        if "max_sample_size" in config:
+            max_ss = config["max_sample_size"]
+            if max_ss is not None:
+                min_ss = config["min_sample_size"]
+                if max_ss <= min_ss:
+                    raise ValueError(
+                        f"Safety net config at index {i}: 'max_sample_size' "
+                        f"({max_ss}) must be larger than 'min_sample_size' "
+                        f"({min_ss})."
+                    )
+
     return None
 
 
@@ -76,6 +89,7 @@ def apply_safety_net(
     min_sample_spread: Union[int, float],
     use_z_robust_method: bool,
     iteration: int,
+    max_sample_size: Union[int, None] = None,
 ) -> pd.MultiIndex:
    
     # Track records that were saved (passed the safety net test)
@@ -122,6 +136,15 @@ def apply_safety_net(
                 groupname=buddygroupname,
                 altitudes=metadf['altitude'],
                 max_altitude_diff=max_alt_diff
+            )
+
+        # Subset category buddies to nearest N if max_sample_size is set
+        if max_sample_size is not None:
+            subset_buddies_to_nearest(
+                wrappedstations=[wrapsta],
+                distance_df=distance_df,
+                max_sample_size=max_sample_size,
+                groupname=buddygroupname,
             )
     
     #find outliers in the new categorical group

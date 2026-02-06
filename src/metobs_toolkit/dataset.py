@@ -1988,6 +1988,7 @@ class Dataset:
         obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
+        max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
         min_sample_spread: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
@@ -2055,6 +2056,12 @@ class Dataset:
             The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Default is 4.
+        max_sample_size : int or None, optional
+            The maximum number of spatial buddies to use per station. If not
+            None, the spatial buddies for each station are sorted by distance
+            and only the nearest ``max_sample_size`` are kept. Must be larger
+            than ``min_sample_size`` when specified. The default is None
+            (no limit).
         max_alt_diff : int | float | None, optional
             The maximum altitude difference allowed for buddies. Default is None.
         min_std : int | float, optional
@@ -2103,6 +2110,7 @@ class Dataset:
             spatial_buddy_radius=spatial_buddy_radius,
             safety_net_configs=None,
             min_sample_size=min_sample_size,
+            max_sample_size=max_sample_size,
             max_alt_diff=max_alt_diff,
             min_sample_spread=min_sample_spread,
             spatial_z_threshold=spatial_z_threshold,
@@ -2127,6 +2135,7 @@ class Dataset:
         spatial_buddy_radius: Union[int, float] = 10000,
         safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
+        max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
         min_sample_spread: Union[int, float] = 1.0,
         spatial_z_threshold: Union[int, float] = 3.1,
@@ -2235,6 +2244,11 @@ class Dataset:
             * 'z_threshold': int or float, z-value threshold for saving outliers
             * 'min_sample_size': int, minimum number of buddies required for the
               safety net test
+            * 'max_sample_size': int or None (optional), maximum number of
+              category buddies to use per station. If not None, category
+              buddies are sorted by distance and only the nearest
+              ``max_sample_size`` are kept. Must be larger than
+              ``min_sample_size`` when specified. Defaults to None (no limit).
 
             Example::
 
@@ -2257,6 +2271,12 @@ class Dataset:
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Used for
             spatial-buddy samples. Default is 4.
+        max_sample_size : int or None, optional
+            The maximum number of spatial buddies to use per station. If not
+            None, the spatial buddies for each station are sorted by distance
+            and only the nearest ``max_sample_size`` are kept. Must be larger
+            than ``min_sample_size`` when specified. The default is None
+            (no limit).
         max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
         min_std : int or float, optional
@@ -2362,6 +2382,7 @@ class Dataset:
             obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
+            spatial_max_sample_size=max_sample_size,
             max_alt_diff=max_alt_diff,
             min_sample_spread=min_sample_spread,
             spatial_z_threshold=spatial_z_threshold,

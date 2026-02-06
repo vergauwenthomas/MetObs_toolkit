@@ -1,4 +1,4 @@
-from .findbuddies import assign_spatial_buddies, filter_buddygroup_by_altitude
+from .findbuddies import assign_spatial_buddies, filter_buddygroup_by_altitude, subset_buddies_to_nearest
 from .pdmethods import create_wide_obs_df, concat_multiindices
 from .lapsratecorrection import correct_lapse_rate
 from .samplechecks import buddy_test_a_station

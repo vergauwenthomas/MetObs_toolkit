@@ -62,6 +62,38 @@ def filter_buddygroup_by_altitude(
             alt_buddies.append(buddy_name)
     wrappedstation.filter_buddies(groupname=groupname, filteredbuddies=alt_buddies)
     
+def subset_buddies_to_nearest(
+    wrappedstations: List,
+    distance_df: pd.DataFrame,
+    max_sample_size: int,
+    groupname: str,
+) -> None:
+    """Subset buddy groups to the nearest N stations.
+
+    For each wrapped station, the buddies in the specified group are sorted
+    by distance and only the closest ``max_sample_size`` buddies are kept.
+
+    Parameters
+    ----------
+    wrappedstations : list of BuddyWrapSensor
+        The wrapped stations whose buddy groups should be subsetted.
+    distance_df : pd.DataFrame
+        Symmetric distance matrix with station names as index and columns.
+    max_sample_size : int
+        Maximum number of buddies to keep per station.
+    groupname : str
+        The name of the buddy group to subset (e.g., 'spatial').
+    """
+    for wrapsta in wrappedstations:
+        buddies = wrapsta.get_buddies(groupname=groupname)
+        if len(buddies) <= max_sample_size:
+            continue
+        # Sort buddies by distance and keep only the nearest N
+        buddy_distances = distance_df.loc[wrapsta.name, buddies]
+        nearest = buddy_distances.nsmallest(max_sample_size).index.to_list()
+        wrapsta.filter_buddies(groupname=groupname, filteredbuddies=nearest)
+
+
 # ------------------------------------------
 #    Help functions to find buddies
 # ------------------------------------------

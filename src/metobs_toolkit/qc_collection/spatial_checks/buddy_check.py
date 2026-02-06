@@ -9,7 +9,6 @@ import pandas as pd
 
 
 
-from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
 
@@ -111,13 +110,14 @@ def toolkit_buddy_check(
     obstype: str,
     spatial_buddy_radius: Union[int, float],
     spatial_min_sample_size: int,
-    max_alt_diff: Union[int, float, None],
-    min_sample_spread: Union[int, float],
-    spatial_z_threshold: Union[int, float],
-    N_iter: int,
-    instantaneous_tolerance: pd.Timedelta,
+    spatial_max_sample_size: Union[int, None] = None,
+    max_alt_diff: Union[int, float, None] = None,
+    min_sample_spread: Union[int, float] = 1.0,
+    spatial_z_threshold: Union[int, float] = 3.1,
+    N_iter: int = 2,
+    instantaneous_tolerance: pd.Timedelta = pd.Timedelta("4min"),
     # Whitelist arguments
-    whiteset: WhiteSet,
+    whiteset: WhiteSet = WhiteSet(),
     # Safety nets
     safety_net_configs: List[Dict] = None,
     #Statistical
@@ -220,6 +220,12 @@ def toolkit_buddy_check(
     spatial_min_sample_size : int
         The minimum sample size to calculate statistics on used by
         spatial-buddy samples.
+    spatial_max_sample_size : int or None, optional
+        The maximum number of spatial buddies to use per station. If not
+        None, the spatial buddies for each station are sorted by distance
+        and only the nearest ``spatial_max_sample_size`` buddies are kept.
+        Must be larger than ``spatial_min_sample_size`` when specified.
+        The default is None (no limit).
     max_alt_diff : int, float, or None
         The maximum altitude difference allowed for buddies. If None,
         no altitude filter is applied.
@@ -250,6 +256,11 @@ def toolkit_buddy_check(
         * 'z_threshold': int or float, z-value threshold for saving outliers
         * 'min_sample_size': int, minimum number of buddies required for the
           safety net test
+        * 'max_sample_size': int or None (optional), maximum number of category
+          buddies to use per station. If not None, category buddies are sorted
+          by distance and only the nearest ``max_sample_size`` are kept. Must
+          be larger than ``min_sample_size`` when specified. Defaults to None
+          (no limit).
 
         The default is None.
     lapserate : float or None, optional
@@ -281,10 +292,19 @@ def toolkit_buddy_check(
       `Dataset.get_LCZ()` method.
 
     """
+    # Validate spatial_max_sample_size
+    if spatial_max_sample_size is not None:
+        if spatial_max_sample_size <= spatial_min_sample_size:
+            raise ValueError(
+                f"spatial_max_sample_size ({spatial_max_sample_size}) must be "
+                f"larger than spatial_min_sample_size ({spatial_min_sample_size})."
+            )
+
     checksettings = {
         "obstype": obstype,
         "spatial_buddy_radius": spatial_buddy_radius,
         "spatial_min_sample_size": spatial_min_sample_size,
+        "spatial_max_sample_size": spatial_max_sample_size,
         "max_alt_diff": max_alt_diff,
         "min_sample_spread": min_sample_spread,
         "spatial_z_threshold": spatial_z_threshold,
@@ -319,6 +339,18 @@ def toolkit_buddy_check(
         wrappedstations=targets,
     )
 
+    # Subset spatial buddies to nearest N if spatial_max_sample_size is set
+    if spatial_max_sample_size is not None:
+        logger.debug(
+            "Subsetting spatial buddies to nearest %s stations",
+            spatial_max_sample_size,
+        )
+        buddymethods.subset_buddies_to_nearest(
+            wrappedstations=targets,
+            distance_df=dist_matrix,
+            max_sample_size=spatial_max_sample_size,
+            groupname='spatial',
+        )
 
     # ---- Part 2: Preparing the records  -----
 
@@ -439,6 +471,7 @@ def toolkit_buddy_check(
                     min_sample_spread=min_sample_spread, #make this configurable?
                     use_z_robust_method=use_z_robust_method,
                     iteration=i,
+                    max_sample_size=safety_net_config.get('max_sample_size', None),
                 )
             
             # NOTE: Records saved by any safety net will be tested again in
