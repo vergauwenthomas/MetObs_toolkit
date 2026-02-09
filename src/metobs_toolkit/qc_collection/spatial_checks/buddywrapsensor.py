@@ -382,10 +382,18 @@ class BuddyWrapSensor:
         if self.flags.empty:
             return pd.Series(dtype=str, name='final_details')
         
-        detailstr = pd.Series('', index=self.flags.index)
-        
-        def reindex_details(detail_series: pd.Series) -> pd.Series:
-            return detail_series.reindex(detailstr.index).fillna('NA').astype(str)
+        # The flags have a MultiIndex (datetime, iteration), but the detail
+        # Series stored in self.details use a plain DatetimeIndex. We must
+        # build the detail strings per-iteration using the DatetimeIndex so
+        # that reindexing can match properly, then combine the results back
+        # into a Series indexed by the original MultiIndex.
+
+        # Get all datetimes (unique, from flags)
+        all_datetimes = self.flags.index.get_level_values('datetime').unique()
+
+        def reindex_details(detail_series: pd.Series, dt_index: pd.DatetimeIndex) -> pd.Series:
+            """Reindex a detail Series to match the given DatetimeIndex."""
+            return detail_series.reindex(dt_index).fillna('NA').astype(str)
 
         # Get all iterations that have been processed (using the helper method)
         iterations = self._get_iterations()
@@ -397,6 +405,9 @@ class BuddyWrapSensor:
                 iterations = sorted(self.flags.index.get_level_values('iteration').unique())
             else:
                 iterations = [0]  # Default to iteration 0
+
+        # Build detail strings per datetime using all_datetimes as the index
+        detailstr = pd.Series('', index=all_datetimes)
         
         for iter_num in iterations:
             # Check if this iteration exists in spatial_check details
@@ -408,7 +419,7 @@ class BuddyWrapSensor:
             
             #add spatial check details
             if iter_num in self.details['spatial_check']:
-                spatial_details = reindex_details(self.details['spatial_check'][iter_num])
+                spatial_details = reindex_details(self.details['spatial_check'][iter_num], all_datetimes)
                 detailstr = detailstr.str.cat(spatial_details, sep='')
             # else: placeholder already added above
             
@@ -420,7 +431,7 @@ class BuddyWrapSensor:
                 for safetynetkey in self.details['safetynet_check'].keys():
                     if iter_num in self.details['safetynet_check'][safetynetkey].keys():
                         
-                        savedetails = reindex_details(self.details['safetynet_check'][safetynetkey][iter_num])
+                        savedetails = reindex_details(self.details['safetynet_check'][safetynetkey][iter_num], all_datetimes)
                         detailstr = detailstr.str.cat(savedetails, sep=f'{safetynetkey}:')
                     
                     else:
@@ -432,7 +443,7 @@ class BuddyWrapSensor:
             
             #add whitelist details
             if iter_num in self.details['whitelist_check'].keys():
-                savedetails = reindex_details(self.details['whitelist_check'][iter_num])
+                savedetails = reindex_details(self.details['whitelist_check'][iter_num], all_datetimes)
                 detailstr = detailstr.str.cat(savedetails, sep='')
             else:
                 detailstr = detailstr + 'NA'
