@@ -520,5 +520,5 @@ def toolkit_buddy_check(
         qcres.add_details_by_series(detail_series = wrapsta.get_final_details())
         return_results[wrapsta.name] = qcres            
     
-    return return_results
+    return return_results, targets
     
