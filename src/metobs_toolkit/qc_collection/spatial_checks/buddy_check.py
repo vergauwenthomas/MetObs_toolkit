@@ -184,6 +184,10 @@ def toolkit_buddy_check(
           on the outliers flagged by the current iteration, for each safety net
           in order:
 
+          * If `only_if_previous_had_no_buddies` is True for this safety net,
+            only outlier records where the previous safety net had insufficient
+            buddies (``BC_NO_BUDDIES`` flag) are passed to this safety net.
+            All other records retain their status from the previous safety net.
           * Category buddies (stations sharing the same category value within
             the specified radius) are identified.
           * The safety net sample is tested in size (sample size must be at
@@ -261,6 +265,15 @@ def toolkit_buddy_check(
           by distance and only the nearest ``max_sample_size`` are kept. Must
           be larger than ``min_sample_size`` when specified. Defaults to None
           (no limit).
+        * 'only_if_previous_had_no_buddies': bool (optional), if True this
+          safety net is only applied to outlier records for which the
+          **previous** safety net could not be executed due to insufficient
+          buddies (``BC_NO_BUDDIES`` flag). Records that were successfully
+          tested by the previous safety net (whether they passed or failed)
+          are not re-tested by this one. This enables a cascading fallback
+          strategy, e.g. first try LCZ buddies, then fall back to network
+          buddies only for records that had no LCZ buddies. Cannot be True
+          for the first safety net. Defaults to False.
 
         The default is None.
     lapserate : float or None, optional
@@ -454,6 +467,7 @@ def toolkit_buddy_check(
                 len(safety_net_configs),
                 len(current_outliers_idx),
             )
+            previous_safetynet_category = None
             for safety_net_config in safety_net_configs:
                 logger.info(f"Applying safety net on category {safety_net_config['category']}")
                 
@@ -472,7 +486,10 @@ def toolkit_buddy_check(
                     use_z_robust_method=use_z_robust_method,
                     iteration=i,
                     max_sample_size=safety_net_config.get('max_sample_size', None),
+                    only_if_previous_had_no_buddies=safety_net_config.get('only_if_previous_had_no_buddies', False),
+                    previous_safetynet_category=previous_safetynet_category,
                 )
+                previous_safetynet_category = safety_net_config['category']
             
             # NOTE: Records saved by any safety net will be tested again in
             # the following iteration. A different result can occur if the

@@ -2203,6 +2203,11 @@ class Dataset:
 
            #. For each safety net in `safety_net_configs` (in order):
 
+              * If `only_if_previous_had_no_buddies` is True for this
+                safety net, only outlier records where the previous safety
+                net had insufficient buddies are passed to this safety net.
+                All other records retain their status from the previous
+                safety net.
               * Category buddies (stations sharing the same category value
                 within the specified radius) are identified.
               * The category-buddy sample is tested in size (sample size must
@@ -2249,6 +2254,13 @@ class Dataset:
               buddies are sorted by distance and only the nearest
               ``max_sample_size`` are kept. Must be larger than
               ``min_sample_size`` when specified. Defaults to None (no limit).
+            * 'only_if_previous_had_no_buddies': bool (optional), if True
+              this safety net is only applied to outlier records for which
+              the **previous** safety net could not be executed due to
+              insufficient buddies. Records that were successfully tested
+              by the previous safety net (passed or failed) are not
+              re-tested. This enables a cascading fallback strategy.
+              Cannot be True for the first safety net. Defaults to False.
 
             Example::
 
@@ -2263,7 +2275,8 @@ class Dataset:
                         "category": "network",
                         "buddy_radius": 50000,
                         "z_threshold": 2.5,
-                        "min_sample_size": 3
+                        "min_sample_size": 3,
+                        "only_if_previous_had_no_buddies": True
                     }
                 ]
 
@@ -2342,6 +2355,17 @@ class Dataset:
         ...     safety_net_configs=[
         ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
         ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3}
+        ...     ]
+        ... )
+
+        Apply cascading safety nets where the second safety net only tests
+        records that had insufficient buddies in the first:
+
+        >>> dataset.buddy_check_with_safetynets(
+        ...     obstype="temp",
+        ...     safety_net_configs=[
+        ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
+        ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3, "only_if_previous_had_no_buddies": True}
         ...     ]
         ... )
 

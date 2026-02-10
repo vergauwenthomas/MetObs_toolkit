@@ -10,7 +10,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 from .findbuddies import filter_buddygroup_by_altitude, subset_buddies_to_nearest
 from .samplechecks import buddy_test_a_station
-from ..buddywrapsensor import BC_PASSED
+from ..buddywrapsensor import BC_PASSED, BC_NO_BUDDIES
 
 if TYPE_CHECKING:
     from ..buddywrapsensor import BuddyWrapSensor
@@ -36,7 +36,7 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
         return None
 
     required_keys = {"category", "buddy_radius", "z_threshold", "min_sample_size"}
-    optional_keys = {"max_sample_size"}
+    optional_keys = {"max_sample_size", "only_if_previous_had_no_buddies"}
 
     if not isinstance(safety_net_configs, list):
         raise ValueError(
@@ -70,6 +70,23 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
                         f"({min_ss})."
                     )
 
+        # Validate optional only_if_previous_had_no_buddies
+        if "only_if_previous_had_no_buddies" in config:
+            val = config["only_if_previous_had_no_buddies"]
+            if not isinstance(val, bool):
+                raise ValueError(
+                    f"Safety net config at index {i}: "
+                    f"'only_if_previous_had_no_buddies' must be a bool, "
+                    f"got {type(val).__name__}."
+                )
+            if val and i == 0:
+                raise ValueError(
+                    f"Safety net config at index {i}: "
+                    f"'only_if_previous_had_no_buddies' cannot be True for "
+                    f"the first safety net because there is no previous "
+                    f"safety net to fall back from."
+                )
+
     return None
 
 
@@ -90,6 +107,8 @@ def apply_safety_net(
     use_z_robust_method: bool,
     iteration: int,
     max_sample_size: Union[int, None] = None,
+    only_if_previous_had_no_buddies: bool = False,
+    previous_safetynet_category: Union[str, None] = None,
 ) -> pd.MultiIndex:
    
     # Track records that were saved (passed the safety net test)
@@ -97,6 +116,72 @@ def apply_safety_net(
     
     #create a name map of the wrappedstations
     name_map = {wrapsta.name: wrapsta for wrapsta in buddycheckstations}
+    
+    # If only_if_previous_had_no_buddies is True, restrict outliers to only
+    # those records where the previous safety net had insufficient buddies
+    # (BC_NO_BUDDIES flag). This is determined by inspecting the flags
+    # already stored on each BuddyWrapSensor for the current iteration.
+    if only_if_previous_had_no_buddies:
+        if previous_safetynet_category is None:
+            raise ValueError(
+                "only_if_previous_had_no_buddies is True but "
+                "previous_safetynet_category is None. This should not "
+                "happen -- the first safety net cannot use this option."
+            )
+        
+        prev_check_col = f'safetynet_check:{previous_safetynet_category}'
+        previous_no_buddies = pd.MultiIndex.from_tuples(
+            [], names=['name', 'datetime']
+        )
+        
+        for station_name in outliers.get_level_values('name').unique():
+            wrapsta = name_map[station_name]
+            if (
+                not wrapsta.flags.empty
+                and prev_check_col in wrapsta.flags.columns
+            ):
+                iter_mask = (
+                    wrapsta.flags.index.get_level_values('iteration')
+                    == iteration
+                )
+                iter_flags = wrapsta.flags.loc[iter_mask, prev_check_col]
+                nb_mask = iter_flags == BC_NO_BUDDIES
+                if nb_mask.any():
+                    nb_timestamps = (
+                        iter_flags[nb_mask]
+                        .index.get_level_values('datetime')
+                    )
+                    station_nb = pd.MultiIndex.from_arrays(
+                        [
+                            [station_name] * len(nb_timestamps),
+                            nb_timestamps,
+                        ],
+                        names=['name', 'datetime'],
+                    )
+                    previous_no_buddies = previous_no_buddies.union(
+                        station_nb
+                    )
+        
+        if previous_no_buddies.empty:
+            logger.info(
+                "only_if_previous_had_no_buddies is True but no records "
+                "from the previous safety net ('%s') had insufficient "
+                "buddies. Skipping safety net '%s' entirely.",
+                previous_safetynet_category,
+                buddygroupname,
+            )
+            return outliers
+        
+        outliers = outliers.intersection(previous_no_buddies)
+        logger.info(
+            "Filtering to %s outlier records that had insufficient "
+            "buddies in the previous safety net ('%s').",
+            len(outliers),
+            previous_safetynet_category,
+        )
+    
+    if outliers.empty:
+        return outliers
     
     
     #find the categorical buddies (only for the outlier stations)
