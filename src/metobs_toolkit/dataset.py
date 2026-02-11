@@ -1991,6 +1991,7 @@ class Dataset:
         max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
         min_sample_spread: Union[int, float] = 1.0,
+        min_buddy_distance: Union[int, float] = 0.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -2018,16 +2019,18 @@ class Dataset:
         #. A distance matrix is constructed for all interdistances between
            the stations. This is done using the haversine approximation.
         #. Groups of spatial buddies (neighbours) are created by using the
-           `spatial_buddy_radius.` These groups are further filtered by:
+           `spatial_buddy_radius` and `min_buddy_distance`. Only stations within
+           the distance range [min_buddy_distance, spatial_buddy_radius] are
+           considered as buddies. These groups are further filtered by:
 
-           * removing stations from the groups that differ to much in altitude
+           * removing stations from the groups that differ too much in altitude
              (based on the `max_alt_diff`)
            * removing groups of buddies that are too small (based on the
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantaneous_tolerance` for allignment).
-        #. If a `lapsrate` is specified, the observations are corrected for
+           `instantaneous_tolerance` for alignment).
+        #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
         #. The following steps are repeated for `N-iter` iterations:
 
@@ -2064,8 +2067,15 @@ class Dataset:
             (no limit).
         max_alt_diff : int | float | None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_std : int | float, optional
-            The minimum standard deviation for sample statistics. Default is 1.0.
+        min_sample_spread : int | float, optional
+            The minimum sample spread for sample statistics. When use_z_robust_method is True,
+            this is equal to the minimum MAD to use (avoids division by near-zero). When
+            use_z_robust_method is False, this is the standard deviation. This parameter helps
+            to represent the accuracy of the observations. Default is 1.0.
+        min_buddy_distance : int | float, optional
+            The minimum distance (in meters) required between a station and its buddies.
+            Stations closer than this distance will be excluded from the buddy group.
+            Default is 0.0 (no minimum distance).
         spatial_z_threshold : int | float, optional
             The threshold (std units) for flagging observations as outliers. Default is 3.1.
         N_iter : int, optional
@@ -2113,6 +2123,7 @@ class Dataset:
             max_sample_size=max_sample_size,
             max_alt_diff=max_alt_diff,
             min_sample_spread=min_sample_spread,
+            min_buddy_distance=min_buddy_distance,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
@@ -2138,6 +2149,7 @@ class Dataset:
         max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
         min_sample_spread: Union[int, float] = 1.0,
+        min_buddy_distance: Union[int, float] = 0.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
@@ -2174,16 +2186,18 @@ class Dataset:
         #. A distance matrix is constructed for all interdistances between
            the stations. This is done using the haversine approximation.
         #. Groups of spatial buddies (neighbours) are created by using the
-           `spatial_buddy_radius.` These groups are further filtered by:
+           `spatial_buddy_radius` and `min_buddy_distance`. Only stations within
+           the distance range [min_buddy_distance, spatial_buddy_radius] are
+           considered as buddies. These groups are further filtered by:
 
-           * removing stations from the groups that differ to much in altitude
+           * removing stations from the groups that differ too much in altitude
              (based on the `max_alt_diff`)
            * removing groups of buddies that are too small (based on the
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantaneous_tolerance` for allignment).
-        #. If a `lapsrate` is specified, the observations are corrected for
+           `instantaneous_tolerance` for alignment).
+        #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
         #. The following steps are repeated for `N-iter` iterations:
 
@@ -2209,7 +2223,9 @@ class Dataset:
                 All other records retain their status from the previous
                 safety net.
               * Category buddies (stations sharing the same category value
-                within the specified radius) are identified.
+                within the specified distance range) are identified. Like spatial
+                buddies, category buddies are filtered by distance range
+                [min_buddy_distance, buddy_radius].
               * The category-buddy sample is tested in size (sample size must
                 be at least `min_sample_size`). If the condition is not met,
                 the safety net test is not applied.
@@ -2249,6 +2265,10 @@ class Dataset:
             * 'z_threshold': int or float, z-value threshold for saving outliers
             * 'min_sample_size': int, minimum number of buddies required for the
               safety net test
+            * 'min_buddy_distance': int or float (optional), minimum distance
+              (in meters) required between a station and its category buddies.
+              Stations closer than this distance will be excluded from the
+              buddy group. Defaults to 0 (no minimum distance).
             * 'max_sample_size': int or None (optional), maximum number of
               category buddies to use per station. If not None, category
               buddies are sorted by distance and only the nearest
@@ -2292,9 +2312,17 @@ class Dataset:
             (no limit).
         max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_std : int or float, optional
-            The minimum standard deviation for sample statistics. This is used
-            in spatial and safety net samples. Default is 1.0.
+        min_sample_spread : int or float, optional
+            The minimum sample spread for sample statistics. When use_z_robust_method is True,
+            this is equal to the minimum MAD to use (avoids division by near-zero). When
+            use_z_robust_method is False, this is the standard deviation. This parameter helps
+            to represent the accuracy of the observations. This is used in spatial and
+            safety net samples. Default is 1.0.
+        min_buddy_distance : int or float, optional
+            The minimum distance (in meters) required between a station and its spatial buddies.
+            Stations closer than this distance will be excluded from the buddy group. This also
+            affects safety net buddy selection unless overridden in the safety_net_configs.
+            Default is 0.0 (no minimum distance).
         spatial_z_threshold : int or float, optional
             The threshold, tested with z-scores, for flagging observations as
             outliers. Default is 3.1.
@@ -2412,6 +2440,7 @@ class Dataset:
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
+            min_buddy_distance = min_buddy_distance,
             lapserate=lapserate,
             whiteset=whiteset,
             # Generalized safety net configuration

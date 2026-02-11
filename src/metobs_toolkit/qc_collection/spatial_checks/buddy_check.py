@@ -113,6 +113,7 @@ def toolkit_buddy_check(
     spatial_max_sample_size: Union[int, None] = None,
     max_alt_diff: Union[int, float, None] = None,
     min_sample_spread: Union[int, float] = 1.0,
+    min_buddy_distance: Union[int, float]=0,
     spatial_z_threshold: Union[int, float] = 3.1,
     N_iter: int = 2,
     instantaneous_tolerance: pd.Timedelta = pd.Timedelta("4min"),
@@ -154,16 +155,18 @@ def toolkit_buddy_check(
     #. A distance matrix is constructed for all interdistances between
        the stations. This is done using the haversine approximation.
     #. Groups of spatial buddies (neighbours) are created by using the
-       `spatial_buddy_radius.` These groups are further filtered by:
+       `spatial_buddy_radius` and `min_buddy_distance`. Only stations within
+       the distance range [min_buddy_distance, spatial_buddy_radius] are
+       considered as buddies. These groups are further filtered by:
 
-       * removing stations from the groups that differ to much in altitude
+       * removing stations from the groups that differ too much in altitude
          (based on the `max_alt_diff`)
        * removing groups of buddies that are too small (based on the
          `min_sample_size`)
 
     #. Observations per group are synchronized in time (using the
-       `instantaneous_tolerance` for allignment).
-    #. If a `lapsrate` is specified, the observations are corrected for
+       `instantaneous_tolerance` for alignment).
+    #. If a `lapserate` is specified, the observations are corrected for
        altitude differences.
     #. The following steps are repeated for `N-iter` iterations:
 
@@ -189,7 +192,9 @@ def toolkit_buddy_check(
             buddies (``BC_NO_BUDDIES`` flag) are passed to this safety net.
             All other records retain their status from the previous safety net.
           * Category buddies (stations sharing the same category value within
-            the specified radius) are identified.
+            the specified distance range) are identified. Like spatial buddies,
+            category buddies are filtered by distance range [min_buddy_distance,
+            buddy_radius].
           * The safety net sample is tested in size (sample size must be at
             least `min_sample_size`). If the condition is not met, the safety
             net test is not applied.
@@ -238,6 +243,11 @@ def toolkit_buddy_check(
         this is the equal to the minimum MAD to use (avoids division by near-zero). When
         use_z_robust_method is False, this is the standard deviation. This parameter helps
         to represent the accuracy of the observations.
+    min_buddy_distance : int or float, optional
+        The minimum distance (in meters) required between a station and its spatial buddies.
+        Stations closer than this distance will be excluded from the buddy group. This also
+        affects safety net buddy selection unless overridden in the safety_net_configs.
+        Default is 0.0 (no minimum distance).
     spatial_z_threshold : int or float
         The threshold, tested with z-scores, for flagging observations as outliers.
     N_iter : int
@@ -260,6 +270,10 @@ def toolkit_buddy_check(
         * 'z_threshold': int or float, z-value threshold for saving outliers
         * 'min_sample_size': int, minimum number of buddies required for the
           safety net test
+        * 'min_buddy_distance': int or float (optional), minimum distance
+          (in meters) required between a station and its category buddies.
+          Stations closer than this distance will be excluded from the
+          buddy group. Defaults to 0 (no minimum distance).
         * 'max_sample_size': int or None (optional), maximum number of category
           buddies to use per station. If not None, category buddies are sorted
           by distance and only the nearest ``max_sample_size`` are kept. Must
@@ -349,6 +363,7 @@ def toolkit_buddy_check(
         metadf = metadf,
         max_alt_diff=max_alt_diff,
         buddy_radius=spatial_buddy_radius,
+        min_buddy_distance = min_buddy_distance,
         wrappedstations=targets,
     )
 
@@ -478,6 +493,7 @@ def toolkit_buddy_check(
                     metadf = metadf,
                     distance_df = dist_matrix,
                     max_distance=safety_net_config['buddy_radius'],
+                    min_distance=safety_net_config.get('min_buddy_distance', 0),
                     max_alt_diff=max_alt_diff, #make this configurable?
                     wideobsds=widedf,
                     safety_z_threshold=safety_net_config['z_threshold'],

@@ -90,6 +90,120 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
     return None
 
 
+def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
+                              metadf: pd.DataFrame,
+                              distance_df: pd.DataFrame,
+                              buddygroupname: str,
+                              max_distance: Union[int, float],
+                              min_distance: Union[int, float],
+                              max_alt_diff: Union[int, float, None],
+                              max_sample_size: Union[int, None]) -> None:
+    """
+    Assign category buddies to a wrapped station for safety net buddy checks.
+
+    This function identifies buddies that share the same categorical attribute
+    (e.g., LCZ, network) with the reference station, within specified distance
+    constraints and altitude difference limits.
+
+    The assigned buddy group is stored on the wrapped station and can be accessed
+    using ``wrapsta.get_buddies(groupname=buddygroupname)``.
+
+    Parameters
+    ----------
+    wrapsta : BuddyWrapSensor
+        The wrapped station for which buddies should be assigned.
+    metadf : pd.DataFrame
+        DataFrame containing station metadata. Must have the category column
+        specified by ``buddygroupname`` (e.g., 'LCZ', 'network') and an
+        'altitude' column if ``max_alt_diff`` is not None.
+    distance_df : pd.DataFrame
+        Symmetric distance matrix with station names as index and columns.
+        Distances should be in meters.
+    buddygroupname : str
+        The name of the metadata column to group by (e.g., 'LCZ', 'network').
+        This is also used as the buddy group identifier on the wrapped station.
+    max_distance : int or float
+        Maximum distance (in meters) for category buddies. Stations farther
+        than this distance will be excluded.
+    min_distance : int or float
+        Minimum distance (in meters) required between the station and its
+        category buddies. Stations closer than this distance will be excluded.
+    max_alt_diff : int, float, or None
+        Maximum altitude difference (in meters) allowed for buddies. If None,
+        no altitude filtering is applied.
+    max_sample_size : int or None
+        Maximum number of category buddies to keep per station. If not None,
+        buddies are sorted by distance and only the nearest ``max_sample_size``
+        are retained. If None, no limit is applied.
+
+    Returns
+    -------
+    None
+        The function modifies ``wrapsta`` in place by assigning the buddy group.
+
+    Notes
+    -----
+    The function applies filters in the following order:
+    
+    1. Category matching: Only stations with the same category value as the
+       reference station are considered.
+    2. Distance filtering: Only stations within [min_distance, max_distance]
+       are kept.
+    3. Altitude filtering (if max_alt_diff is not None): Only stations with
+       altitude difference <= max_alt_diff are kept.
+    4. Sample size limiting (if max_sample_size is not None): Only the nearest
+       max_sample_size buddies are kept.
+
+    If the reference station has a NaN value for the category, an empty buddy
+    list is assigned and a warning is logged.
+
+    """
+  
+        
+    ref_category = metadf.loc[wrapsta.name, buddygroupname]
+    # Handle NaN values - they should not match with anything
+    if pd.isna(ref_category):
+        logger.warning(
+            "Station %s has NaN value for category '%s' - no category buddies assigned",
+            wrapsta.name,
+            buddygroupname,
+        )
+        # Assign empty buddy list
+        wrapsta.set_buddies([], groupname=buddygroupname)
+    else:
+        #find potential candidates
+        buddy_candidates = metadf.loc[
+            metadf[buddygroupname] == ref_category
+        ].index.to_list()
+        
+        #remove self from buddy candidates
+        buddy_candidates.remove(wrapsta.name)
+        
+        target_distances = distance_df.loc[wrapsta.name, buddy_candidates]
+        #filter by distance
+        ref_buddies = target_distances[(target_distances <= max_distance) & (target_distances >= min_distance)].index.to_list()
+        
+        # Assign the found buddies
+        wrapsta.set_buddies(ref_buddies, groupname=buddygroupname)
+        
+    #filter by altitude difference if needed
+    if max_alt_diff is not None:
+        filter_buddygroup_by_altitude(
+            wrappedstation=wrapsta,
+            groupname=buddygroupname,
+            altitudes=metadf['altitude'],
+            max_altitude_diff=max_alt_diff
+        )
+
+    # Subset category buddies to nearest N if max_sample_size is set
+    if max_sample_size is not None:
+        subset_buddies_to_nearest(
+            wrappedstations=[wrapsta],
+            distance_df=distance_df,
+            max_sample_size=max_sample_size,
+            groupname=buddygroupname,
+        )
+
 
 
 def apply_safety_net(
@@ -99,6 +213,7 @@ def apply_safety_net(
     metadf: pd.DataFrame,
     distance_df: pd.DataFrame,
     max_distance: Union[int, float],
+    min_distance: Union[int, float],
     max_alt_diff: Union[int, float, None],
     wideobsds: pd.DataFrame,
     safety_z_threshold: Union[int, float],
@@ -187,51 +302,17 @@ def apply_safety_net(
     #find the categorical buddies (only for the outlier stations)
     for outlstation in outliers.get_level_values('name').unique():
         wrapsta = name_map[outlstation]
+        assign_safety_net_buddies(
+                wrapsta=wrapsta,
+                metadf = metadf,
+                distance_df = distance_df,
+                buddygroupname = buddygroupname,
+                max_distance = max_distance,
+                min_distance = min_distance,
+                max_alt_diff = max_alt_diff,
+                max_sample_size = max_sample_size)
         
-        ref_category = metadf.loc[wrapsta.name, buddygroupname]
-        # Handle NaN values - they should not match with anything
-        if pd.isna(ref_category):
-            logger.warning(
-                "Station %s has NaN value for category '%s' - no category buddies assigned",
-                wrapsta.name,
-                buddygroupname,
-            )
-            # Assign empty buddy list
-            wrapsta.set_buddies([], groupname=buddygroupname)
-        else:
-            #find potential candidates
-            buddy_candidates = metadf.loc[
-                metadf[buddygroupname] == ref_category
-            ].index.to_list()
-            
-            #remove self from buddy candidates
-            buddy_candidates.remove(wrapsta.name)
-            
-            target_distances = distance_df.loc[wrapsta.name, buddy_candidates]
-            #filter by distance
-            ref_buddies = target_distances[target_distances <= max_distance].index.to_list()
-            
-            # Assign the found buddies
-            wrapsta.set_buddies(ref_buddies, groupname=buddygroupname)
-            
-        #filter by altitude difference if needed
-        if max_alt_diff is not None:
-            filter_buddygroup_by_altitude(
-                wrappedstation=wrapsta,
-                groupname=buddygroupname,
-                altitudes=metadf['altitude'],
-                max_altitude_diff=max_alt_diff
-            )
-
-        # Subset category buddies to nearest N if max_sample_size is set
-        if max_sample_size is not None:
-            subset_buddies_to_nearest(
-                wrappedstations=[wrapsta],
-                distance_df=distance_df,
-                max_sample_size=max_sample_size,
-                groupname=buddygroupname,
-            )
-    
+        
     #find outliers in the new categorical group
     # The buddy_test_a_station function updates flags/details directly
     # and returns only the outlier MultiIndex (BC_FLAGGED records)

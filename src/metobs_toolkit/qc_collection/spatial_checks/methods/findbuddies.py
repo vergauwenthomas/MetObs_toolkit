@@ -20,13 +20,15 @@ def assign_spatial_buddies(
     distance_df: pd.DataFrame,
     metadf: pd.DataFrame,
     buddy_radius: Union[int, float],
+    min_buddy_distance: Union[int, float],
     wrappedstations: List[BuddyCheckStation],
     max_alt_diff: Union[int, float, None]=None,
 ) -> None:
 
 
     spatial_buddies = _find_buddies_by_distance(distance_df=distance_df,
-                                                buddy_radius=buddy_radius)
+                                                buddy_radius=buddy_radius,
+                                                min_buddy_distance=min_buddy_distance)
     
     #update the wrapstations
     for wrapsta in wrappedstations:
@@ -98,13 +100,14 @@ def subset_buddies_to_nearest(
 #    Help functions to find buddies
 # ------------------------------------------
 def _find_buddies_by_distance(
-    distance_df: pd.DataFrame, buddy_radius: Union[int, float]
+    distance_df: pd.DataFrame, buddy_radius: Union[int, float], min_buddy_distance: Union[int, float]=0
 ) -> Dict:
 
     buddies = {}
     for refstation, distances in distance_df.iterrows():
-        bud_stations = distances[distances <= buddy_radius].index.to_list()
-        bud_stations.remove(refstation)
+        bud_stations = distances[(distances <= buddy_radius) & (distances >= min_buddy_distance)].index.to_list()
+        if refstation in bud_stations:
+            bud_stations.remove(refstation)
         buddies[refstation] = bud_stations
 
     return buddies
