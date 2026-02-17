@@ -30,8 +30,8 @@ def synchronize_series(
 
 
      * freq: the highest frequency present in the input series
-     * origin: the earliest timestamp found, rounded down by the freq
-     * closing: the latest timestamp found, rounded up by the freq.
+     * origin: the earliest timestamp found across all input series
+     * closing: the latest timestamp found across all input series.
 
     Parameters
     ----------
@@ -55,8 +55,8 @@ def synchronize_series(
     trg_freq = min(frequencies)
 
     # find origin and closing timestamp (earliest/latest)
-    origin = min([s.index.min() for s in series_list]).floor(trg_freq)
-    closing = max([s.index.max() for s in series_list]).ceil(trg_freq)
+    origin = min([s.index.min() for s in series_list])
+    closing = max([s.index.max() for s in series_list])
 
     # Create target datetime axes
     target_dt = pd.date_range(start=origin, end=closing, freq=trg_freq)
