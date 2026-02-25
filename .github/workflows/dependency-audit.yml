@@ -49,5 +49,9 @@ jobs:
       - name: Vulnerability audit
         run: poetry run pip-audit
 
+      - name: Geemap folium import guard
+        run: |
+          poetry run python -c "import geemap.foliumap as geemap; print('geemap folium import successful')"
+
       - name: Import smoke test
         run: poetry run python -c "import metobs_toolkit; print('Import successful')"
