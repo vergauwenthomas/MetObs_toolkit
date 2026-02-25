@@ -63,6 +63,35 @@ jobs:
           with:
             python-version: '3.10'
 
+        - name: Ensure version differs from master
+          if: github.ref != 'refs/heads/master'
+          run: |
+            git fetch origin master --depth=1
+            python - <<'PY'
+            import subprocess
+            import tomllib
+
+            with open("pyproject.toml", "rb") as f:
+                current = tomllib.load(f)
+            current_version = current["project"]["version"]
+
+            master_pyproject = subprocess.check_output(
+                ["git", "show", "origin/master:pyproject.toml"], text=True
+            )
+            master = tomllib.loads(master_pyproject)
+            master_version = master["project"]["version"]
+
+            print(f"Current version: {current_version}")
+            print(f"Master version: {master_version}")
+
+            if current_version == master_version:
+                raise SystemExit(
+                    "Version check failed: current version is identical to origin/master. "
+                    "Please bump [project].version in pyproject.toml."
+                )
+            print("Version check passed: current version differs from origin/master.")
+            PY
+
         - name: Install Poetry
           run: |
             curl -sSL https://install.python-poetry.org | python3 -
