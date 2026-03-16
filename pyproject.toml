@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "1.0.2"
+version = "1.0.3"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@ugent.be"}]
