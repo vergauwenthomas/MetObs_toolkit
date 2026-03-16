@@ -92,9 +92,8 @@ def connect_to_gee(**kwargs) -> None:
         # Fall through to authentication
 
     # If initialization failed, try to authenticate
-    if not ee.data._credentials:
-        ee.Authenticate()
-        ee.Initialize()
+    ee.Authenticate()
+    ee.Initialize()
     return None
 
 
