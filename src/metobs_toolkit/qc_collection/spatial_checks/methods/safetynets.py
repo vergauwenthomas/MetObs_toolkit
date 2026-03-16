@@ -189,7 +189,7 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
     #filter by altitude difference if needed
     if max_alt_diff is not None:
         filter_buddygroup_by_altitude(
-            wrappedstation=wrapsta,
+            wrappedsensor=wrapsta,
             groupname=buddygroupname,
             altitudes=metadf['altitude'],
             max_altitude_diff=max_alt_diff
@@ -198,7 +198,7 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
     # Subset category buddies to nearest N if max_sample_size is set
     if max_sample_size is not None:
         subset_buddies_to_nearest(
-            wrappedstations=[wrapsta],
+            wrappedsensors=[wrapsta],
             distance_df=distance_df,
             max_sample_size=max_sample_size,
             groupname=buddygroupname,
@@ -208,7 +208,7 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
 
 def apply_safety_net(
     outliers: pd.Index,
-    buddycheckstations: List[BuddyWrapSensor],
+    buddychecksensors: List[BuddyWrapSensor],
     buddygroupname: str,
     metadf: pd.DataFrame,
     distance_df: pd.DataFrame,
@@ -225,12 +225,67 @@ def apply_safety_net(
     only_if_previous_had_no_buddies: bool = False,
     previous_safetynet_category: Union[str, None] = None,
 ) -> pd.MultiIndex:
-   
+    """Run a single safety-net buddy check on the flagged outlier records.
+
+    For each outlier record, safety-net buddies are assigned (using a
+    possibly different radius/altitude filter), then the z-score buddy
+    test is applied.  Records that pass the safety-net test are returned
+    so callers can mark them as *saved*.
+
+    Parameters
+    ----------
+    outliers : pandas.Index
+        MultiIndex ``('name', 'datetime')`` of records flagged as outliers
+        by the primary spatial check.
+    buddychecksensors : list of BuddyWrapSensor
+        All wrapped sensors involved in the buddy check.
+    buddygroupname : str
+        Name prefix for the safety-net buddy group (e.g. a LCZ category).
+    metadf : pandas.DataFrame
+        Station metadata with at least an ``'altitude'`` column.
+    distance_df : pandas.DataFrame
+        Symmetric distance matrix (metres) with station names as index
+        and columns.
+    max_distance : int or float
+        Maximum buddy search radius (metres) for the safety net.
+    min_distance : int or float
+        Minimum buddy distance (metres).
+    max_alt_diff : int, float, or None
+        Altitude filter (metres).  None disables altitude filtering.
+    wideobsds : pandas.DataFrame
+        Wide-format observations DataFrame used for z-score computation.
+    safety_z_threshold : int or float
+        Z-score threshold for the safety-net outlier test.
+    min_sample_size : int
+        Minimum number of valid buddy samples required.
+    min_sample_spread : int or float
+        Minimum sample spread (std or MAD) to avoid near-zero division.
+    use_z_robust_method : bool
+        If True, use the robust (median/MAD) z-score method.
+    iteration : int
+        Current iteration number.
+    max_sample_size : int or None, optional
+        Maximum number of buddies to use.  None means no cap.
+        Default is None.
+    only_if_previous_had_no_buddies : bool, optional
+        If True, only apply the safety net for records that had
+        insufficient buddies in the previous safety-net layer.
+        Default is False.
+    previous_safetynet_category : str or None, optional
+        Category name of the preceding safety net, required when
+        ``only_if_previous_had_no_buddies`` is True.  Default is None.
+
+    Returns
+    -------
+    pandas.MultiIndex
+        MultiIndex ``('name', 'datetime')`` of records that passed the
+        safety-net test (i.e. were *saved* from being flagged).
+    """
     # Track records that were saved (passed the safety net test)
     saved_records = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
     
-    #create a name map of the wrappedstations
-    name_map = {wrapsta.name: wrapsta for wrapsta in buddycheckstations}
+    #create a name map of the wrappedsensors
+    name_map = {wrapsens.name: wrapsens for wrapsens in buddychecksensors}
     
     # If only_if_previous_had_no_buddies is True, restrict outliers to only
     # those records where the previous safety net had insufficient buddies
@@ -331,7 +386,7 @@ def apply_safety_net(
         # Run the buddy test - this updates flags/details directly on wrapsta
         # and returns outliers (BC_FLAGGED records)
         station_flagged = buddy_test_a_station(
-            centerwrapstation=wrapsta,
+            centerwrapsensor=wrapsta,
             buddygroupname=buddygroupname,
             widedf=widedf_subset,
             min_sample_size=min_sample_size,

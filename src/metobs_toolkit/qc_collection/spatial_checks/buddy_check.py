@@ -90,7 +90,7 @@ def _build_station_buddy_kwargs(
     subset_widedf = widedf[required_columns]
     
     return {
-        'centerwrapstation': station,
+        'centerwrapsensor': station,
         'buddygroupname': buddygroupname,
         'widedf': subset_widedf,
         'min_sample_size': min_sample_size,
@@ -100,8 +100,6 @@ def _build_station_buddy_kwargs(
         'check_type': check_type,
         'use_z_robust_method': use_z_robust_method,
     }
-
-#TODO: Trough all modules related to the buddy check, there is often the reference to wrappedbuddystation or buddywrapstation. Replace these to buddywrapsensor
 
 @log_entry
 def toolkit_buddy_check(
@@ -364,7 +362,7 @@ def toolkit_buddy_check(
         max_alt_diff=max_alt_diff,
         buddy_radius=spatial_buddy_radius,
         min_buddy_distance = min_buddy_distance,
-        wrappedstations=targets,
+        wrappedsensors=targets,
     )
 
     # Subset spatial buddies to nearest N if spatial_max_sample_size is set
@@ -374,7 +372,7 @@ def toolkit_buddy_check(
             spatial_max_sample_size,
         )
         buddymethods.subset_buddies_to_nearest(
-            wrappedstations=targets,
+            wrappedsensors=targets,
             distance_df=dist_matrix,
             max_sample_size=spatial_max_sample_size,
             groupname='spatial',
@@ -446,7 +444,7 @@ def toolkit_buddy_check(
             # create inputargs for each buddygroup, and for each chunk in time
             inputargs = [
                 {
-                    'centerwrapstation': sta,
+                    'centerwrapsensor': wrapsensor,
                     'buddygroupname': 'spatial',
                     'widedf': widedf,
                     'min_sample_size': spatial_min_sample_size,
@@ -456,16 +454,16 @@ def toolkit_buddy_check(
                     'check_type': 'spatial_check',
                     'use_z_robust_method': use_z_robust_method,
                 }
-                for sta in targets
+                for wrapsensor in targets
             ]
             
 
             logger.debug("Finding outliers in each buddy group")
             buddy_output = list(map(lambda kwargs: buddymethods.buddy_test_a_station(**kwargs), inputargs))
 
-        #buddy output is [(MultiIndex, BuddyCheckStation), ...], that needs to be unpacked
+        #buddy output is [(MultiIndex, BuddyWrapSensor), ...], that needs to be unpacked
         outlier_indices, updated_stations = zip(*buddy_output)    
-        #overload the Buddycheckstation 
+        #overload the BuddyWrapSensor
         targets = list(updated_stations)
             
         # Concatenate all outlier MultiIndices
@@ -488,7 +486,7 @@ def toolkit_buddy_check(
                 
                 current_outliers_idx = buddymethods.apply_safety_net(    
                     outliers=current_outliers_idx,
-                    buddycheckstations = targets,
+                    buddychecksensors = targets,
                     buddygroupname=safety_net_config['category'],
                     metadf = metadf,
                     distance_df = dist_matrix,
@@ -514,7 +512,7 @@ def toolkit_buddy_check(
         # Apply whitelist filtering
         current_outliers_idx = buddymethods.save_whitelist_records(
             outliers=current_outliers_idx,
-            wrappedstations=targets,
+            wrappedsensors=targets,
             whiteset=whiteset,
             obstype=obstype,
             iteration=i,

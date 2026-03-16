@@ -10,7 +10,7 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 if TYPE_CHECKING:
-    from ...buddystation import BuddyCheckStation
+    from ..buddywrapsensor import BuddyWrapSensor
 
 # ------------------------------------------
 #    Callables by buddy check
@@ -21,7 +21,7 @@ def assign_spatial_buddies(
     metadf: pd.DataFrame,
     buddy_radius: Union[int, float],
     min_buddy_distance: Union[int, float],
-    wrappedstations: List[BuddyCheckStation],
+    wrappedsensors: List[BuddyWrapSensor],
     max_alt_diff: Union[int, float, None]=None,
 ) -> None:
     """Assign spatial buddy groups to all wrapped stations.
@@ -44,8 +44,8 @@ def assign_spatial_buddies(
         considered a buddy.
     min_buddy_distance : int or float
         Minimum distance (metres); stations closer than this are excluded.
-    wrappedstations : list of BuddyWrapSensor
-        Wrapped station objects whose buddy groups are updated in-place.
+    wrappedsensors : list of BuddyWrapSensor
+        Wrapped sensor objects whose buddy groups are updated in-place.
     max_alt_diff : int, float, or None, optional
         If given, buddies with an altitude difference greater than this
         value (metres) are removed.  Default is None (no altitude filter).
@@ -54,14 +54,14 @@ def assign_spatial_buddies(
                                                 buddy_radius=buddy_radius,
                                                 min_buddy_distance=min_buddy_distance)
     
-    #update the wrapstations
-    for wrapsta in wrappedstations:
-        wrapsta.set_buddies(spatial_buddies[wrapsta.name], groupname='spatial')
+    #update the wrapsensors
+    for wrapsensor in wrappedsensors:
+        wrapsensor.set_buddies(spatial_buddies[wrapsensor.name], groupname='spatial')
     
     if max_alt_diff is not None:
-        for wrapsta in wrappedstations:
+        for wrapsensor in wrappedsensors:
             filter_buddygroup_by_altitude(
-                wrappedstation=wrapsta,
+                wrappedsensor=wrapsensor,
                 groupname='spatial',
                 altitudes=metadf['altitude'],
                 max_altitude_diff=max_alt_diff
@@ -70,7 +70,7 @@ def assign_spatial_buddies(
        
 
 def filter_buddygroup_by_altitude(
-    wrappedstation: BuddyCheckStation,
+    wrappedsensor: BuddyWrapSensor,
     groupname: str,
     altitudes: pd.Series,
     max_altitude_diff: Union[int, float]
@@ -82,8 +82,8 @@ def filter_buddygroup_by_altitude(
 
     Parameters
     ----------
-    wrappedstation : BuddyWrapSensor
-        The wrapped station whose buddy group is to be filtered.
+    wrappedsensor : BuddyWrapSensor
+        The wrapped sensor whose buddy group is to be filtered.
     groupname : str
         The name of the buddy group to filter (e.g. ``'spatial'``).
     altitudes : pandas.Series
@@ -101,16 +101,16 @@ def filter_buddygroup_by_altitude(
         raise ValueError("Altitude series contains NaN values. All stations must have valid altitude data for altitude filtering.")
         
     #update the filter flag
-    station_altitude = altitudes.loc[wrappedstation.name]
+    station_altitude = altitudes.loc[wrappedsensor.name]
     alt_buddies = []
-    for buddy_name in wrappedstation.get_buddies(groupname=groupname):
+    for buddy_name in wrappedsensor.get_buddies(groupname=groupname):
         buddy_altitude = altitudes.loc[buddy_name]
         if abs(station_altitude - buddy_altitude) <= max_altitude_diff:
             alt_buddies.append(buddy_name)
-    wrappedstation.filter_buddies(groupname=groupname, filteredbuddies=alt_buddies)
+    wrappedsensor.filter_buddies(groupname=groupname, filteredbuddies=alt_buddies)
     
 def subset_buddies_to_nearest(
-    wrappedstations: List,
+    wrappedsensors: List,
     distance_df: pd.DataFrame,
     max_sample_size: int,
     groupname: str,
@@ -122,8 +122,8 @@ def subset_buddies_to_nearest(
 
     Parameters
     ----------
-    wrappedstations : list of BuddyWrapSensor
-        The wrapped stations whose buddy groups should be subsetted.
+    wrappedsensors : list of BuddyWrapSensor
+        The wrapped sensors whose buddy groups should be subsetted.
     distance_df : pd.DataFrame
         Symmetric distance matrix with station names as index and columns.
     max_sample_size : int
@@ -131,7 +131,7 @@ def subset_buddies_to_nearest(
     groupname : str
         The name of the buddy group to subset (e.g., 'spatial').
     """
-    for wrapsta in wrappedstations:
+    for wrapsta in wrappedsensors:
         buddies = wrapsta.get_buddies(groupname=groupname)
         if len(buddies) <= max_sample_size:
             continue

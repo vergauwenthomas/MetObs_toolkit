@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def save_whitelist_records(
     outliers: pd.MultiIndex,
-    wrappedstations: List[BuddyWrapSensor],
+    wrappedsensors: List[BuddyWrapSensor],
     whiteset: WhiteSet,
     obstype: str,
     iteration: int,
@@ -33,8 +33,8 @@ def save_whitelist_records(
     outliers : pd.MultiIndex
         MultiIndex with levels ('name', 'datetime') containing the current 
         outlier records to filter.
-    wrappedstations : list of BuddyCheckStation
-        List of wrapped station objects to update with whitelist details.
+    wrappedsensors : list of BuddyWrapSensor
+        List of wrapped sensor objects to update with whitelist details.
     whiteset : WhiteSet
         A WhiteSet instance containing records that should be excluded from
         outlier detection.
@@ -62,7 +62,7 @@ def save_whitelist_records(
     remaining_outliers = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
     
     # Process each station's outliers
-    for wrapsta in wrappedstations:
+    for wrapsta in wrappedsensors:
         if wrapsta.name not in outliers.get_level_values("name").unique():
             continue  # No outliers for this station
     

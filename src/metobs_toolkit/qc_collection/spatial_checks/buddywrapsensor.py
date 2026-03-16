@@ -589,7 +589,7 @@ class BuddyWrapSensor:
         }
     
     def get_info(self) -> str:
-        """Get a summary of the BuddyCheckStation status and attributes.
+        """Get a summary of the BuddyWrapSensor status and attributes.
         
         Returns
         -------
@@ -598,7 +598,7 @@ class BuddyWrapSensor:
         """
         lines = []
         lines.append("=" * 60)
-        lines.append(f"BuddyCheckStation: {self.name}")
+        lines.append(f"BuddyWrapSensor: {self.name}")
         lines.append("=" * 60)
         
         # Buddy groups
