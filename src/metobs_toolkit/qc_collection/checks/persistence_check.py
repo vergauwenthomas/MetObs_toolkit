@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from .common_functions import test_moving_window_condition, create_qcresult_flags
-from .whitelist import SensorWhiteSet
+
 from metobs_toolkit.qcresult import (
     QCresult,
     pass_cond,
@@ -15,6 +15,7 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
 )
+from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 

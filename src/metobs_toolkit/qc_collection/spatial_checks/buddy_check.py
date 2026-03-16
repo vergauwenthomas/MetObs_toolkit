@@ -15,7 +15,7 @@ from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_m
 from metobs_toolkit.qcresult import QCresult, flagged_cond
 from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map
 from metobs_toolkit.settings_collection import Settings
-from ..whitelist import WhiteSet
+from metobs_toolkit.qc_collection.whitelist import WhiteSet
 # Import methods
 from . import methods as buddymethods
 

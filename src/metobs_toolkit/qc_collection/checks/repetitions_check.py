@@ -7,7 +7,7 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.backend_collection.datetime_collection import (
     timestamps_to_datetimeindex,
 )
-from .whitelist import SensorWhiteSet
+from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 

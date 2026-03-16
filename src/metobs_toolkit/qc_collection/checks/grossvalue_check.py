@@ -3,9 +3,10 @@ from typing import Union
 import pandas as pd
 
 from .common_functions import create_qcresult_flags
-from .whitelist import SensorWhiteSet
+
 from metobs_toolkit.backend_collection.decorators import log_entry
 from metobs_toolkit.qcresult import QCresult
+from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 

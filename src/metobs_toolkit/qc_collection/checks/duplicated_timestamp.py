@@ -5,12 +5,7 @@ import pandas as pd
 
 from .common_functions import create_qcresult_flags
 from metobs_toolkit.backend_collection.decorators import log_entry
-from metobs_toolkit.qcresult import (
-    QCresult,
-    pass_cond,
-    flagged_cond,
-
-)
+from metobs_toolkit.qcresult import QCresult
 
 logger = logging.getLogger("<metobs_toolkit>")
 
