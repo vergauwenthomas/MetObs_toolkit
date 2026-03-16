@@ -240,6 +240,90 @@ class TestDemoDataset:
         #test if test_qc works if some stations are missing obstype
         dataset.get_qc_stats(obstype=obstype)
 
+    def test_persistence_check_unmet_window(self, import_dataset):
+        """Details mention unmet window condition when min_records_per_window is too large.
+
+        When min_records_per_window exceeds the number of records that can fit
+        inside the timewindow (given the dataset frequency), the persistence check
+        sets all records to 'condition_unmet' instead of 'flagged'. These records
+        do NOT appear in outliersdf (which contains only flagged outliers), but the
+        unmet-condition details are visible via qc_overview_df.
+        """
+        dataset = copy.deepcopy(import_dataset)
+        # Dataset is resampled to 1h. A min_records_per_window of 100 in a 1h
+        # window is impossible to satisfy, forcing the unmet-condition path.
+        dataset.persistence_check(
+            obstype="temp",
+            timewindow="1h",
+            min_records_per_window=100,
+            use_mp=False,
+        )
+
+        # Persistence produced no flagged outliers because condition was unmet
+        if not dataset.outliersdf.empty:
+            assert "persistence" not in dataset.outliersdf["label"].values, (
+                "Persistence check should not flag any outliers when window "
+                "condition is not met"
+            )
+
+        # The unmet-condition details ARE accessible via qc_overview_df
+        overview = dataset.qc_overview_df(subset_obstypes=["temp"])
+        assert not overview.empty
+
+        # Extract details for the persistence checkname
+        persistence_details = overview[("details", "persistence")]
+        unique_details = persistence_details.dropna().unique()
+        # Every record should carry the "not met" detail message
+        assert len(unique_details) == 1, (
+            "Expected a single uniform detail message when window condition is unmet"
+        )
+        assert "not met" in unique_details[0].lower(), (
+            f"Expected 'not met' in details, got: {unique_details[0]!r}"
+        )
+
+    def test_window_variation_check_unmet_window(self, import_dataset):
+        """Details mention unmet window condition when min_records_per_window is too large.
+
+        When min_records_per_window exceeds the number of records that can fit
+        inside the timewindow (given the dataset frequency), the window_variation
+        check sets all records to 'condition_unmet' instead of 'flagged'. These
+        records do NOT appear in outliersdf, but the unmet-condition details are
+        visible via qc_overview_df.
+        """
+        dataset = copy.deepcopy(import_dataset)
+        # Dataset is resampled to 1h. A min_records_per_window of 100 in a 1h
+        # window is impossible to satisfy, forcing the unmet-condition path.
+        dataset.window_variation_check(
+            obstype="temp",
+            timewindow="1h",
+            min_records_per_window=100,
+            max_increase_per_second=8.0 / 3600.0,
+            max_decrease_per_second=-10.0 / 3600.0,
+            use_mp=False,
+        )
+
+        # window_variation produced no flagged outliers because condition was unmet
+        if not dataset.outliersdf.empty:
+            assert "window_variation" not in dataset.outliersdf["label"].values, (
+                "window_variation check should not flag any outliers when window "
+                "condition is not met"
+            )
+
+        # The unmet-condition details ARE accessible via qc_overview_df
+        overview = dataset.qc_overview_df(subset_obstypes=["temp"])
+        assert not overview.empty
+
+        # Extract details for the window_variation checkname
+        wv_details = overview[("details", "window_variation")]
+        unique_details = wv_details.dropna().unique()
+        # Every record should carry the "not met" detail message
+        assert len(unique_details) == 1, (
+            "Expected a single uniform detail message when window condition is unmet"
+        )
+        assert "not met" in unique_details[0].lower(), (
+            f"Expected 'not met' in details, got: {unique_details[0]!r}"
+        )
+
     def test_buddy_check_raise_errors(self, import_dataset):
         #  1. get_startpoint data
         dataset = copy.deepcopy(import_dataset)
@@ -567,6 +651,244 @@ class TestDemoDataset:
                 spatial_z_threshold=2.1,
                 use_mp=False,
             )
+
+
+class TestQcOverviewDf:
+    """Test qc_overview_df functions at sensor, station and dataset level."""
+
+    # ------------------------------------------------------------------ #
+    # fixtures
+    # ------------------------------------------------------------------ #
+
+    @pytest.fixture(scope="class")
+    def breaking_import(self):
+        """Import the breaking testdata and return raw dataset."""
+        datafile = datadir.joinpath("testdata_breaking.csv")
+        templatefile = datadir.joinpath("template_breaking.json")
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=templatefile,
+            input_data_file=datafile,
+        )
+        return dataset
+
+    @pytest.fixture(scope="class")
+    def breaking_with_qc(self, breaking_import):
+        """Run a typical QC pipeline on the breaking dataset."""
+        dataset = copy.deepcopy(breaking_import)
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=-15.0,
+            upper_threshold=29.0,
+            use_mp=False,
+        )
+        dataset.gross_value_check(
+            obstype="humidity",
+            lower_threshold=5.0,
+            upper_threshold=10.0,
+            use_mp=False,
+        )
+        dataset.persistence_check(
+            obstype="temp", timewindow="1h", min_records_per_window=3, use_mp=False,
+        )
+        dataset.repetitions_check(obstype="temp", max_N_repetitions=5, use_mp=False)
+        dataset.step_check(
+            obstype="temp",
+            max_increase_per_second=8.0 / 3600.0,
+            max_decrease_per_second=-10.0 / 3600.0,
+            use_mp=False,
+        )
+        dataset.window_variation_check(
+            obstype="temp", timewindow="1h", min_records_per_window=3,
+            max_increase_per_second=8.0 / 3600.0, max_decrease_per_second=-10.0 / 3600.0,
+            use_mp=False,
+        )
+        return dataset
+
+    # ------------------------------------------------------------------ #
+    # Sensordata level
+    # ------------------------------------------------------------------ #
+
+    def test_sensor_overview_after_qc(self, breaking_with_qc):
+        """Sensor-level overview contains expected columns and index after QC."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+        sensor = station.get_sensor("temp")
+
+        df = sensor.qc_overview_df()
+        assert not df.empty, "Expected non-empty overview for checked sensor"
+        assert df.index.name == "datetime"
+        assert "value" in df.columns.get_level_values(0)
+        assert "label" in df.columns.get_level_values(0)
+        assert "details" in df.columns.get_level_values(0)
+
+    def test_sensor_overview_no_explicit_qc(self, breaking_import):
+        """Sensor-level overview after import contains automatic import-time checks."""
+        dataset = copy.deepcopy(breaking_import)
+        station = dataset.get_station("Fictional")
+        sensor = station.get_sensor("temp")
+
+        df = sensor.qc_overview_df()
+        # Import-time checks (like duplicated_timestamp) make the overview non-empty
+        assert not df.empty
+        assert df.index.name == "datetime"
+        check_names = df.columns.get_level_values("checkname").unique().dropna()
+        assert "duplicated_timestamp" in check_names
+
+    def test_sensor_overview_humidity(self, breaking_with_qc):
+        """Sensor-level overview works for non-temp obstypes that had QC."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+        sensor = station.get_sensor("humidity")
+
+        df = sensor.qc_overview_df()
+        # gross_value_check was applied to humidity
+        assert not df.empty, "Expected non-empty overview for humidity sensor"
+
+    def test_sensor_overview_unchecked_obstype(self, breaking_with_qc):
+        """Sensor with no explicit QC still has import-time check results."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+        sensor = station.get_sensor("wind_speed")
+
+        df = sensor.qc_overview_df()
+        # Import-time checks run for every obstype
+        assert not df.empty
+        check_names = df.columns.get_level_values("checkname").unique().dropna()
+        assert "duplicated_timestamp" in check_names
+        # Explicit QC checks (like gross_value) should NOT be present
+        assert "gross_value" not in check_names
+
+    # ------------------------------------------------------------------ #
+    # Station level
+    # ------------------------------------------------------------------ #
+
+    def test_station_overview_after_qc(self, breaking_with_qc):
+        """Station-level overview has a (datetime, obstype) MultiIndex after QC."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+
+        df = station.qc_overview_df()
+        assert not df.empty
+        assert df.index.names == ["datetime", "obstype"]
+        assert "value" in df.columns.get_level_values(0)
+        assert "label" in df.columns.get_level_values(0)
+        assert "details" in df.columns.get_level_values(0)
+
+        # Should contain at least temp and humidity (both had QC)
+        obstypes_present = df.index.get_level_values("obstype").unique()
+        assert "temp" in obstypes_present
+        assert "humidity" in obstypes_present
+
+    def test_station_overview_no_explicit_qc(self, breaking_import):
+        """Station-level overview after import contains import-time check results."""
+        dataset = copy.deepcopy(breaking_import)
+        station = dataset.get_station("Fictional")
+
+        df = station.qc_overview_df()
+        assert not df.empty
+        assert list(df.index.names) == ["datetime", "obstype"]
+        check_names = df.columns.get_level_values("checkname").unique().dropna()
+        assert "duplicated_timestamp" in check_names
+
+    def test_station_overview_subset_obstypes(self, breaking_with_qc):
+        """Station-level overview with subset_obstypes returns only requested types."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+
+        df = station.qc_overview_df(subset_obstypes=["temp"])
+        assert not df.empty
+        obstypes_present = df.index.get_level_values("obstype").unique()
+        assert list(obstypes_present) == ["temp"]
+
+    def test_station_overview_subset_obstypes_unknown(self, breaking_with_qc):
+        """Station-level overview silently ignores unknown obstype names."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+
+        df = station.qc_overview_df(subset_obstypes=["nonexistent_obstype"])
+        assert df.empty
+
+    def test_station_overview_subset_obstypes_mixed(self, breaking_with_qc):
+        """Subset with valid + unknown names returns only the valid one."""
+        dataset = copy.deepcopy(breaking_with_qc)
+        station = dataset.get_station("Fictional")
+
+        df = station.qc_overview_df(subset_obstypes=["temp", "fake_obstype"])
+        assert not df.empty
+        obstypes_present = df.index.get_level_values("obstype").unique()
+        assert list(obstypes_present) == ["temp"]
+
+    # ------------------------------------------------------------------ #
+    # Dataset level
+    # ------------------------------------------------------------------ #
+
+    def test_dataset_overview_after_qc(self, breaking_with_qc):
+        """Dataset-level overview has (datetime, obstype, name) MultiIndex."""
+        dataset = copy.deepcopy(breaking_with_qc)
+
+        df = dataset.qc_overview_df()
+        assert not df.empty
+        assert df.index.names == ["datetime", "obstype", "name"]
+        assert "value" in df.columns.get_level_values(0)
+        assert "label" in df.columns.get_level_values(0)
+        assert "details" in df.columns.get_level_values(0)
+
+    def test_dataset_overview_no_explicit_qc(self, breaking_import):
+        """Dataset-level overview after import contains import-time check results."""
+        dataset = copy.deepcopy(breaking_import)
+
+        df = dataset.qc_overview_df()
+        assert not df.empty
+        assert list(df.index.names) == ["datetime", "obstype", "name"]
+        check_names = df.columns.get_level_values("checkname").unique().dropna()
+        assert "duplicated_timestamp" in check_names
+
+    def test_dataset_overview_subset_stations(self, breaking_with_qc):
+        """Dataset-level overview respects subset_stations filter."""
+        dataset = copy.deepcopy(breaking_with_qc)
+
+        df = dataset.qc_overview_df(subset_stations=["Fictional"])
+        assert not df.empty
+        names = df.index.get_level_values("name").unique()
+        assert list(names) == ["Fictional"]
+
+    def test_dataset_overview_subset_obstypes(self, breaking_with_qc):
+        """Dataset-level overview respects subset_obstypes filter."""
+        dataset = copy.deepcopy(breaking_with_qc)
+
+        df = dataset.qc_overview_df(subset_obstypes=["temp"])
+        assert not df.empty
+        obstypes_present = df.index.get_level_values("obstype").unique()
+        assert list(obstypes_present) == ["temp"]
+
+    def test_dataset_overview_both_subsets(self, breaking_with_qc):
+        """Dataset-level overview works with both subsets applied."""
+        dataset = copy.deepcopy(breaking_with_qc)
+
+        df = dataset.qc_overview_df(
+            subset_stations=["Fictional"], subset_obstypes=["temp"]
+        )
+        assert not df.empty
+        assert list(df.index.get_level_values("name").unique()) == ["Fictional"]
+        assert list(df.index.get_level_values("obstype").unique()) == ["temp"]
+
+    def test_dataset_overview_matches_station_overview(self, breaking_with_qc):
+        """Dataset-level overview for one station matches station-level overview."""
+        dataset = copy.deepcopy(breaking_with_qc)
+
+        ds_df = dataset.qc_overview_df(
+            subset_stations=["Fictional"], subset_obstypes=["temp"]
+        )
+        sta_df = dataset.get_station("Fictional").qc_overview_df(
+            subset_obstypes=["temp"]
+        )
+
+        # After dropping the extra 'name' level from the dataset result,
+        # the two frames should have identical shapes and datetimes.
+        ds_df_dropped = ds_df.droplevel("name")
+        assert ds_df_dropped.shape == sta_df.shape
+        assert ds_df_dropped.index.equals(sta_df.index)
 
 
 class TestWhiteRecords:
