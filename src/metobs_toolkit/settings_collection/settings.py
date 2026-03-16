@@ -39,6 +39,7 @@ class MetObsSettingsError(Exception):
     """Raised when an error occurs in the MetObsSettings."""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -309,6 +310,19 @@ class Settings:
     # ------------------------------------------
     @classmethod
     def _get_color_from_label(cls, label) -> str:
+        """Return the hex color string associated with a QC/gap label.
+
+        Parameters
+        ----------
+        label : str
+            A label string (e.g. ``'ok'``, ``'gross_value'``) as defined in
+            ``label_def``.
+
+        Returns
+        -------
+        str
+            Hex color code, or an empty string if ``label`` is not found.
+        """
         cls()
         return {
             group["label"]: group["plotkwargs"]["color"]
@@ -317,11 +331,30 @@ class Settings:
 
     @classmethod
     def _label_to_qccheckmap(cls) -> Dict[str, str]:
+        """Return a mapping from label string to its QC check key.
+
+        Returns
+        -------
+        dict
+            Dictionary ``{label: checkkey}`` built from ``label_def``.
+        """
         cls()
         return {val["label"]: key for key, val in cls.get("label_def").items()}
 
     @classmethod
     def _flag_plot_as_scatter(cls, label: str) -> bool:
+        """Return True if the given label should be plotted as scatter points.
+
+        Parameters
+        ----------
+        label : str
+            A label string as defined in ``label_def``.
+
+        Returns
+        -------
+        bool
+            True if ``plot_as`` for this label is ``scatter``.
+        """
         cls()
         labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
@@ -332,6 +365,18 @@ class Settings:
 
     @classmethod
     def _flag_plot_as_line(cls, label: str) -> bool:
+        """Return True if the given label should be plotted as a line.
+
+        Parameters
+        ----------
+        label : str
+            A label string as defined in ``label_def``.
+
+        Returns
+        -------
+        bool
+            True if ``plot_as`` for this label is ``line``.
+        """
         cls()
         labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
@@ -342,6 +387,18 @@ class Settings:
 
     @classmethod
     def _flag_plot_as_vline(cls, label: str) -> bool:
+        """Return True if the given label should be plotted as vertical lines.
+
+        Parameters
+        ----------
+        label : str
+            A label string as defined in ``label_def``.
+
+        Returns
+        -------
+        bool
+            True if ``plot_as`` for this label is ``vline``.
+        """
         cls()
         labelmap = cls._label_to_qccheckmap()
         plot_as = cls.get(f"label_def.{labelmap[label]}.plot_as", None)
@@ -355,6 +412,13 @@ class Settings:
     # ------------------------------------------
     @classmethod
     def _label_to_numericmap(cls) -> Dict[str, int]:
+        """Return a mapping from label string to its numeric integer code.
+
+        Returns
+        -------
+        dict
+            Dictionary ``{label: numeric_val}`` built from ``label_def``.
+        """
         cls()
         return {
             val["label"]: int(val["numeric_val"])

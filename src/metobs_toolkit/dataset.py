@@ -2135,6 +2135,17 @@ class Dataset:
 
     @log_entry
     def buddy_check_with_LCZ_safety_net(*args):
+        """Deprecated alias for ``buddy_check_with_safetynets``.
+
+        .. deprecated::
+            ``buddy_check_with_LCZ_safety_net`` has been removed.  Use
+            :meth:`buddy_check_with_safetynets` instead.
+
+        Raises
+        ------
+        DeprecationWarning
+            Always raised when this method is called.
+        """
         raise DeprecationWarning(
             "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safetynets instead."
         )

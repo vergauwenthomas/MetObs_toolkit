@@ -17,6 +17,29 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 @log_entry
 def fmt_timedelta_arg(timedeltaarg, none_is_none=True) -> pd.Timedelta:
+    """Convert a timedelta-like argument to a :class:`pandas.Timedelta`.
+
+    Parameters
+    ----------
+    timedeltaarg : datetime.timedelta, str, pandas.Timedelta, or None
+        The timedelta value to convert.  Accepted types are
+        :class:`datetime.timedelta`, :class:`str` (e.g. ``"1h"``),
+        and :class:`pandas.Timedelta`.  ``None`` is accepted when
+        *none_is_none* is ``True``.
+    none_is_none : bool, optional
+        If ``True`` (default), return ``None`` when *timedeltaarg* is ``None``.
+
+    Returns
+    -------
+    pandas.Timedelta or None
+        The converted timedelta.  ``None`` is returned when *timedeltaarg* is
+        ``None`` and *none_is_none* is ``True``.
+
+    Raises
+    ------
+    MetObsArgumentError
+        If *timedeltaarg* cannot be converted to a :class:`pandas.Timedelta`.
+    """
     if (none_is_none) & (timedeltaarg is None):
         return None
     if isinstance(timedeltaarg, datetimemodule.timedelta):

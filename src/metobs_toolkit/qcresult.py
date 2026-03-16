@@ -66,6 +66,27 @@ class QCresult:
         # outliers: pd.Series,  # index: timestamps, values: outlier values
         detail: str = "",
     ):
+        """Initialize a QCresult with flags and settings for a single QC check.
+
+        Parameters
+        ----------
+        checkname : str
+            Name identifying the quality control check.
+        checksettings : dict
+            Dictionary of parameters used for this QC check.
+        flags : pandas.Series
+            Series with :class:`pandas.DatetimeIndex` containing QC flag
+            strings for all timestamps.
+        detail : str, optional
+            Default detail string stored for all timestamps.  Can be updated
+            per-timestamp via :meth:`add_details_by_series`.  Default is an
+            empty string.
+
+        Raises
+        ------
+        TypeError
+            If the index of *flags* is not a :class:`pandas.DatetimeIndex`.
+        """
         self.checkname = checkname
         self.checksettings = checksettings
         
@@ -85,6 +106,13 @@ class QCresult:
     
         
     def __repr__(self) -> str:
+        """Return a string representation for debugging.
+
+        Returns
+        -------
+        str
+            String representation of the QCresult.
+        """
         return f"QCresult(checkname={self.checkname})"
     
    

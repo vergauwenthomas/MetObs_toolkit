@@ -11,6 +11,7 @@ class MetObsMissingFile(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -20,6 +21,7 @@ class MetObsSensorDataNotFound(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -29,6 +31,7 @@ class MetObsMetadataNotFound(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -38,6 +41,7 @@ class MetObsObstypeNotFound(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -47,6 +51,7 @@ class MetObsStationNotFound(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -56,6 +61,7 @@ class MetObsWrongType(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -65,6 +71,7 @@ class MetObsDataAlreadyPresent(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -74,6 +81,7 @@ class MetObsQualityControlError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -83,6 +91,7 @@ class MetObsModelDataError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -92,6 +101,7 @@ class MetObsTimeSimplifyError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -101,6 +111,7 @@ class MetObsStationClassError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -110,6 +121,7 @@ class MetObsMissingArgument(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -119,6 +131,7 @@ class MetObsGEEDatasetError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -126,6 +139,7 @@ class MetObsUnitsIncompatible(Exception):
     """Raised when an incompatible unit is set."""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -133,6 +147,7 @@ class MetObsUnitUnknown(Exception):
     """Raised when an invalid unit is set."""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -142,6 +157,7 @@ class MetObsTemplateError(Exception):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -149,6 +165,7 @@ class MetObsArgumentError(Exception):
     """Raised when an argument could not be converted to a target type."""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -156,6 +173,7 @@ class MetObsInconsistentStationName(Exception):
     """Special case only --> mismatch in data-metadata stationnames"""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -163,6 +181,7 @@ class MetObsAdditionError(Exception):
     """Raised when addition failed (often different _id())"""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -170,6 +189,7 @@ class MetObsNonUniqueIDs(Exception):
     """Raised when non-unique ID's are expected, but duplicates are found"""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
 
 
@@ -177,4 +197,5 @@ class MetObsInternalError(Exception):
     """Raised when an internal error is detected."""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)

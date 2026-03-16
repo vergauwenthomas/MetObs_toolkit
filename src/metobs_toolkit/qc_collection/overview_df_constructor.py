@@ -8,8 +8,21 @@ from metobs_toolkit.backend_collection.df_helpers import save_concat
 
 
 def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
-    #TODO: docstring
-    
+    """Build a QC overview DataFrame for a single SensorData object.
+
+    Parameters
+    ----------
+    sensor : SensorData
+        The sensor whose QC results are to be summarised.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Wide DataFrame with a DatetimeIndex.  Columns follow the pattern
+        ``('label', checkname)`` and ``('details', checkname)`` for each
+        applied check, plus a ``'value'`` column with the raw observation
+        values.  Missing checks are filled with ``'Not applied'``.
+    """
     #TODO rearange the order of qc columns to reflect the executeion order
     possible_timestamps = sensor.series.index
     qc_before_timecoarsening = ['duplicated_timestamp']
@@ -48,8 +61,22 @@ def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
 
 
 def station_qc_overview_df(station, subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
-    #TODO: docstring
-    
+    """Build a QC overview DataFrame for all sensors of a Station.
+
+    Parameters
+    ----------
+    station : Station
+        The station whose QC results are to be summarised.
+    subset_obstypes : list of str or None, optional
+        If given, only these observation types are included.  Unknown
+        types are silently ignored.  Default is None (all sensors).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Wide DataFrame indexed by ``(datetime, obstype)``.  Column
+        structure mirrors :func:`sensordata_qc_overview_df`.
+    """
     if subset_obstypes is None:
         sensortargets = station.sensordata.values() 
     else:
@@ -84,7 +111,25 @@ def station_qc_overview_df(station, subset_obstypes:Union[list[str], None] = Non
 
 def dataset_qc_overview_df(dataset, subset_stations:Union[list[str], None] = None,
                            subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
-    #TODO: docstring
+    """Build a QC overview DataFrame for all stations in a Dataset.
+
+    Parameters
+    ----------
+    dataset : Dataset
+        The dataset whose QC results are to be summarised.
+    subset_stations : list of str or None, optional
+        If given, only these station names are included.  Default is None
+        (all stations).
+    subset_obstypes : list of str or None, optional
+        If given, only these observation types are included.  Default is
+        None (all observation types).
+
+    Returns
+    -------
+    pandas.DataFrame
+        Wide DataFrame indexed by ``(datetime, obstype, name)``.  Column
+        structure mirrors :func:`sensordata_qc_overview_df`.
+    """
     if subset_stations is None:
         stationtargets = dataset.stations
     else:

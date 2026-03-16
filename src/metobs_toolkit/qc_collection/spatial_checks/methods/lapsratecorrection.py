@@ -17,8 +17,38 @@ if TYPE_CHECKING:
 
 def correct_lapse_rate(widedf: pd.DataFrame,
                        wrappedsensors: List[BuddyWrapSensor],
-                       lapserate: float|None = None) -> pd.DataFrame:
-    
+                       lapserate: float | None = None) -> pd.DataFrame:
+    """Apply a lapse-rate altitude correction to the wide observations DataFrame.
+
+    Each station's observations are shifted by
+    ``altitude * (-1) * lapserate`` so that all values are effectively
+    corrected to 0 m altitude before the buddy check is performed.
+    The correction term is also stored on each wrapped sensor.
+
+    Parameters
+    ----------
+    widedf : pandas.DataFrame
+        Wide-format DataFrame with station names as columns and timestamps
+        as index.
+    wrappedsensors : list of BuddyWrapSensor
+        Wrapped sensors whose ``cor_term`` and
+        ``flag_lapsrate_corrections`` attributes are updated in-place.
+    lapserate : float or None, optional
+        Lapse rate in units per metre (e.g. ``-0.0065`` K/m for
+        temperature).  If None, no correction is applied.  Default is
+        None.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Updated wide observations DataFrame with corrections applied.
+
+    Raises
+    ------
+    ValueError
+        If ``lapserate`` is not None and at least one station has a
+        missing altitude value.
+    """
     if lapserate is None:
         logger.debug("No lapse rate correction applied")
         for wrapsens in wrappedsensors: wrapsens.flag_lapsrate_corrections = False

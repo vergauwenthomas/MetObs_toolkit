@@ -14,6 +14,19 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 logger = logging.getLogger("<metobs_toolkit>")
 
 def autopct_format(pct):
+    """Format a pie chart percentage value for display.
+
+    Parameters
+    ----------
+    pct : float
+        The percentage value for a pie wedge.
+
+    Returns
+    -------
+    str
+        The formatted percentage string (e.g. ``'12.3%'``), or an empty
+        string if ``pct`` is zero or negative.
+    """
     return f'{pct:.1f}%' if pct > 0 else ''
 
 

@@ -24,8 +24,32 @@ def assign_spatial_buddies(
     wrappedstations: List[BuddyCheckStation],
     max_alt_diff: Union[int, float, None]=None,
 ) -> None:
+    """Assign spatial buddy groups to all wrapped stations.
 
+    Finds buddies for each station within ``buddy_radius`` using
+    :func:`_find_buddies_by_distance`, optionally further filters by
+    altitude difference, and stores the result on each
+    :class:`~buddywrapsensor.BuddyWrapSensor` via :meth:`set_buddies`.
 
+    Parameters
+    ----------
+    distance_df : pandas.DataFrame
+        Symmetric distance matrix (metres) with station names as index and
+        columns.
+    metadf : pandas.DataFrame
+        Station metadata; must contain an ``'altitude'`` column when
+        ``max_alt_diff`` is not None.
+    buddy_radius : int or float
+        Maximum distance (metres) from a station for another station to be
+        considered a buddy.
+    min_buddy_distance : int or float
+        Minimum distance (metres); stations closer than this are excluded.
+    wrappedstations : list of BuddyWrapSensor
+        Wrapped station objects whose buddy groups are updated in-place.
+    max_alt_diff : int, float, or None, optional
+        If given, buddies with an altitude difference greater than this
+        value (metres) are removed.  Default is None (no altitude filter).
+    """
     spatial_buddies = _find_buddies_by_distance(distance_df=distance_df,
                                                 buddy_radius=buddy_radius,
                                                 min_buddy_distance=min_buddy_distance)
@@ -51,7 +75,28 @@ def filter_buddygroup_by_altitude(
     altitudes: pd.Series,
     max_altitude_diff: Union[int, float]
 ) :
-    
+    """Remove buddies whose altitude differs too much from the station's altitude.
+
+    The filtered buddy list is stored under ``'{groupname}_filtered'`` via
+    :meth:`~buddywrapsensor.BuddyWrapSensor.filter_buddies`.
+
+    Parameters
+    ----------
+    wrappedstation : BuddyWrapSensor
+        The wrapped station whose buddy group is to be filtered.
+    groupname : str
+        The name of the buddy group to filter (e.g. ``'spatial'``).
+    altitudes : pandas.Series
+        Series mapping station names to altitude values (metres).  Must
+        contain no NaN values.
+    max_altitude_diff : int or float
+        Maximum allowed absolute altitude difference (metres).
+
+    Raises
+    ------
+    ValueError
+        If ``altitudes`` contains any NaN values.
+    """
     if altitudes.isnull().any():
         raise ValueError("Altitude series contains NaN values. All stations must have valid altitude data for altitude filtering.")
         
@@ -102,7 +147,24 @@ def subset_buddies_to_nearest(
 def _find_buddies_by_distance(
     distance_df: pd.DataFrame, buddy_radius: Union[int, float], min_buddy_distance: Union[int, float]=0
 ) -> Dict:
+    """Build a mapping from each station to its buddy stations within a distance range.
 
+    Parameters
+    ----------
+    distance_df : pandas.DataFrame
+        Symmetric distance matrix (metres) with station names as index and
+        columns.
+    buddy_radius : int or float
+        Maximum distance (metres) for buddy inclusion.
+    min_buddy_distance : int or float, optional
+        Minimum distance (metres) for buddy inclusion.  Default is 0.
+
+    Returns
+    -------
+    dict
+        Dictionary ``{station_name: [buddy_names]}`` for every station in
+        ``distance_df``.
+    """
     buddies = {}
     for refstation, distances in distance_df.iterrows():
         bud_stations = distances[(distances <= buddy_radius) & (distances >= min_buddy_distance)].index.to_list()

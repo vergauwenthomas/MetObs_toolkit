@@ -16,7 +16,30 @@ if TYPE_CHECKING:
 def create_wide_obs_df(wrappedsensors: List[BuddyWrapSensor],
                        instantaneous_tolerance: pd.Timedelta
                        ) -> Tuple[pd.DataFrame, Dict]:
+    """Build a wide-format observations DataFrame from wrapped sensors.
 
+    Sensor time series are synchronised to a common regular datetime index
+    using :func:`_synchronize_series` before being combined column-wise.
+
+    Parameters
+    ----------
+    wrappedsensors : list of BuddyWrapSensor
+        Wrapped sensors to include.  The station name is used as the column
+        label.
+    instantaneous_tolerance : pandas.Timedelta
+        Maximum time shift allowed when merging a sensor's timestamps onto
+        the common target index.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Wide DataFrame with one column per station and a synchronised
+        DatetimeIndex.
+    dict
+        Timestamp mapping returned by :func:`_synchronize_series`; maps
+        each synchronised timestamp to the original timestamp for each
+        station.
+    """
     concatlist = []
     for wrapsens in wrappedsensors:
         records = wrapsens.sensor.series

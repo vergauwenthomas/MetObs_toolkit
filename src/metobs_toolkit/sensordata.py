@@ -103,8 +103,28 @@ class SensorData:
         timestamps_tz: Union[tzfile | tzinfo | str] = "UTC",
         **setupkwargs,
     ):
+        """Initialize SensorData for a single station and observation type.
 
-        # Set data
+        Parameters
+        ----------
+        stationname : str
+            Name of the station this sensor belongs to.
+        datarecords : numpy.ndarray
+            Raw observation values.  Will be stored after unit conversion
+            during setup.
+        timestamps : numpy.ndarray
+            Timestamps corresponding to *datarecords*.
+        obstype : Obstype
+            Observation type describing the measured variable and its units.
+        datadtype : type, optional
+            Numeric dtype for the stored series.  Default is
+            :data:`numpy.float32`.
+        timestamps_tz : str or tzinfo, optional
+            Timezone of the provided *timestamps*.  Default is ``'UTC'``.
+        **setupkwargs
+            Additional keyword arguments forwarded to :meth:`_setup` (e.g.
+            ``freq_estimation_method``, ``timestamp_tolerance``).
+        """
         self._stationname = stationname
         self.obstype = obstype
         data = pd.Series(
@@ -448,9 +468,18 @@ class SensorData:
         
     def _update_outliers(self,
                         qcresult: QCresult,
-                        overwrite: bool = False) -> None:
-        
-        #add the results to the outliers list
+                        ) -> None:
+        """Record a QCresult and mask the detected outlier timestamps as NaN.
+
+        The *qcresult* is appended to :attr:`outliers` and the original values
+        at outlier timestamps are transferred to :attr:`outliers_values_bin`
+        before being set to ``NaN`` in :attr:`series`.
+
+        Parameters
+        ----------
+        qcresult : QCresult
+            Result object from a QC check containing flags and metadata.
+        """
         self.outliers.append(qcresult)
         
         #Fill the outliers value bin
@@ -674,6 +703,19 @@ class SensorData:
             return infostr
 
     def _get_info_core(self, nident_root=1) -> str:
+        """Build a formatted info string with core sensor-data attributes.
+
+        Parameters
+        ----------
+        nident_root : int, optional
+            Base indentation level for printed lines.  Default is 1.
+
+        Returns
+        -------
+        str
+            Formatted string listing observation type, time range, resolution,
+            and outlier/gap counts.
+        """
         infostr = ""
         infostr += printing.print_fmt_line(
             f"{self.obstype.name} observations in {self.obstype.std_unit}", nident_root
@@ -1036,6 +1078,24 @@ def _format_timestamp_index(
     timestamps: np.ndarray,
     input_tz: Union[tzfile | tzinfo | str],
 ) -> pd.DatetimeIndex:
+    """Convert a raw timestamp array to a timezone-aware :class:`pandas.DatetimeIndex`.
+
+    Localises *timestamps* to *input_tz* and then converts to the internal
+    storage timezone (``SensorData._target_tz``, default ``UTC``).
+
+    Parameters
+    ----------
+    timestamps : numpy.ndarray
+        Array of timestamp values (any format accepted by
+        :func:`timestamps_to_datetimeindex`).
+    input_tz : str or tzinfo
+        Timezone of the input *timestamps*.
+
+    Returns
+    -------
+    pandas.DatetimeIndex
+        Timezone-aware DatetimeIndex in the internal storage timezone.
+    """
 
     # Localize the timestamps with the input timezone (to timezone aware)
     dt_index = timestamps_to_datetimeindex(

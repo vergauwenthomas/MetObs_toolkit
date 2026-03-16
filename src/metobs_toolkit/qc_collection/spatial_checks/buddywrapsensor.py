@@ -1,5 +1,4 @@
 from __future__ import annotations
-import os
 import logging
 
 from typing import Union, List, Dict, TYPE_CHECKING
@@ -90,9 +89,18 @@ class BuddyWrapSensor:
             },
         }
     """
-    # station: Station
+ 
     
     def __init__(self, sensor: SensorData, site:Site):
+        """Initialize with a SensorData object and its associated Site.
+
+        Parameters
+        ----------
+        sensor : SensorData
+            The sensor whose observations will be buddy-checked.
+        site : Site
+            Spatial metadata for the station (coordinates, altitude, etc.).
+        """
         self._sensor = sensor
         self._site = site
         # Initialize instance-specific attributes (NOT class attributes!)
@@ -139,7 +147,20 @@ class BuddyWrapSensor:
     
     @flags.setter
     def flags(self, flags: pd.DataFrame) -> None:
-        
+        """Set the flags DataFrame after validating its structure.
+
+        Parameters
+        ----------
+        flags : pandas.DataFrame
+            DataFrame with a MultiIndex whose levels are
+            ``['datetime', 'iteration']``.
+
+        Raises
+        ------
+        ValueError
+            If ``flags`` is not a DataFrame, does not have a MultiIndex, or
+            the MultiIndex levels are not ``['datetime', 'iteration']``.
+        """
         if not isinstance(flags, pd.DataFrame):
             raise ValueError("flags must be a pandas DataFrame")
         
@@ -212,12 +233,53 @@ class BuddyWrapSensor:
         self.flags = self.flags.sort_index()
     
     def filter_buddies(self, filteredbuddies: List[str], groupname: str) -> None:
+        """Store a filtered version of a buddy group.
+
+        The filtered buddies are saved under ``'{groupname}_filtered'`` and
+        will be returned by :meth:`get_buddies` instead of the base group.
+
+        Parameters
+        ----------
+        filteredbuddies : list of str
+            Station names remaining after filtering.
+        groupname : str
+            The base buddy group name (e.g. ``'spatial'``).
+        """
         self.set_buddies(filteredbuddies, groupname=f'{groupname}_filtered')
     
     def set_buddies(self, buddies: List[str], groupname: str) -> None:
+        """Add or overwrite a buddy group entry.
+
+        Parameters
+        ----------
+        buddies : list of str
+            Station names to assign to the group.
+        groupname : str
+            Key under which the buddies are stored in ``_buddy_groups``.
+        """
         self._buddy_groups.update({groupname: buddies})
     
     def get_buddies(self, groupname: str) -> List[str]:
+        """Return the buddy list for the given group, preferring the filtered version.
+
+        If a ``'{groupname}_filtered'`` entry exists it is returned;
+        otherwise the base ``groupname`` entry is returned.
+
+        Parameters
+        ----------
+        groupname : str
+            The name of the buddy group (e.g. ``'spatial'``).
+
+        Returns
+        -------
+        list of str
+            Station names in the (filtered) buddy group.
+
+        Raises
+        ------
+        ValueError
+            If neither the base nor the filtered group exists.
+        """
         if f'{groupname}_filtered' in self._buddy_groups:
             return self._buddy_groups[f'{groupname}_filtered']
         if groupname in self._buddy_groups:
@@ -231,6 +293,18 @@ class BuddyWrapSensor:
     
     
     def _update_details(self, iteration: int, detail_series: pd.Series, groupname: str) -> None:
+        """Append or create detail strings for a given group and iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            Iteration number to store details under.
+        detail_series : pandas.Series
+            Series with a DatetimeIndex containing human-readable detail
+            strings for each timestep.
+        groupname : str
+            Key in ``self.details`` dict (e.g. ``'spatial_check'``).
+        """
         # Handle empty input - still store an empty entry to ensure the iteration key exists
         if detail_series.empty:
             if iteration not in self.details[groupname]:
@@ -275,6 +349,18 @@ class BuddyWrapSensor:
         )
         
     def add_safetynet_details(self, iteration: int, safetynetname: str, detail_series: pd.Series) -> None:
+        """Store detail strings from a safety-net check for a specific iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            Iteration number.
+        safetynetname : str
+            Name of the safety-net group (e.g. a LCZ category name).
+        detail_series : pandas.Series
+            Series with a DatetimeIndex containing detail messages for each
+            timestamp that was assessed by the safety net.
+        """
         if detail_series.empty:
             return
         # Remove duplicates (keep first occurrence)
@@ -355,6 +441,17 @@ class BuddyWrapSensor:
         return sorted(iterations)
     
     def get_final_labels(self) -> pd.Series:
+        """Compute the final buddy-check label for each unique datetime.
+
+        Applies :func:`final_label_logic` over the ``flags`` DataFrame
+        grouped by ``'datetime'``.
+
+        Returns
+        -------
+        pandas.Series
+            Series indexed by ``datetime`` with the final BC label string
+            for each timestep.  Series name is ``'final_label'``.
+        """
         flags = self.flags
         
         #if no whitelist check has been performed, create an empyt column
@@ -638,6 +735,29 @@ class BuddyWrapSensor:
 #===============================
 
 def final_label_logic(subset: pd.DataFrame) -> str:
+    """Determine the final buddy-check label for one datetime from all iteration flags.
+
+    This module-level function is intended to be called via
+    ``groupby('datetime').apply(final_label_logic)`` on the ``flags``
+    DataFrame of a :class:`BuddyWrapSensor`.
+
+    Parameters
+    ----------
+    subset : pandas.DataFrame
+        Subset of the flags DataFrame for a single ``datetime``.
+        Expected columns: ``'spatial_check'``, optional
+        ``'safetynet_check:<name>'`` columns, and ``'whitelist_check'``.
+
+    Returns
+    -------
+    str
+        One of the ``BC_*`` status constants defined in this module.
+
+    Raises
+    ------
+    ValueError
+        If the combination of flags does not match any known outcome.
+    """
     #the flag not tested is present on ALL iterations !
     if subset['spatial_check'].apply(lambda x: x=='not_tested').all():
         return BC_NOT_TESTED
@@ -676,10 +796,9 @@ def final_label_logic(subset: pd.DataFrame) -> str:
     if ((any(subset['spatial_check'] == BC_FLAGGED)) and
         (subset['spatial_check'].iloc[-1] == BC_NOT_TESTED)):
         return BC_FLAGGED
-    
-    
-    raise ValueError(f"Unforeseen situartion encountered in final label logic: \n {subset}")
-                
+
+    raise ValueError(f"Unforeseen situation encountered in final label logic: \n {subset}")
+
 def _map_dt_index(pdobj: pd.Series | pd.DataFrame,
     ts_map: pd.Series,
     datetime_level: str = 'datetime'

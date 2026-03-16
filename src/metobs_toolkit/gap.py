@@ -1099,7 +1099,21 @@ class Gap:
         return lead_period, trail_period, True
 
     def test_if_gf_is_suitable_with_gapsize(self, max_gapsize) -> tuple[bool, str]:
+        """Check whether the gap duration is within the allowed limit for gap-filling.
 
+        Parameters
+        ----------
+        max_gapsize : pandas.Timedelta
+            Maximum allowed gap duration.  Gaps larger than this value cannot
+            be filled.
+
+        Returns
+        -------
+        tuple of (bool, str)
+            ``(True, '')`` when the gap is small enough, or
+            ``(False, detail_string)`` when the gap exceeds *max_gapsize* where
+            *detail_string* describes the reason.
+        """
         if (self.end_datetime - self.start_datetime) > max_gapsize:
             detailstring = f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with max_gapsize={max_gapsize}."
             logger.warning(

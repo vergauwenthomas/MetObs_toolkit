@@ -73,7 +73,17 @@ class Station:
     """
 
     def __init__(self, stationname: str, site: Site, all_sensor_data: list):
-        # dimension attributes
+        """Initialize a Station with its name, site metadata and sensor data.
+
+        Parameters
+        ----------
+        stationname : str
+            Unique name of the station.
+        site : Site
+            :class:`Site` instance carrying spatial metadata for this station.
+        all_sensor_data : list of SensorData
+            List of :class:`SensorData` instances (one per observed variable).
+        """
         self._name = str(stationname)
         self._site = site
         self.obsdata = {
@@ -898,8 +908,22 @@ class Station:
             self.get_sensor(obstype).convert_outliers_to_gaps()
 
     def _rename(self, targetname):
-        # Note: Not for users, one could accidentally rename to another station in the dataset.
-        # So --> only accessible as method in the dataset, that checks this possible error.
+        """Rename the station across all sub-objects.
+
+        Updates the station name, the associated :class:`Site`, and every
+        :class:`SensorData` instance belonging to this station.
+
+        Parameters
+        ----------
+        targetname : str
+            The new station name.
+
+        Notes
+        -----
+        This method is intentionally not part of the public API.  Use the
+        Dataset-level ``rename_stations()`` method instead, which validates
+        name uniqueness before calling this helper.
+        """
 
         # rename all
         self._name = str(targetname)

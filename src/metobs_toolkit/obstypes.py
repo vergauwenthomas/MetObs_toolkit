@@ -80,7 +80,18 @@ class Obstype:
     """
 
     def __init__(self, name: str, std_unit: Union[str, pint.Unit], description: str):
-        # set name
+        """Initialize an Obstype with a name, standard unit and description.
+
+        Parameters
+        ----------
+        name : str
+            Name of the observation type (e.g. ``'temp'``).
+        std_unit : str or pint.Unit
+            Standard unit for storing and reporting observations
+            (e.g. ``'degree_Celsius'``).
+        description : str
+            Human-readable description of the observation type.
+        """
         self._name = str(name)
         # set standard unit
         self._std_unit = _fmtunit(std_unit)
@@ -99,7 +110,24 @@ class Obstype:
         return f"{self.name}_{self.std_unit}"
 
     def __add__(self, other: Obstype) -> Obstype:
-        # This function is called when other instances,
+        """Combine two Obstype instances that share the same physical identity.
+
+        Parameters
+        ----------
+        other : Obstype
+            The Obstype instance to combine with.
+
+        Returns
+        -------
+        Obstype
+            A new :class:`Obstype` with merged description and original-name
+            attributes.
+
+        Raises
+        ------
+        MetObsAdditionError
+            If the two instances have different ``_id()`` values.
+        """
         # that hold Obstype 's are joined.
 
         if self._id() == other._id():
@@ -252,6 +280,13 @@ class Obstype:
         return f"{self.name} ({self.std_unit})"
 
     def _get_info_core(self) -> str:
+        """Build a formatted info string with core observation-type attributes.
+
+        Returns
+        -------
+        str
+            Formatted string listing the name, standard unit, and description.
+        """
         infostr = ""
         infostr += printing.print_fmt_line(f"{self.name} observation with:", 0)
         infostr += printing.print_fmt_line(f"standard unit: {self.std_unit}")
@@ -332,7 +367,25 @@ class ModelObstype(Obstype):
     def __init__(
         self, obstype: Obstype, model_unit: Union[str, pint.Unit], model_band: str
     ):
-        # set regular obstype
+        """Initialize a ModelObstype from a base Obstype plus model-specific metadata.
+
+        Parameters
+        ----------
+        obstype : Obstype
+            The base observation type that defines name, standard unit and
+            description.
+        model_unit : str or pint.Unit
+            The unit used by the gridded model for this variable
+            (e.g. ``'kelvin'``).  Must be compatible with the standard unit.
+        model_band : str
+            Name of the model band / variable (e.g. ``'temperature_2m'``).
+
+        Raises
+        ------
+        MetObsUnitUnknown
+            If *model_unit* is not compatible with the standard unit of
+            *obstype*.
+        """
         super().__init__(
             name=obstype.name,
             std_unit=obstype.std_unit,
@@ -357,6 +410,24 @@ class ModelObstype(Obstype):
         return f"{super()._id()}_{self.model_band}"
 
     def __add__(self, other: ModelObstype) -> ModelObstype:
+        """Combine two ModelObstype instances that share the same physical identity.
+
+        Parameters
+        ----------
+        other : ModelObstype
+            The ModelObstype instance to combine with.
+
+        Returns
+        -------
+        ModelObstype
+            A new :class:`ModelObstype` with merged attributes.  Model unit
+            is taken from *self* when both differ.
+
+        Raises
+        ------
+        MetObsAdditionError
+            If the two instances have different ``_id()`` values.
+        """
         if self._id() != other._id():
             raise MetObsAdditionError(
                 f"{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})"
@@ -398,6 +469,18 @@ class ModelObstype(Obstype):
     @model_unit.setter
     @log_entry
     def model_unit(self, value: Union[str, pint.Unit]):
+        """Set the model unit, validating compatibility with the standard unit.
+
+        Parameters
+        ----------
+        value : str or pint.Unit
+            The new model unit.
+
+        Raises
+        ------
+        MetObsUnitsIncompatible
+            If *value* is not compatible with the standard unit.
+        """
         self._model_unit = _fmtunit(value)
         # test if it is a compatible unit wrt the standard unit
         if not self._model_unit.is_compatible_with(self._std_unit):
@@ -408,6 +491,13 @@ class ModelObstype(Obstype):
     @model_band.setter
     @log_entry
     def model_band(self, value: str):
+        """Set the model band name.
+
+        Parameters
+        ----------
+        value : str
+            The new band name.
+        """
         self._model_band = str(value)
 
     @log_entry
@@ -471,6 +561,29 @@ class ModelObstype_Vectorfield(Obstype):
         amplitude_obstype_name: str,
         direction_obstype_name: str,
     ):
+        """Initialize a ModelObstype_Vectorfield from a base Obstype plus vector-field model metadata.
+
+        Parameters
+        ----------
+        obstype : Obstype
+            The base observation type.
+        model_unit : str or pint.Unit
+            The unit used by the gridded model for both vector components.
+            Must be compatible with the standard unit of *obstype*.
+        model_band_u : str
+            Name of the U-component (east-west) band in the model.
+        model_band_v : str
+            Name of the V-component (north-south) band in the model.
+        amplitude_obstype_name : str
+            Name used for the derived amplitude observation type.
+        direction_obstype_name : str
+            Name used for the derived direction observation type.
+
+        Raises
+        ------
+        MetObsUnitUnknown
+            If *model_unit* is not compatible with the standard unit of *obstype*.
+        """
         # set regular obstype
         super().__init__(
             name=obstype.name,
@@ -499,6 +612,24 @@ class ModelObstype_Vectorfield(Obstype):
         return f"{super()._id()}_{self.model_band_u}_{self.model_band_v}"
 
     def __add__(self, other: ModelObstype_Vectorfield) -> ModelObstype_Vectorfield:
+        """Combine two ModelObstype_Vectorfield instances that share the same physical identity.
+
+        Parameters
+        ----------
+        other : ModelObstype_Vectorfield
+            The ModelObstype_Vectorfield instance to combine with.
+
+        Returns
+        -------
+        ModelObstype_Vectorfield
+            A new instance with merged attributes.  Model unit is taken from
+            *self* when both differ.
+
+        Raises
+        ------
+        MetObsAdditionError
+            If the two instances have different ``_id()`` values.
+        """
         if self._id() != other._id():
             raise MetObsAdditionError(
                 f"{self} + {other} could not be executes since they do not have the same id ({self._id()} != {other._id()})"

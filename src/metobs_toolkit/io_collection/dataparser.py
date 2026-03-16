@@ -23,6 +23,16 @@ class DataParser:
     """
 
     def __init__(self, datafilereader: FileReader, template: Template):
+        """Initialize the DataParser with a file reader and a template.
+
+        Parameters
+        ----------
+        datafilereader : FileReader
+            An instance of FileReader used to read the raw data file.
+        template : Template
+            An instance of Template that defines the expected structure and
+            column mappings for the data.
+        """
         self.filereader = datafilereader
         self.template = template
         self.datadf = pd.DataFrame()  # Metadata in formatted DataFrame style
