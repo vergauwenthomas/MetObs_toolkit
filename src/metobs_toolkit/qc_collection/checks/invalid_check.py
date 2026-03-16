@@ -5,18 +5,12 @@ import pandas as pd
 
 
 from metobs_toolkit.backend_collection.decorators import log_entry
-from metobs_toolkit.qcresult import (
-    QCresult,
-    pass_cond,
-    flagged_cond,
-
-)
 from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet
 
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-@log_entry
+
 def drop_invalid_values(records: pd.Series, skip_records: pd.DatetimeIndex) -> pd.Series:
     """Remove invalid (non-numeric) values from a time series.
     
@@ -48,13 +42,13 @@ def drop_invalid_values(records: pd.Series, skip_records: pd.DatetimeIndex) -> p
     targets = records.drop(skip_records)
 
     # Option 1: Create a outlier label for these invalid inputs,
-    # and treath them as outliers
+    # and treat them as outliers
     # outlier_timestamps = targets[~targets.notnull()]
 
     # self._update_outliers(
     #     qccheckname="invalid_input",
     #     outliertimestamps=outlier_timestamps.index,
-    #     check_kwargs={},
+    # and treat them as outliers
     #     extra_columns={},
     #     overwrite=False,
     # )

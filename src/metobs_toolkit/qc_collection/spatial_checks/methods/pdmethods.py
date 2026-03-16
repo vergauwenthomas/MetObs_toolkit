@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Union, List, Dict, TYPE_CHECKING, Tuple
+from typing import List, Dict, TYPE_CHECKING, Tuple
 
 import pandas as pd
 from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
@@ -144,14 +144,5 @@ def concat_multiindices(
         names=indices[0].names
     )
     
-    
-    # non_empty_indices = [idx for idx in outlier_indices if len(idx) > 0]
-    #     if non_empty_indices:
-    #         spatial_outliers = non_empty_indices[0]
-    #         for idx in non_empty_indices[1:]:
-    #             spatial_outliers = spatial_outliers.union(idx)
-    #         spatial_outliers = spatial_outliers.drop_duplicates()
-    #     else:
-    #         spatial_outliers = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
     
     return concatenated 

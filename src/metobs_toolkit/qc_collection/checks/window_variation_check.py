@@ -27,7 +27,7 @@ def window_variation_check(
     """
     Test if the increase or decrease in a time window exceeds a threshold.
 
-    This function checks if the variation of observations in time does exceeds a threshold.
+    This function checks if the variation of observations in time exceeds a threshold.
     It applies a moving window over the time series, defined by a duration (`timewindow`), and tests
     if the window contains at least a minimum number of records (`min_records_per_window`).
 
