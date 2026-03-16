@@ -802,7 +802,7 @@ class SensorData:
         self.series = self.series[~self.series.index.duplicated(keep="first")]
         
         #Update the outliers
-        self._update_outliers(qcresult=qcresult, overwrite=False)
+        self._update_outliers(qcresult=qcresult)
         
 
         
@@ -819,10 +819,7 @@ class SensorData:
         """
 
         qcresult = qc.gross_value_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qcresult=qcresult,
-            overwrite=False,
-        )
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def persistence_check(self, **qckwargs) -> None:
@@ -836,10 +833,7 @@ class SensorData:
         """
 
         qcresult = qc.persistence_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qcresult=qcresult,
-            overwrite=False,
-        )
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def repetitions_check(self, **qckwargs) -> None:
@@ -853,10 +847,7 @@ class SensorData:
         """
 
         qcresult = qc.repetitions_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qcresult=qcresult,
-            overwrite=False,
-        )
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def step_check(self, **qckwargs) -> None:
@@ -870,10 +861,7 @@ class SensorData:
         """
 
         qcresult = qc.step_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qcresult=qcresult,
-            overwrite=False,
-        )
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def window_variation_check(self, **qckwargs) -> None:
@@ -887,10 +875,7 @@ class SensorData:
         """
 
         qcresult = qc.window_variation_check(records=self.series, **qckwargs)
-        self._update_outliers(
-            qcresult=qcresult,
-            overwrite=False,
-        )
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def get_qc_freq_statistics(self) -> pd.DataFrame:

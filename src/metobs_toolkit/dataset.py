@@ -2474,7 +2474,7 @@ class Dataset:
 
         for staname, qcres in qcresuldict.items():
             sensordata = self.get_station(staname).get_sensor(obstype)
-            sensordata._update_outliers(qcresult=qcres, overwrite=False)
+            sensordata._update_outliers(qcresult=qcres)
         return detailsensors
         
     @copy_doc(dataset_qc_overview_df)
