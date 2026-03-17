@@ -416,10 +416,11 @@ class SensorData:
         if apply_dupl_check:
             # remove duplicated timestamps
             self.duplicated_timestamp_check()
+            
 
         if apply_invalid_check:
             # get the records that are flagged by the
-            if self.outliers[0].checkname =='duplicated_timestamp':
+            if self.outliers and self.outliers[0].checkname == 'duplicated_timestamp':
                 dup_outl_ti = self.outliers[0].get_outlier_timestamps()
             else:
                 dup_outl_ti = pd.DatetimeIndex([])
@@ -427,6 +428,8 @@ class SensorData:
             valid_records = qc.drop_invalid_values(records=self.series,
                                                    skip_records=dup_outl_ti)
             self.series = valid_records
+        
+        
 
         if apply_unit_conv:
             # convert units to standard units
@@ -448,9 +451,19 @@ class SensorData:
         self.series = timestamp_matcher.target_records
 
         # update the outliers (replace the raw timestamps with the new)
-        outl_datetime_map = timestamp_matcher.get_outlier_map()
+        raw_datetime_map = timestamp_matcher.get_raw_map()
         for qcresult in self.outliers:
-            qcresult.remap_timestamps(mapping=outl_datetime_map)
+            qcresult.remap_timestamps(mapping=raw_datetime_map)
+
+        # remap the outliers_values_bin timestamps to match the new equispaced timestamps
+        if not self.outliers_values_bin.empty:
+            # Drop outlier values whose timestamps are not in the new time grid
+            self.outliers_values_bin = self.outliers_values_bin[
+                self.outliers_values_bin.index.isin(raw_datetime_map.keys())
+            ]
+            self.outliers_values_bin.index = self.outliers_values_bin.index.map(
+                lambda ts: raw_datetime_map[ts]
+            )
 
         # create gaps
 
@@ -629,22 +642,19 @@ class SensorData:
         self.series = timestampmatcher.target_records
 
         # update the outliers (replace the raw timestamps with the new)
-        outl_datetime_map = timestampmatcher.get_outlier_map()
+        raw_datetime_map = timestampmatcher.get_raw_map()  # mapping from original timestamps to new timestamps
         for outlinfo in self.outliers:
-            outlinfo.remap_timestamps(mapping=outl_datetime_map)
-            # # add mapped timestamps
-            # outlinfo["df"]["new_datetime"] = outlinfo["df"].index.map(outl_datetime_map)
-            # # reformat the dataframe
-            # outlinfo["df"] = (
-            #     outlinfo["df"]
-            #     .reset_index()
-            #     .rename(
-            #         columns={"datetime": "raw_timestamp", "new_datetime": "datetime"}
-            #     )
-            #     .set_index("datetime")
-            # )
-            # # Drop references to NaT datetimes (when qc is applied before resampling)
-            # outlinfo["df"] = outlinfo["df"].loc[outlinfo["df"].index.notnull()]
+            outlinfo.remap_timestamps(mapping=raw_datetime_map)
+
+        # remap the outliers_values_bin timestamps to match the new equispaced timestamps
+        if not self.outliers_values_bin.empty:
+            # Drop outlier values whose timestamps are not in the new time grid
+            self.outliers_values_bin = self.outliers_values_bin[
+                self.outliers_values_bin.index.isin(raw_datetime_map.keys())
+            ]
+            self.outliers_values_bin.index = self.outliers_values_bin.index.map(
+                lambda ts: raw_datetime_map[ts]
+            )
 
         # create gaps
         orig_gapsdf = self.gapsdf
@@ -796,16 +806,16 @@ class SensorData:
             If the check is already applied.
         """
         qcresult = qc.duplicated_timestamp_check(records=self.series)
-        
-        #drop duplicates for the series, keep only the first occurrence
-        #(These values will then be put to Nan in the update)
-        self.series = self.series[~self.series.index.duplicated(keep="first")]
-        
-        #Update the outliers
-        self._update_outliers(qcresult=qcresult)
-        
 
-        
+        # Drop duplicates from the series, keep only the first occurrence.
+        # After this, self.series has a unique index so _update_outliers can
+        # safely store values and set them to NaN.
+        self.series = self.series[~self.series.index.duplicated(keep="first")]
+
+        # Store QCresult and move flagged values to outliers_values_bin.
+        # The timestamps are still raw (not yet remapped to perfect spacing);
+        # they will be remapped later in _setup via qcresult.remap_timestamps.
+        self._update_outliers(qcresult=qcresult)
 
     @log_entry
     def gross_value_check(self, **qckwargs) -> None:

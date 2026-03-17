@@ -1,8 +1,5 @@
 from __future__ import annotations
 import logging
-from typing import Literal, Union, TYPE_CHECKING
-
-import numpy as np
 import pandas as pd
 
 from metobs_toolkit.backend_collection.decorators import log_entry
@@ -151,15 +148,24 @@ class QCresult:
     def remap_timestamps(self, mapping: dict) -> None:
         """Remap the timestamps of flags, outliers, and details using a mapping dictionary.
         
+        Timestamps not present in the mapping keys are removed from both
+        ``flags`` and ``details``, since they no longer exist in the target
+        time grid.
+
         Parameters
         ----------
         mapping : dict
             A dictionary where keys are original timestamps and values are the 
             new timestamps to map to.
         """
-        self.flags.index = self.flags.index.map(lambda ts: mapping.get(ts, ts))
-        # self.outliers.index = self.outliers.index.map(lambda ts: mapping.get(ts, ts))
-        self.details.index = self.details.index.map(lambda ts: mapping.get(ts, ts))
+        # Keep only timestamps that appear in the mapping
+        mapped_mask = self.flags.index.isin(mapping.keys())
+        self.flags = self.flags[mapped_mask]
+        self.details = self.details[mapped_mask]
+
+        # Remap the remaining timestamps
+        self.flags.index = self.flags.index.map(lambda ts: mapping[ts])
+        self.details.index = self.details.index.map(lambda ts: mapping[ts])
    
     def _flags_to_basic_labels(self) -> dict:
         """Create mapping from QC flag values to display labels.
