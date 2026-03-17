@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Union, List, Dict, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
 
 logger = logging.getLogger("<metobs_toolkit>")
 
-from .findbuddies import filter_buddygroup_by_altitude
-from .samplechecks import buddy_test_a_station
 if TYPE_CHECKING:
     from ..buddywrapsensor import BuddyWrapSensor
     from ...whitelist import WhiteSet

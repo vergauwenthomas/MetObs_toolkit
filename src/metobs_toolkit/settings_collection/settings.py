@@ -70,6 +70,15 @@ class Settings:
     _instance: Optional["Settings"] = None
     _initialized: bool = False
 
+    cpu_count = os.cpu_count() or 1
+    if cpu_count < 2:
+        cpu_count = 1  # Default to 1 if only one core is available
+    else:
+        cpu_count -= 1 # keep one core free for other processes
+    
+
+
+
     # Default configuration values
     _defaults: Dict[str, Any] = {
         "version": __version__,
@@ -95,7 +104,7 @@ class Settings:
         "plotting_settings": default_plot_settings,
         
         # Technical settings
-        "use_N_cores_for_MP": os.cpu_count() - 1 if os.cpu_count() > 1 else 1,
+        "use_N_cores_for_MP": cpu_count,
     }
 
     _config: Dict[str, Any] = {}

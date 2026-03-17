@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Union, List, Dict, TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING, Tuple
 import numpy as np
 import pandas as pd
-from metobs_toolkit.backend_collection.datetime_collection import to_timedelta
 
 logger = logging.getLogger("<metobs_toolkit>")
 
