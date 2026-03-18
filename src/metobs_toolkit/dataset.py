@@ -37,6 +37,7 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+from metobs_toolkit.backend_collection.distancematrix_func import generate_distance_matrix
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
@@ -377,6 +378,38 @@ class Dataset:
             allobs.update(sta.present_observations)
         return sorted(list(allobs))
 
+    def create_distancematrix(self) -> pd.DataFrame:
+        """Compute pairwise great-circle distances between all stations.
+
+        Calculates a symmetric distance matrix (in meters) between all stations
+        using the haversine formula. Stations that do not have coordinates
+        assigned are excluded and a warning is logged.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Symmetric square DataFrame where both the index and columns are
+            station names. Each cell contains the great-circle distance in
+            meters between the corresponding pair of stations. The diagonal
+            contains zeros.
+
+        Warns
+        -----
+        Logs a WARNING if one or more stations lack coordinate information and
+        are therefore excluded from the matrix.
+
+        """
+        metadf = self.metadf
+        
+        exclude_stations = [
+            sta.name for sta in self.stations if
+            not sta.site.flag_has_coordinates()]
+        if exclude_stations:
+            logger.warning(
+                f"Excluding stations without coordinates from distance matrix: {exclude_stations}"
+            )
+            metadf = metadf[~metadf.index.isin(exclude_stations)]
+        return generate_distance_matrix(metadf)
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------

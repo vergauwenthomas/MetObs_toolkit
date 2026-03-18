@@ -10,7 +10,7 @@ import pandas as pd
 
 
 from metobs_toolkit.backend_collection.decorators import log_entry
-from metobs_toolkit.qc_collection.distancematrix_func import generate_distance_matrix
+from metobs_toolkit.backend_collection.distancematrix_func import generate_distance_matrix
 
 from metobs_toolkit.qcresult import QCresult, flagged_cond
 from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map

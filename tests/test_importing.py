@@ -345,6 +345,36 @@ class TestDemoData:
         # Test if dataframes are equal
         assert_equality(df_original, df_read)
 
+    @pytest.mark.dependency(depends=["TestDemoData::test_import_demo_data"])
+    def test_create_distancematrix(self, import_dataset):
+        """Test Dataset.create_distancematrix returns a valid symmetric distance matrix."""
+        dataset = copy.deepcopy(import_dataset)
+
+        distmat = dataset.create_distancematrix()
+
+        # Result is a DataFrame
+        assert isinstance(distmat, pd.DataFrame)
+
+        # Square and station names are the index and columns
+        station_names = [sta.name for sta in dataset.stations]
+        assert set(distmat.index.tolist()) == set(station_names)
+        assert set(distmat.columns.tolist()) == set(station_names)
+        assert distmat.shape[0] == distmat.shape[1]
+
+        # Diagonal is zero
+        assert (distmat.values.diagonal() == 0.0).all()
+
+        # All distances are non-negative
+        assert (distmat.values >= 0).all()
+
+        # Matrix is symmetric
+        pd.testing.assert_frame_equal(distmat, distmat.T)
+
+        # Off-diagonal distances are positive (stations are not co-located)
+        n = distmat.shape[0]
+        off_diag = distmat.values[~np.eye(n, dtype=bool)]
+        assert (off_diag > 0).all()
+
     def test_importing_data_with_nans_for_single_station(self):
         # goal is to test if metobs is able to import a datafile,
         # that has nans for a specific obstype for a specific station.
