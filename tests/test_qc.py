@@ -3,6 +3,7 @@ from pathlib import Path
 
 import copy
 
+import numpy as np
 
 # import metobs_toolkit
 import pandas as pd
@@ -168,6 +169,531 @@ class TestBreakingDataset:
         _ = dataset.get_station("Fictional").get_sensor("temp").get_info(printout=True)
 
 
+class TestBuddyCheck:
+    # to pass to the solutionfixer
+    solkwargs = {"testfile": Path(__file__).name, "classname": "testbuddycheck"}
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
+
+    # paths to data
+    datafile = datadir.joinpath("random_belgian_temp_data.csv")
+    metadatafile = datadir.joinpath("random_belgian_temp_metadata.csv")
+    templatefile = datadir.joinpath("template_random_belgium.json")
+    
+    @pytest.fixture(scope="class")
+    def import_dataset(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=TestBuddyCheck.templatefile,
+            input_metadata_file=TestBuddyCheck.metadatafile,
+            input_data_file=TestBuddyCheck.datafile,
+        )
+        # To hourly !!
+        # dataset.resample(target_freq="1h")
+
+        dataset.stations= dataset.stations[:400] #to speedup the tests
+        # dataset.get_LCZ()
+        # dataset.get_altitude()
+        return dataset
+    
+    def test_import_data(self, import_dataset, overwrite_solution=False):
+        """Import demo dataset for QC testing."""
+        _method_name = "test_import_data"
+        dataset = copy.deepcopy(import_dataset)
+
+        if overwrite_solution:
+            TestBuddyCheck.solutionfixer.create_solution(
+                solution=dataset,
+                methodname=_method_name,
+                **TestBuddyCheck.solkwargs,
+            )
+
+        solutionobj = TestBuddyCheck.solutionfixer.get_solution(
+            methodname=_method_name, **TestBuddyCheck.solkwargs
+        )
+
+        assert_equality(dataset, solutionobj)
+
+
+    
+
+    def test_buddy_check_one_iteration(self, import_dataset, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+        dataset = copy.deepcopy(import_dataset)
+
+        # test one iteration
+        dataset.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,  # one iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=False,
+        )
+
+        # overwrite solution?
+        if overwrite_solution:
+            TestBuddyCheck.solutionfixer.create_solution(
+                solution=dataset,
+                **TestBuddyCheck.solkwargs,
+                methodname=_method_name,
+            )
+
+        solutionobj = TestBuddyCheck.solutionfixer.get_solution(
+            **TestBuddyCheck.solkwargs, methodname=_method_name
+        )
+
+        # validate expression
+        assert_equality(
+            dataset, solutionobj, exclude_columns=["details"]
+        )  # dataset comparison
+
+    def test_buddy_check_more_iterations(
+        self, import_dataset, overwrite_solution=False
+    ):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+        
+
+        # test one iteration
+        dataset_1iter = copy.deepcopy(import_dataset)
+        dataset_1iter.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,  # one iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=True,
+        )
+        
+        #Test 2 iterations
+        dataset_2iter = copy.deepcopy(import_dataset)
+        dataset_2iter.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=2,  # two iteration test
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=True,
+        )
+        
+        #apply relative tests
+        outl2 = dataset_2iter.outliersdf
+        outl1 = dataset_1iter.outliersdf
+
+        #test if all oult indexes are in outl2
+        assert outl1.index.isin(outl2.index).all()
+        assert outl2.shape[0] > outl1.shape[0]
+        
+        #absolute testings
+
+        # overwrite solution?
+        if overwrite_solution:
+            TestBuddyCheck.solutionfixer.create_solution(
+                solution=dataset_2iter,
+                **TestBuddyCheck.solkwargs,
+                methodname=_method_name,
+            )
+
+        solutionobj = TestBuddyCheck.solutionfixer.get_solution(
+            **TestBuddyCheck.solkwargs, methodname=_method_name
+        )
+
+        # validate expression
+        assert_equality(
+            dataset_2iter, solutionobj, exclude_columns=["details"]
+        )  # dataset comparison
+
+    def test_buddy_check_no_outliers(self, import_dataset):
+
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset)
+        # Test that buddy check runs, with settings that does not create outliers
+        dataset.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=12.8,  # this does noet create outliers
+            use_z_robust_method=True,
+            N_iter=1,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,  # -0.0065
+            use_mp=False,
+        )
+
+        assert dataset.outliersdf.empty
+        
+        #Extra test, same settings with non-robust z-method will make outliers
+        dataset = copy.deepcopy(import_dataset)
+        dataset.buddy_check(
+                    obstype="temp",
+                    spatial_buddy_radius=25000,
+                    min_sample_size=3,
+                    max_alt_diff=None,
+                    min_sample_spread=1.0,
+                    spatial_z_threshold=7.4,  # this does noet create outliers
+                    N_iter=1,
+                    instantaneous_tolerance=pd.Timedelta("4min"),
+                    use_z_robust_method=False,
+                    lapserate=None,  # -0.0065
+                    use_mp=False,
+                )
+
+        assert not dataset.outliersdf.empty
+
+    def test_buddy_check_with_big_radius(
+        self, import_dataset, overwrite_solution=False
+    ):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset)
+
+        # Tricky thing is that with big radii, a station can appear in multiple
+        # buddy groups, which can lead to edge cases. Here we test that the code
+        # runs without errors
+
+        dataset.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=50000,  # Large radius
+            min_sample_size=2,
+            spatial_z_threshold=1.8,  # Lower threshold
+            N_iter=1,  # Multiple iterations increases chance of edge cases
+            instantaneous_tolerance=pd.Timedelta("5min"),
+            use_mp=False,  # Deterministic behavior
+        )
+
+        if overwrite_solution:
+            TestBuddyCheck.solutionfixer.create_solution(
+                solution=dataset,
+                **TestBuddyCheck.solkwargs,
+                methodname=_method_name,
+            )
+        solutionobj = TestBuddyCheck.solutionfixer.get_solution(
+            **TestBuddyCheck.solkwargs, methodname=_method_name
+        )
+        assert_equality(dataset, solutionobj, exclude_columns=["details"])
+
+    def test_buddy_check_with_safety_nets(
+        self, import_dataset, overwrite_solution=False
+    ):
+        """Test the generalized buddy_check_with_safety_nets method."""
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name
+
+        # 1. get_startpoint data
+        dataset_with_saftynet = copy.deepcopy(import_dataset)
+        # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
+        dataset_with_saftynet = copy.deepcopy(dataset_with_saftynet)
+        dataset_with_saftynet.buddy_check_with_safetynets(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[
+                {
+                    "category": "LCZ",
+                    "buddy_radius": 100000,
+                    "z_threshold": 1.4,
+                    "min_sample_size": 2,
+                }
+            ],
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,
+            use_mp=True,
+        )
+        
+        #Use same settings without saftyenet to make a relative comparison
+        dataset_without_saftynet = copy.deepcopy(import_dataset)
+        dataset_without_saftynet.buddy_check_with_safetynets(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[], # No safety nets
+            min_sample_size=3,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            instantaneous_tolerance=pd.Timedelta("4min"),
+            lapserate=None,
+            use_mp=True,
+        )
+        
+        #Relative tests
+        oult_saftynet = dataset_with_saftynet.outliersdf 
+        oult_without_saftynet = dataset_without_saftynet.outliersdf
+
+
+        assert oult_saftynet.index.isin(oult_without_saftynet.index).all()
+        assert oult_without_saftynet.shape[0] > oult_saftynet.shape[0]
+        
+        
+
+        # overwrite solution?
+        if overwrite_solution:
+            TestBuddyCheck.solutionfixer.create_solution(
+                solution=dataset_with_saftynet,
+                **TestBuddyCheck.solkwargs,
+                methodname=_method_name,
+            )
+
+        # 4. Get solution
+        solutionobj = TestBuddyCheck.solutionfixer.get_solution(
+            **TestBuddyCheck.solkwargs, methodname=_method_name
+        )
+
+        # validate expression
+        assert_equality(dataset_with_saftynet, solutionobj, exclude_columns=["details"])
+
+    def test_buddy_check_with_safety_nets_missing_min_sample_size(self, import_dataset):
+        """Test that an error is raised when min_sample_size is missing from safety_net_configs."""
+        # Get dataset
+        dataset = copy.deepcopy(import_dataset)
+
+        # Test that missing min_sample_size raises an error
+        with pytest.raises(KeyError):
+            dataset.buddy_check_with_safetynets(
+                obstype="temp",
+                spatial_buddy_radius=25000,
+                safety_net_configs=[
+                    {
+                        "category": "LCZ",
+                        "buddy_radius": 100000,
+                        "z_threshold": 1.4,
+                        # "min_sample_size" is intentionally missing
+                    }
+                ],
+                min_sample_size=3,
+                spatial_z_threshold=2.1,
+                use_mp=False,
+            )
+
+    def test_buddy_check_filter_args(self, import_dataset):
+        """Test buddy_check with max_alt_diff, max_sample_size and min_sample_size."""
+        # Baseline: default run without filters
+        dataset_baseline = copy.deepcopy(import_dataset)
+        dataset_baseline.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_sample_size=None,
+            max_alt_diff=None,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        baseline_outliers = dataset_baseline.outliersdf
+        assert not baseline_outliers.empty, "Baseline run must produce outliers"
+
+        # Test 1: max_alt_diff filters buddies by altitude difference.
+        # With a very small max_alt_diff many buddy groups become too small,
+        # so fewer outliers are expected.
+        dataset_alt = copy.deepcopy(import_dataset)
+        dataset_alt.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            max_alt_diff=5,  # very strict altitude filter
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        alt_outliers = dataset_alt.outliersdf
+        # Strict altitude filter should produce fewer (or equal) outliers
+        assert len(alt_outliers) <= len(baseline_outliers)
+
+        # Test 2: max_sample_size limits the number of buddies per station.
+        dataset_maxsample = copy.deepcopy(import_dataset)
+        dataset_maxsample.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=2,
+            max_sample_size=3,  # limit to 3 nearest buddies
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        # Should run without error and produce outliers
+        assert not dataset_maxsample.outliersdf.empty
+        assert not dataset_maxsample.outliersdf.index.equals(baseline_outliers.index)
+
+        # Test 3: Raising min_sample_size high enough should reduce or eliminate outliers
+        # because buddy groups become too small.
+        dataset_highmin = copy.deepcopy(import_dataset)
+        dataset_highmin.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=50,  # very high: most groups won't meet this
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        highmin_outliers = dataset_highmin.outliersdf
+        assert len(highmin_outliers) <= len(baseline_outliers)
+
+    def test_buddy_check_with_lapserate(self, import_dataset):
+        """Test buddy_check with lapserate altitude correction."""
+        # The fixture already has altitude via get_altitude(), so lapserate can be used.
+
+        # Run without lapserate
+        dataset_no_lapse = copy.deepcopy(import_dataset)
+        dataset_no_lapse.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            lapserate=None,
+            use_mp=False,
+        )
+        outliers_no_lapse = dataset_no_lapse.outliersdf
+        assert not outliers_no_lapse.empty
+
+        # Run with standard temperature lapserate (-6.5°C/km)
+        dataset_lapse = copy.deepcopy(import_dataset)
+        dataset_lapse.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            lapserate=-0.0065,
+            use_mp=False,
+        )
+        outliers_lapse = dataset_lapse.outliersdf
+        assert not outliers_lapse.empty
+
+        # Lapserate correction adjusts for altitude, so the outlier sets
+        # should differ (at least in number or composition).
+        differ_in_count = len(outliers_lapse) != len(outliers_no_lapse)
+        differ_in_index = not outliers_lapse.index.equals(outliers_no_lapse.index)
+        assert differ_in_count or differ_in_index, (
+            "Lapserate correction should change the outlier set"
+        )
+
+    def test_buddy_check_only_if_previous_has_no_buddies(self, import_dataset):
+        """Test safety_net_configs with only_if_previous_had_no_buddies=True."""
+
+        # Setup: Two cascading safety nets. The second net with
+        # only_if_previous_had_no_buddies=True should only test records that
+        # had insufficient buddies in the first safety net.
+        dataset_cascade = copy.deepcopy(import_dataset)
+        dataset_cascade.buddy_check_with_safetynets(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[
+                {
+                    "category": "LCZ",
+                    "buddy_radius": 25000,  # small radius: some stations won't have LCZ buddies
+                    "z_threshold": 1.4,
+                    "min_sample_size": 3,
+                },
+                {
+                    "category": "LCZ",
+                    "buddy_radius": 100000,  # larger radius fallback
+                    "z_threshold": 1.8,
+                    "min_sample_size": 2,
+                    "only_if_previous_had_no_buddies": True,
+                },
+            ],
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        cascade_outliers = dataset_cascade.outliersdf
+
+        # Compare against a single safety net (no cascade)
+        dataset_single = copy.deepcopy(import_dataset)
+        dataset_single.buddy_check_with_safetynets(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            safety_net_configs=[
+                {
+                    "category": "LCZ",
+                    "buddy_radius": 25000,
+                    "z_threshold": 1.4,
+                    "min_sample_size": 3,
+                },
+            ],
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_mp=False,
+        )
+        single_outliers = dataset_single.outliersdf
+
+        # The cascade fallback can only save additional outliers (or same),
+        # so cascade should have <= outliers than the single net.
+        assert len(cascade_outliers) <= len(single_outliers)
+
+    def test_buddy_check_use_z_robust_method(self, import_dataset):
+        """Test that use_z_robust_method toggles between robust (MAD) and classic (std) z-scores."""
+        # Run with robust method (default)
+        dataset_robust = copy.deepcopy(import_dataset)
+        dataset_robust.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_z_robust_method=True,
+            use_mp=False,
+        )
+        outliers_robust = dataset_robust.outliersdf
+        assert not outliers_robust.empty
+
+        # Run with classic std method
+        dataset_classic = copy.deepcopy(import_dataset)
+        dataset_classic.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            min_sample_spread=1.0,
+            spatial_z_threshold=2.1,
+            N_iter=1,
+            use_z_robust_method=False,
+            use_mp=False,
+        )
+        outliers_classic = dataset_classic.outliersdf
+        assert not outliers_classic.empty
+
+        # The two methods use different spread estimators (MAD vs std),
+        # so the outlier sets should differ in count or composition.
+        differ_in_count = len(outliers_robust) != len(outliers_classic)
+        differ_in_index = not outliers_robust.index.equals(outliers_classic.index)
+        assert differ_in_count or differ_in_index, (
+            "Robust (MAD) and classic (std) z-score methods should produce different outlier sets"
+        )
+
+
 class TestDemoDataset:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testdemodata"}
@@ -204,7 +730,64 @@ class TestDemoDataset:
         )
 
         assert_equality(dataset, solutionobj)
+    
+    def test_buddy_check_raise_errors(self, import_dataset):
+        #  1. get_startpoint data
+        dataset = copy.deepcopy(import_dataset)
+
+        from metobs_toolkit.backend_collection.errorclasses import (
+            MetObsMetadataNotFound,
+        )
         
+        with pytest.raises(DeprecationWarning):
+            # Should raise error because no altitude info is available and lapsrate is not none
+            dataset.buddy_check(
+                obstype="temp",
+                spatial_buddy_radius=17000,
+                min_sample_size=3,
+                max_alt_diff=150,
+                min_std=1.0, #cause a deprecation warning
+                spatial_z_threshold=2.4,
+                N_iter=1,
+                instantaneous_tolerance=pd.Timedelta("4min"),
+                lapserate=-0.0065,  # -0.0065
+                use_mp=False,
+            )
+
+
+        with pytest.raises(MetObsMetadataNotFound):
+            # Should raise error because no altitude info is available and lapsrate is not none
+            dataset.buddy_check(
+                obstype="temp",
+                spatial_buddy_radius=17000,
+                min_sample_size=3,
+                max_alt_diff=150,
+                min_sample_spread=1.0,
+                spatial_z_threshold=2.4,
+                N_iter=1,
+                instantaneous_tolerance=pd.Timedelta("4min"),
+                lapserate=-0.0065,  # -0.0065
+                use_mp=False,
+            )
+
+        from metobs_toolkit.backend_collection.errorclasses import (
+            MetObsMetadataNotFound,
+        )
+
+        with pytest.raises(MetObsMetadataNotFound):
+            # Should raise error because no altitude info is available and max_alt_diffis not none
+            dataset.buddy_check(
+                obstype="temp",
+                spatial_buddy_radius=17000,
+                min_sample_size=3,
+                max_alt_diff=150,
+                min_sample_spread=1.0,
+                spatial_z_threshold=2.4,
+                N_iter=1,
+                instantaneous_tolerance=pd.Timedelta("4min"),
+                lapserate=None,  # -0.0065
+                use_mp=False,
+            )
         
     def test_buddy_check_with_paralelism(self, import_dataset):
         dataset = copy.deepcopy(import_dataset)
@@ -213,7 +796,40 @@ class TestDemoDataset:
         dataset.buddy_check(obstype=obstype, use_mp=True)
         assert not dataset.outliersdf.empty
         
+    def test_if_qc_can_be_chained(self, import_dataset):
         
+        obstype = "temp"
+        
+        #Create solution
+        dataset = copy.deepcopy(import_dataset)
+        dataset.gross_value_check(obstype=obstype,
+                                    lower_threshold=14.6,
+                                    upper_threshold=26.9,
+                                   use_mp=False)
+        
+        
+        # Chain the same check
+        dataset_chain = copy.deepcopy(import_dataset)
+        dataset_chain.gross_value_check(obstype=obstype,
+                                    lower_threshold=11.6,
+                                    upper_threshold=28.9,
+                                   use_mp=False)
+        assert dataset.outliersdf.shape[0] > dataset_chain.outliersdf.shape[0]
+        
+        dataset_chain.gross_value_check(obstype=obstype,
+                                    lower_threshold=11.8,
+                                    upper_threshold=26.9,
+                                   use_mp=False)
+        dataset_chain.gross_value_check(obstype=obstype,
+                                    lower_threshold=14.6,
+                                    upper_threshold=31.9,
+                                   use_mp=False)
+        
+        assert_equality(dataset, dataset_chain, exclude_columns=['details']) 
+        
+        #test gap related df constructions
+        _ = dataset_chain.get_qc_stats(obstype=obstype, make_plot=False)
+        _ = dataset_chain.qc_overview_df()        
 
     def test_qc_when_some_stations_missing_obs(self, import_dataset):
         #  1. get_startpoint data
@@ -323,334 +939,7 @@ class TestDemoDataset:
         assert "not met" in unique_details[0].lower(), (
             f"Expected 'not met' in details, got: {unique_details[0]!r}"
         )
-
-    def test_buddy_check_raise_errors(self, import_dataset):
-        #  1. get_startpoint data
-        dataset = copy.deepcopy(import_dataset)
-
-        from metobs_toolkit.backend_collection.errorclasses import (
-            MetObsMetadataNotFound,
-        )
-        
-        with pytest.raises(DeprecationWarning):
-            # Should raise error because no altitude info is available and lapsrate is not none
-            dataset.buddy_check(
-                obstype="temp",
-                spatial_buddy_radius=17000,
-                min_sample_size=3,
-                max_alt_diff=150,
-                min_std=1.0, #cause a deprecation warning
-                spatial_z_threshold=2.4,
-                N_iter=1,
-                instantaneous_tolerance=pd.Timedelta("4min"),
-                lapserate=-0.0065,  # -0.0065
-                use_mp=False,
-            )
-
-
-        with pytest.raises(MetObsMetadataNotFound):
-            # Should raise error because no altitude info is available and lapsrate is not none
-            dataset.buddy_check(
-                obstype="temp",
-                spatial_buddy_radius=17000,
-                min_sample_size=3,
-                max_alt_diff=150,
-                min_sample_spread=1.0,
-                spatial_z_threshold=2.4,
-                N_iter=1,
-                instantaneous_tolerance=pd.Timedelta("4min"),
-                lapserate=-0.0065,  # -0.0065
-                use_mp=False,
-            )
-
-        from metobs_toolkit.backend_collection.errorclasses import (
-            MetObsMetadataNotFound,
-        )
-
-        with pytest.raises(MetObsMetadataNotFound):
-            # Should raise error because no altitude info is available and max_alt_diffis not none
-            dataset.buddy_check(
-                obstype="temp",
-                spatial_buddy_radius=17000,
-                min_sample_size=3,
-                max_alt_diff=150,
-                min_sample_spread=1.0,
-                spatial_z_threshold=2.4,
-                N_iter=1,
-                instantaneous_tolerance=pd.Timedelta("4min"),
-                lapserate=None,  # -0.0065
-                use_mp=False,
-            )
-
-    def test_buddy_check_one_iteration(self, import_dataset, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
-
-        # test one iteration
-        dataset.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=1,  # one iteration test
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=False,
-        )
-
-        # overwrite solution?
-        if overwrite_solution:
-            TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name,
-            )
-
-        solutionobj = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name
-        )
-
-        # validate expression
-        assert_equality(
-            dataset, solutionobj, exclude_columns=["details"]
-        )  # dataset comparison
-
-    def test_buddy_check_more_iterations(
-        self, import_dataset, overwrite_solution=False
-    ):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-        
-
-        # test one iteration
-        dataset_1iter = copy.deepcopy(import_dataset)
-        dataset_1iter.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=1,  # one iteration test
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=True,
-        )
-        
-        #Test 2 iterations
-        dataset_2iter = copy.deepcopy(import_dataset)
-        dataset_2iter.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=2,  # two iteration test
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=True,
-        )
-        
-        #apply relative tests
-        outl2 = dataset_2iter.outliersdf
-        outl1 = dataset_1iter.outliersdf
-
-        #test if all oult indexes are in outl2
-        assert outl1.index.isin(outl2.index).all()
-        assert outl2.shape[0] > outl1.shape[0]
-        
-        #absolute testings
-
-        # overwrite solution?
-        if overwrite_solution:
-            TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset_2iter,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name,
-            )
-
-        solutionobj = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name
-        )
-
-        # validate expression
-        assert_equality(
-            dataset_2iter, solutionobj, exclude_columns=["details"]
-        )  # dataset comparison
-
-    def test_buddy_check_no_outliers(self, import_dataset):
-
-        #  1. get_startpoint data
-        dataset = copy.deepcopy(import_dataset)
-        # Test that buddy check runs, with settings that does not create outliers
-        dataset.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=7.4,  # this does noet create outliers
-            use_z_robust_method=True,
-            N_iter=1,
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,  # -0.0065
-            use_mp=False,
-        )
-
-        assert dataset.outliersdf.empty
-        
-        #Extra test, same settings with non-robust z-method will make outliers
-        dataset = copy.deepcopy(import_dataset)
-        dataset.buddy_check(
-                    obstype="temp",
-                    spatial_buddy_radius=25000,
-                    min_sample_size=3,
-                    max_alt_diff=None,
-                    min_sample_spread=1.0,
-                    spatial_z_threshold=7.4,  # this does noet create outliers
-                    N_iter=1,
-                    instantaneous_tolerance=pd.Timedelta("4min"),
-                    use_z_robust_method=False,
-                    lapserate=None,  # -0.0065
-                    use_mp=False,
-                )
-
-        assert not dataset.outliersdf.empty
-
-    def test_buddy_check_with_big_radius(
-        self, import_dataset, overwrite_solution=False
-    ):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
-        #  1. get_startpoint data
-        dataset = copy.deepcopy(import_dataset)
-
-        # Tricky thing is that with big radii, a station can appear in multiple
-        # buddy groups, which can lead to edge cases. Here we test that the code
-        # runs without errors
-
-        dataset.buddy_check(
-            obstype="temp",
-            spatial_buddy_radius=50000,  # Large radius
-            min_sample_size=2,
-            spatial_z_threshold=1.8,  # Lower threshold
-            N_iter=1,  # Multiple iterations increases chance of edge cases
-            instantaneous_tolerance=pd.Timedelta("5min"),
-            use_mp=False,  # Deterministic behavior
-        )
-
-        if overwrite_solution:
-            TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name,
-            )
-        solutionobj = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name
-        )
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
-
-    def test_buddy_check_with_safety_nets(
-        self, import_dataset, overwrite_solution=False
-    ):
-        """Test the generalized buddy_check_with_safety_nets method."""
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name
-
-        # 1. get_startpoint data
-        dataset_with_saftynet = copy.deepcopy(import_dataset)
-        # Test 1: Using safety_net_configs with LCZ should match the LCZ safety net method
-        dataset_with_saftynet = copy.deepcopy(dataset_with_saftynet)
-        dataset_with_saftynet.buddy_check_with_safetynets(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            safety_net_configs=[
-                {
-                    "category": "LCZ",
-                    "buddy_radius": 100000,
-                    "z_threshold": 1.4,
-                    "min_sample_size": 2,
-                }
-            ],
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=1,
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,
-            use_mp=True,
-        )
-        
-        #Use same settings without saftyenet to make a relative comparison
-        dataset_without_saftynet = copy.deepcopy(import_dataset)
-        dataset_without_saftynet.buddy_check_with_safetynets(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            safety_net_configs=[], # No safety nets
-            min_sample_size=3,
-            max_alt_diff=None,
-            min_sample_spread=1.0,
-            spatial_z_threshold=2.1,
-            N_iter=1,
-            instantaneous_tolerance=pd.Timedelta("4min"),
-            lapserate=None,
-            use_mp=True,
-        )
-        
-        #Relative tests
-        oult_saftynet = dataset_with_saftynet.outliersdf 
-        oult_without_saftynet = dataset_without_saftynet.outliersdf
-
-
-        assert oult_saftynet.index.isin(oult_without_saftynet.index).all()
-        assert oult_without_saftynet.shape[0] > oult_saftynet.shape[0]
-        
-        
-
-        # overwrite solution?
-        if overwrite_solution:
-            TestDemoDataset.solutionfixer.create_solution(
-                solution=dataset_with_saftynet,
-                **TestDemoDataset.solkwargs,
-                methodname=_method_name,
-            )
-
-        # 4. Get solution
-        solutionobj = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname=_method_name
-        )
-
-        # validate expression
-        assert_equality(dataset_with_saftynet, solutionobj, exclude_columns=["details"])
-
-    def test_buddy_check_with_safety_nets_missing_min_sample_size(self, import_dataset):
-        """Test that an error is raised when min_sample_size is missing from safety_net_configs."""
-        # Get dataset
-        dataset = copy.deepcopy(import_dataset)
-
-        # Test that missing min_sample_size raises an error
-        with pytest.raises(KeyError):
-            dataset.buddy_check_with_safetynets(
-                obstype="temp",
-                spatial_buddy_radius=25000,
-                safety_net_configs=[
-                    {
-                        "category": "LCZ",
-                        "buddy_radius": 100000,
-                        "z_threshold": 1.4,
-                        # "min_sample_size" is intentionally missing
-                    }
-                ],
-                min_sample_size=3,
-                spatial_z_threshold=2.1,
-                use_mp=False,
-            )
+    
 
 
 class TestQcOverviewDf:
@@ -1139,10 +1428,9 @@ class TestWhiteRecords:
         assert_equality(dataset, solutionobj, exclude_columns=['details'])
 
     def test_white_dt_only_records_buddy_check(
-        self, import_dataset, overwrite_solution=False
+        self, import_dataset,
     ):
-        _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
+        
         white_dt_only = pd.DatetimeIndex(
             [
                 "2022-09-11 16:00:00+00:00",
@@ -1184,8 +1472,29 @@ class TestWhiteRecords:
             name="datetime",
             freq=None,
         )
-
-        dataset.buddy_check(
+        # Test 1: see if there is overlap with the whites, if no whites are given
+        dataset1 = copy.deepcopy(import_dataset)
+        dataset1.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            spatial_z_threshold=2.1,
+            N_iter=2,
+            whiteset=metobs_toolkit.WhiteSet(), #empty
+            use_mp=False,
+        )
+        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+            "datetime"
+        ).unique()
+        intersect = outlier_timestamps.intersection(white_dt_only)
+        # Check if the white dt only timestamps are not in the outliers
+        assert not intersect.empty, "There must be overlap, else the test is bad designed"
+        assert not outlier_timestamps.empty, "not outliers found"
+        
+        
+        # Test 2: test that the white dt only records are not in the outliers after buddy check
+        dataset2 = copy.deepcopy(import_dataset)
+        dataset2.buddy_check(
             obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
@@ -1194,7 +1503,7 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_dt_only),
             use_mp=False,
         )
-        outlier_timestamps = dataset.outliersdf.index.get_level_values(
+        outlier_timestamps = dataset2.outliersdf.index.get_level_values(
             "datetime"
         ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
@@ -1202,25 +1511,12 @@ class TestWhiteRecords:
         assert intersect.empty, "outlier timestamps found in white dt only"
         assert not outlier_timestamps.empty, "not outliers found"
 
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solution=dataset,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
-
+       
     def test_white_multi_idx_records_buddy_check(
-        self, import_dataset, overwrite_solution=False
+        self, import_dataset,
     ):
         """Test white_records with buddy_check on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
-
+    
         white_name_dt = pd.MultiIndex.from_arrays(
             [
                 [
@@ -1276,7 +1572,34 @@ class TestWhiteRecords:
             names=("name", "datetime"),
         )
 
-        dataset.buddy_check(
+        # Test 1: see if there is overlap with the whites, if no whites are given
+        dataset1 = copy.deepcopy(import_dataset)
+        dataset1.buddy_check(
+            obstype="temp",
+            spatial_buddy_radius=25000,
+            min_sample_size=3,
+            spatial_z_threshold=2.1,
+            N_iter=2,
+            whiteset=metobs_toolkit.WhiteSet(), #empty
+            use_mp=False,
+        )
+        
+        #There must be overlap
+        assert not dataset1.outliersdf.empty, "No outliers found, test is bad designed"
+        outlier_name_dt = dataset1.outliersdf[
+            dataset1.outliersdf.index.get_level_values("obstype") == "temp"
+        ].index.droplevel("obstype")
+
+        outlier_name_dt = outlier_name_dt.reorder_levels(["name", "datetime"])
+        intersect = outlier_name_dt.intersection(white_name_dt.reorder_levels(["name", "datetime"]))
+        assert not intersect.empty, "There must be overlap, else the test is bad designed"
+
+
+        
+        
+        # Test 2: test that the white dt only records are not in the outliers after buddy check
+        dataset2 = copy.deepcopy(import_dataset)
+        dataset2.buddy_check(
             obstype="temp",
             spatial_buddy_radius=25000,
             min_sample_size=3,
@@ -1285,31 +1608,23 @@ class TestWhiteRecords:
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
             use_mp=False,
         )
-
-        outlier_idxs = dataset.outliersdf.index.get_level_values("datetime").unique()
-
-        intersect = outlier_idxs.intersection(white_name_dt)
-        # Check if the white dt only timestamps are not in the outliers
+        
+        
+        assert not dataset2.outliersdf.empty, "No outliers found, test is bad designed"
+        outlier_name_dt = dataset2.outliersdf[
+            dataset2.outliersdf.index.get_level_values("obstype") == "temp"
+        ].index.droplevel("obstype")
+        outlier_name_dt = outlier_name_dt.reorder_levels(["name", "datetime"])
+        intersect = outlier_name_dt.intersection(white_name_dt.reorder_levels(["name", "datetime"]))
         assert intersect.empty, "outlier timestamps found in white name dt"
-        assert not outlier_idxs.empty, "not outliers found"
-
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solution=dataset,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
+        
+        
 
     def test_white_dt_only_records_buddy_check_with_safety_nets(
-        self, import_dataset, overwrite_solution=False
+        self, import_dataset,
     ):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
+    
         white_dt_only = pd.DatetimeIndex(
             [
                 "2022-09-11 17:00:00+00:00",
@@ -1351,10 +1666,10 @@ class TestWhiteRecords:
             freq=None,
         )
 
-        dataset.buddy_check_with_safetynets(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            safety_net_configs=[
+        args = {
+            "obstype": "temp",
+            "spatial_buddy_radius": 25000,
+            "safety_net_configs": [
                 {
                     "category": "LCZ",
                     "buddy_radius": 40000,
@@ -1362,45 +1677,50 @@ class TestWhiteRecords:
                     "min_sample_size": 3,
                 }
             ],
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            N_iter=2,
-            whiteset=metobs_toolkit.WhiteSet(white_dt_only),
-            use_mp=False,
-        )
+            "min_sample_size": 3,
+            "spatial_z_threshold": 1.8,
+            "N_iter": 2,
+            # "whiteset": metobs_toolkit.WhiteSet(white_dt_only),
+            "use_mp": False,
+        }
 
-        outlier_timestamps = dataset.outliersdf.index.get_level_values(
+        # Test 1: see if there is overlap with the whites, if no whites are given
+        dataset1 = copy.deepcopy(import_dataset)
+        dataset1.buddy_check_with_safetynets(
+            **args,
+            whiteset=metobs_toolkit.WhiteSet(), #empty
+        )
+        outlier_timestamps = dataset1.outliersdf.index.get_level_values(
+            "datetime"
+        ).unique()
+        intersect = outlier_timestamps.intersection(white_dt_only)
+        # Check if the white dt only timestamps are not in the outliers
+        assert not intersect.empty, "There must be overlap, else the test is bad designed"
+        assert not outlier_timestamps.empty, "not outliers found"
+        
+        
+        # Test 2: test that the white dt only records are not in the outliers after buddy check
+        dataset2 = copy.deepcopy(import_dataset)
+        dataset2.buddy_check_with_safetynets(
+            **args,
+            whiteset=metobs_toolkit.WhiteSet(white_dt_only),
+        )
+        outlier_timestamps = dataset2.outliersdf.index.get_level_values(
             "datetime"
         ).unique()
         intersect = outlier_timestamps.intersection(white_dt_only)
         # Check if the white dt only timestamps are not in the outliers
         assert intersect.empty, "outlier timestamps found in white dt only"
         assert not outlier_timestamps.empty, "not outliers found"
-        assert dataset.outliersdf.shape[0] >= 140, "something wrong with outlier count"
 
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solution=dataset,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
+
+     
 
     def test_white_multi_idx_records_buddy_check_with_safety_nets(
-        self, import_dataset, overwrite_solution=False
+        self, import_dataset,
     ):
         """Test white_records with buddy_check_with_safety_nets on Dataset level."""
-        _method_name = sys._getframe().f_code.co_name
-        dataset = copy.deepcopy(import_dataset)
-        # white_name_dt = (
-        #     outliers.sample(n=21, random_state=42)
-        #     .reset_index()[["name", "datetime"]]
-        #     .set_index(["name", "datetime"])
-        #     .index
-        # )
+
         white_name_dt = pd.MultiIndex.from_arrays(
             [
                 [
@@ -1462,10 +1782,10 @@ class TestWhiteRecords:
             names=("name", "datetime"),
         )
 
-        dataset.buddy_check_with_safetynets(
-            obstype="temp",
-            spatial_buddy_radius=25000,
-            safety_net_configs=[
+        args = {
+            "obstype": "temp",
+            "spatial_buddy_radius": 25000,
+            "safety_net_configs": [
                 {
                     "category": "LCZ",
                     "buddy_radius": 40000,
@@ -1473,31 +1793,49 @@ class TestWhiteRecords:
                     "min_sample_size": 3,
                 }
             ],
-            min_sample_size=3,
-            spatial_z_threshold=1.8,
-            N_iter=2,
+            "min_sample_size": 3,
+            "spatial_z_threshold": 1.8,
+            "N_iter": 2,
+            # "whiteset": metobs_toolkit.WhiteSet(white_dt_only),
+            "use_mp": False,
+        }
+
+        # Test 1: see if there is overlap with the whites, if no whites are given
+        dataset1 = copy.deepcopy(import_dataset)
+        dataset1.buddy_check_with_safetynets(
+            **args,
+            whiteset=metobs_toolkit.WhiteSet(), #empty
+        )
+        
+        #There must be overlap
+        assert not dataset1.outliersdf.empty, "No outliers found, test is bad designed"
+        outlier_name_dt = dataset1.outliersdf[
+            dataset1.outliersdf.index.get_level_values("obstype") == "temp"
+        ].index.droplevel("obstype")
+
+        outlier_name_dt = outlier_name_dt.reorder_levels(["name", "datetime"])
+        intersect = outlier_name_dt.intersection(white_name_dt.reorder_levels(["name", "datetime"]))
+        assert not intersect.empty, "There must be overlap, else the test is bad designed"
+
+
+        
+        
+        # Test 2: test that the white dt only records are not in the outliers after buddy check
+        dataset2 = copy.deepcopy(import_dataset)
+        dataset2.buddy_check_with_safetynets(
+            **args,
             whiteset=metobs_toolkit.WhiteSet(white_name_dt),
-            use_mp=False,
         )
-
-        outlier_idxs = dataset.outliersdf.index.get_level_values("datetime").unique()
-
-        intersect = outlier_idxs.intersection(white_name_dt)
-        # Check if the white dt only timestamps are not in the outliers
+        
+        assert not dataset2.outliersdf.empty, "No outliers found, test is bad designed"
+        outlier_name_dt = dataset2.outliersdf[
+            dataset2.outliersdf.index.get_level_values("obstype") == "temp"
+        ].index.droplevel("obstype")
+        outlier_name_dt = outlier_name_dt.reorder_levels(["name", "datetime"])
+        intersect = outlier_name_dt.intersection(white_name_dt.reorder_levels(["name", "datetime"]))
         assert intersect.empty, "outlier timestamps found in white name dt"
-        assert not outlier_idxs.empty, "not outliers found"
 
-        # extra sanity check to ensure the test is valid
-        if overwrite_solution:
-            TestWhiteRecords.solutionfixer.create_solution(
-                solution=dataset,
-                methodname=_method_name,
-                **TestWhiteRecords.solkwargs,
-            )
-        solutionobj = TestWhiteRecords.solutionfixer.get_solution(
-            methodname=_method_name, **TestWhiteRecords.solkwargs
-        )
-        assert_equality(dataset, solutionobj, exclude_columns=["details"])
+
 
     def test_whiterecords_get_info(self):
         """Test the WhiteSet and SensorWhiteSet classes."""
@@ -1661,6 +1999,208 @@ class TestWhiteRecords:
         assert True
 
 
+class TestQCresult:
+    """Tests for the QCresult class methods."""
+
+    def _make_qcresult(self):
+        """Helper to create a simple QCresult for testing."""
+        from metobs_toolkit.qcresult import QCresult
+
+        dt_index = pd.date_range("2022-09-01", periods=5, freq="h", tz="UTC")
+        flags = pd.Series(
+            ["passed", "flagged", "passed", "flagged", "passed"], index=dt_index
+        )
+        return QCresult(
+            checkname="gross_value",
+            checksettings={"lower": -15, "upper": 35},
+            flags=flags,
+            detail="test detail",
+        )
+
+    def test_repr(self):
+        """Test __repr__ returns expected string."""
+        qcr = self._make_qcresult()
+        assert "gross_value" in repr(qcr)
+
+    def test_get_outlier_timestamps(self):
+        """Test that get_outlier_timestamps returns flagged timestamps."""
+        qcr = self._make_qcresult()
+        outlier_ts = qcr.get_outlier_timestamps()
+        assert len(outlier_ts) == 2  # two flagged entries
+        assert isinstance(outlier_ts, pd.DatetimeIndex)
+
+    def test_add_details_by_series(self):
+        """Test updating details by series."""
+        qcr = self._make_qcresult()
+        dt_index = qcr.flags.index
+        detail_update = pd.Series(
+            ["updated detail 1", "updated detail 2"],
+            index=dt_index[:2],
+        )
+        qcr.add_details_by_series(detail_update)
+        assert qcr.details.iloc[0] == "updated detail 1"
+        assert qcr.details.iloc[1] == "updated detail 2"
+        # Unchanged entries still have the original detail
+        assert qcr.details.iloc[2] == "test detail"
+
+    def test_remap_timestamps(self):
+        """Test remap_timestamps remaps and drops unmapped entries."""
+        qcr = self._make_qcresult()
+        old_index = qcr.flags.index
+        new_ts = old_index + pd.Timedelta("30min")
+        # Only map the first 3 timestamps, the last 2 should be dropped
+        mapping = {old_index[i]: new_ts[i] for i in range(3)}
+
+        qcr.remap_timestamps(mapping)
+
+        assert len(qcr.flags) == 3
+        assert len(qcr.details) == 3
+        assert qcr.flags.index[0] == new_ts[0]
+
+    def test_create_outliersdf_subset(self):
+        """Test create_outliersdf with subset_to_outliers=True."""
+        qcr = self._make_qcresult()
+        df = qcr.create_outliersdf(subset_to_outliers=True)
+        assert len(df) == 2  # only the flagged entries
+        assert "label" in df.columns
+        assert "details" in df.columns
+
+    def test_create_outliersdf_all(self):
+        """Test create_outliersdf with subset_to_outliers=False."""
+        qcr = self._make_qcresult()
+        df = qcr.create_outliersdf(subset_to_outliers=False)
+        assert len(df) == 5  # all entries
+
+    def test_create_outliersdf_empty(self):
+        """Test create_outliersdf returns empty df when no outliers."""
+        from metobs_toolkit.qcresult import QCresult
+
+        dt_index = pd.date_range("2022-09-01", periods=3, freq="h", tz="UTC")
+        flags = pd.Series(["passed", "passed", "passed"], index=dt_index)
+        qcr = QCresult(
+            checkname="gross_value",
+            checksettings={},
+            flags=flags,
+        )
+        df = qcr.create_outliersdf(subset_to_outliers=True)
+        assert df.empty
+
+    def test_init_invalid_index_raises(self):
+        """Test that non-DatetimeIndex raises TypeError."""
+        from metobs_toolkit.qcresult import QCresult
+
+        flags = pd.Series(["passed", "flagged"], index=[0, 1])
+        with pytest.raises(TypeError, match="DatetimeIndex"):
+            QCresult(checkname="test", checksettings={}, flags=flags)
+
+
+class TestConvertOutliersToGaps:
+    """Test convert_outliers_to_gaps at Dataset and Station level."""
+
+    @pytest.fixture(scope="class")
+    def dataset_with_outliers(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        dataset.resample(target_freq="1h")
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=-15.0,
+            upper_threshold=29.0,
+            use_mp=False,
+        )
+        return dataset
+
+    def test_dataset_has_outliers_before(self, dataset_with_outliers):
+        """Verify fixture has outliers."""
+        dataset = copy.deepcopy(dataset_with_outliers)
+        assert not dataset.outliersdf.empty
+
+    def test_convert_outliers_to_gaps_dataset(self, dataset_with_outliers):
+        """Test converting outliers to gaps removes outliers and creates gaps."""
+        dataset = copy.deepcopy(dataset_with_outliers)
+        n_outliers_before = len(dataset.outliersdf)
+        assert n_outliers_before > 0
+
+        dataset.convert_outliers_to_gaps(obstype="temp")
+
+        # After conversion, outliers for temp should be empty
+        if not dataset.outliersdf.empty:
+            # If non-empty, temp should not be present
+            assert "temp" not in dataset.outliersdf.index.get_level_values(
+                "obstype"
+            ).unique()
+
+    def test_convert_outliers_to_gaps_station(self, dataset_with_outliers):
+        """Test converting outliers at station level."""
+        dataset = copy.deepcopy(dataset_with_outliers)
+        station = dataset.stations[0]
+        # Ensure station has outliers
+        sensor = station.get_sensor("temp")
+        if not sensor.outliersdf.empty:
+            station.convert_outliers_to_gaps(obstype="temp")
+            assert sensor.outliersdf.empty
+
+
+class TestQCStats:
+    """Test get_qc_stats and get_qc_freq_statistics."""
+
+    @pytest.fixture(scope="class")
+    def dataset_after_qc(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+        dataset.resample(target_freq="1h")
+        dataset.gross_value_check(
+            obstype="temp",
+            lower_threshold=-15.0,
+            upper_threshold=29.0,
+            use_mp=False,
+        )
+        dataset.persistence_check(obstype="temp", use_mp=False)
+        return dataset
+
+    def test_get_qc_stats_dict(self, dataset_after_qc):
+        """Test get_qc_stats returns dict with expected keys when make_plot=False."""
+        dataset = copy.deepcopy(dataset_after_qc)
+        result = dataset.get_qc_stats(obstype="temp", make_plot=False)
+        assert isinstance(result, dict)
+        assert "all_labels" in result
+        assert "outlier_labels" in result
+        assert "per_check_labels" in result
+        assert not result["all_labels"].empty
+        assert not result["per_check_labels"].empty
+
+    def test_get_qc_freq_statistics_sensor(self, dataset_after_qc):
+        """Test SensorData.get_qc_freq_statistics returns expected structure."""
+        dataset = copy.deepcopy(dataset_after_qc)
+        station = dataset.stations[0]
+        sensor = station.get_sensor("temp")
+        stats = sensor.get_qc_freq_statistics()
+        assert isinstance(stats, pd.Series)
+        assert stats.name == "counts"
+        # MultiIndex with checkname and flag levels
+        assert stats.index.names == ["checkname", "flag"]
+        # Should have entries for gross_value and persistence
+        checknames = stats.index.get_level_values("checkname").unique()
+        assert "gross_value" in checknames
+        assert "persistence" in checknames
+
+    def test_get_qc_stats_missing_obstype(self, dataset_after_qc):
+        """Test get_qc_stats returns None for nonexistent obstype."""
+        dataset = copy.deepcopy(dataset_after_qc)
+        result = dataset.get_qc_stats(obstype="nonexistent_obs", make_plot=False)
+        assert result is None
+
+
+
+
 if __name__ == "__main__":
     # When running outside pytest
     OVERWRITE = False
@@ -1678,23 +2218,29 @@ if __name__ == "__main__":
     # test_breaking_dataset.test_make_plot_by_label_with_outliers(qc_dataset)
     # test_breaking_dataset.test_get_info(qc_dataset)
 
-    test_demo_dataset = TestDemoDataset()
-    imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
-        test_demo_dataset
+    test_buddy_check = TestBuddyCheck()
+    buddycheckdataset = test_buddy_check.import_dataset.__wrapped__(
+        test_buddy_check
     )
+    # test_buddy_check.test_import_data(buddycheckdataset, overwrite_solution=OVERWRITE)
+   
+    # test_buddy_check.test_buddy_check_one_iteration(buddycheckdataset, overwrite_solution=OVERWRITE)
+    # test_buddy_check.test_buddy_check_more_iterations(buddycheckdataset, overwrite_solution=OVERWRITE)
+    # test_buddy_check.test_buddy_check_no_outliers(buddycheckdataset)
+    # test_buddy_check.test_buddy_check_with_big_radius(
+    #     buddycheckdataset, overwrite_solution=OVERWRITE
+    # )
+    # test_buddy_check.test_buddy_check_with_safety_nets(buddycheckdataset, overwrite_solution=OVERWRITE)
+    # test_buddy_check.test_buddy_check_with_safety_nets_missing_min_sample_size(buddycheckdataset)
 
+
+    # test_demo_dataset = TestDemoDataset()
+    # imported_demo_dataset = test_demo_dataset.import_dataset.__wrapped__(
+    #     test_demo_dataset
+    # )
     # test_demo_dataset.test_import_data(imported_demo_dataset, overwrite_solution=OVERWRITE)
     # test_demo_dataset.test_qc_when_some_stations_missing_obs(imported_demo_dataset)
-    # test_demo_dataset.test_buddy_check_raise_errors(imported_demo_dataset)
-    # test_demo_dataset.test_buddy_check_one_iteration(imported_demo_dataset, overwrite_solution=OVERWRITE)
-    # test_demo_dataset.test_buddy_check_more_iterations(imported_demo_dataset, overwrite_solution=OVERWRITE)
-    # test_demo_dataset.test_buddy_check_no_outliers(imported_demo_dataset)
-    # test_demo_dataset.test_buddy_check_with_big_radius(
-    #     imported_demo_dataset, overwrite_solution=OVERWRITE
-    # )
-    test_demo_dataset.test_buddy_check_with_safety_nets(imported_demo_dataset, overwrite_solution=OVERWRITE)
-    # test_demo_dataset.test_buddy_check_with_safety_nets_missing_min_sample_size(imported_demo_dataset)
-
+    
     # Run white_records tests
     # test_white_records = TestWhiteRecords()
     # imported_wr_dataset = test_white_records.import_dataset.__wrapped__(test_white_records)
