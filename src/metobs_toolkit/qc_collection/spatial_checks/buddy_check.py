@@ -125,18 +125,16 @@ def toolkit_buddy_check(
     lapserate: Union[float, None] = None,  # -0.0065 for temperature
     use_mp: bool = True,
 ) -> List[QCresult]:
-    """
-    #TODO update the docstring accordingly
-    Spatial buddy check.
+    """Spatial buddy check.
 
     The buddy check compares an observation against its neighbors
-    (i.e. spatial buddies). The check loops over all the groups, which are stations
-    within a radius of each other. For each group, the z-value of the reference
-    observation is computed given the sample of spatial buddies. If one (or more)
-    exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
-    that group is labeled as an outlier.
+    (i.e. spatial buddies). The check loops over all stations, treating
+    each as the center of a buddy group formed by nearby stations. For
+    each center station, the z-score is computed from the buddy sample.
+    If the z-score exceeds `spatial_z_threshold`, the center station's
+    observation is labeled as an outlier.
 
-    Multiple iterations of this checks can be done using the N_iter.
+    Multiple iterations of this check can be done using `N_iter`.
 
     Optionally, one or more safety nets can be applied. A safety net tests
     potential outliers against a sample of stations that share a categorical
@@ -160,26 +158,27 @@ def toolkit_buddy_check(
        * removing stations from the groups that differ too much in altitude
          (based on the `max_alt_diff`)
        * removing groups of buddies that are too small (based on the
-         `min_sample_size`)
+         `spatial_min_sample_size`)
 
     #. Observations per group are synchronized in time (using the
        `instantaneous_tolerance` for alignment).
     #. If a `lapserate` is specified, the observations are corrected for
        altitude differences.
-    #. The following steps are repeated for `N-iter` iterations:
+    #. The following steps are repeated for `N_iter` iterations:
 
        #. The values of outliers flagged by a previous iteration are converted to
           NaN's. Therefore they are not used in any following score or sample.
-       #. For each buddy group:
+       #. For each center station:
 
-          * The mean, standard deviation (std), and sample size are computed.
-          * If the std is lower than the `minimum_std`, it is replaced by the
-            minimum std.
-          * Chi values are calculated for all records.
-          * For each timestamp the record with the highest Chi is tested if
-            it is larger then spatial_z_threshold.
-            If so, that record is flagged as an outlier. It will be ignored
-            in the next iteration.
+          * The sample mean, spread (std or MAD depending on
+            `use_z_robust_method`), and sample size are computed from the
+            buddy stations (center station excluded).
+          * If the spread is lower than `min_sample_spread`, it is replaced
+            by `min_sample_spread`.
+          * The z-score of the center station is calculated.
+          * If the z-score exceeds `spatial_z_threshold`, the center
+            station's observation is flagged as an outlier. It will be
+            ignored in the next iteration.
 
        #. If `safety_net_configs` is provided, the following steps are applied
           on the outliers flagged by the current iteration, for each safety net
@@ -198,14 +197,14 @@ def toolkit_buddy_check(
             net test is not applied.
           * The safety net test is applied:
 
-            * If use_z_robust_method is True:
-
-              * The mean and std are computed of the category-buddy sample. If
-                the std is smaller than `min_sample_spread`, the latter is used.
-              * The z-value is computed for the target record (= flagged outlier).
-              * If the z-value is smaller than the safety net's `z_threshold`,
-                the tested outlier is "saved" and removed from the set of outliers
-                for the current iteration.
+            * The sample mean and spread (std or MAD depending on
+              `use_z_robust_method`) are computed of the category-buddy sample.
+              If the spread is smaller than `min_sample_spread`, the latter is
+              used.
+            * The z-value is computed for the target record (= flagged outlier).
+            * If the z-value is smaller than the safety net's `z_threshold`,
+              the tested outlier is "saved" and removed from the set of outliers
+              for the current iteration.
 
        #. If `whiteset` contains records, any outliers that match the white-listed
           timestamps (and optionally station names) are removed from the outlier set
@@ -238,7 +237,7 @@ def toolkit_buddy_check(
         no altitude filter is applied.
     min_sample_spread : int or float
         The minimum sample spread for sample statistics. When use_z_robust_method is True,
-        this is the equal to the minimum MAD to use (avoids division by near-zero). When
+        this is equal to the minimum MAD to use (avoids division by near-zero). When
         use_z_robust_method is False, this is the standard deviation. This parameter helps
         to represent the accuracy of the observations.
     min_buddy_distance : int or float, optional
@@ -247,7 +246,7 @@ def toolkit_buddy_check(
         affects safety net buddy selection unless overridden in the safety_net_configs.
         Default is 0.0 (no minimum distance).
     spatial_z_threshold : int or float
-        The threshold, tested with z-scores, for flagging observations as outliers.
+        The z-score threshold for flagging observations as outliers.
     N_iter : int
         The number of iterations to perform the buddy check.
     instantaneous_tolerance : pandas.Timedelta
@@ -288,6 +287,10 @@ def toolkit_buddy_check(
           for the first safety net. Defaults to False.
 
         The default is None.
+    use_z_robust_method : bool, optional
+        If True, the robust z-score method (median/MAD) is used for both
+        spatial and safety net checks. If False, the classic z-score method
+        (mean/std) is used. The default is True.
     lapserate : float or None, optional
         Describes how the obstype changes with altitude (in meters). If
         None, no altitude correction is applied. For temperature, a
@@ -297,16 +300,12 @@ def toolkit_buddy_check(
 
     Returns
     -------
-    list
-        A list of tuples containing the outlier station, timestamp,
-        and detail message. Each tuple is in the form (station_name,
-        timestamp, message).
     dict
-        A dictionary mapping each synchronized timestamp to its original
-          timestamp.
-        A dictionary mapping sensor names to BuddyCheckSensorDetails objects
-        containing detailed tracking information for each timestamp.
-
+        A dictionary mapping station names to :class:`QCresult` objects
+        containing the buddy check flags for each station.
+    list
+        A list of :class:`BuddyWrapSensor` objects containing detailed
+        tracking information (flags, details) for each station.
 
     Notes
     -----

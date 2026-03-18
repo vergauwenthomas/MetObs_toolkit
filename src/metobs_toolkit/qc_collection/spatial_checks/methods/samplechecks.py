@@ -27,14 +27,15 @@ def buddy_test_a_station(
     use_z_robust_method: bool = True,
 ) -> Tuple[pd.MultiIndex, BuddyWrapSensor]:
 
-    #TODO update docstring
-    """Find outliers in a buddy group and update station flags/details.
-    
+    """Test a center station against its buddy group and update flags/details.
+
     This function tests whether the center station is an outlier compared to
-    its buddy stations using z-score analysis. The z-score is computed using
-    the mean and standard deviation of the buddy stations only (the center
-    station's values are excluded from the sample distribution).
-    
+    its buddy stations using z-score analysis. The z-score is computed from
+    the buddy stations only (the center station's values are excluded from
+    the sample distribution). When ``use_z_robust_method`` is True, the
+    robust z-score (median/MAD) is used; otherwise the classic z-score
+    (mean/std) is used.
+
     Parameters
     ----------
     centerwrapsensor : BuddyWrapSensor
@@ -46,8 +47,9 @@ def buddy_test_a_station(
     min_sample_size : int
         Minimum number of valid buddy samples required for z-score calculation.
     min_sample_spread : float
-        when use_z_robust_method is True, this is the equal to the minimum MAD to use (avoids division by near-zero).
-        when use_z_robust_method is False, this is the standard deviation.
+        When ``use_z_robust_method`` is True, this is the minimum MAD to use
+        (avoids division by near-zero). When False, this is the minimum
+        standard deviation.
     outlier_threshold : float
         Z-score threshold above which a record is flagged as outlier.
     iteration : int
@@ -55,12 +57,19 @@ def buddy_test_a_station(
     check_type : str, optional
         The type of check being performed ('spatial_check', 'safetynet_check:groupname').
         Default is 'spatial_check'.
-        
+    use_z_robust_method : bool, optional
+        If True, use the robust z-score method (median/MAD). If False, use
+        the classic z-score method (mean/std). Default is True.
+
     Returns
     -------
-    pd.MultiIndex
-        MultiIndex with levels ('name', 'datetime') containing only the outlier
-        records for the center station.
+    tuple of (pd.MultiIndex, BuddyWrapSensor)
+        A tuple containing:
+
+        * A MultiIndex with levels ('name', 'datetime') of the outlier
+          records for the center station (empty if no outliers found).
+        * The updated ``centerwrapsensor`` with flags and details set for
+          this iteration.
     """
     
     # Get buddies (excluding center station)
@@ -294,13 +303,13 @@ def _compute_center_z_scores(
     min_std: float,
     outlier_threshold: float
 ) -> pd.DataFrame:
-    """Compute z-scores for center station using buddy distribution.
-    
+    """Compute classic z-scores for center station using buddy distribution.
+
     The z-score is computed as the absolute deviation of the center station's
     value from the mean of the buddy stations, divided by the standard
     deviation of the buddy stations. The center station's values are NOT
     included in the mean/std calculation.
-    
+
     Parameters
     ----------
     buddydf : pd.DataFrame
@@ -311,11 +320,11 @@ def _compute_center_z_scores(
         Minimum standard deviation to use (avoids division by near-zero).
     outlier_threshold : float
         Z-score threshold above which a record is flagged as outlier.
-        
+
     Returns
     -------
     pd.DataFrame
-        DataFrame with columns: 'z_score', 'flagged', 'buddy_mean', 'buddy_std'.
+        DataFrame with columns: 'z_score', 'flagged', 'details'.
     """
     # Compute mean and std from buddies only (center station excluded)
     buddy_mean_series = buddydf.mean(axis=1)

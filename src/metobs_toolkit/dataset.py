@@ -2170,15 +2170,14 @@ class Dataset:
         use_mp: bool = True,
         min_std = None,
     ):
-        #TODO: update docstring 
         """Spatial buddy check with configurable safety nets.
 
         The buddy check compares an observation against its neighbors
-        (i.e. spatial buddies). The check loops over all the groups, which are
-        stations within a radius of each other. For each group, the z-value of
-        the reference observation is computed given the sample of spatial
-        buddies. If one (or more) exceeds the `spatial_z_threshold`, the most
-        extreme (=baddest) observation of that group is labeled as an outlier.
+        (i.e. spatial buddies). The check loops over all stations, treating
+        each as the center of a buddy group formed by nearby stations. For
+        each center station, the z-score is computed from the buddy sample.
+        If the z-score exceeds `spatial_z_threshold`, the center station's
+        observation is labeled as an outlier.
 
         Multiple iterations of this check can be done using `N_iter`.
 
@@ -2210,21 +2209,22 @@ class Dataset:
            `instantaneous_tolerance` for alignment).
         #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
-        #. The following steps are repeated for `N-iter` iterations:
+        #. The following steps are repeated for `N_iter` iterations:
 
            #. The values of outliers flagged by a previous iteration are
               converted to NaN's. Therefore they are not used in any following
               score or sample.
-           #. For each buddy group:
+           #. For each center station:
 
-              * The mean, standard deviation (std), and sample size are computed.
-              * If the std is lower than the `minimum_std`, it is replaced by
-                the minimum std.
-              * Chi values are calculated for all records.
-              * For each timestamp the record with the highest Chi is tested
-                if it is larger then spatial_z_threshold.
-                If so, that record is flagged as an outlier. It will be ignored
-                in the next iteration.
+              * The sample mean, spread (std or MAD depending on
+                `use_z_robust_method`), and sample size are computed from the
+                buddy stations (center station excluded).
+              * If the spread is lower than `min_sample_spread`, it is replaced
+                by `min_sample_spread`.
+              * The z-score of the center station is calculated.
+              * If the z-score exceeds `spatial_z_threshold`, the center
+                station's observation is flagged as an outlier. It will be
+                ignored in the next iteration.
 
            #. For each safety net in `safety_net_configs` (in order):
 
@@ -2242,17 +2242,14 @@ class Dataset:
                 the safety net test is not applied.
               * The safety net test is applied:
 
-                * The mean and std are computed of the category-buddy sample.
-                  If the std is smaller than `min_std`, the latter is used.
+                * The sample mean and spread (std or MAD depending on
+                  `use_z_robust_method`) are computed of the category-buddy
+                  sample. If the spread is smaller than `min_sample_spread`,
+                  the latter is used.
                 * The z-value is computed for the target record (= flagged outlier).
                 * If the z-value is smaller than the safety net's `z_threshold`,
                   the tested outlier is "saved" and removed from the set of
                   outliers for the current iteration.
-
-           #. If `whiteset` is provided, any outliers that match the white-listed
-              timestamps are removed from the outlier set for the current iteration.
-              White-listed records participate in all buddy check and safety net
-              calculations but are not flagged as outliers in the final results.
 
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
@@ -2335,7 +2332,7 @@ class Dataset:
             affects safety net buddy selection unless overridden in the safety_net_configs.
             Default is 0.0 (no minimum distance).
         spatial_z_threshold : int or float, optional
-            The threshold, tested with z-scores, for flagging observations as
+            The z-score threshold for flagging observations as
             outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
@@ -2353,6 +2350,9 @@ class Dataset:
             check and safety net iterations as regular records but are not
             flagged as outliers in the final results. The default is an empty
             WhiteSet().
+        use_z_robust_method : bool, optional
+            If True, the robust z-score method (median/MAD) is used. If False,
+            the classic z-score method (mean/std) is used. Default is True.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
