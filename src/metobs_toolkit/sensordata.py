@@ -484,24 +484,48 @@ class SensorData:
                         ) -> None:
         """Record a QCresult and mask the detected outlier timestamps as NaN.
 
-        The *qcresult* is appended to :attr:`outliers` and the original values
-        at outlier timestamps are transferred to :attr:`outliers_values_bin`
-        before being set to ``NaN`` in :attr:`series`.
+        If a QCresult with the same ``checkname`` already exists, the new
+        results are merged into the existing one so that repeated application
+        of the same check does not create duplicate entries.  Specifically:
+
+        * Flags in the existing result are updated for timestamps where the
+          new result detected an outlier (``flagged``) that was previously
+          ``passed`` or ``unchecked``.
+        * Details are updated for newly flagged timestamps.
+        * Only genuinely new outlier timestamps (not already present in
+          :attr:`outliers_values_bin`) are added.
 
         Parameters
         ----------
         qcresult : QCresult
             Result object from a QC check containing flags and metadata.
         """
-        self.outliers.append(qcresult)
-        
-        #Fill the outliers value bin
-        self.outliers_values_bin = pd.concat([self.outliers_values_bin,
-                                                self.series.loc[qcresult.get_outlier_timestamps()]])
-        
-        
-        #convert the outlier timestamps to NaN in the series
-        self.series.loc[qcresult.get_outlier_timestamps()] = np.nan
+        new_outlier_ts = qcresult.get_outlier_timestamps()
+
+        # Check if a QCresult with the same checkname already exists
+        existing = None
+        for qc in self.outliers:
+            if qc.checkname == qcresult.checkname:
+                existing = qc
+                break
+
+        if existing is not None:
+            # Merge: update the existing QCresult with newly flagged timestamps
+            newly_flagged = new_outlier_ts.difference(existing.get_outlier_timestamps())
+            if not newly_flagged.empty:
+                existing.flags.loc[newly_flagged] = qcresult.flags.loc[newly_flagged]
+                existing.details.loc[newly_flagged] = qcresult.details.loc[newly_flagged]
+        else:
+            self.outliers.append(qcresult)
+
+        # Only add values for outlier timestamps not already in the bin
+        truly_new_ts = new_outlier_ts.difference(self.outliers_values_bin.index)
+        if not truly_new_ts.empty:
+            self.outliers_values_bin = pd.concat([self.outliers_values_bin,
+                                                    self.series.loc[truly_new_ts]])
+
+        # Convert the outlier timestamps to NaN in the series
+        self.series.loc[new_outlier_ts] = np.nan
         
         
     def _find_gaps(self, missingrecords: pd.Series, target_freq: pd.Timedelta) -> list:
