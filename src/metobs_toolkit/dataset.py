@@ -2034,18 +2034,16 @@ class Dataset:
         use_mp: bool = True,
         min_std = None,
     ):
-        #TODO: update docstring
-
         """Spatial buddy check.
 
         The buddy check compares an observation against its neighbors
-        (i.e. spatial buddies). The check loops over all the groups, which are stations
-        within a radius of each other. For each group, the z-value of the reference
-        observation is computed given the sample of spatial buddies. If one (or more)
-        exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
-        that group is labeled as an outlier.
+        (i.e. spatial buddies). The check loops over all stations, treating
+        each as the center of a buddy group formed by nearby stations. For
+        each center station, the z-score is computed from the buddy sample.
+        If the z-score exceeds `spatial_z_threshold`, the center station's
+        observation is labeled as an outlier.
 
-        Multiple iterations of this checks can be done using the N_iter.
+        Multiple iterations of this check can be done using `N_iter`.
 
         A schematic step-by-step description of the buddy check:
 
@@ -2065,30 +2063,33 @@ class Dataset:
            `instantaneous_tolerance` for alignment).
         #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
-        #. The following steps are repeated for `N-iter` iterations:
+        #. The following steps are repeated for `N_iter` iterations:
 
-           #. The values of outliers flaged by a previous iteration are converted to
-              NaN's. Therefore they are not used in any following score or sample.
-           #. For each buddy group:
+           #. The values of outliers flagged by a previous iteration are
+              converted to NaN's. Therefore they are not used in any following
+              score or sample.
+           #. For each center station:
 
-              * The mean, standard deviation (std), and sample size are computed.
-              * If the std is lower than the `minimum_std`, it is replaced by the
-                minimum std.
-              * Chi values are calculated for all records.
-              * For each timestamp the record with the highest Chi is tested if
-                it is larger then spatial_z_threshold. If so, that record is
-                flagged as an outlier. It will be ignored in the next iteration.
+              * The sample mean, spread (std or MAD depending on
+                `use_z_robust_method`), and sample size are computed from the
+                buddy stations (center station excluded).
+              * If the spread is lower than `min_sample_spread`, it is replaced
+                by `min_sample_spread`.
+              * The z-score of the center station is calculated.
+              * If the z-score exceeds `spatial_z_threshold`, the center
+                station's observation is flagged as an outlier. It will be
+                ignored in the next iteration.
+
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
               White-listed records participate in all buddy check calculations but are
               not flagged as outliers in the final results.
 
-
         Parameters
         ----------
         obstype : str, optional
             The target observation to check. Default is "temp".
-        spatial_buddy_radius : int | float, optional
+        spatial_buddy_radius : int or float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Default is 4.
@@ -2098,31 +2099,39 @@ class Dataset:
             and only the nearest ``max_sample_size`` are kept. Must be larger
             than ``min_sample_size`` when specified. The default is None
             (no limit).
-        max_alt_diff : int | float | None, optional
+        max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_sample_spread : int | float, optional
-            The minimum sample spread for sample statistics. When use_z_robust_method is True,
-            this is equal to the minimum MAD to use (avoids division by near-zero). When
-            use_z_robust_method is False, this is the standard deviation. This parameter helps
-            to represent the accuracy of the observations. Default is 1.0.
-        min_buddy_distance : int | float, optional
-            The minimum distance (in meters) required between a station and its buddies.
-            Stations closer than this distance will be excluded from the buddy group.
-            Default is 0.0 (no minimum distance).
-        spatial_z_threshold : int | float, optional
-            The threshold (std units) for flagging observations as outliers. Default is 3.1.
+        min_sample_spread : int or float, optional
+            The minimum sample spread for sample statistics. When
+            `use_z_robust_method` is True, this is the minimum MAD to use
+            (avoids division by near-zero). When `use_z_robust_method` is
+            False, this is the minimum standard deviation. This parameter
+            helps represent the accuracy of the observations. Default is 1.0.
+        min_buddy_distance : int or float, optional
+            The minimum distance (in meters) required between a station and
+            its buddies. Stations closer than this distance will be excluded
+            from the buddy group. Default is 0.0 (no minimum distance).
+        spatial_z_threshold : int or float, optional
+            The threshold (in z-score units) for flagging observations as
+            outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
-        instantaneous_tolerance : str | pd.Timedelta, optional
-            The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
-        lapserate : int | float | None, optional
-            Describe how the obstype changes with altitude (in meters). Default is None.
+        instantaneous_tolerance : str or pd.Timedelta, optional
+            The maximum time difference allowed for synchronizing observations.
+            Default is pd.Timedelta("4min").
+        lapserate : float or None, optional
+            Describe how the obstype changes with altitude (in meters).
+            Default is None.
         whiteset : WhiteSet, optional
-            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
-            The WhiteSet is used to create station-specific and obstype-specific whitelists before
-            applying the buddy check. White-listed records participate in all buddy check iterations
-            as regular records but are not flagged as outliers in the final results.
-            The default is an empty WhiteSet().
+            A WhiteSet instance containing timestamps that should be excluded
+            from outlier detection. The WhiteSet is used to create
+            station-specific and obstype-specific whitelists before applying
+            the buddy check. White-listed records participate in all buddy
+            check iterations as regular records but are not flagged as
+            outliers in the final results. The default is an empty WhiteSet().
+        use_z_robust_method : bool, optional
+            If True, the robust z-score method (median/MAD) is used. If False,
+            the classic z-score method (mean/std) is used. Default is True.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2131,15 +2140,33 @@ class Dataset:
         None
 
         Notes
-        ------
-        * This method modifies the outliers in place and does not return anything.
-          You can use the `outliersdf` property to view all flagged outliers.
-        * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-        * White-listed records from the WhiteSet participate in all buddy check calculations but are not flagged as outliers in the final results.
+        -----
+        * This method modifies the outliers in place and does not return
+          anything. You can use the `outliersdf` property to view all flagged
+          outliers.
+        * The altitude of the stations can be extracted from GEE by using the
+          `Dataset.get_altitude()` method.
+        * White-listed records participate in all buddy check calculations but
+          are not flagged as outliers in the final results.
 
         See Also
         --------
         buddy_check_with_safetynets : Buddy check with configurable safety nets.
+
+        Examples
+        --------
+        Apply buddy check on temperature observations:
+
+        >>> dataset.buddy_check(obstype="temp")
+
+        Apply buddy check with custom radius and threshold:
+
+        >>> dataset.buddy_check(
+        ...     obstype="temp",
+        ...     spatial_buddy_radius=15000,
+        ...     spatial_z_threshold=2.5,
+        ...     N_iter=3,
+        ... )
 
         """
         if min_std is not None:
