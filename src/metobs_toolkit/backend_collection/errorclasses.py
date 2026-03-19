@@ -199,3 +199,10 @@ class MetObsInternalError(Exception):
     def __init__(self, *args, **kwargs) -> None:
         """Initialize the exception with optional message arguments."""
         super().__init__(*args, **kwargs)
+
+
+class MetObsInternalError(Exception):
+    """Raised when an internal error is detected."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
