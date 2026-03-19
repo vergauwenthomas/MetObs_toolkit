@@ -678,8 +678,7 @@ class Dataset:
         accros stations.
 
         Warning
-        ----------
-
+        -------
         * Since the gaps depend on the record’s frequency and origin, all gaps
           are removed and re-located. All progress in gap(filling) will be lost.
         * Cumulative tolerance errors can be introduced when this method is called multiple times.
@@ -968,8 +967,8 @@ class Dataset:
     ) -> None:
         """Import observational data and metadata from files.
 
-        Importing data requires a ´Template´ which is constructed from a template file (JSON).
-        (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
+        Importing data requires a `Template` which is constructed from a template file (JSON).
+        (Use ``metobs_toolkit.build_template_prompt()`` to create a template file).
 
         If `input_data_file` is provided, the method reads the raw observational data
         (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps
@@ -978,14 +977,14 @@ class Dataset:
 
         The method performs the following steps:
 
-        * Estimates the frequency of observations using the ´freq_estimation_method´.
+        * Estimates the frequency of observations using the `freq_estimation_method`.
         * Simplifies the estimated frequency and origin timestamps based on tolerances.
-        * Alligns the raw timestamps with target timestamps (by origin, and freq) using
+        * Aligns the raw timestamps with target timestamps (by origin, and freq) using
           a nearest merge, considering a specified timestamp tolerance.
         * Executes checks for duplicates and invalid input.
         * Identifies gaps in the data.
 
-        if `input_metadata_file` is provided, the method reads the metadata
+        If `input_metadata_file` is provided, the method reads the metadata
         (supported formats: CSV, Parquet).
 
         Parameters
