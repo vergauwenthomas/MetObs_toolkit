@@ -395,11 +395,6 @@ class Dataset:
             meters between the corresponding pair of stations. The diagonal
             contains zeros.
 
-        Warns
-        -----
-        Logs a WARNING if one or more stations lack coordinate information and
-        are therefore excluded from the matrix.
-
         """
         metadf = self.metadf
 
