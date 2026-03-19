@@ -68,7 +68,7 @@ def repetitions_check(
     )
 
     # Find outlier groups
-    groups = persdf.groupby(["persistgroup"])
+    groups = persdf.groupby("persistgroup")
     # The above line groups the observations which have the same value and consecutive datetimes.
     group_sizes = groups.size()
     outlier_groups = group_sizes[group_sizes > max_N_repetitions]
