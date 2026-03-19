@@ -1411,7 +1411,6 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * If the minimum number of records per window is locally not met, the function logs a warning and skips
@@ -1421,7 +1420,7 @@ class Station:
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
-        Warnings
+        Warning
         -------
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
@@ -1476,14 +1475,13 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
-        Warnings
+        Warning
         -------
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
@@ -1540,7 +1538,6 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
@@ -1610,14 +1607,13 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
         * A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
-        * This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
+        * This check is similar to the step check, but not identical. The step check tests a maximum allowed increase/decrease
           with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
 
         """
@@ -2227,7 +2223,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         min_value : float, optional
@@ -2257,9 +2253,7 @@ class Station:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        -----
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
@@ -2348,7 +2342,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         min_value : float, optional
@@ -2487,9 +2481,6 @@ class Station:
         #. Interpolate the missing records using the specified method.
         #. Update the gap attributes with the interpolated values, labels, and details.
 
-
-        Note
-        -----
         If you want to use a higher-order method of interpolation, make sure to
         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.
