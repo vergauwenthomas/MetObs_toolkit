@@ -440,14 +440,12 @@ class Gap:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        --------
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
         self._fillkwargs = {
@@ -612,14 +610,12 @@ class Gap:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        --------
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
 
