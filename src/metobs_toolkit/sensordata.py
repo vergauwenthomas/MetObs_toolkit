@@ -523,7 +523,7 @@ class SensorData:
         # Only add values for outlier timestamps not already in the bin
         truly_new_ts = new_outlier_ts.difference(self.outliers_values_bin.index)
         if not truly_new_ts.empty:
-            self.outliers_values_bin = pd.concat(
+            self.outliers_values_bin = save_concat(
                 [self.outliers_values_bin, self.series.loc[truly_new_ts]]
             )
 
