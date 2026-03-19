@@ -1641,7 +1641,9 @@ class Station:
 
     @copy_doc(station_qc_overview_df)
     @log_entry
-    def qc_overview_df(self, subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+    def qc_overview_df(
+        self, subset_obstypes: Union[list[str], None] = None
+    ) -> pd.DataFrame:
         return station_qc_overview_df(self, subset_obstypes=subset_obstypes)
 
     @log_entry
@@ -1675,24 +1677,26 @@ class Station:
         self._obstype_is_known_check(obstype)
         # get freq statistics
         qc_specific_counts = self.get_sensor(obstype).get_qc_freq_statistics()
-        qc_labels_from_df = self.get_sensor(obstype).df['label'].value_counts()
-        qc_labels_from_outliers = self.get_sensor(obstype).outliersdf['label'].value_counts()
-        
+        qc_labels_from_df = self.get_sensor(obstype).df["label"].value_counts()
+        qc_labels_from_outliers = (
+            self.get_sensor(obstype).outliersdf["label"].value_counts()
+        )
+
         if make_plot:
             fig = plotting.qc_overview_pies(
                 end_labels_from_df=qc_labels_from_df,
                 end_labels_from_outliers=qc_labels_from_outliers,
                 per_check_labels=qc_specific_counts,
-                fig_title = f"QC frequency statistics of {obstype} on Sensor level: {self.name}.")
-            
+                fig_title=f"QC frequency statistics of {obstype} on Sensor level: {self.name}.",
+            )
+
             return fig
-        
+
         return {
             "all_labels": qc_labels_from_df,
             "outlier_labels": qc_labels_from_outliers,
             "per_check_labels": qc_specific_counts,
         }
-        
 
     @log_entry
     def make_plot_of_modeldata(

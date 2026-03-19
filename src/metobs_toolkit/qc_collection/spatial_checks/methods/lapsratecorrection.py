@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import logging
@@ -11,13 +10,16 @@ logger = logging.getLogger("<metobs_toolkit>")
 
 
 if TYPE_CHECKING:
-    from metobs_toolkit.qc_collection.spatial_checks.buddywrapsensor import BuddyWrapSensor
+    from metobs_toolkit.qc_collection.spatial_checks.buddywrapsensor import (
+        BuddyWrapSensor,
+    )
 
 
-
-def correct_lapse_rate(widedf: pd.DataFrame,
-                       wrappedsensors: List[BuddyWrapSensor],
-                       lapserate: float | None = None) -> pd.DataFrame:
+def correct_lapse_rate(
+    widedf: pd.DataFrame,
+    wrappedsensors: List[BuddyWrapSensor],
+    lapserate: float | None = None,
+) -> pd.DataFrame:
     """Apply a lapse-rate altitude correction to the wide observations DataFrame.
 
     Each station's observations are shifted by
@@ -51,25 +53,26 @@ def correct_lapse_rate(widedf: pd.DataFrame,
     """
     if lapserate is None:
         logger.debug("No lapse rate correction applied")
-        for wrapsens in wrappedsensors: wrapsens.flag_lapsrate_corrections = False
-    else: 
+        for wrapsens in wrappedsensors:
+            wrapsens.flag_lapsrate_corrections = False
+    else:
         logger.debug("Applying lapse rate correction with rate: %s", lapserate)
-        #Test if all stations have altitude
+        # Test if all stations have altitude
         has_alts = [budsta.site.flag_has_altitude() for budsta in wrappedsensors]
-        
+
         if not all(has_alts):
             raise ValueError(
                 "At least one station has a NaN value for 'altitude', not lapse rate correction possible"
             )
-        for budsta in wrappedsensors: 
+        for budsta in wrappedsensors:
             budsta.flag_lapsrate_corrections = True
-            
+
             # Since buddy check works with relative differences, correct all
             # stations to the 0m altitude
             correction_term = budsta.site.altitude * (-1) * lapserate
-            budsta.cor_term = correction_term #update it in the buddy station
-            
-            #apply the correction on the wide dataframe
+            budsta.cor_term = correction_term  # update it in the buddy station
+
+            # apply the correction on the wide dataframe
             widedf[budsta.name] = widedf[budsta.name] + correction_term
-            
+
     return widedf

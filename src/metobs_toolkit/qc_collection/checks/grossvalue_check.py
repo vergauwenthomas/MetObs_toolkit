@@ -49,12 +49,14 @@ def gross_value_check(
     ].index
 
     # Exclude white records if provided
-    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(
+        outliers_idx=outliers_idx
+    )
 
     # Create QCresult flags
     flags = create_qcresult_flags(
         all_input_records=records,
-        unmet_cond_idx = pd.DatetimeIndex([]),
+        unmet_cond_idx=pd.DatetimeIndex([]),
         outliers_before_white_idx=outliers_idx,
         outliers_after_white_idx=outliers_after_white_idx,
     )
@@ -64,19 +66,23 @@ def gross_value_check(
         "upper_threshold": upper_threshold,
         "sensorwhiteset": sensorwhiteset,
     }
-    
+
     qcresult = QCresult(
         checkname="gross_value",
         checksettings=checksettings,
         flags=flags,
-        detail='no details'
-        )
-    
-    #Create and add details
+        detail="no details",
+    )
+
+    # Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = 'value outside gross value thresholds [' + str(lower_threshold) + ', ' + str(upper_threshold) + ']',
-            index = outliers_after_white_idx
+            data="value outside gross value thresholds ["
+            + str(lower_threshold)
+            + ", "
+            + str(upper_threshold)
+            + "]",
+            index=outliers_after_white_idx,
         )
-        qcresult.add_details_by_series(detail_series = detailseries)
+        qcresult.add_details_by_series(detail_series=detailseries)
     return qcresult

@@ -87,10 +87,10 @@ def window_variation_check(
 
     # Drop outliers from the series (these are NaNs)
     to_check_records = records.dropna()
-    
+
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
-        records=records, #pass records, because freq is estimated
+        records=records,  # pass records, because freq is estimated
         windowsize=timewindow,
         min_records_per_window=min_records_per_window,
     )
@@ -104,7 +104,7 @@ def window_variation_check(
             outliers_before_white_idx=pd.DatetimeIndex([]),
             outliers_after_white_idx=pd.DatetimeIndex([]),
         )
-        
+
         qcresult = QCresult(
             checkname="window_variation",
             checksettings=checksettings,
@@ -112,8 +112,6 @@ def window_variation_check(
             detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
         return qcresult
-
-    
 
     # Calculate window thresholds (by linear extrapolation)
     max_window_increase = (
@@ -161,35 +159,37 @@ def window_variation_check(
 
     # The returns are numeric values (0 --> oke, NaN --> not checked (members/window condition not met), 1 --> outlier)
     window_flags = window_flags.map(
-        {0.0: 'pass', #Dummy label
-         nan: 'unmet', #Dummy label
-         1.0: 'flagged'}) #Dummy label     
-    
-    # Filter outliers
-    outliers_idx = window_flags.loc[window_flags == 'flagged'].index
-    # Catch the white records
-    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
+        {0.0: "pass", nan: "unmet", 1.0: "flagged"}  # Dummy label  # Dummy label
+    )  # Dummy label
 
-    #Create flags
+    # Filter outliers
+    outliers_idx = window_flags.loc[window_flags == "flagged"].index
+    # Catch the white records
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(
+        outliers_idx=outliers_idx
+    )
+
+    # Create flags
     flags = create_qcresult_flags(
         all_input_records=records,
-        unmet_cond_idx=window_flags[window_flags == 'unmet'].index,    
+        unmet_cond_idx=window_flags[window_flags == "unmet"].index,
         outliers_before_white_idx=outliers_idx,
-        outliers_after_white_idx=outliers_after_white_idx)
-    
+        outliers_after_white_idx=outliers_after_white_idx,
+    )
+
     qcresult = QCresult(
         checkname="window_variation",
         checksettings=checksettings,
         flags=flags,
-        detail='no details'
-        )
-    
-    #Create and add details
+        detail="no details",
+    )
+
+    # Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = f'Variation in {timewindow} window exceeds max increase of {max_window_increase} or max decrease of {max_window_decrease}.',
-            index = outliers_after_white_idx
+            data=f"Variation in {timewindow} window exceeds max increase of {max_window_increase} or max decrease of {max_window_decrease}.",
+            index=outliers_after_white_idx,
         )
-        qcresult.add_details_by_series(detail_series = detailseries)
-    
+        qcresult.add_details_by_series(detail_series=detailseries)
+
     return qcresult

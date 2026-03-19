@@ -200,19 +200,9 @@ qc_label_group = [
 # ============================================================================
 
 per_check_possible_labels = {
-    'pass': {'label':'passed',
-             "plotkwargs": {"color": "#00a824"}
-         },
-    'flagged': {'label':'flagged',
-             "plotkwargs": {"color": "#f0051c"}
-         },
-    'condition_unmet': {'label':'condition_unmet',
-             "plotkwargs": {"color": "#808080"}
-         },
-    'saved_whitelist': {'label':'saved',
-             "plotkwargs": {"color": "#0000ff"}
-         },
-    'unchecked': {'label':'unchecked',
-             "plotkwargs": {"color": "#f7cf07"}
-         },
+    "pass": {"label": "passed", "plotkwargs": {"color": "#00a824"}},
+    "flagged": {"label": "flagged", "plotkwargs": {"color": "#f0051c"}},
+    "condition_unmet": {"label": "condition_unmet", "plotkwargs": {"color": "#808080"}},
+    "saved_whitelist": {"label": "saved", "plotkwargs": {"color": "#0000ff"}},
+    "unchecked": {"label": "unchecked", "plotkwargs": {"color": "#f7cf07"}},
 }

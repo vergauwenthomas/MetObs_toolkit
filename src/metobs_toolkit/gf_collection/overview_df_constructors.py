@@ -6,9 +6,10 @@ from typing import Union
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat
 
-#===============================
+# ===============================
 # Gap overiview
-#===============================
+# ===============================
+
 
 def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
     """
@@ -84,6 +85,7 @@ def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:
             index=pd.Index([], name="gapstart"),
         )
 
+
 @copy_doc(sensordata_gap_status_overview_df)
 def station_gap_status_overview_df(station) -> pd.DataFrame:
     concatlist = []
@@ -130,4 +132,3 @@ def dataset_gap_status_overview_df(dataset) -> pd.DataFrame:
             ),
         )
     return combdf
-

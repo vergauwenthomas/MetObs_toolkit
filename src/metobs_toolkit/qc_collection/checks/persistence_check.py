@@ -92,10 +92,10 @@ def persistence_check(
         "sensorwhiteset": sensorwhiteset,
     }
 
-    to_check_records = records.dropna() # Exclude outliers and gaps
+    to_check_records = records.dropna()  # Exclude outliers and gaps
     # Test if the conditions for the moving window are met by the records frequency
     is_met = test_moving_window_condition(
-        records=records, #pass records, because freq is estimated
+        records=records,  # pass records, because freq is estimated
         windowsize=timewindow,
         min_records_per_window=min_records_per_window,
     )
@@ -116,51 +116,48 @@ def persistence_check(
             detail=f"Minimum number of records ({min_records_per_window}) per window ({timewindow}) not met.",
         )
         return qcresult
-            
 
     # This is very expensive if no coarsening is applied! Can we speed this up?
-    
-    window_flags = (
-        to_check_records  
-        .rolling(
-            window=timewindow,
-            closed="both",
-            center=True,
-            min_periods=min_records_per_window,
-        )
-        .apply(_has_window_unique_values)
-    )
+
+    window_flags = to_check_records.rolling(
+        window=timewindow,
+        closed="both",
+        center=True,
+        min_periods=min_records_per_window,
+    ).apply(_has_window_unique_values)
     # The returns are numeric values (0 --> oke, NaN --> not checked (members/window condition not met), 1 --> outlier)
     window_flags = window_flags.map(
-        {0.0: pass_cond,
-         np.nan: unmet_cond,
-         1.0: flagged_cond})        
-    
+        {0.0: pass_cond, np.nan: unmet_cond, 1.0: flagged_cond}
+    )
+
     outliers_idx = window_flags[window_flags == flagged_cond].index
 
     # Catch the white records
-    outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers_idx=outliers_idx)
-   
-    #Create flags
+    outliers_after_white_idx = sensorwhiteset.catch_white_records(
+        outliers_idx=outliers_idx
+    )
+
+    # Create flags
     flags = create_qcresult_flags(
         all_input_records=records,
-        unmet_cond_idx=window_flags[window_flags == unmet_cond].index,    
+        unmet_cond_idx=window_flags[window_flags == unmet_cond].index,
         outliers_before_white_idx=outliers_idx,
-        outliers_after_white_idx=outliers_after_white_idx)
-    
+        outliers_after_white_idx=outliers_after_white_idx,
+    )
+
     qcresult = QCresult(
         checkname="persistence",
         checksettings=checksettings,
         flags=flags,
-        detail='no details'
-        )
-    
-    #Create and add details
+        detail="no details",
+    )
+
+    # Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = 'constant values in timewindow of ' + str(timewindow),
-            index = outliers_after_white_idx
+            data="constant values in timewindow of " + str(timewindow),
+            index=outliers_after_white_idx,
         )
-        qcresult.add_details_by_series(detail_series = detailseries)
-    
+        qcresult.add_details_by_series(detail_series=detailseries)
+
     return qcresult

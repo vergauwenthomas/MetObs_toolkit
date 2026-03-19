@@ -8,17 +8,18 @@ from concurrent.futures import ProcessPoolExecutor
 import pandas as pd
 
 
-
 from metobs_toolkit.backend_collection.decorators import log_entry
-from metobs_toolkit.backend_collection.distancematrix_func import generate_distance_matrix
+from metobs_toolkit.backend_collection.distancematrix_func import (
+    generate_distance_matrix,
+)
 
 from metobs_toolkit.qcresult import QCresult, flagged_cond
 from .buddywrapsensor import BuddyWrapSensor, to_qc_labels_map
 from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.qc_collection.whitelist import WhiteSet
+
 # Import methods
 from . import methods as buddymethods
-
 
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ def _run_buddy_test(kwargs):
 
 
 def _build_station_buddy_kwargs(
-    station: 'BuddyWrapSensor',
+    station: "BuddyWrapSensor",
     widedf: pd.DataFrame,
     buddygroupname: str,
     min_sample_size: int,
@@ -45,12 +46,12 @@ def _build_station_buddy_kwargs(
 ) -> dict:
     """
     Build kwargs dictionary for buddy_test_a_station with a minimal widedf subset.
-    
-    This function creates a dictionary of keyword arguments to pass to 
+
+    This function creates a dictionary of keyword arguments to pass to
     buddymethods.buddy_test_a_station, including a view of the widedf that
     contains only the target station and its buddy stations. This enables
     efficient parallelization by station rather than by time chunks.
-    
+
     Parameters
     ----------
     station : BuddyWrapSensor
@@ -71,7 +72,7 @@ def _build_station_buddy_kwargs(
         Type of check being performed ('spatial_check', 'safetynet_check:groupname').
     use_z_robust_method : bool
         Whether to use robust z-score method.
-        
+
     Returns
     -------
     dict
@@ -82,24 +83,25 @@ def _build_station_buddy_kwargs(
     # Get the center station name and its buddies
     center_name = station.name
     buddies = station.get_buddies(groupname=buddygroupname)
-    
+
     # Build list of required columns: center station + all its buddies
     required_columns = [center_name] + buddies
-    
+
     # Create a subset (view) of widedf with only required columns
     subset_widedf = widedf[required_columns]
-    
+
     return {
-        'centerwrapsensor': station,
-        'buddygroupname': buddygroupname,
-        'widedf': subset_widedf,
-        'min_sample_size': min_sample_size,
-        'min_sample_spread': min_sample_spread,
-        'outlier_threshold': outlier_threshold,
-        'iteration': iteration,
-        'check_type': check_type,
-        'use_z_robust_method': use_z_robust_method,
+        "centerwrapsensor": station,
+        "buddygroupname": buddygroupname,
+        "widedf": subset_widedf,
+        "min_sample_size": min_sample_size,
+        "min_sample_spread": min_sample_spread,
+        "outlier_threshold": outlier_threshold,
+        "iteration": iteration,
+        "check_type": check_type,
+        "use_z_robust_method": use_z_robust_method,
     }
+
 
 @log_entry
 def toolkit_buddy_check(
@@ -111,7 +113,7 @@ def toolkit_buddy_check(
     spatial_max_sample_size: Union[int, None] = None,
     max_alt_diff: Union[int, float, None] = None,
     min_sample_spread: Union[int, float] = 1.0,
-    min_buddy_distance: Union[int, float]=0,
+    min_buddy_distance: Union[int, float] = 0,
     spatial_z_threshold: Union[int, float] = 3.1,
     N_iter: int = 2,
     instantaneous_tolerance: pd.Timedelta = pd.Timedelta("4min"),
@@ -119,7 +121,7 @@ def toolkit_buddy_check(
     whiteset: WhiteSet = WhiteSet(),
     # Safety nets
     safety_net_configs: List[Dict] = None,
-    #Statistical
+    # Statistical
     use_z_robust_method: bool = True,
     # Technical
     lapserate: Union[float, None] = None,  # -0.0065 for temperature
@@ -338,9 +340,11 @@ def toolkit_buddy_check(
         "safety_net_configs": safety_net_configs,
         "lapserate": lapserate,
     }
-    
-    targets = [BuddyWrapSensor(sensor=sta.get_sensor(obstype),
-                               site=sta.site) for sta in target_stations]
+
+    targets = [
+        BuddyWrapSensor(sensor=sta.get_sensor(obstype), site=sta.site)
+        for sta in target_stations
+    ]
 
     # Validate safety net configs if provided
     buddymethods.validate_safety_net_configs(safety_net_configs)
@@ -354,13 +358,13 @@ def toolkit_buddy_check(
     logger.debug(
         "Finding spatial buddies within radius of %s meters", spatial_buddy_radius
     )
-    
+
     buddymethods.assign_spatial_buddies(
         distance_df=dist_matrix,
-        metadf = metadf,
+        metadf=metadf,
         max_alt_diff=max_alt_diff,
         buddy_radius=spatial_buddy_radius,
-        min_buddy_distance = min_buddy_distance,
+        min_buddy_distance=min_buddy_distance,
         wrappedsensors=targets,
     )
 
@@ -374,30 +378,28 @@ def toolkit_buddy_check(
             wrappedsensors=targets,
             distance_df=dist_matrix,
             max_sample_size=spatial_max_sample_size,
-            groupname='spatial',
+            groupname="spatial",
         )
 
     # ---- Part 2: Preparing the records  -----
 
     # construct a wide observation dataframe
-    
+
     widedf, timestamp_map = buddymethods.create_wide_obs_df(
         wrappedsensors=targets,
         instantaneous_tolerance=instantaneous_tolerance,
     )
-    
+
     # lapse rate correction
-    widedf = buddymethods.correct_lapse_rate(widedf=widedf,
-                                wrappedsensors=targets,
-                                lapserate=lapserate)
-                       
-        
+    widedf = buddymethods.correct_lapse_rate(
+        widedf=widedf, wrappedsensors=targets, lapserate=lapserate
+    )
 
     # ---- Part 3 : Apply buddy check per stationcenter,
 
     # valid_targets = [budsta for budsta in targets if budsta.has_enough_buddies(
     #     groupname='spatial', min_buddies = spatial_min_sample_size)]
-    
+
     outliersbin = []
     for i in range(N_iter):
         logger.debug("Starting iteration %s of %s", i + 1, N_iter)
@@ -410,26 +412,26 @@ def toolkit_buddy_check(
                     widedf.loc[outlier_time, outlier_station] = np.nan
 
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
+            num_cores = Settings.get("use_N_cores_for_MP")
             num_workers = min(len(targets), num_cores)
 
-            logger.info(f"Running spatial buddy check with multiprocessing on {num_workers} cores")
             logger.info(
-                f"Parallelizing by station: {len(targets)} stations to process"
+                f"Running spatial buddy check with multiprocessing on {num_workers} cores"
             )
+            logger.info(f"Parallelizing by station: {len(targets)} stations to process")
 
-            # Build kwargs for each station with subset widedf containing only 
+            # Build kwargs for each station with subset widedf containing only
             # the center station and its buddies
             station_kwargs = [
                 _build_station_buddy_kwargs(
                     station=sta,
                     widedf=widedf,
-                    buddygroupname='spatial',
+                    buddygroupname="spatial",
                     min_sample_size=spatial_min_sample_size,
                     min_sample_spread=min_sample_spread,
                     outlier_threshold=spatial_z_threshold,
                     iteration=i,
-                    check_type='spatial_check',
+                    check_type="spatial_check",
                     use_z_robust_method=use_z_robust_method,
                 )
                 for sta in targets
@@ -438,40 +440,44 @@ def toolkit_buddy_check(
             # Run in parallel - each task processes one center station
             with ProcessPoolExecutor(max_workers=num_workers) as executor:
                 buddy_output = list(executor.map(_run_buddy_test, station_kwargs))
-            
+
         else:
             # create inputargs for each buddygroup, and for each chunk in time
             inputargs = [
                 {
-                    'centerwrapsensor': wrapsensor,
-                    'buddygroupname': 'spatial',
-                    'widedf': widedf,
-                    'min_sample_size': spatial_min_sample_size,
-                    'min_sample_spread': min_sample_spread,
-                    'outlier_threshold': spatial_z_threshold,
-                    'iteration': i,
-                    'check_type': 'spatial_check',
-                    'use_z_robust_method': use_z_robust_method,
+                    "centerwrapsensor": wrapsensor,
+                    "buddygroupname": "spatial",
+                    "widedf": widedf,
+                    "min_sample_size": spatial_min_sample_size,
+                    "min_sample_spread": min_sample_spread,
+                    "outlier_threshold": spatial_z_threshold,
+                    "iteration": i,
+                    "check_type": "spatial_check",
+                    "use_z_robust_method": use_z_robust_method,
                 }
                 for wrapsensor in targets
             ]
-            
 
             logger.debug("Finding outliers in each buddy group")
-            buddy_output = list(map(lambda kwargs: buddymethods.buddy_test_a_station(**kwargs), inputargs))
+            buddy_output = list(
+                map(
+                    lambda kwargs: buddymethods.buddy_test_a_station(**kwargs),
+                    inputargs,
+                )
+            )
 
-        #buddy output is [(MultiIndex, BuddyWrapSensor), ...], that needs to be unpacked
-        outlier_indices, updated_stations = zip(*buddy_output)    
-        #overload the BuddyWrapSensor
+        # buddy output is [(MultiIndex, BuddyWrapSensor), ...], that needs to be unpacked
+        outlier_indices, updated_stations = zip(*buddy_output)
+        # overload the BuddyWrapSensor
         targets = list(updated_stations)
-            
+
         # Concatenate all outlier MultiIndices
         # Each element is a MultiIndex with (name, datetime)
         spatial_outliers = buddymethods.concat_multiindices(list(outlier_indices))
-        
+
         # Start with spatial outliers for further processing
         current_outliers_idx = spatial_outliers
-        
+
         # Apply safety nets (if configured)
         if safety_net_configs:
             logger.debug(
@@ -481,29 +487,33 @@ def toolkit_buddy_check(
             )
             previous_safetynet_category = None
             for safety_net_config in safety_net_configs:
-                logger.info(f"Applying safety net on category {safety_net_config['category']}")
-                
-                current_outliers_idx = buddymethods.apply_safety_net(    
+                logger.info(
+                    f"Applying safety net on category {safety_net_config['category']}"
+                )
+
+                current_outliers_idx = buddymethods.apply_safety_net(
                     outliers=current_outliers_idx,
-                    buddychecksensors = targets,
-                    buddygroupname=safety_net_config['category'],
-                    metadf = metadf,
-                    distance_df = dist_matrix,
-                    max_distance=safety_net_config['buddy_radius'],
-                    min_distance=safety_net_config.get('min_buddy_distance', 0),
-                    max_alt_diff=max_alt_diff, #make this configurable?
+                    buddychecksensors=targets,
+                    buddygroupname=safety_net_config["category"],
+                    metadf=metadf,
+                    distance_df=dist_matrix,
+                    max_distance=safety_net_config["buddy_radius"],
+                    min_distance=safety_net_config.get("min_buddy_distance", 0),
+                    max_alt_diff=max_alt_diff,  # make this configurable?
                     wideobsds=widedf,
-                    safety_z_threshold=safety_net_config['z_threshold'],
-                    min_sample_size=safety_net_config['min_sample_size'],
-                    min_sample_spread=min_sample_spread, #make this configurable?
+                    safety_z_threshold=safety_net_config["z_threshold"],
+                    min_sample_size=safety_net_config["min_sample_size"],
+                    min_sample_spread=min_sample_spread,  # make this configurable?
                     use_z_robust_method=use_z_robust_method,
                     iteration=i,
-                    max_sample_size=safety_net_config.get('max_sample_size', None),
-                    only_if_previous_had_no_buddies=safety_net_config.get('only_if_previous_had_no_buddies', False),
+                    max_sample_size=safety_net_config.get("max_sample_size", None),
+                    only_if_previous_had_no_buddies=safety_net_config.get(
+                        "only_if_previous_had_no_buddies", False
+                    ),
                     previous_safetynet_category=previous_safetynet_category,
                 )
-                previous_safetynet_category = safety_net_config['category']
-            
+                previous_safetynet_category = safety_net_config["category"]
+
             # NOTE: Records saved by any safety net will be tested again in
             # the following iteration. A different result can occur if the
             # spatial/safety net sample changes in the next iteration.
@@ -516,7 +526,7 @@ def toolkit_buddy_check(
             obstype=obstype,
             iteration=i,
         )
-        
+
         # NOTE: The white-listed records are removed from the outliers at the end
         # of each iteration, similar to the safety nets. They participate in
         # the buddy check calculations but are not flagged as outliers.
@@ -525,30 +535,29 @@ def toolkit_buddy_check(
         # Format: (station_name, timestamp, message)
         for name, dt in current_outliers_idx:
             outliersbin.append((name, dt))
-    
-    #Prepare for output
-    return_results = {} 
+
+    # Prepare for output
+    return_results = {}
     for wrapsta in targets:
         logger.debug(f"Preparing QCresult for station {wrapsta.name}")
-        #1. Map timestamps back to original timestamps
+        # 1. Map timestamps back to original timestamps
         wrapsta.map_timestamps(timestamp_map=timestamp_map[wrapsta.name])
-    
-        #2. Create final QC labels (specific for buddy check)
-        final_labels = wrapsta.get_final_labels()
-        
-        #3 Convert these flags to default qc flags
-        qcflags = final_labels.map(to_qc_labels_map)
-        
-        #4 Create QCresult object
-        qcres = QCresult(
-                    checkname='buddy_check',
-                    checksettings=checksettings,
-                    flags=qcflags,
-                    detail='',
-                    )
 
-        qcres.add_details_by_series(detail_series = wrapsta.get_final_details())
-        return_results[wrapsta.name] = qcres            
-    
+        # 2. Create final QC labels (specific for buddy check)
+        final_labels = wrapsta.get_final_labels()
+
+        # 3 Convert these flags to default qc flags
+        qcflags = final_labels.map(to_qc_labels_map)
+
+        # 4 Create QCresult object
+        qcres = QCresult(
+            checkname="buddy_check",
+            checksettings=checksettings,
+            flags=qcflags,
+            detail="",
+        )
+
+        qcres.add_details_by_series(detail_series=wrapsta.get_final_details())
+        return_results[wrapsta.name] = qcres
+
     return return_results, targets
-    

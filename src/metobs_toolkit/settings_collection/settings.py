@@ -74,10 +74,7 @@ class Settings:
     if cpu_count < 2:
         cpu_count = 1  # Default to 1 if only one core is available
     else:
-        cpu_count -= 1 # keep one core free for other processes
-    
-
-
+        cpu_count -= 1  # keep one core free for other processes
 
     # Default configuration values
     _defaults: Dict[str, Any] = {
@@ -88,7 +85,6 @@ class Settings:
         "failed_gapfill_label_group": failed_gapfill_label_group,
         "qc_label_group": qc_label_group,
         "qc_status_labels_per_check": per_check_possible_labels,
-           
         # Logging defaults
         "log_level": "WARNING",
         "log_format": "LOG:: %(levelname)s - %(message)s",
@@ -102,7 +98,6 @@ class Settings:
         },
         # Plotting defaults
         "plotting_settings": default_plot_settings,
-        
         # Technical settings
         "use_N_cores_for_MP": cpu_count,
     }

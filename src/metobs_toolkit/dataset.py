@@ -37,7 +37,9 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
-from metobs_toolkit.backend_collection.distancematrix_func import generate_distance_matrix
+from metobs_toolkit.backend_collection.distancematrix_func import (
+    generate_distance_matrix,
+)
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
@@ -400,16 +402,17 @@ class Dataset:
 
         """
         metadf = self.metadf
-        
+
         exclude_stations = [
-            sta.name for sta in self.stations if
-            not sta.site.flag_has_coordinates()]
+            sta.name for sta in self.stations if not sta.site.flag_has_coordinates()
+        ]
         if exclude_stations:
             logger.warning(
                 f"Excluding stations without coordinates from distance matrix: {exclude_stations}"
             )
             metadf = metadf[~metadf.index.isin(exclude_stations)]
         return generate_distance_matrix(metadf)
+
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
@@ -1854,9 +1857,13 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
-            logger.debug(f'Distributing gross_value_check computations over {num_cores} cores.')
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing gross_value_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
@@ -1891,9 +1898,13 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
-            logger.debug(f'Distributing persistence_check computations over {num_cores} cores.')
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing persistence_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
@@ -1925,9 +1936,13 @@ class Dataset:
         )
 
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
-            logger.debug(f'Distributing repetitions_check computations over {num_cores} cores.')
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing repetitions_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
@@ -1961,9 +1976,13 @@ class Dataset:
         )
 
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
-            logger.debug(f'Distributing step_check computations over {num_cores} cores.')
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing step_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
             qced_stations = list(stationgenerator)
         else:
@@ -2003,9 +2022,13 @@ class Dataset:
         )
 
         if use_mp:
-            num_cores = Settings.get('use_N_cores_for_MP')
-            logger.debug(f'Distributing window_variation_check computations over {num_cores} cores.')
-            with concurrent.futures.ProcessPoolExecutor(max_workers=num_cores) as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing window_variation_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
@@ -2032,7 +2055,7 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_z_robust_method: bool = True,
         use_mp: bool = True,
-        min_std = None,
+        min_std=None,
     ):
         """Spatial buddy check.
 
@@ -2173,7 +2196,7 @@ class Dataset:
             raise DeprecationWarning(
                 "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
             )
-            
+
         # Delegate to buddy_check_with_safetynets with no safety nets
         self.buddy_check_with_safetynets(
             obstype=obstype,
@@ -2228,7 +2251,7 @@ class Dataset:
         whiteset: WhiteSet = WhiteSet(),
         use_z_robust_method: bool = True,
         use_mp: bool = True,
-        min_std = None,
+        min_std=None,
     ):
         """Spatial buddy check with configurable safety nets.
 
@@ -2474,7 +2497,7 @@ class Dataset:
                 "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
             )
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
-        
+
         # Validate that the required metadata columns exist
         if safety_net_configs:
             if not isinstance(safety_net_configs, list):
@@ -2511,12 +2534,12 @@ class Dataset:
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
-            min_buddy_distance = min_buddy_distance,
+            min_buddy_distance=min_buddy_distance,
             lapserate=lapserate,
             whiteset=whiteset,
             # Generalized safety net configuration
             safety_net_configs=safety_net_configs,
-            #statistical
+            # statistical
             use_z_robust_method=use_z_robust_method,
             # technical
             use_mp=use_mp,
@@ -2536,15 +2559,17 @@ class Dataset:
             sensordata = self.get_station(staname).get_sensor(obstype)
             sensordata._update_outliers(qcresult=qcres)
         return detailsensors
-        
+
     @copy_doc(dataset_qc_overview_df)
     @log_entry
-    def qc_overview_df(self, 
-                       subset_stations:Union[list[str], None] = None,
-                       subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
-        return dataset_qc_overview_df(self,
-                                      subset_stations=subset_stations,
-                                      subset_obstypes=subset_obstypes)
+    def qc_overview_df(
+        self,
+        subset_stations: Union[list[str], None] = None,
+        subset_obstypes: Union[list[str], None] = None,
+    ) -> pd.DataFrame:
+        return dataset_qc_overview_df(
+            self, subset_stations=subset_stations, subset_obstypes=subset_obstypes
+        )
 
     @log_entry
     def get_qc_stats(
@@ -2581,50 +2606,54 @@ class Dataset:
         """
 
         # collect stations that actually have the target obstype
-        target_stations = [
-            sta for sta in self.stations if obstype in sta.obsdata
-        ]
+        target_stations = [sta for sta in self.stations if obstype in sta.obsdata]
 
         if not target_stations:
             logger.warning("No stations with obstype '%s' found for QC stats.", obstype)
             return None
 
-        df, outliersdf = self.df, self.outliersdf 
+        df, outliersdf = self.df, self.outliersdf
         if df.empty:
             logger.warning("Dataset is empty, cannot compute QC stats.")
             return None
         if obstype not in df.index.get_level_values("obstype"):
-            logger.warning("No data for obstype '%s' in dataset, cannot compute QC stats.", obstype)
+            logger.warning(
+                "No data for obstype '%s' in dataset, cannot compute QC stats.", obstype
+            )
             return None
-        
+
         all_label_counts = df.xs(obstype, level="obstype")["label"].value_counts()
         if obstype in outliersdf.index.get_level_values("obstype"):
-            outlier_label_counts = outliersdf.xs(obstype, level="obstype")["label"].value_counts()
+            outlier_label_counts = outliersdf.xs(obstype, level="obstype")[
+                "label"
+            ].value_counts()
         else:
-            outlier_label_counts = pd.Series(index=pd.Index([], dtype=int, name="label"),
-                                             dtype=int)
-            
-        
-        
+            outlier_label_counts = pd.Series(
+                index=pd.Index([], dtype=int, name="label"), dtype=int
+            )
+
         per_check_counts = []
         for sta in target_stations:
             sensor_counts = sta.get_sensor(obstype).get_qc_freq_statistics()
-            #add the name of the station as a index level
+            # add the name of the station as a index level
             sensor_counts.index = pd.MultiIndex.from_frame(
-                sensor_counts.index.to_frame().assign(name=sta.name))
- 
-            per_check_counts.append(sensor_counts)  
-            
-        per_check_counts = pd.concat(per_check_counts).groupby(level=["checkname", "flag"]).sum()   
+                sensor_counts.index.to_frame().assign(name=sta.name)
+            )
+
+            per_check_counts.append(sensor_counts)
+
+        per_check_counts = (
+            pd.concat(per_check_counts).groupby(level=["checkname", "flag"]).sum()
+        )
 
         if make_plot:
             fig = plotting.qc_overview_pies(
                 end_labels_from_df=all_label_counts,
                 end_labels_from_outliers=outlier_label_counts,
                 per_check_labels=per_check_counts,
-                fig_title = f"QC frequency statistics of {obstype} on Dataset level."
+                fig_title=f"QC frequency statistics of {obstype} on Dataset level.",
             )
-           
+
             return fig
 
         return {

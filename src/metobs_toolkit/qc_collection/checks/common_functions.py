@@ -7,7 +7,7 @@ from metobs_toolkit.qcresult import (
     flagged_cond,
     saved_cond,
     unchecked_cond,
-    unmet_cond
+    unmet_cond,
 )
 
 logger = logging.getLogger("<metobs_toolkit>")
@@ -66,12 +66,12 @@ def create_qcresult_flags(
     outliers_after_white_idx: pd.DatetimeIndex,
 ) -> pd.Series:
     """Create quality control flags series for all input records.
-    
+
     This function generates a pandas Series containing QC flags for all timestamps
-    in the input records. Records are categorized as: unchecked (NaN values), 
-    passed (valid non-outliers), unmet condition, saved (whitelisted outliers), 
+    in the input records. Records are categorized as: unchecked (NaN values),
+    passed (valid non-outliers), unmet condition, saved (whitelisted outliers),
     or flagged (detected outliers).
-    
+
     Parameters
     ----------
     all_input_records : pd.Series
@@ -82,7 +82,7 @@ def create_qcresult_flags(
         Timestamps of all detected outliers before whitelist filtering.
     outliers_after_white_idx : pd.DatetimeIndex
         Timestamps of outliers remaining after whitelist filtering.
-        
+
     Returns
     -------
     pd.Series
@@ -92,9 +92,9 @@ def create_qcresult_flags(
     flags = pd.Series(data=unchecked_cond, index=all_input_records.index)
     flags.loc[all_input_records.dropna().index] = pass_cond
     flags.loc[unmet_cond_idx] = unmet_cond
-    
+
     saved_records_idx = outliers_before_white_idx.difference(outliers_after_white_idx)
     flags.loc[saved_records_idx] = saved_cond
     flags.loc[outliers_after_white_idx] = flagged_cond
-    
+
     return flags

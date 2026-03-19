@@ -60,7 +60,7 @@ def step_check(
         "max_decrease_per_second": max_decrease_per_second,
         "sensorwhiteset": sensorwhiteset,
     }
-    
+
     # Validate argument values
     if max_decrease_per_second > 0:
         raise ValueError("max_decrease_per_second must be negative!")
@@ -95,26 +95,20 @@ def step_check(
 
     flags = create_qcresult_flags(
         all_input_records=records,
-        unmet_cond_idx = pd.DatetimeIndex([]),
+        unmet_cond_idx=pd.DatetimeIndex([]),
         outliers_before_white_idx=outliers_idx,
         outliers_after_white_idx=outliers_after_white_idx,
     )
-    
 
     qcresult = QCresult(
-        checkname="step",
-        checksettings=checksettings,
-        flags=flags,
-        detail='no details'
-        )
-    
-    #Create and add details
+        checkname="step", checksettings=checksettings, flags=flags, detail="no details"
+    )
+
+    # Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = f'step > {max_increase_per_second:.4g} per second or step < {max_decrease_per_second:.4g} per second',
-            index = outliers_after_white_idx
+            data=f"step > {max_increase_per_second:.4g} per second or step < {max_decrease_per_second:.4g} per second",
+            index=outliers_after_white_idx,
         )
-        qcresult.add_details_by_series(detail_series = detailseries)
+        qcresult.add_details_by_series(detail_series=detailseries)
     return qcresult
-    
-    

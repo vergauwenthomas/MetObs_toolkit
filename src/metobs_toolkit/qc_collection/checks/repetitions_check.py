@@ -52,7 +52,7 @@ def repetitions_check(
     The persistence check uses thresholds that are meteorologically based (e.g., the moving window is defined by a duration),
     in contrast to the repetitions check whose thresholds are instrumentally based (e.g., the "window" is defined by a number of records).
     """
-    
+
     checksettings = {
         "max_N_repetitions": max_N_repetitions,
         "sensorwhiteset": sensorwhiteset,
@@ -73,15 +73,14 @@ def repetitions_check(
     group_sizes = groups.size()
     outlier_groups = group_sizes[group_sizes > max_N_repetitions]
 
-    
     if outlier_groups.empty:
         logger.debug("No outliers detected. Exiting repetitions_check function.")
-        outliers_idx =  timestamps_to_datetimeindex(
-                        timestamps=[], name="datetime", current_tz=None
-                    )
+        outliers_idx = timestamps_to_datetimeindex(
+            timestamps=[], name="datetime", current_tz=None
+        )
         outliers = pd.Series(index=outliers_idx)
     else:
-    
+
         # Combine all outlier groups
         outliers = pd.concat(
             [
@@ -91,15 +90,14 @@ def repetitions_check(
                 for outlgroup in outlier_groups.index
             ]
         )
-       
 
     # Catch the white records
     outliers_after_white_idx = sensorwhiteset.catch_white_records(outliers.index)
-    
+
     # Create flags
     flags = create_qcresult_flags(
         all_input_records=records,
-        unmet_cond_idx = pd.DatetimeIndex([]),
+        unmet_cond_idx=pd.DatetimeIndex([]),
         outliers_before_white_idx=outliers.index,
         outliers_after_white_idx=outliers_after_white_idx,
     )
@@ -108,14 +106,14 @@ def repetitions_check(
         checkname="repetitions",
         checksettings=checksettings,
         flags=flags,
-        )
-    
-    #Create and add details
+    )
+
+    # Create and add details
     if not outliers_after_white_idx.empty:
         detailseries = pd.Series(
-            data = 'More than ' + str(max_N_repetitions) + ' repeated values',
-            index = outliers_after_white_idx
+            data="More than " + str(max_N_repetitions) + " repeated values",
+            index=outliers_after_white_idx,
         )
-        qcresult.add_details_by_series(detail_series = detailseries)
-    
+        qcresult.add_details_by_series(detail_series=detailseries)
+
     return qcresult

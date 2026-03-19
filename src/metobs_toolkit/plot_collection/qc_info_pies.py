@@ -13,6 +13,7 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 
 logger = logging.getLogger("<metobs_toolkit>")
 
+
 def autopct_format(pct):
     """Format a pie chart percentage value for display.
 
@@ -27,7 +28,7 @@ def autopct_format(pct):
         The formatted percentage string (e.g. ``'12.3%'``), or an empty
         string if ``pct`` is zero or negative.
     """
-    return f'{pct:.1f}%' if pct > 0 else ''
+    return f"{pct:.1f}%" if pct > 0 else ""
 
 
 @log_entry
@@ -35,8 +36,7 @@ def qc_overview_pies(
     end_labels_from_df: pd.Series,
     end_labels_from_outliers: pd.Series,
     per_check_labels: pd.Series,
-    fig_title: str = ""
-    
+    fig_title: str = "",
 ) -> plt.Figure:
     """
     Generate a QC overview figure with pie charts for label frequencies and per-check outcomes.
@@ -73,7 +73,9 @@ def qc_overview_pies(
     ax_thr = fig.add_subplot(spec[0, 2:])  # top half right
 
     # Frequency with all
-    colors = [Settings._get_color_from_label(label) for label in end_labels_from_df.index]
+    colors = [
+        Settings._get_color_from_label(label) for label in end_labels_from_df.index
+    ]
     end_labels_from_df.plot(
         ax=ax_thl,
         kind="pie",
@@ -84,17 +86,23 @@ def qc_overview_pies(
         radius=Settings.get("plotting_settings.pie_charts.radius_big"),
         fontsize=Settings.get("plotting_settings.pie_charts.txt_label_size_big_pies"),
     )
-    ax_thl.set_title("Label frequencies", **Settings.get("plotting_settings.pie_charts.big_pie_title_kwargs"))
+    ax_thl.set_title(
+        "Label frequencies",
+        **Settings.get("plotting_settings.pie_charts.big_pie_title_kwargs"),
+    )
     ax_thl.set_ylabel("")
 
     # Only outliers
-   
-    colors = [Settings._get_color_from_label(label) for label in end_labels_from_outliers.index]
+
+    colors = [
+        Settings._get_color_from_label(label)
+        for label in end_labels_from_outliers.index
+    ]
 
     if end_labels_from_outliers.empty:
         # No outliers --> full pie with "No QC outliers" in the color of 'ok'
         end_labels_from_outliers = pd.Series([100], index=["No QC outliers"])
-        colors = [Settings._get_color_from_label('ok')]
+        colors = [Settings._get_color_from_label("ok")]
 
     end_labels_from_outliers.plot(
         ax=ax_thr,
@@ -106,20 +114,25 @@ def qc_overview_pies(
         radius=Settings.get("plotting_settings.pie_charts.radius_big"),
         fontsize=Settings.get("plotting_settings.pie_charts.txt_label_size_big_pies"),
     )
-    ax_thr.set_title("Outlier specific frequencies", **Settings.get("plotting_settings.pie_charts.big_pie_title_kwargs"))
+    ax_thr.set_title(
+        "Outlier specific frequencies",
+        **Settings.get("plotting_settings.pie_charts.big_pie_title_kwargs"),
+    )
     ax_thr.set_ylabel("")
 
     # Performance per check
-    per_qc_colmap = {val['label']: val['plotkwargs']['color'] for val in Settings.get('qc_status_labels_per_check').values()}
+    per_qc_colmap = {
+        val["label"]: val["plotkwargs"]["color"]
+        for val in Settings.get("qc_status_labels_per_check").values()
+    }
 
-    
     i = 0
-    for checkname in per_check_labels.index.get_level_values('checkname').unique():
+    for checkname in per_check_labels.index.get_level_values("checkname").unique():
         subax = fig.add_subplot(spec[math.floor(i / ncol) + 1, i % ncol])
-        
+
         checkname_subset = per_check_labels.loc[checkname]
-        colors = [per_qc_colmap.get(label, 'gray') for label in checkname_subset.index]
-        
+        colors = [per_qc_colmap.get(label, "gray") for label in checkname_subset.index]
+
         checkname_subset.plot(
             ax=subax,
             kind="pie",
@@ -127,16 +140,22 @@ def qc_overview_pies(
             legend=False,
             colors=colors,
             radius=Settings.get("plotting_settings.pie_charts.radius_small"),
-            fontsize=Settings.get("plotting_settings.pie_charts.txt_label_size_small_pies"),
+            fontsize=Settings.get(
+                "plotting_settings.pie_charts.txt_label_size_small_pies"
+            ),
         )
 
-        subax.set_title(f"{checkname}", **Settings.get("plotting_settings.pie_charts.small_pie_title_kwargs"))
+        subax.set_title(
+            f"{checkname}",
+            **Settings.get("plotting_settings.pie_charts.small_pie_title_kwargs"),
+        )
         subax.set_ylabel("")
 
         i += 1
-        
-    
-    fig.suptitle(fig_title, **Settings.get("plotting_settings.pie_charts.fig_title_kwargs"))
+
+    fig.suptitle(
+        fig_title, **Settings.get("plotting_settings.pie_charts.fig_title_kwargs")
+    )
     return fig
 
 

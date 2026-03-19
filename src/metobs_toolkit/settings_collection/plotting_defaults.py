@@ -44,7 +44,6 @@ default_plot_settings["pie_charts"] = {
     "fig_title_kwargs": {"fontsize": 16},
     "big_pie_title_kwargs": {"fontsize": 14},
     "small_pie_title_kwargs": {"fontsize": 10},
-    
 }
 
 # =============================================================================

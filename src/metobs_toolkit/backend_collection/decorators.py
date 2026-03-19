@@ -17,6 +17,7 @@ def log_entry(func):
     callable
         Wrapped function that logs entry before delegating to the original.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         """Call the original function after logging the entry."""

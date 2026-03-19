@@ -23,10 +23,9 @@ def buddy_test_a_station(
     min_sample_spread: float,
     outlier_threshold: float,
     iteration: int,
-    check_type: str = 'spatial_check',
+    check_type: str = "spatial_check",
     use_z_robust_method: bool = True,
 ) -> Tuple[pd.MultiIndex, BuddyWrapSensor]:
-
     """Test a center station against its buddy group and update flags/details.
 
     This function tests whether the center station is an outlier compared to
@@ -71,169 +70,175 @@ def buddy_test_a_station(
         * The updated ``centerwrapsensor`` with flags and details set for
           this iteration.
     """
-    
+
     # Get buddies (excluding center station)
     buddies = centerwrapsensor.get_buddies(groupname=buddygroupname)
     center_name = centerwrapsensor.name
-    
+
     # Subset to buddies only (for sample distribution) and center station
     buddydf = widedf[buddies]
     center_series = widedf[center_name]
-    
+
     # Count valid buddy samples per timestamp (center station NOT included)
     buddy_sample_sizes = buddydf.notna().sum(axis=1)
-    
+
     # Mark timestamps where center station has no data as NOT_TESTED
-    
-    #Edgecaase: If a station has fewer records than others, they are present as NaN in widedf 
-    #But these timestamps do not ex
+
+    # Edgecaase: If a station has fewer records than others, they are present as NaN in widedf
+    # But these timestamps do not ex
     no_data = pd.Series(BC_NOT_TESTED, index=center_series[center_series.isna()].index)
     centerwrapsensor.add_flags(
-        iteration=iteration,
-        flag_series=no_data,
-        column_name=check_type
+        iteration=iteration, flag_series=no_data, column_name=check_type
     )
-    
-    
+
     # Find timestamps where center station has data
     center_has_data = center_series.notna()
-    #TODO: pass the flag BC_NOT_TESTED for timestamps where center has no data
-    
+    # TODO: pass the flag BC_NOT_TESTED for timestamps where center has no data
+
     # Separate timestamps by sample size condition (only where center has data)
     sufficient_samples_mask = (buddy_sample_sizes >= min_sample_size) & center_has_data
     insufficient_samples_mask = (buddy_sample_sizes < min_sample_size) & center_has_data
-    
+
     timestamps_with_sufficient = widedf.index[sufficient_samples_mask]
     timestamps_insufficient = widedf.index[insufficient_samples_mask]
-    
+
     # ---- Handle timestamps with insufficient buddy samples (BC_NO_BUDDIES) ----
     if not timestamps_insufficient.empty:
         # Create flags for NO_BUDDIES
         no_buddies_flags = pd.Series(BC_NO_BUDDIES, index=timestamps_insufficient)
         centerwrapsensor.add_flags(
-            iteration=iteration,
-            flag_series=no_buddies_flags,
-            column_name=check_type
+            iteration=iteration, flag_series=no_buddies_flags, column_name=check_type
         )
-        
+
         # Create detail messages
         no_buddies_details = pd.Series(
-            [f"Insufficient buddy sample size (n={int(buddy_sample_sizes.loc[ts])}, "
-             f"required={min_sample_size}) in {buddygroupname} buddy group "
-             f"centered on {center_name}"
-             for ts in timestamps_insufficient],
-            index=timestamps_insufficient
+            [
+                f"Insufficient buddy sample size (n={int(buddy_sample_sizes.loc[ts])}, "
+                f"required={min_sample_size}) in {buddygroupname} buddy group "
+                f"centered on {center_name}"
+                for ts in timestamps_insufficient
+            ],
+            index=timestamps_insufficient,
         )
-        if check_type == 'spatial_check':
+        if check_type == "spatial_check":
             centerwrapsensor.add_spatial_details(
-                iteration=iteration,
-                detail_series=no_buddies_details
+                iteration=iteration, detail_series=no_buddies_details
             )
         else:
-            centerwrapsensor.add_safetynet_details(iteration=iteration,
-                                                   safetynetname=buddygroupname,
-                                                   detail_series=no_buddies_details)
-    
+            centerwrapsensor.add_safetynet_details(
+                iteration=iteration,
+                safetynetname=buddygroupname,
+                detail_series=no_buddies_details,
+            )
+
     # ---- Handle timestamps with sufficient samples ----
     if timestamps_with_sufficient.empty:
         # No timestamps to process, return empty MultiIndex
-        return (pd.MultiIndex.from_tuples([], names=['name', 'datetime']), centerwrapsensor)
-    
+        return (
+            pd.MultiIndex.from_tuples([], names=["name", "datetime"]),
+            centerwrapsensor,
+        )
+
     # Filter to rows with enough valid buddy samples
     buddydf_filtered = buddydf.loc[timestamps_with_sufficient]
     center_filtered = center_series.loc[timestamps_with_sufficient]
     buddy_sample_sizes_filtered = buddy_sample_sizes.loc[timestamps_with_sufficient]
-    
+
     # Compute z-scores for center station using buddy distribution
     if use_z_robust_method:
         results_df = _compute_robust_z_scores(
             buddydf=buddydf_filtered,
             center_values=center_filtered,
             min_mad=min_sample_spread,
-            outlier_threshold=outlier_threshold
+            outlier_threshold=outlier_threshold,
         )
-        
+
     else:
         results_df = _compute_center_z_scores(
             buddydf=buddydf_filtered,
             center_values=center_filtered,
             min_std=min_sample_spread,
-            outlier_threshold=outlier_threshold
+            outlier_threshold=outlier_threshold,
         )
-    
+
     # Separate flagged (outliers) and passed
-    outlier_timestamps = results_df.index[results_df['flagged']]
-    passed_timestamps = results_df.index[~results_df['flagged']]
-    
+    outlier_timestamps = results_df.index[results_df["flagged"]]
+    passed_timestamps = results_df.index[~results_df["flagged"]]
+
     # ---- Update PASSED flags and details ----
     if not passed_timestamps.empty:
         passed_flags = pd.Series(BC_PASSED, index=passed_timestamps)
         centerwrapsensor.add_flags(
-            iteration=iteration,
-            flag_series=passed_flags,
-            column_name=check_type
+            iteration=iteration, flag_series=passed_flags, column_name=check_type
         )
-        
+
         # Create detail messages for passed
-        passed_details = f"Passed {buddygroupname} check: " + results_df.loc[passed_timestamps, 'details']
-        
-        if check_type == 'spatial_check':
+        passed_details = (
+            f"Passed {buddygroupname} check: "
+            + results_df.loc[passed_timestamps, "details"]
+        )
+
+        if check_type == "spatial_check":
             centerwrapsensor.add_spatial_details(
-                iteration=iteration,
-                detail_series=passed_details
+                iteration=iteration, detail_series=passed_details
             )
         else:
-            centerwrapsensor.add_safetynet_details(iteration=iteration,
-                                                   safetynetname=buddygroupname,
-                                                   detail_series=passed_details)
-            
+            centerwrapsensor.add_safetynet_details(
+                iteration=iteration,
+                safetynetname=buddygroupname,
+                detail_series=passed_details,
+            )
+
     # ---- Update FLAGGED (outlier) flags and details ----
     if not outlier_timestamps.empty:
         flagged_flags = pd.Series(BC_FLAGGED, index=outlier_timestamps)
         centerwrapsensor.add_flags(
-            iteration=iteration,
-            flag_series=flagged_flags,
-            column_name=check_type
+            iteration=iteration, flag_series=flagged_flags, column_name=check_type
         )
-        
+
         # Create detail messages for outliers
-        outlier_details = f"Outlier in {buddygroupname} buddy group centered on {center_name}: " + results_df.loc[outlier_timestamps, 'details']
-          
-        
-        
-        if check_type == 'spatial_check':
+        outlier_details = (
+            f"Outlier in {buddygroupname} buddy group centered on {center_name}: "
+            + results_df.loc[outlier_timestamps, "details"]
+        )
+
+        if check_type == "spatial_check":
             centerwrapsensor.add_spatial_details(
-                iteration=iteration,
-                detail_series=outlier_details
+                iteration=iteration, detail_series=outlier_details
             )
         else:
-            centerwrapsensor.add_safetynet_details(iteration=iteration,
-                                                   safetynetname=buddygroupname,
-                                                   detail_series=outlier_details)
-    
+            centerwrapsensor.add_safetynet_details(
+                iteration=iteration,
+                safetynetname=buddygroupname,
+                detail_series=outlier_details,
+            )
+
     # ---- Return outliers as MultiIndex ----
     if not outlier_timestamps.empty:
         outlier_multiindex = pd.MultiIndex.from_arrays(
             [[center_name] * len(outlier_timestamps), outlier_timestamps],
-            names=['name', 'datetime']
+            names=["name", "datetime"],
         )
-        #Return the updated stations, this is needed when runned in multiprocessing
+        # Return the updated stations, this is needed when runned in multiprocessing
         return (outlier_multiindex, centerwrapsensor)
     else:
-        return (pd.MultiIndex.from_tuples([], names=['name', 'datetime']), centerwrapsensor)
-
+        return (
+            pd.MultiIndex.from_tuples([], names=["name", "datetime"]),
+            centerwrapsensor,
+        )
 
 
 # ------------------------------------------
 #    Statistical sample scoring
 # ------------------------------------------
 
+
 def _compute_robust_z_scores(
     buddydf: pd.DataFrame,
     center_values: pd.Series,
     min_mad: float,
-    outlier_threshold: float
-    ) -> pd.DataFrame:
+    outlier_threshold: float,
+) -> pd.DataFrame:
     """Compute robust z-scores (MADFM-based) for outlier detection.
 
     Each centre-station value is compared against the median of its
@@ -266,42 +271,52 @@ def _compute_robust_z_scores(
             Human-readable string summarising the z-score calculation.
     """
     buddy_not_na_counts = buddydf.notna().sum(axis=1)
-    #Calculate MADFM (Median Absolute Deviation From Median)
+
+    # Calculate MADFM (Median Absolute Deviation From Median)
     def MAD(x):
         "MEDIAN absolute deviation from median"
         return (x - x.median()).abs().median()
-    
+
     mad_series = buddydf.apply(MAD, axis=1)
     # Replace std below minimum with the minimum (avoid division by near-zero)
     mad_series.loc[mad_series < min_mad] = np.float32(min_mad)
-    
+
     # Calculate robust z-score for center station
-    
-    robust_z_scores = (center_values - buddydf.median(axis=1)).abs() / (1.4826 * mad_series)
-    
-    details = ('z (robust)=' + robust_z_scores.map('{:.2f}'.format) +
-               ', threshold=' + str(outlier_threshold) + 
-               ', n=' + buddy_not_na_counts.map(str) +
-               ', MAD=' + mad_series.map('{:.2f}'.format) +
-               ', median=' + buddydf.median(axis=1).map('{:.2f}'.format))
-    
+
+    robust_z_scores = (center_values - buddydf.median(axis=1)).abs() / (
+        1.4826 * mad_series
+    )
+
+    details = (
+        "z (robust)="
+        + robust_z_scores.map("{:.2f}".format)
+        + ", threshold="
+        + str(outlier_threshold)
+        + ", n="
+        + buddy_not_na_counts.map(str)
+        + ", MAD="
+        + mad_series.map("{:.2f}".format)
+        + ", median="
+        + buddydf.median(axis=1).map("{:.2f}".format)
+    )
+
     # Build result DataFrame
     result_df = pd.DataFrame(
         index=buddydf.index,
         data={
-            'z_score': robust_z_scores,
-            'flagged': robust_z_scores > outlier_threshold,
-            'details': details,
-        }
+            "z_score": robust_z_scores,
+            "flagged": robust_z_scores > outlier_threshold,
+            "details": details,
+        },
     )
     return result_df
-    
+
 
 def _compute_center_z_scores(
     buddydf: pd.DataFrame,
     center_values: pd.Series,
     min_std: float,
-    outlier_threshold: float
+    outlier_threshold: float,
 ) -> pd.DataFrame:
     """Compute classic z-scores for center station using buddy distribution.
 
@@ -332,24 +347,30 @@ def _compute_center_z_scores(
     buddy_not_na_counts = buddydf.notna().sum(axis=1)
     # Replace std below minimum with the minimum (avoid division by near-zero)
     buddy_std_series.loc[buddy_std_series < min_std] = np.float32(min_std)
-    
+
     # Calculate z-score for center station
     z_scores = (center_values - buddy_mean_series).abs() / buddy_std_series
-    
-    
-    details = ('z=' + z_scores.map('{:.2f}'.format) +
-               ', threshold=' + str(outlier_threshold) + 
-               ', n=' + buddy_not_na_counts.map(str) +
-               ', mean=' + buddy_mean_series.map('{:.2f}'.format) +
-               ', std=' + buddy_std_series.map('{:.2f}'.format))
-    
+
+    details = (
+        "z="
+        + z_scores.map("{:.2f}".format)
+        + ", threshold="
+        + str(outlier_threshold)
+        + ", n="
+        + buddy_not_na_counts.map(str)
+        + ", mean="
+        + buddy_mean_series.map("{:.2f}".format)
+        + ", std="
+        + buddy_std_series.map("{:.2f}".format)
+    )
+
     # Build result DataFrame
     result_df = pd.DataFrame(
         index=buddydf.index,
         data={
-            'z_score': z_scores,
-            'flagged': z_scores > outlier_threshold,
-            'details': details,
-        }
+            "z_score": z_scores,
+            "flagged": z_scores > outlier_threshold,
+            "details": details,
+        },
     )
     return result_df

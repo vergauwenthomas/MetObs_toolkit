@@ -13,9 +13,9 @@ if TYPE_CHECKING:
     from ..buddywrapsensor import BuddyWrapSensor
 
 
-def create_wide_obs_df(wrappedsensors: List[BuddyWrapSensor],
-                       instantaneous_tolerance: pd.Timedelta
-                       ) -> Tuple[pd.DataFrame, Dict]:
+def create_wide_obs_df(
+    wrappedsensors: List[BuddyWrapSensor], instantaneous_tolerance: pd.Timedelta
+) -> Tuple[pd.DataFrame, Dict]:
     """Build a wide-format observations DataFrame from wrapped sensors.
 
     Sensor time series are synchronised to a common regular datetime index
@@ -45,14 +45,15 @@ def create_wide_obs_df(wrappedsensors: List[BuddyWrapSensor],
         records = wrapsens.sensor.series
         records.name = wrapsens.name
         concatlist.append(records)
-            
+
     # synchronize the timestamps
     logger.debug("Synchronizing timestamps")
     combdf, timestamp_map = _synchronize_series(
         series_list=concatlist, max_shift=instantaneous_tolerance
     )
-    
+
     return (combdf, timestamp_map)
+
 
 def _synchronize_series(
     series_list: List[pd.Series], max_shift: pd.Timedelta
@@ -120,29 +121,24 @@ def _synchronize_series(
     return pd.concat(synchronized_series, axis=1), timestamp_mapping
 
 
-
-def concat_multiindices(
-    indices: List[pd.MultiIndex]
-) -> pd.MultiIndex:
+def concat_multiindices(indices: List[pd.MultiIndex]) -> pd.MultiIndex:
     """Concatenate a list of MultiIndex objects into a single MultiIndex.
-    
+
     Parameters
     ----------
     indices : list of pd.MultiIndex
         List of MultiIndex objects to concatenate.
-        
+
     Returns
     -------
     pd.MultiIndex
         Concatenated MultiIndex.
     """
     if not indices:
-        return pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
-    
+        return pd.MultiIndex.from_tuples([], names=["name", "datetime"])
+
     concatenated = pd.MultiIndex.from_tuples(
-        [tup for idx in indices for tup in idx],
-        names=indices[0].names
+        [tup for idx in indices for tup in idx], names=indices[0].names
     )
-    
-    
-    return concatenated 
+
+    return concatenated

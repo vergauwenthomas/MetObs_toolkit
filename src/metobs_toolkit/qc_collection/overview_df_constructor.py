@@ -23,44 +23,50 @@ def sensordata_qc_overview_df(sensor) -> pd.DataFrame:
         applied check, plus a ``'value'`` column with the raw observation
         values.  Missing checks are filled with ``'Not applied'``.
     """
-    #TODO rearange the order of qc columns to reflect the executeion order
+    # TODO rearange the order of qc columns to reflect the executeion order
     possible_timestamps = sensor.series.index
-    qc_before_timecoarsening = ['duplicated_timestamp']
-    
-    
+    qc_before_timecoarsening = ["duplicated_timestamp"]
+
     to_concat = []
     for qcresult in sensor.outliers:
         checkdf = qcresult.create_outliersdf(
-            map_to_basic_labels=False, #get all flags (ok, outl, notchecked, unmet, saved)
-            subset_to_outliers=False) #Get all flags
-        #add checkname to the index
+            map_to_basic_labels=False,  # get all flags (ok, outl, notchecked, unmet, saved)
+            subset_to_outliers=False,
+        )  # Get all flags
+        # add checkname to the index
         checkdf["checkname"] = qcresult.checkname
         if qcresult.checkname in qc_before_timecoarsening:
-            #Subset to coarsende timestmaps only
+            # Subset to coarsende timestmaps only
             checkdf = checkdf.reindex(possible_timestamps)
 
         checkdf.set_index("checkname", append=True, inplace=True)
         to_concat.append(checkdf)
-        
-    totaldf =  save_concat(to_concat)
+
+    totaldf = save_concat(to_concat)
 
     if totaldf.empty:
-        return pd.DataFrame(columns=['value', 'label', 'details'],
-                                index=pd.DatetimeIndex([], name='datetime'))
+        return pd.DataFrame(
+            columns=["value", "label", "details"],
+            index=pd.DatetimeIndex([], name="datetime"),
+        )
 
-    #Unstack
-    totaldf = totaldf.unstack(level='checkname')
-    totaldf.fillna('Not applied', inplace=True)
+    # Unstack
+    totaldf = totaldf.unstack(level="checkname")
+    totaldf.fillna("Not applied", inplace=True)
 
-    #add values
-    allvals = save_concat([sensor.series, sensor.outliers_values_bin]) #do not sort before removing the duplicates !
-    allvals = allvals[~allvals.index.duplicated(keep='last')].sort_index()
-    totaldf['value'] = allvals.loc[totaldf.index]
-    
-    return totaldf[['value', 'label', 'details']]
+    # add values
+    allvals = save_concat(
+        [sensor.series, sensor.outliers_values_bin]
+    )  # do not sort before removing the duplicates !
+    allvals = allvals[~allvals.index.duplicated(keep="last")].sort_index()
+    totaldf["value"] = allvals.loc[totaldf.index]
+
+    return totaldf[["value", "label", "details"]]
 
 
-def station_qc_overview_df(station, subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+def station_qc_overview_df(
+    station, subset_obstypes: Union[list[str], None] = None
+) -> pd.DataFrame:
     """Build a QC overview DataFrame for all sensors of a Station.
 
     Parameters
@@ -78,39 +84,44 @@ def station_qc_overview_df(station, subset_obstypes:Union[list[str], None] = Non
         structure mirrors :func:`sensordata_qc_overview_df`.
     """
     if subset_obstypes is None:
-        sensortargets = station.sensordata.values() 
+        sensortargets = station.sensordata.values()
     else:
         sensortargets = []
         for obstype in subset_obstypes:
             if obstype in station.sensordata:
                 sensortargets.append(station.get_sensor(obstype))
             else:
-                #Log a warning?
+                # Log a warning?
                 pass
-    
+
     to_concat = []
     for sensordata in sensortargets:
         stadf = sensordata_qc_overview_df(sensordata).reset_index()
-        #add obstype to the index
+        # add obstype to the index
         if not stadf.empty:
             stadf["obstype"] = sensordata.obstype.name
-            stadf = stadf.reset_index().set_index(['datetime', "obstype"])
+            stadf = stadf.reset_index().set_index(["datetime", "obstype"])
             to_concat.append(stadf)
-    
-    
-        
-    totaldf =  save_concat(to_concat)
+
+    totaldf = save_concat(to_concat)
     totaldf.sort_index(inplace=True)
 
     if totaldf.empty:
-        return pd.DataFrame(columns=['value', 'label', 'details'],
-                            index=pd.MultiIndex(
-                levels=[[], []], codes=[[], []], names=["datetime", "obstype"]))
+        return pd.DataFrame(
+            columns=["value", "label", "details"],
+            index=pd.MultiIndex(
+                levels=[[], []], codes=[[], []], names=["datetime", "obstype"]
+            ),
+        )
 
-    return totaldf[['value', 'label', 'details']]
+    return totaldf[["value", "label", "details"]]
 
-def dataset_qc_overview_df(dataset, subset_stations:Union[list[str], None] = None,
-                           subset_obstypes:Union[list[str], None] = None) -> pd.DataFrame:
+
+def dataset_qc_overview_df(
+    dataset,
+    subset_stations: Union[list[str], None] = None,
+    subset_obstypes: Union[list[str], None] = None,
+) -> pd.DataFrame:
     """Build a QC overview DataFrame for all stations in a Dataset.
 
     Parameters
@@ -133,23 +144,32 @@ def dataset_qc_overview_df(dataset, subset_stations:Union[list[str], None] = Non
     if subset_stations is None:
         stationtargets = dataset.stations
     else:
-        stationtargets = [dataset.get_station(station_name) for station_name in subset_stations]
-    
+        stationtargets = [
+            dataset.get_station(station_name) for station_name in subset_stations
+        ]
+
     to_concat = []
     for station in stationtargets:
-        stadf = station_qc_overview_df(station, subset_obstypes=subset_obstypes).reset_index()
-        #add obstype to the index
+        stadf = station_qc_overview_df(
+            station, subset_obstypes=subset_obstypes
+        ).reset_index()
+        # add obstype to the index
         if not stadf.empty:
             stadf["name"] = station.name
-            stadf = stadf.reset_index().set_index(['datetime', "obstype", "name"])
+            stadf = stadf.reset_index().set_index(["datetime", "obstype", "name"])
             to_concat.append(stadf)
-    
-    totaldf =  save_concat(to_concat)
+
+    totaldf = save_concat(to_concat)
     totaldf.sort_index(inplace=True)
 
     if totaldf.empty:
-        return pd.DataFrame(columns=['value', 'label', 'details'],
-                            index=pd.MultiIndex(
-                levels=[[], [], []], codes=[[], [], []], names=["datetime", "obstype", "name"]))
+        return pd.DataFrame(
+            columns=["value", "label", "details"],
+            index=pd.MultiIndex(
+                levels=[[], [], []],
+                codes=[[], [], []],
+                names=["datetime", "obstype", "name"],
+            ),
+        )
 
-    return totaldf[['value', 'label', 'details']]
+    return totaldf[["value", "label", "details"]]

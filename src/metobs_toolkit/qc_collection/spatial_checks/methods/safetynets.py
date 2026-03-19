@@ -90,14 +90,16 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
     return None
 
 
-def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
-                              metadf: pd.DataFrame,
-                              distance_df: pd.DataFrame,
-                              buddygroupname: str,
-                              max_distance: Union[int, float],
-                              min_distance: Union[int, float],
-                              max_alt_diff: Union[int, float, None],
-                              max_sample_size: Union[int, None]) -> None:
+def assign_safety_net_buddies(
+    wrapsta: BuddyWrapSensor,
+    metadf: pd.DataFrame,
+    distance_df: pd.DataFrame,
+    buddygroupname: str,
+    max_distance: Union[int, float],
+    min_distance: Union[int, float],
+    max_alt_diff: Union[int, float, None],
+    max_sample_size: Union[int, None],
+) -> None:
     """
     Assign category buddies to a wrapped station for safety net buddy checks.
 
@@ -144,7 +146,7 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
     Notes
     -----
     The function applies filters in the following order:
-    
+
     1. Category matching: Only stations with the same category value as the
        reference station are considered.
     2. Distance filtering: Only stations within [min_distance, max_distance]
@@ -158,8 +160,7 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
     list is assigned and a warning is logged.
 
     """
-  
-        
+
     ref_category = metadf.loc[wrapsta.name, buddygroupname]
     # Handle NaN values - they should not match with anything
     if pd.isna(ref_category):
@@ -171,28 +172,30 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
         # Assign empty buddy list
         wrapsta.set_buddies([], groupname=buddygroupname)
     else:
-        #find potential candidates
+        # find potential candidates
         buddy_candidates = metadf.loc[
             metadf[buddygroupname] == ref_category
         ].index.to_list()
-        
-        #remove self from buddy candidates
+
+        # remove self from buddy candidates
         buddy_candidates.remove(wrapsta.name)
-        
+
         target_distances = distance_df.loc[wrapsta.name, buddy_candidates]
-        #filter by distance
-        ref_buddies = target_distances[(target_distances <= max_distance) & (target_distances >= min_distance)].index.to_list()
-        
+        # filter by distance
+        ref_buddies = target_distances[
+            (target_distances <= max_distance) & (target_distances >= min_distance)
+        ].index.to_list()
+
         # Assign the found buddies
         wrapsta.set_buddies(ref_buddies, groupname=buddygroupname)
-        
-    #filter by altitude difference if needed
+
+    # filter by altitude difference if needed
     if max_alt_diff is not None:
         filter_buddygroup_by_altitude(
             wrappedsensor=wrapsta,
             groupname=buddygroupname,
-            altitudes=metadf['altitude'],
-            max_altitude_diff=max_alt_diff
+            altitudes=metadf["altitude"],
+            max_altitude_diff=max_alt_diff,
         )
 
     # Subset category buddies to nearest N if max_sample_size is set
@@ -203,7 +206,6 @@ def assign_safety_net_buddies(wrapsta: BuddyWrapSensor,
             max_sample_size=max_sample_size,
             groupname=buddygroupname,
         )
-
 
 
 def apply_safety_net(
@@ -282,11 +284,11 @@ def apply_safety_net(
         safety-net test (i.e. were *saved* from being flagged).
     """
     # Track records that were saved (passed the safety net test)
-    saved_records = pd.MultiIndex.from_tuples([], names=['name', 'datetime'])
-    
-    #create a name map of the wrappedsensors
+    saved_records = pd.MultiIndex.from_tuples([], names=["name", "datetime"])
+
+    # create a name map of the wrappedsensors
     name_map = {wrapsens.name: wrapsens for wrapsens in buddychecksensors}
-    
+
     # If only_if_previous_had_no_buddies is True, restrict outliers to only
     # those records where the previous safety net had insufficient buddies
     # (BC_NO_BUDDIES flag). This is determined by inspecting the flags
@@ -298,40 +300,31 @@ def apply_safety_net(
                 "previous_safetynet_category is None. This should not "
                 "happen -- the first safety net cannot use this option."
             )
-        
-        prev_check_col = f'safetynet_check:{previous_safetynet_category}'
-        previous_no_buddies = pd.MultiIndex.from_tuples(
-            [], names=['name', 'datetime']
-        )
-        
-        for station_name in outliers.get_level_values('name').unique():
+
+        prev_check_col = f"safetynet_check:{previous_safetynet_category}"
+        previous_no_buddies = pd.MultiIndex.from_tuples([], names=["name", "datetime"])
+
+        for station_name in outliers.get_level_values("name").unique():
             wrapsta = name_map[station_name]
-            if (
-                not wrapsta.flags.empty
-                and prev_check_col in wrapsta.flags.columns
-            ):
+            if not wrapsta.flags.empty and prev_check_col in wrapsta.flags.columns:
                 iter_mask = (
-                    wrapsta.flags.index.get_level_values('iteration')
-                    == iteration
+                    wrapsta.flags.index.get_level_values("iteration") == iteration
                 )
                 iter_flags = wrapsta.flags.loc[iter_mask, prev_check_col]
                 nb_mask = iter_flags == BC_NO_BUDDIES
                 if nb_mask.any():
-                    nb_timestamps = (
-                        iter_flags[nb_mask]
-                        .index.get_level_values('datetime')
+                    nb_timestamps = iter_flags[nb_mask].index.get_level_values(
+                        "datetime"
                     )
                     station_nb = pd.MultiIndex.from_arrays(
                         [
                             [station_name] * len(nb_timestamps),
                             nb_timestamps,
                         ],
-                        names=['name', 'datetime'],
+                        names=["name", "datetime"],
                     )
-                    previous_no_buddies = previous_no_buddies.union(
-                        station_nb
-                    )
-        
+                    previous_no_buddies = previous_no_buddies.union(station_nb)
+
         if previous_no_buddies.empty:
             logger.info(
                 "only_if_previous_had_no_buddies is True but no records "
@@ -341,7 +334,7 @@ def apply_safety_net(
                 buddygroupname,
             )
             return outliers
-        
+
         outliers = outliers.intersection(previous_no_buddies)
         logger.info(
             "Filtering to %s outlier records that had insufficient "
@@ -349,40 +342,39 @@ def apply_safety_net(
             len(outliers),
             previous_safetynet_category,
         )
-    
+
     if outliers.empty:
         return outliers
-    
-    
-    #find the categorical buddies (only for the outlier stations)
-    for outlstation in outliers.get_level_values('name').unique():
+
+    # find the categorical buddies (only for the outlier stations)
+    for outlstation in outliers.get_level_values("name").unique():
         wrapsta = name_map[outlstation]
         assign_safety_net_buddies(
-                wrapsta=wrapsta,
-                metadf = metadf,
-                distance_df = distance_df,
-                buddygroupname = buddygroupname,
-                max_distance = max_distance,
-                min_distance = min_distance,
-                max_alt_diff = max_alt_diff,
-                max_sample_size = max_sample_size)
-        
-        
-    #find outliers in the new categorical group
+            wrapsta=wrapsta,
+            metadf=metadf,
+            distance_df=distance_df,
+            buddygroupname=buddygroupname,
+            max_distance=max_distance,
+            min_distance=min_distance,
+            max_alt_diff=max_alt_diff,
+            max_sample_size=max_sample_size,
+        )
+
+    # find outliers in the new categorical group
     # The buddy_test_a_station function updates flags/details directly
     # and returns only the outlier MultiIndex (BC_FLAGGED records)
     # We need to track BC_PASSED records to remove them from outliers
-    for outlstation in outliers.get_level_values('name').unique():
+    for outlstation in outliers.get_level_values("name").unique():
         wrapsta = name_map[outlstation]
-        
+
         # Get the timestamps for this station from the original outliers
         station_outlier_timestamps = outliers[
-            outliers.get_level_values('name') == outlstation
-        ].get_level_values('datetime')
-        
+            outliers.get_level_values("name") == outlstation
+        ].get_level_values("datetime")
+
         # Subset wideobsds to only the outlier timestamps for this station
         widedf_subset = wideobsds.loc[station_outlier_timestamps]
-        
+
         # Run the buddy test - this updates flags/details directly on wrapsta
         # and returns outliers (BC_FLAGGED records)
         station_flagged = buddy_test_a_station(
@@ -393,33 +385,33 @@ def apply_safety_net(
             min_sample_spread=min_sample_spread,
             outlier_threshold=safety_z_threshold,
             iteration=iteration,
-            check_type=f'safetynet_check:{buddygroupname}',
+            check_type=f"safetynet_check:{buddygroupname}",
             use_z_robust_method=use_z_robust_method,
         )
-        
+
         # Get passed timestamps from the flags DataFrame
         # These are records where the safetynet check passed (BC_PASSED)
-        check_col = f'safetynet_check:{buddygroupname}'
+        check_col = f"safetynet_check:{buddygroupname}"
         if not wrapsta.flags.empty and check_col in wrapsta.flags.columns:
             # Get flags for this iteration
-            iter_mask = wrapsta.flags.index.get_level_values('iteration') == iteration
+            iter_mask = wrapsta.flags.index.get_level_values("iteration") == iteration
             iter_flags = wrapsta.flags.loc[iter_mask, check_col]
-            
+
             # Find passed timestamps
             passed_mask = iter_flags == BC_PASSED
             if passed_mask.any():
-                passed_timestamps = iter_flags[passed_mask].index.get_level_values('datetime')
-                
+                passed_timestamps = iter_flags[passed_mask].index.get_level_values(
+                    "datetime"
+                )
+
                 # Create MultiIndex for saved records
                 station_saved = pd.MultiIndex.from_arrays(
                     [[outlstation] * len(passed_timestamps), passed_timestamps],
-                    names=['name', 'datetime']
+                    names=["name", "datetime"],
                 )
                 saved_records = saved_records.union(station_saved)
-    
+
     # Return original outliers minus the saved records
     remaining_outliers = outliers.difference(saved_records)
-    
+
     return remaining_outliers.sort_values().unique()
-    
-   

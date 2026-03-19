@@ -6,14 +6,15 @@ import pandas as pd
 logger = logging.getLogger("<metobs_toolkit>")
 
 
-
-def drop_invalid_values(records: pd.Series, skip_records: pd.DatetimeIndex) -> pd.Series:
+def drop_invalid_values(
+    records: pd.Series, skip_records: pd.DatetimeIndex
+) -> pd.Series:
     """Remove invalid (non-numeric) values from a time series.
-    
+
     Filters out values that could not be cast to numeric types. Invalid timestamps
     are treated as gaps and removed from the series rather than being flagged as
     outliers. This allows the gap detection mechanism to handle them appropriately.
-    
+
     Parameters
     ----------
     records : pd.Series
@@ -21,13 +22,13 @@ def drop_invalid_values(records: pd.Series, skip_records: pd.DatetimeIndex) -> p
     skip_records : pd.DatetimeIndex
         Records to temporarily exclude from the check (typically duplicated timestamps).
         These records are preserved regardless of validity and added back after filtering.
-        
+
     Returns
     -------
     pd.Series
         Filtered series containing only records with valid numeric values,
         plus all skipped records.
-        
+
     Notes
     -----
     * Invalid values are interpreted as missing data (gaps) rather than outliers.
@@ -60,4 +61,3 @@ def drop_invalid_values(records: pd.Series, skip_records: pd.DatetimeIndex) -> p
     # add the skipped records back
     validrecords = pd.concat([validrecords, skipped_data]).sort_index()
     return validrecords
-        
