@@ -37,7 +37,23 @@ class SensorWhiteSet:
     def __init__(
         self, white_timestamps: Union[None, List] = None, all_timestamps: bool = False
     ) -> None:
+        """Initialize the SensorWhiteSet with whitelisted timestamps.
 
+        Parameters
+        ----------
+        white_timestamps : list or None, optional
+            List of datetime objects to whitelist for this sensor.
+            Default is None, which is treated as an empty list.
+        all_timestamps : bool, optional
+            If True, all timestamps are considered whitelisted.  Cannot be
+            True when ``white_timestamps`` is non-empty.  Default is False.
+
+        Raises
+        ------
+        MetObsArgumentError
+            If ``all_timestamps`` is True and ``white_timestamps`` is
+            non-empty.
+        """
         if white_timestamps is None:
             # None as a default is more convenient
             white_timestamps = []
@@ -217,6 +233,16 @@ class WhiteSet:
     _target_tz: str = Settings.get("store_tz")
 
     def __init__(self, white_records: pd.Index = pd.Index([])) -> None:
+        """Initialize the WhiteSet with a collection of whitelisted records.
+
+        Parameters
+        ----------
+        white_records : pandas.Index, optional
+            Index (or MultiIndex) whose names are a subset of
+            ``['name', 'obstype', 'datetime']``.  Records matching this
+            index are excluded from outlier detection.  Default is an
+            empty :class:`pandas.Index`.
+        """
         self.white_records = white_records
 
         # Validate white_records structure

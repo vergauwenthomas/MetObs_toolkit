@@ -93,14 +93,15 @@ class TimestampMatcher:
         return outliersubset.set_index("datetime")[self.obsname]
 
     @log_entry
-    def get_outlier_map(self) -> dict:
-        """
-        Get a mapping of outlier records.
+    def get_raw_map(self) -> dict:
+        """Get a mapping of all raw timestamps to their target timestamps.
 
         Returns
         -------
         dict
-            Mapping of outlier records.
+            Mapping from raw timestamps to target timestamps for all records
+            that have a raw timestamp (i.e. observations and outliers, not
+            gap-inserted records).
 
         Raises
         ------
@@ -111,14 +112,11 @@ class TimestampMatcher:
             logger.error("No timestamp conversion has been applied yet.")
             raise ValueError("No timestamp conversion has been applied yet.")
 
-        outliersubset = self.conv_df[
-            pd.isna(self.conv_df[self.obsname])
-            & pd.notna(self.conv_df["datetimedummy_raw"])
-        ]
+        has_raw = self.conv_df[pd.notna(self.conv_df["datetimedummy_raw"])]
         return dict(
             zip(
-                outliersubset["datetimedummy_raw"],
-                outliersubset["datetimedummy_target"],
+                has_raw["datetimedummy_raw"],
+                has_raw["datetimedummy_target"],
             )
         )
 

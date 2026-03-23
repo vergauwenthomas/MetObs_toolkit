@@ -1,0 +1,31 @@
+{
+    "data_related": {
+        "structure": "long",
+        "timestamp": {
+            "datetime_column": "datetime",
+            "datetime_fmt": "%Y-%m-%d %H:%M:%S" ,
+            "date_column": null,
+            "date_fmt": null,
+            "time_column": null,
+            "time_fmt": null,
+            "timezone": "Europe/Berlin"
+        },
+        "name_column": "station_id",
+        "obstype_mapping": [
+            {
+                "tlk_obstype": "temp",
+                "columnname": "value",
+                "unit": "degC",
+                "description": "2m-temperature"
+            }
+        ]
+    },
+    "metadata_related": {
+        "name_column": "station_id",
+        "lat_column": "lat",
+        "lon_column": "lon",
+        "altitude_column": "elev",
+        "columns_to_include": ["LCZ"]
+    },
+    "single_station_name": "dummy_station_name"
+}

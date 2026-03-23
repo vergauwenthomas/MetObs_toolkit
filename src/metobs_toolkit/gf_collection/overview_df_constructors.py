@@ -2,8 +2,13 @@
 (sensordata, station, dataset) for overviews and summaries of Gaps."""
 
 import pandas as pd
+from typing import Union
 from metobs_toolkit.backend_collection.dev_collection import copy_doc
 from metobs_toolkit.backend_collection.df_helpers import save_concat
+
+# ===============================
+# Gap overiview
+# ===============================
 
 
 def sensordata_gap_status_overview_df(sensordata) -> pd.DataFrame:

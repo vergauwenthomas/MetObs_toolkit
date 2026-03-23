@@ -12,9 +12,11 @@ import pandas as pd
 import numpy as np
 import concurrent.futures
 
+
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
     from xarray import Dataset as xrDataset
+    from matplotlib.pyplot import Figure
 
 from metobs_toolkit.backend_collection.df_helpers import (
     save_concat,
@@ -35,11 +37,17 @@ from metobs_toolkit.backend_collection.argumentcheckers import (
     fmt_timedelta_arg,
     fmt_datetime_arg,
 )
+from metobs_toolkit.backend_collection.distancematrix_func import (
+    generate_distance_matrix,
+)
 from metobs_toolkit.backend_collection.uniqueness import join_collections
 from metobs_toolkit.xrconversions import dataset_to_xr
 
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     dataset_gap_status_overview_df,
+)
+from metobs_toolkit.qc_collection.overview_df_constructor import (
+    dataset_qc_overview_df,
 )
 from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.timestampmatcher import simplify_time
@@ -372,6 +380,34 @@ class Dataset:
             allobs.update(sta.present_observations)
         return sorted(list(allobs))
 
+    def create_distancematrix(self) -> pd.DataFrame:
+        """Compute pairwise great-circle distances between all stations.
+
+        Calculates a symmetric distance matrix (in meters) between all stations
+        using the haversine formula. Stations that do not have coordinates
+        assigned are excluded and a warning is logged.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Symmetric square DataFrame where both the index and columns are
+            station names. Each cell contains the great-circle distance in
+            meters between the corresponding pair of stations. The diagonal
+            contains zeros.
+
+        """
+        metadf = self.metadf
+
+        exclude_stations = [
+            sta.name for sta in self.stations if not sta.site.flag_has_coordinates()
+        ]
+        if exclude_stations:
+            logger.warning(
+                f"Excluding stations without coordinates from distance matrix: {exclude_stations}"
+            )
+            metadf = metadf[~metadf.index.isin(exclude_stations)]
+        return generate_distance_matrix(metadf)
+
     # ------------------------------------------
     #   Extracting data
     # ------------------------------------------
@@ -642,8 +678,7 @@ class Dataset:
         accros stations.
 
         Warning
-        ----------
-
+        -------
         * Since the gaps depend on the record’s frequency and origin, all gaps
           are removed and re-located. All progress in gap(filling) will be lost.
         * Cumulative tolerance errors can be introduced when this method is called multiple times.
@@ -932,8 +967,8 @@ class Dataset:
     ) -> None:
         """Import observational data and metadata from files.
 
-        Importing data requires a ´Template´ which is constructed from a template file (JSON).
-        (Use ´´metobs_toolkit.build_template_prompt()´´ to create a template file).
+        Importing data requires a `Template` which is constructed from a template file (JSON).
+        (Use ``metobs_toolkit.build_template_prompt()`` to create a template file).
 
         If `input_data_file` is provided, the method reads the raw observational data
         (supported formats: CSV, Parquet). A basic quality control (duplicate timestamps
@@ -942,14 +977,14 @@ class Dataset:
 
         The method performs the following steps:
 
-        * Estimates the frequency of observations using the ´freq_estimation_method´.
+        * Estimates the frequency of observations using the `freq_estimation_method`.
         * Simplifies the estimated frequency and origin timestamps based on tolerances.
-        * Alligns the raw timestamps with target timestamps (by origin, and freq) using
+        * Aligns the raw timestamps with target timestamps (by origin, and freq) using
           a nearest merge, considering a specified timestamp tolerance.
         * Executes checks for duplicates and invalid input.
         * Identifies gaps in the data.
 
-        if `input_metadata_file` is provided, the method reads the metadata
+        If `input_metadata_file` is provided, the method reads the metadata
         (supported formats: CSV, Parquet).
 
         Parameters
@@ -1816,7 +1851,13 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing gross_value_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_grossvalue_generatorfunc, func_feed_list
                 )
@@ -1851,7 +1892,13 @@ class Dataset:
             whiteset=whiteset,
         )
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing persistence_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_persistence_generatorfunc, func_feed_list
                 )
@@ -1883,7 +1930,13 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing repetitions_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_repetitions_generatorfunc, func_feed_list
                 )
@@ -1917,7 +1970,13 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing step_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(_qc_step_generatorfunc, func_feed_list)
             qced_stations = list(stationgenerator)
         else:
@@ -1957,7 +2016,13 @@ class Dataset:
         )
 
         if use_mp:
-            with concurrent.futures.ProcessPoolExecutor() as executor:
+            num_cores = Settings.get("use_N_cores_for_MP")
+            logger.debug(
+                f"Distributing window_variation_check computations over {num_cores} cores."
+            )
+            with concurrent.futures.ProcessPoolExecutor(
+                max_workers=num_cores
+            ) as executor:
                 stationgenerator = executor.map(
                     _qc_window_var_generatorfunc, func_feed_list
                 )
@@ -1973,87 +2038,117 @@ class Dataset:
         obstype: str = "temp",
         spatial_buddy_radius: Union[int, float] = 10000,
         min_sample_size: int = 4,
+        max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
-        min_std: Union[int, float] = 1.0,
+        min_sample_spread: Union[int, float] = 1.0,
+        min_buddy_distance: Union[int, float] = 0.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
+        use_z_robust_method: bool = True,
         use_mp: bool = True,
+        min_std=None,
     ):
         """Spatial buddy check.
 
         The buddy check compares an observation against its neighbors
-        (i.e. spatial buddies). The check loops over all the groups, which are stations
-        within a radius of each other. For each group, the z-value of the reference
-        observation is computed given the sample of spatial buddies. If one (or more)
-        exceeds the `spatial_z_threshold`, the most extreme (=baddest) observation of
-        that group is labeled as an outlier.
+        (i.e. spatial buddies). The check loops over all stations, treating
+        each as the center of a buddy group formed by nearby stations. For
+        each center station, the z-score is computed from the buddy sample.
+        If the z-score exceeds `spatial_z_threshold`, the center station's
+        observation is labeled as an outlier.
 
-        Multiple iterations of this checks can be done using the N_iter.
+        Multiple iterations of this check can be done using `N_iter`.
 
         A schematic step-by-step description of the buddy check:
 
         #. A distance matrix is constructed for all interdistances between
            the stations. This is done using the haversine approximation.
         #. Groups of spatial buddies (neighbours) are created by using the
-           `spatial_buddy_radius.` These groups are further filtered by:
+           `spatial_buddy_radius` and `min_buddy_distance`. Only stations within
+           the distance range [min_buddy_distance, spatial_buddy_radius] are
+           considered as buddies. These groups are further filtered by:
 
-           * removing stations from the groups that differ to much in altitude
+           * removing stations from the groups that differ too much in altitude
              (based on the `max_alt_diff`)
            * removing groups of buddies that are too small (based on the
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantaneous_tolerance` for allignment).
-        #. If a `lapsrate` is specified, the observations are corrected for
+           `instantaneous_tolerance` for alignment).
+        #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
-        #. The following steps are repeated for `N-iter` iterations:
+        #. The following steps are repeated for `N_iter` iterations:
 
-           #. The values of outliers flaged by a previous iteration are converted to
-              NaN's. Therefore they are not used in any following score or sample.
-           #. For each buddy group:
+           #. The values of outliers flagged by a previous iteration are
+              converted to NaN's. Therefore they are not used in any following
+              score or sample.
+           #. For each center station:
 
-              * The mean, standard deviation (std), and sample size are computed.
-              * If the std is lower than the `minimum_std`, it is replaced by the
-                minimum std.
-              * Chi values are calculated for all records.
-              * For each timestamp the record with the highest Chi is tested if
-                it is larger then spatial_z_threshold. If so, that record is
-                flagged as an outlier. It will be ignored in the next iteration.
+              * The sample mean, spread (std or MAD depending on
+                `use_z_robust_method`), and sample size are computed from the
+                buddy stations (center station excluded).
+              * If the spread is lower than `min_sample_spread`, it is replaced
+                by `min_sample_spread`.
+              * The z-score of the center station is calculated.
+              * If the z-score exceeds `spatial_z_threshold`, the center
+                station's observation is flagged as an outlier. It will be
+                ignored in the next iteration.
+
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
               White-listed records participate in all buddy check calculations but are
               not flagged as outliers in the final results.
 
-
         Parameters
         ----------
         obstype : str, optional
             The target observation to check. Default is "temp".
-        spatial_buddy_radius : int | float, optional
+        spatial_buddy_radius : int or float, optional
             The radius to define spatial neighbors in meters. Default is 10000.
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Default is 4.
-        max_alt_diff : int | float | None, optional
+        max_sample_size : int or None, optional
+            The maximum number of spatial buddies to use per station. If not
+            None, the spatial buddies for each station are sorted by distance
+            and only the nearest ``max_sample_size`` are kept. Must be larger
+            than ``min_sample_size`` when specified. The default is None
+            (no limit).
+        max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_std : int | float, optional
-            The minimum standard deviation for sample statistics. Default is 1.0.
-        spatial_z_threshold : int | float, optional
-            The threshold (std units) for flagging observations as outliers. Default is 3.1.
+        min_sample_spread : int or float, optional
+            The minimum sample spread for sample statistics. When
+            `use_z_robust_method` is True, this is the minimum MAD to use
+            (avoids division by near-zero). When `use_z_robust_method` is
+            False, this is the minimum standard deviation. This parameter
+            helps represent the accuracy of the observations. Default is 1.0.
+        min_buddy_distance : int or float, optional
+            The minimum distance (in meters) required between a station and
+            its buddies. Stations closer than this distance will be excluded
+            from the buddy group. Default is 0.0 (no minimum distance).
+        spatial_z_threshold : int or float, optional
+            The threshold (in z-score units) for flagging observations as
+            outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
-        instantaneous_tolerance : str | pd.Timedelta, optional
-            The maximum time difference allowed for synchronizing observations. Default is pd.Timedelta("4min").
-        lapserate : int | float | None, optional
-            Describe how the obstype changes with altitude (in meters). Default is None.
+        instantaneous_tolerance : str or pd.Timedelta, optional
+            The maximum time difference allowed for synchronizing observations.
+            Default is pd.Timedelta("4min").
+        lapserate : float or None, optional
+            Describe how the obstype changes with altitude (in meters).
+            Default is None.
         whiteset : WhiteSet, optional
-            A WhiteSet instance containing timestamps that should be excluded from outlier detection.
-            The WhiteSet is used to create station-specific and obstype-specific whitelists before
-            applying the buddy check. White-listed records participate in all buddy check iterations
-            as regular records but are not flagged as outliers in the final results.
-            The default is an empty WhiteSet().
+            A WhiteSet instance containing timestamps that should be excluded
+            from outlier detection. The WhiteSet is used to create
+            station-specific and obstype-specific whitelists before applying
+            the buddy check. White-listed records participate in all buddy
+            check iterations as regular records but are not flagged as
+            outliers in the final results. The default is an empty WhiteSet().
+        use_z_robust_method : bool, optional
+            If True, the robust z-score method (median/MAD) is used. If False,
+            the classic z-score method (mean/std) is used. Default is True.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2062,97 +2157,72 @@ class Dataset:
         None
 
         Notes
-        ------
-        * This method modifies the outliers in place and does not return anything.
-          You can use the `outliersdf` property to view all flagged outliers.
-        * The altitude of the stations can be extracted from GEE by using the `Dataset.get_altitude()` method.
-        * White-listed records from the WhiteSet participate in all buddy check calculations but are not flagged as outliers in the final results.
+        -----
+        * This method modifies the outliers in place and does not return
+          anything. You can use the `outliersdf` property to view all flagged
+          outliers.
+        * The altitude of the stations can be extracted from GEE by using the
+          `Dataset.get_altitude()` method.
+        * White-listed records participate in all buddy check calculations but
+          are not flagged as outliers in the final results.
+
+        See Also
+        --------
+        buddy_check_with_safetynets : Buddy check with configurable safety nets.
+
+        Examples
+        --------
+        Apply buddy check on temperature observations:
+
+        >>> dataset.buddy_check(obstype="temp")
+
+        Apply buddy check with custom radius and threshold:
+
+        >>> dataset.buddy_check(
+        ...     obstype="temp",
+        ...     spatial_buddy_radius=15000,
+        ...     spatial_z_threshold=2.5,
+        ...     N_iter=3,
+        ... )
 
         """
+        if min_std is not None:
+            raise DeprecationWarning(
+                "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
+            )
 
-        instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
-        if (lapserate is not None) | (max_alt_diff is not None):
-            if not all([sta.site.flag_has_altitude() for sta in self.stations]):
-                raise MetObsMetadataNotFound(
-                    "Not all stations have altitude data, lapserate correction and max_alt_diff filtering could not be applied."
-                )
-
-        qc_kwargs = dict(
+        # Delegate to buddy_check_with_safetynets with no safety nets
+        self.buddy_check_with_safetynets(
             obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
-            spatial_min_sample_size=min_sample_size,
+            safety_net_configs=None,
+            min_sample_size=min_sample_size,
+            max_sample_size=max_sample_size,
             max_alt_diff=max_alt_diff,
-            min_std=min_std,
+            min_sample_spread=min_sample_spread,
+            min_buddy_distance=min_buddy_distance,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
             lapserate=lapserate,
             whiteset=whiteset,
-            safety_net_configs=None,  # No safety nets for basic buddy_check
-            # technical
+            use_z_robust_method=use_z_robust_method,
             use_mp=use_mp,
         )
 
-        # Locate stations with the obstype
-        target_stations, skip_stations = filter_to_stations_with_target_obstype(
-            stations=self.stations, obstype=obstype
-        )
-        metadf = self.metadf.loc[[sta.name for sta in target_stations]]
-
-        outlierslist, timestamp_map = toolkit_buddy_check(
-            target_stations=target_stations, metadf=metadf, **qc_kwargs
-        )
-        # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
-        # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
-        # timestamps to the original timestamps
-
-        # convert to a dataframe
-        alloutliersdf = pd.DataFrame(
-            data=outlierslist, columns=["name", "datetime", "detail_msg"]
-        )
-
-        # Handle duplicates
-        # Note: duplicates can occur when a specific record was part of more than one
-        # outlier group, and is flagged by more than one group. If so, keep the
-        # first row, but concat the detail_msg's (since they describe the outlier group)
-
-        if not alloutliersdf.empty:
-            # Group by name and datetime, concatenate detail_msg for duplicates
-            alloutliersdf = (
-                alloutliersdf.groupby(["name", "datetime"], as_index=False)
-                .agg({"detail_msg": lambda x: " | ".join(x)})
-                .reset_index(drop=True)
-            )
-
-        # update all the sensordata
-        for station in target_stations:
-            # Get the sensordata object
-            sensorddata = station.get_sensor(obstype)
-
-            # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(
-                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
-            )
-
-            if not outldt.empty:
-                # convert to original timestamps
-                dtmap = timestamp_map[station.name]
-                outldt = outldt.map(dtmap)
-
-            # update the sensordata
-            sensorddata._update_outliers(
-                qccheckname="buddy_check",
-                outliertimestamps=outldt,
-                check_kwargs=qc_kwargs,
-                extra_columns={
-                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
-                        "detail_msg"
-                    ].to_numpy()
-                },
-            )
-
     @log_entry
     def buddy_check_with_LCZ_safety_net(*args):
+        """Deprecated alias for ``buddy_check_with_safetynets``.
+
+        .. deprecated::
+            ``buddy_check_with_LCZ_safety_net`` has been removed.  Use
+            :meth:`buddy_check_with_safetynets` instead.
+
+        Raises
+        ------
+        DeprecationWarning
+            Always raised when this method is called.
+        """
         raise DeprecationWarning(
             "buddy_check_with_LCZ_safety_net is deprecated. Please use buddy_check_with_safetynets instead."
         )
@@ -2164,23 +2234,27 @@ class Dataset:
         spatial_buddy_radius: Union[int, float] = 10000,
         safety_net_configs: List[Dict] = None,
         min_sample_size: int = 4,
+        max_sample_size: Union[int, None] = None,
         max_alt_diff: Union[int, float, None] = None,
-        min_std: Union[int, float] = 1.0,
+        min_sample_spread: Union[int, float] = 1.0,
+        min_buddy_distance: Union[int, float] = 0.0,
         spatial_z_threshold: Union[int, float] = 3.1,
         N_iter: int = 2,
         instantaneous_tolerance: Union[str, pd.Timedelta] = pd.Timedelta("4min"),
         lapserate: Union[float, None] = None,  # -0.0065 for temperature (in °C)
         whiteset: WhiteSet = WhiteSet(),
+        use_z_robust_method: bool = True,
         use_mp: bool = True,
+        min_std=None,
     ):
         """Spatial buddy check with configurable safety nets.
 
         The buddy check compares an observation against its neighbors
-        (i.e. spatial buddies). The check loops over all the groups, which are
-        stations within a radius of each other. For each group, the z-value of
-        the reference observation is computed given the sample of spatial
-        buddies. If one (or more) exceeds the `spatial_z_threshold`, the most
-        extreme (=baddest) observation of that group is labeled as an outlier.
+        (i.e. spatial buddies). The check loops over all stations, treating
+        each as the center of a buddy group formed by nearby stations. For
+        each center station, the z-score is computed from the buddy sample.
+        If the z-score exceeds `spatial_z_threshold`, the center station's
+        observation is labeled as an outlier.
 
         Multiple iterations of this check can be done using `N_iter`.
 
@@ -2199,53 +2273,60 @@ class Dataset:
         #. A distance matrix is constructed for all interdistances between
            the stations. This is done using the haversine approximation.
         #. Groups of spatial buddies (neighbours) are created by using the
-           `spatial_buddy_radius.` These groups are further filtered by:
+           `spatial_buddy_radius` and `min_buddy_distance`. Only stations within
+           the distance range [min_buddy_distance, spatial_buddy_radius] are
+           considered as buddies. These groups are further filtered by:
 
-           * removing stations from the groups that differ to much in altitude
+           * removing stations from the groups that differ too much in altitude
              (based on the `max_alt_diff`)
            * removing groups of buddies that are too small (based on the
              `min_sample_size`)
 
         #. Observations per group are synchronized in time (using the
-           `instantaneous_tolerance` for allignment).
-        #. If a `lapsrate` is specified, the observations are corrected for
+           `instantaneous_tolerance` for alignment).
+        #. If a `lapserate` is specified, the observations are corrected for
            altitude differences.
-        #. The following steps are repeated for `N-iter` iterations:
+        #. The following steps are repeated for `N_iter` iterations:
 
            #. The values of outliers flagged by a previous iteration are
               converted to NaN's. Therefore they are not used in any following
               score or sample.
-           #. For each buddy group:
+           #. For each center station:
 
-              * The mean, standard deviation (std), and sample size are computed.
-              * If the std is lower than the `minimum_std`, it is replaced by
-                the minimum std.
-              * Chi values are calculated for all records.
-              * For each timestamp the record with the highest Chi is tested
-                if it is larger then spatial_z_threshold.
-                If so, that record is flagged as an outlier. It will be ignored
-                in the next iteration.
+              * The sample mean, spread (std or MAD depending on
+                `use_z_robust_method`), and sample size are computed from the
+                buddy stations (center station excluded).
+              * If the spread is lower than `min_sample_spread`, it is replaced
+                by `min_sample_spread`.
+              * The z-score of the center station is calculated.
+              * If the z-score exceeds `spatial_z_threshold`, the center
+                station's observation is flagged as an outlier. It will be
+                ignored in the next iteration.
 
            #. For each safety net in `safety_net_configs` (in order):
 
+              * If `only_if_previous_had_no_buddies` is True for this
+                safety net, only outlier records where the previous safety
+                net had insufficient buddies are passed to this safety net.
+                All other records retain their status from the previous
+                safety net.
               * Category buddies (stations sharing the same category value
-                within the specified radius) are identified.
+                within the specified distance range) are identified. Like spatial
+                buddies, category buddies are filtered by distance range
+                [min_buddy_distance, buddy_radius].
               * The category-buddy sample is tested in size (sample size must
                 be at least `min_sample_size`). If the condition is not met,
                 the safety net test is not applied.
               * The safety net test is applied:
 
-                * The mean and std are computed of the category-buddy sample.
-                  If the std is smaller than `min_std`, the latter is used.
+                * The sample mean and spread (std or MAD depending on
+                  `use_z_robust_method`) are computed of the category-buddy
+                  sample. If the spread is smaller than `min_sample_spread`,
+                  the latter is used.
                 * The z-value is computed for the target record (= flagged outlier).
                 * If the z-value is smaller than the safety net's `z_threshold`,
                   the tested outlier is "saved" and removed from the set of
                   outliers for the current iteration.
-
-           #. If `whiteset` is provided, any outliers that match the white-listed
-              timestamps are removed from the outlier set for the current iteration.
-              White-listed records participate in all buddy check and safety net
-              calculations but are not flagged as outliers in the final results.
 
            #. If `whiteset` is provided, any outliers that match the white-listed
               timestamps are removed from the outlier set for the current iteration.
@@ -2269,6 +2350,22 @@ class Dataset:
             * 'z_threshold': int or float, z-value threshold for saving outliers
             * 'min_sample_size': int, minimum number of buddies required for the
               safety net test
+            * 'min_buddy_distance': int or float (optional), minimum distance
+              (in meters) required between a station and its category buddies.
+              Stations closer than this distance will be excluded from the
+              buddy group. Defaults to 0 (no minimum distance).
+            * 'max_sample_size': int or None (optional), maximum number of
+              category buddies to use per station. If not None, category
+              buddies are sorted by distance and only the nearest
+              ``max_sample_size`` are kept. Must be larger than
+              ``min_sample_size`` when specified. Defaults to None (no limit).
+            * 'only_if_previous_had_no_buddies': bool (optional), if True
+              this safety net is only applied to outlier records for which
+              the **previous** safety net could not be executed due to
+              insufficient buddies. Records that were successfully tested
+              by the previous safety net (passed or failed) are not
+              re-tested. This enables a cascading fallback strategy.
+              Cannot be True for the first safety net. Defaults to False.
 
             Example::
 
@@ -2283,7 +2380,8 @@ class Dataset:
                         "category": "network",
                         "buddy_radius": 50000,
                         "z_threshold": 2.5,
-                        "min_sample_size": 3
+                        "min_sample_size": 3,
+                        "only_if_previous_had_no_buddies": True
                     }
                 ]
 
@@ -2291,13 +2389,27 @@ class Dataset:
         min_sample_size : int, optional
             The minimum sample size to calculate statistics on. Used for
             spatial-buddy samples. Default is 4.
+        max_sample_size : int or None, optional
+            The maximum number of spatial buddies to use per station. If not
+            None, the spatial buddies for each station are sorted by distance
+            and only the nearest ``max_sample_size`` are kept. Must be larger
+            than ``min_sample_size`` when specified. The default is None
+            (no limit).
         max_alt_diff : int or float or None, optional
             The maximum altitude difference allowed for buddies. Default is None.
-        min_std : int or float, optional
-            The minimum standard deviation for sample statistics. This is used
-            in spatial and safety net samples. Default is 1.0.
+        min_sample_spread : int or float, optional
+            The minimum sample spread for sample statistics. When use_z_robust_method is True,
+            this is equal to the minimum MAD to use (avoids division by near-zero). When
+            use_z_robust_method is False, this is the standard deviation. This parameter helps
+            to represent the accuracy of the observations. This is used in spatial and
+            safety net samples. Default is 1.0.
+        min_buddy_distance : int or float, optional
+            The minimum distance (in meters) required between a station and its spatial buddies.
+            Stations closer than this distance will be excluded from the buddy group. This also
+            affects safety net buddy selection unless overridden in the safety_net_configs.
+            Default is 0.0 (no minimum distance).
         spatial_z_threshold : int or float, optional
-            The threshold, tested with z-scores, for flagging observations as
+            The z-score threshold for flagging observations as
             outliers. Default is 3.1.
         N_iter : int, optional
             The number of iterations to perform the buddy check. Default is 2.
@@ -2315,6 +2427,9 @@ class Dataset:
             check and safety net iterations as regular records but are not
             flagged as outliers in the final results. The default is an empty
             WhiteSet().
+        use_z_robust_method : bool, optional
+            If True, the robust z-score method (median/MAD) is used. If False,
+            the classic z-score method (mean/std) is used. Default is True.
         use_mp : bool, optional
             Use multiprocessing to speed up the buddy check. Default is True.
 
@@ -2359,11 +2474,28 @@ class Dataset:
         ...     ]
         ... )
 
+        Apply cascading safety nets where the second safety net only tests
+        records that had insufficient buddies in the first:
+
+        >>> dataset.buddy_check_with_safetynets(
+        ...     obstype="temp",
+        ...     safety_net_configs=[
+        ...         {"category": "LCZ", "buddy_radius": 40000, "z_threshold": 2.1, "min_sample_size": 4},
+        ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3, "only_if_previous_had_no_buddies": True}
+        ...     ]
+        ... )
+
         """
+        if min_std is not None:
+            raise DeprecationWarning(
+                "The min_std parameter is deprecated and replaced by the min_sample_spread parameter. The min_sample_spread serves as the minimum STD, if use_z_robust_method is False. Else it acts as the minimum MAD (median absolute deviation from median)."
+            )
         instantaneous_tolerance = fmt_timedelta_arg(instantaneous_tolerance)
 
         # Validate that the required metadata columns exist
         if safety_net_configs:
+            if not isinstance(safety_net_configs, list):
+                raise TypeError("safety_net_configs must be a list of dicts.")
             required_categories = set(cfg["category"] for cfg in safety_net_configs)
             for category in required_categories:
                 if category == "LCZ":
@@ -2390,15 +2522,19 @@ class Dataset:
             obstype=obstype,
             spatial_buddy_radius=spatial_buddy_radius,
             spatial_min_sample_size=min_sample_size,
+            spatial_max_sample_size=max_sample_size,
             max_alt_diff=max_alt_diff,
-            min_std=min_std,
+            min_sample_spread=min_sample_spread,
             spatial_z_threshold=spatial_z_threshold,
             N_iter=N_iter,
             instantaneous_tolerance=instantaneous_tolerance,
+            min_buddy_distance=min_buddy_distance,
             lapserate=lapserate,
             whiteset=whiteset,
             # Generalized safety net configuration
             safety_net_configs=safety_net_configs,
+            # statistical
+            use_z_robust_method=use_z_robust_method,
             # technical
             use_mp=use_mp,
         )
@@ -2409,82 +2545,116 @@ class Dataset:
         )
         metadf = self.metadf.loc[[sta.name for sta in target_stations]]
 
-        outlierslist, timestamp_map = toolkit_buddy_check(
+        qcresuldict, detailsensors = toolkit_buddy_check(
             target_stations=target_stations, metadf=metadf, **qc_kwargs
         )
 
-        # outlierslist is a list of tuples (stationname, datetime, msg) that are outliers
-        # timestamp_map is a dict with keys the stationname and values a series to map the syncronized
-        # timestamps to the original timestamps
+        for staname, qcres in qcresuldict.items():
+            sensordata = self.get_station(staname).get_sensor(obstype)
+            sensordata._update_outliers(qcresult=qcres)
+        return detailsensors
 
-        # convert to a dataframe
-        alloutliersdf = pd.DataFrame(
-            data=outlierslist, columns=["name", "datetime", "detail_msg"]
+    @copy_doc(dataset_qc_overview_df)
+    @log_entry
+    def qc_overview_df(
+        self,
+        subset_stations: Union[list[str], None] = None,
+        subset_obstypes: Union[list[str], None] = None,
+    ) -> pd.DataFrame:
+        return dataset_qc_overview_df(
+            self, subset_stations=subset_stations, subset_obstypes=subset_obstypes
         )
 
-        # Handle duplicates
-        # Note: duplicates can occur when a specific record was part of more than one
-        # outlier group, and is flagged by more than one group. If so, keep the
-        # first row, but concat the detail_msg's (since they describe the outlier group)
-
-        if not alloutliersdf.empty:
-            # Group by name and datetime, concatenate detail_msg for duplicates
-            alloutliersdf = (
-                alloutliersdf.groupby(["name", "datetime"], as_index=False)
-                .agg({"detail_msg": lambda x: " | ".join(x)})
-                .reset_index(drop=True)
-            )
-
-        # update all the sensordata
-        for station in target_stations:
-            # Get the sensordata object
-            sensorddata = station.get_sensor(obstype)
-
-            # get outlier datetimeindex
-            outldt = pd.DatetimeIndex(
-                alloutliersdf[alloutliersdf["name"] == station.name]["datetime"]
-            )
-
-            if not outldt.empty:
-                # convert to original timestamps
-                dtmap = timestamp_map[station.name]
-                outldt = outldt.map(dtmap)
-
-            # update the sensordata
-            sensorddata._update_outliers(
-                qccheckname="buddy_check_with_safetynets",
-                outliertimestamps=outldt,
-                check_kwargs=qc_kwargs,
-                extra_columns={
-                    "detail_msg": alloutliersdf[alloutliersdf["name"] == station.name][
-                        "detail_msg"
-                    ].to_numpy()
-                },
-            )
-
-    @copy_doc(Station.get_qc_stats)
     @log_entry
     def get_qc_stats(
         self, obstype: str = "temp", make_plot: bool = True
-    ) -> Union[pd.DataFrame, None]:
-        freqdf_list = [
-            sta.get_qc_stats(obstype=obstype, make_plot=False) for sta in self.stations
-        ]
+    ) -> Union[dict[str, pd.Series], Figure]:
+        """
+        Summarize QC label frequencies across all stations for a given observation type.
 
-        dfagg = (
-            pd.concat(freqdf_list)
-            .reset_index()
-            .groupby(["qc_check"])
-            .sum()
-            .drop(columns=["name"])
+        This aggregates three series over every station that has the requested ``obstype``:
+
+        * final label counts from each ``SensorData.df['label'].value_counts()``;
+        * outlier-only label counts from ``SensorData.outliersdf['label'].value_counts()``;
+        * per-check outcome counts from ``SensorData.get_qc_freq_statistics()``
+          (MultiIndex ``['checkname', 'flag']``).
+
+        When ``make_plot`` is True, the aggregated counts are visualized with
+        ``plotting.qc_overview_pies``. When False, the aggregated series are returned for
+        programmatic use.
+
+        Parameters
+        ----------
+        obstype : str, optional
+            Observation type to evaluate, by default "temp".
+        make_plot : bool, optional
+            If True, return a figure with pie charts; if False, return the aggregated counts.
+            Default is True.
+
+        Returns
+        -------
+        matplotlib.figure.Figure or dict[str, pandas.Series]
+            Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
+            keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``. Returns None when
+            no stations provide the requested ``obstype``.
+        """
+
+        # collect stations that actually have the target obstype
+        target_stations = [sta for sta in self.stations if obstype in sta.obsdata]
+
+        if not target_stations:
+            logger.warning("No stations with obstype '%s' found for QC stats.", obstype)
+            return None
+
+        df, outliersdf = self.df, self.outliersdf
+        if df.empty:
+            logger.warning("Dataset is empty, cannot compute QC stats.")
+            return None
+        if obstype not in df.index.get_level_values("obstype"):
+            logger.warning(
+                "No data for obstype '%s' in dataset, cannot compute QC stats.", obstype
+            )
+            return None
+
+        all_label_counts = df.xs(obstype, level="obstype")["label"].value_counts()
+        if obstype in outliersdf.index.get_level_values("obstype"):
+            outlier_label_counts = outliersdf.xs(obstype, level="obstype")[
+                "label"
+            ].value_counts()
+        else:
+            outlier_label_counts = pd.Series(
+                index=pd.Index([], dtype=int, name="label"), dtype=int
+            )
+
+        per_check_counts = []
+        for sta in target_stations:
+            sensor_counts = sta.get_sensor(obstype).get_qc_freq_statistics()
+            # add the name of the station as a index level
+            sensor_counts.index = pd.MultiIndex.from_frame(
+                sensor_counts.index.to_frame().assign(name=sta.name)
+            )
+
+            per_check_counts.append(sensor_counts)
+
+        per_check_counts = (
+            pd.concat(per_check_counts).groupby(level=["checkname", "flag"]).sum()
         )
 
         if make_plot:
-            fig = plotting.qc_overview_pies(df=dfagg)
-            fig.suptitle(f"QC frequency statistics of {obstype} on Dataset level.")
+            fig = plotting.qc_overview_pies(
+                end_labels_from_df=all_label_counts,
+                end_labels_from_outliers=outlier_label_counts,
+                per_check_labels=per_check_counts,
+                fig_title=f"QC frequency statistics of {obstype} on Dataset level.",
+            )
+
             return fig
-        else:
-            return dfagg
+
+        return {
+            "all_labels": all_label_counts,
+            "outlier_labels": outlier_label_counts,
+            "per_check_labels": per_check_counts,
+        }
 
     # ------------------------------------------
     #    Other methods

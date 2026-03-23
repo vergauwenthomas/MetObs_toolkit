@@ -203,6 +203,24 @@ def make_folium_html_plot(
     # Map values to colors
     @log_entry
     def map_value_to_hex(series, vmin, vmax, cmapname="viridis"):
+        """Map numeric values to hex color strings using a matplotlib colormap.
+
+        Parameters
+        ----------
+        series : pandas.Series
+            Numeric values to convert to colors.
+        vmin : float
+            Minimum value for the colormap normalization.
+        vmax : float
+            Maximum value for the colormap normalization.
+        cmapname : str, optional
+            Name of the matplotlib colormap to use. Default is ``'viridis'``.
+
+        Returns
+        -------
+        pandas.Series
+            Series of hex color strings with the same index as ``series``.
+        """
         norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax, clip=True)
         mapper = matplotlib.cm.ScalarMappable(
             norm=norm, cmap=matplotlib.colormaps[cmapname]
@@ -226,6 +244,24 @@ def make_folium_html_plot(
     # Serialize data to features
     @log_entry
     def make_scatter_feature(row):
+        """Build a GeoJSON Feature dict for a single row of the station GeoDataFrame.
+
+        The returned feature is suitable for use with
+        ``folium_plugins.TimestampedGeoJson``.
+
+        Parameters
+        ----------
+        row : pandas.Series
+            A single row from the station GeoDataFrame, expected to contain
+            ``'datetime'``, ``'geometry'``, ``'name'``, the variable column,
+            the label column, ``'value_color'``, and ``'label_color'``.
+
+        Returns
+        -------
+        dict
+            GeoJSON Feature dictionary with ``type``, ``geometry``, and
+            ``properties`` keys.
+        """
         dtstring = pd.to_datetime([row["datetime"]]).strftime(dt_disp_fmt)[0]
         coords = [[row["geometry"].x, row["geometry"].y]]
         popup_str = f" <b>{row['name']}</b>  <br> {'{:.1f}'.format(row[variable_column])} {var_unit} <br> {row[label_column]}"

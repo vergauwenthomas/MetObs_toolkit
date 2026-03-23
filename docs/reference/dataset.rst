@@ -50,6 +50,7 @@ General methods and attributes
    Dataset.sync_records
    Dataset.resample
    Dataset.add_new_observationtype
+   Dataset.create_distancematrix
    
 
 Exporting and converting methods

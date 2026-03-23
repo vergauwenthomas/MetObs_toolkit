@@ -440,14 +440,12 @@ class Gap:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        --------
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
         self._fillkwargs = {
@@ -612,14 +610,12 @@ class Gap:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        --------
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
-        -----------
-        Jacobs .A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
+        ----------
+        Jacobs A, et. al. (2024) `Filling gaps in urban temperature observations by debiasing ERA5 reanalysis data <https://doi.org/10.1016/j.uclim.2024.102226>`_
 
         """
 
@@ -1099,7 +1095,21 @@ class Gap:
         return lead_period, trail_period, True
 
     def test_if_gf_is_suitable_with_gapsize(self, max_gapsize) -> tuple[bool, str]:
+        """Check whether the gap duration is within the allowed limit for gap-filling.
 
+        Parameters
+        ----------
+        max_gapsize : pandas.Timedelta
+            Maximum allowed gap duration.  Gaps larger than this value cannot
+            be filled.
+
+        Returns
+        -------
+        tuple of (bool, str)
+            ``(True, '')`` when the gap is small enough, or
+            ``(False, detail_string)`` when the gap exceeds *max_gapsize* where
+            *detail_string* describes the reason.
+        """
         if (self.end_datetime - self.start_datetime) > max_gapsize:
             detailstring = f"Gap is too large ({(self.end_datetime - self.start_datetime)} ) to be filled with max_gapsize={max_gapsize}."
             logger.warning(
