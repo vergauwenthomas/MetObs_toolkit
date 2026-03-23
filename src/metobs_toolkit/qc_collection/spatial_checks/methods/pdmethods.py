@@ -233,20 +233,24 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------ #
     s1 = pd.Series(
         [10.0, 11.0, 12.0],
-        index=pd.to_datetime([
-            "2024-01-01 00:00:00",
-            "2024-01-01 00:05:00",
-            "2024-01-01 00:10:00",
-        ]),
+        index=pd.to_datetime(
+            [
+                "2024-01-01 00:00:00",
+                "2024-01-01 00:05:00",
+                "2024-01-01 00:10:00",
+            ]
+        ),
         name="exact",
     )
     s2 = pd.Series(
         [20.0, 21.0, 22.0],
-        index=pd.to_datetime([
-            "2024-01-01 00:00:30",
-            "2024-01-01 00:05:30",
-            "2024-01-01 00:10:30",
-        ]),
+        index=pd.to_datetime(
+            [
+                "2024-01-01 00:00:30",
+                "2024-01-01 00:05:30",
+                "2024-01-01 00:10:30",
+            ]
+        ),
         name="shifted",
     )
     df, tmap = _synchronize_series([s1, s2], max_shift=pd.Timedelta("1min"))
@@ -266,11 +270,13 @@ if __name__ == "__main__":
     )
     s2 = pd.Series(
         [20.0, 21.0, 22.0],
-        index=pd.to_datetime([
-            "2024-01-01 00:02:00",
-            "2024-01-01 00:07:00",
-            "2024-01-01 00:12:00",
-        ]),
+        index=pd.to_datetime(
+            [
+                "2024-01-01 00:02:00",
+                "2024-01-01 00:07:00",
+                "2024-01-01 00:12:00",
+            ]
+        ),
         name="far",
     )
     df, tmap = _synchronize_series([s1, s2], max_shift=pd.Timedelta("30s"))
@@ -289,11 +295,13 @@ if __name__ == "__main__":
     )
     s2 = pd.Series(
         [40.0, 41.0, 42.0],
-        index=pd.to_datetime([
-            "2024-01-01 00:02:00",
-            "2024-01-01 00:12:00",
-            "2024-01-01 00:22:00",
-        ]),
+        index=pd.to_datetime(
+            [
+                "2024-01-01 00:02:00",
+                "2024-01-01 00:12:00",
+                "2024-01-01 00:22:00",
+            ]
+        ),
         name="shifted10",
     )
     df, tmap = _synchronize_series([s1, s2], max_shift=pd.Timedelta("3min"))
@@ -340,4 +348,3 @@ if __name__ == "__main__":
     assert df.index[-1] == pd.Timestamp("2024-01-01 00:20")
 
     print("✓ All sanity checks passed")
-
