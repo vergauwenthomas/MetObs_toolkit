@@ -397,12 +397,12 @@ def construct_QC_attr(sensordata: Sensordata) -> Dict:
         'QC:{checkname}.{setting}' key-value pairs.
     """
     returndict = {"QC checks": []}
-    for qcdict in sensordata.outliers:
+    for qcresult in sensordata.outliers:
         # add name to the list
-        returndict["QC checks"].append(qcdict["checkname"])
+        returndict["QC checks"].append(qcresult.checkname)
         # add details as flat dict items
-        for key, value in qcdict["settings"].items():
-            returndict[f"QC:{qcdict['checkname']}.{key}"] = fmt_attr_value(
+        for key, value in qcresult.checksettings.items():
+            returndict[f"QC:{qcresult.checkname}.{key}"] = fmt_attr_value(
                 value
             )  # NO NESTED DICT!
 

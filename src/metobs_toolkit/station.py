@@ -36,6 +36,9 @@ from metobs_toolkit.geedatasetmanagers import (
 from metobs_toolkit.gf_collection.overview_df_constructors import (
     station_gap_status_overview_df,
 )
+from metobs_toolkit.qc_collection.overview_df_constructor import (
+    station_qc_overview_df,
+)
 from metobs_toolkit.backend_collection.filter_modeldatadf import filter_modeldatadf
 from metobs_toolkit.geedatasetmanagers import default_datasets as default_gee_datasets
 from metobs_toolkit.sensordata import SensorData
@@ -46,7 +49,7 @@ from metobs_toolkit.backend_collection.dataframe_constructors import station_df
 from metobs_toolkit.io_collection.filewriters import fmt_output_filepath
 
 if TYPE_CHECKING:
-    from matplotlib.pyplot import Axes
+    from matplotlib.pyplot import Axes, Figure
     from os import PathLike
     from xarray import Dataset as xrDataset
     from metobs_toolkit.sensordata import SensorData
@@ -70,7 +73,17 @@ class Station:
     """
 
     def __init__(self, stationname: str, site: Site, all_sensor_data: list):
-        # dimension attributes
+        """Initialize a Station with its name, site metadata and sensor data.
+
+        Parameters
+        ----------
+        stationname : str
+            Unique name of the station.
+        site : Site
+            :class:`Site` instance carrying spatial metadata for this station.
+        all_sensor_data : list of SensorData
+            List of :class:`SensorData` instances (one per observed variable).
+        """
         self._name = str(stationname)
         self._site = site
         self.obsdata = {
@@ -895,8 +908,22 @@ class Station:
             self.get_sensor(obstype).convert_outliers_to_gaps()
 
     def _rename(self, targetname):
-        # Note: Not for users, one could accidentally rename to another station in the dataset.
-        # So --> only accessible as method in the dataset, that checks this possible error.
+        """Rename the station across all sub-objects.
+
+        Updates the station name, the associated :class:`Site`, and every
+        :class:`SensorData` instance belonging to this station.
+
+        Parameters
+        ----------
+        targetname : str
+            The new station name.
+
+        Notes
+        -----
+        This method is intentionally not part of the public API.  Use the
+        Dataset-level ``rename_stations()`` method instead, which validates
+        name uniqueness before calling this helper.
+        """
 
         # rename all
         self._name = str(targetname)
@@ -1384,7 +1411,6 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * If the minimum number of records per window is locally not met, the function logs a warning and skips
@@ -1394,7 +1420,7 @@ class Station:
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
-        Warnings
+        Warning
         -------
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
@@ -1449,14 +1475,13 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * The repetitions check is similar to the persistence check, but not identical.
           The persistence check uses thresholds that are meteorologically based (i.e. the moving window is defined by a duration),
           in contrast to the repetitions check whose thresholds are instrumentally based (i.e. the "window" is defined by a number of records.)
 
-        Warnings
+        Warning
         -------
         If the minimum number of records per window is not met over the full time series, a warning is logged, and the function
         returns an empty DatetimeIndex.
@@ -1513,7 +1538,6 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
@@ -1583,14 +1607,13 @@ class Station:
 
         Notes
         -----
-
         * This method modifies the outliers in place and does not return anything.
           You can use the `outliersdf` property to view all flagged outliers.
         * In general, for temperatures, the decrease threshold is set less stringent than the increase
           threshold. This is because a temperature drop is meteorologically more
           common than a sudden increase which is often the result of a radiation error.
         * A suitable value for the min_records_per_window depends on the time resolution of the records and the window size.
-        * This check is similar to the step check, but not identical. The step check a maximum allowed increase/decrease
+        * This check is similar to the step check, but not identical. The step check tests a maximum allowed increase/decrease
           with respect to the previous value. The window variation check uses a moving window to test the maximum allowed variation.
 
         """
@@ -1612,59 +1635,64 @@ class Station:
         # apply check on the sensordata
         self.get_sensor(obstype).window_variation_check(**qc_kwargs)
 
+    @copy_doc(station_qc_overview_df)
+    @log_entry
+    def qc_overview_df(
+        self, subset_obstypes: Union[list[str], None] = None
+    ) -> pd.DataFrame:
+        return station_qc_overview_df(self, subset_obstypes=subset_obstypes)
+
     @log_entry
     def get_qc_stats(
         self, obstype: str = "temp", make_plot: bool = True
-    ) -> pd.DataFrame:
+    ) -> Union[dict[str, pd.Series], Figure]:
         """
-        Generate quality control (QC) frequency statistics.
+        Summarize QC label frequencies for one station and optionally plot pies.
 
-        This method calculates the frequency statistics for various QC checks
-        applied, and other labels. The order of checks is taken into
-        account.
-
-        Frequency of labels is computed based on the set of all labels (for all
-        records including gaps). The effectiveness of a check is shown by
-        the frequency of outliers with respect to the number of records that were given
-        to the check (thus taking into account the order of checks).
-
-        The frequencies are returned in a dataframe, and can be plotted
-        as pie charts.
+        The method gathers:
+        * final label counts across all records (including gaps) from ``SensorData.df``;
+        * outlier-only label counts from ``SensorData.outliersdf``;
+        * per-check outcome counts (flags per QC check) via ``SensorData.get_qc_freq_statistics``.
+        When ``make_plot`` is True, these counts are visualized with
+        ``plotting.qc_overview_pies``.
 
         Parameters
         ----------
         obstype : str, optional
-            The target observation type for which to compute frequency statistics, by default "temp".
+            Observation type to evaluate, by default "temp".
         make_plot : bool, optional
-            If True, a figure with pie charts representing the frequencies is generated. The default is True.
+            If True, return a figure with pie charts; if False, no figure is created. Default is True.
 
         Returns
         -------
-        pandas.DataFrame
-            A DataFrame containing the QC frequency statistics. The DataFrame
-            has a multi-index with the station name and QC check label, and
-            includes the following columns:
-
-            * `N_all`: Total number of records in the dataset (including gaps).
-            * `N_labeled`: Number of records with the specific label.
-            * `N_checked`: Number of records checked for the specific QC check.
-
+        matplotlib.figure.Figure or dict[str, pandas.Series]
+            Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
+            keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``.
         """
         # argument checks
         self._obstype_is_known_check(obstype)
         # get freq statistics
-        qc_df = self.get_sensor(obstype).get_qc_freq_statistics()
+        qc_specific_counts = self.get_sensor(obstype).get_qc_freq_statistics()
+        qc_labels_from_df = self.get_sensor(obstype).df["label"].value_counts()
+        qc_labels_from_outliers = (
+            self.get_sensor(obstype).outliersdf["label"].value_counts()
+        )
 
         if make_plot:
-            plotdf = qc_df.reset_index().drop(columns=["name"]).set_index("qc_check")
-
-            fig = plotting.qc_overview_pies(df=plotdf)
-            fig.suptitle(
-                f"QC frequency statistics of {obstype} on Station level: {self.name}."
+            fig = plotting.qc_overview_pies(
+                end_labels_from_df=qc_labels_from_df,
+                end_labels_from_outliers=qc_labels_from_outliers,
+                per_check_labels=qc_specific_counts,
+                fig_title=f"QC frequency statistics of {obstype} on Sensor level: {self.name}.",
             )
+
             return fig
-        else:
-            return qc_df
+
+        return {
+            "all_labels": qc_labels_from_df,
+            "outlier_labels": qc_labels_from_outliers,
+            "per_check_labels": qc_specific_counts,
+        }
 
     @log_entry
     def make_plot_of_modeldata(
@@ -2195,7 +2223,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         min_value : float, optional
@@ -2225,9 +2253,7 @@ class Station:
         #. Clip filled values to the range [min_value, max_value] if specified.
         #. Update the `gap` attributes with the interpolated values, labels, and details.
 
-        Notes
-        -----
-        Note that a suitable `min_debias_sample_size` depends on the sizes of the
+        A suitable `min_debias_sample_size` depends on the sizes of the
         leading- and trailing periods, and also on the time resolution gap (=time resolution of the corresponding SensorData).
 
         References
@@ -2316,7 +2342,7 @@ class Station:
             The model variable to filter by when multiple model variables exist
             for the same observation type and model. If None, no filtering by
             model variable is applied. The default is None.
-         max_gap_duration_to_fill : str or pandas.Timedelta, optional
+        max_gap_duration_to_fill : str or pandas.Timedelta, optional
             The maximum gap duration of to fill with interpolation. The result is
             independent on the time-resolution of the gap. Defaults to 12 hours.
         min_value : float, optional
@@ -2455,9 +2481,6 @@ class Station:
         #. Interpolate the missing records using the specified method.
         #. Update the gap attributes with the interpolated values, labels, and details.
 
-
-        Note
-        -----
         If you want to use a higher-order method of interpolation, make sure to
         increase the `n_leading_anchors` and `n_trailing_anchors` accordingly.
         For example, for a cubic interpolation, you need at least 2 leading and 2 trailing anchors.

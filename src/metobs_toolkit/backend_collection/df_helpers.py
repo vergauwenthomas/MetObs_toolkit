@@ -55,6 +55,23 @@ def convert_to_numeric_series(
 
 @log_entry
 def save_concat(targets, **kwargs):
+    """Concatenate a list of DataFrames, gracefully handling empty frames.
+
+    If all frames are empty the function returns an empty DataFrame whose
+    columns and index are the union of those in *targets*.
+
+    Parameters
+    ----------
+    targets : list or iterable of pandas.DataFrame
+        DataFrames to concatenate.
+    **kwargs
+        Additional keyword arguments forwarded to :func:`pandas.concat`.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Concatenated DataFrame, or an empty DataFrame when all inputs are empty.
+    """
     if not isinstance(targets, list):
         targets = list(targets)
 

@@ -91,7 +91,7 @@ def connect_to_gee(**kwargs) -> None:
         logger.warning(f"Failed to initialize GEE with default credentials: {e}")
         # Fall through to authentication
 
-    # If initialization failed, try to authenticate
+    # If initialization failed, authenticate and retry initialization.
     ee.Authenticate()
     ee.Initialize()
     return None

@@ -323,6 +323,7 @@ jobs:
         strategy:
           matrix:
             test_file:
+            - tests/test_module_sanity.py
             - tests/test_qc.py
             - tests/test_obstypes.py
             - tests/test_gf.py
