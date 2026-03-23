@@ -80,20 +80,31 @@ poetry run black src/metobs_toolkit 2>&1 | tee -a ${BLACK_LOG}
 echo ""
 
 
-#3. Run tests
+#3. Run module sanity checks (embedded __main__ tests)
 echo "========================================="
-echo "Step 3: Running test suite..."
+echo "Step 3: Running module sanity checks..."
+echo "========================================="
+SANITY_LOG=${DEPLOY_DIR}/pytest_sanity_log.log
+rm -f ${SANITY_LOG} #clean start
+touch ${SANITY_LOG}
+cd ${REPODIR} #Run from repo root
+poetry run pytest tests/test_module_sanity.py -v 2>&1 | tee -a ${SANITY_LOG}
+echo ""
+
+#4. Run tests
+echo "========================================="
+echo "Step 4: Running test suite..."
 echo "========================================="
 TEST_LOG=${DEPLOY_DIR}/pytest_tests_log.log
 rm -f ${TEST_LOG} #clean start
 touch ${TEST_LOG}
 cd ${REPODIR} #Run from repo root
-poetry run pytest tests/. --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
+poetry run pytest tests/. --ignore=tests/test_module_sanity.py --mpl --mpl-generate-summary=html 2>&1 | tee -a ${TEST_LOG}
 echo ""
 
-#4. Run notebook example as tests
+#5. Run notebook example as tests
 echo "========================================="
-echo "Step 4: Running notebook examples as tests..."
+echo "Step 5: Running notebook examples as tests..."
 echo "========================================="
 NB_LOG=${DEPLOY_DIR}/pytest_on_doc_notebooks_log.log
 rm -f ${NB_LOG} #clean start
@@ -105,9 +116,9 @@ poetry run pytest . --nbval-lax 2>&1 | tee -a ${NB_LOG}
 echo ""
 
 
-#5. Build documentation
+#6. Build documentation
 echo "========================================="
-echo "Step 5: Building documentation..."
+echo "Step 6: Building documentation..."
 echo "========================================="
 DOCS_LOG=${DEPLOY_DIR}/build_doc_log.log
 rm -f ${DOCS_LOG} #clean start
@@ -118,15 +129,15 @@ poetry run ./build_doc 2>&1 | tee -a ${DOCS_LOG}
 echo ""
 
 
-#6. Create a big log file
+#7. Create a big log file
 echo "========================================="
-echo "Step 6: Creating combined log file..."
+echo "Step 7: Creating combined log file..."
 echo "========================================="
 BIG_LOG=${DEPLOY_DIR}/dev_pipeline_full_log.log
 rm -f ${BIG_LOG} # clean start
 touch ${BIG_LOG}
 
-cat ${BLACK_LOG} ${TEST_LOG} ${NB_LOG} ${DOCS_LOG} >> ${BIG_LOG}
+cat ${BLACK_LOG} ${SANITY_LOG} ${TEST_LOG} ${NB_LOG} ${DOCS_LOG} >> ${BIG_LOG}
 
 
 echo "Opening logs in default text viewer..."
