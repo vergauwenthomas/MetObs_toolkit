@@ -20,15 +20,25 @@ def validate_safety_net_configs(safety_net_configs: List[Dict]) -> None:
     """
     Validate that all required keys are present in safety_net_configs.
 
+    This function checks that each safety net configuration contains all required
+    keys and validates optional keys when present. Required keys are: 'category',
+    'buddy_radius', 'z_threshold', and 'min_sample_size'. Optional keys include
+    'max_sample_size' (must be larger than 'min_sample_size') and
+    'only_if_previous_had_no_buddies' (boolean, cannot be True for first safety net).
+
     Parameters
     ----------
-    safety_net_configs : list of dict
-        List of safety net configuration dictionaries.
+    safety_net_configs : list of dict or None
+        List of safety net configuration dictionaries. If None, the function
+        returns without validation.
 
     Raises
     ------
     ValueError
-        If safety_net_configs is not a list or contains non-dict elements.
+        If safety_net_configs is not a list or contains non-dict elements, or
+        if validation fails for max_sample_size (must be > min_sample_size),
+        or if 'only_if_previous_had_no_buddies' is not a boolean or is True
+        for the first safety net.
     KeyError
         If any required key is missing from a safety net configuration.
     """
@@ -231,8 +241,9 @@ def apply_safety_net(
 
     For each outlier record, safety-net buddies are assigned (using a
     possibly different radius/altitude filter), then the z-score buddy
-    test is applied.  Records that pass the safety-net test are returned
-    so callers can mark them as *saved*.
+    test is applied. Records that pass the safety-net test are removed
+    from the outliers, and the remaining outliers are returned. Flags
+    and details are updated on the BuddyWrapSensor objects in-place.
 
     Parameters
     ----------
@@ -244,7 +255,8 @@ def apply_safety_net(
     buddygroupname : str
         Name prefix for the safety-net buddy group (e.g. a LCZ category).
     metadf : pandas.DataFrame
-        Station metadata with at least an ``'altitude'`` column.
+        Station metadata with at least an ``'altitude'`` column and a column
+        matching ``buddygroupname`` for category grouping.
     distance_df : pandas.DataFrame
         Symmetric distance matrix (metres) with station names as index
         and columns.
@@ -280,8 +292,10 @@ def apply_safety_net(
     Returns
     -------
     pandas.MultiIndex
-        MultiIndex ``('name', 'datetime')`` of records that passed the
-        safety-net test (i.e. were *saved* from being flagged).
+        MultiIndex ``('name', 'datetime')`` of remaining outliers after
+        applying the safety net. This is the input ``outliers`` minus any
+        records that passed the safety-net test (i.e., were saved from
+        being flagged).
     """
     # Track records that were saved (passed the safety net test)
     saved_records = pd.MultiIndex.from_tuples([], names=["name", "datetime"])
