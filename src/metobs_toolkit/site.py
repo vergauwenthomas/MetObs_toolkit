@@ -246,7 +246,7 @@ class Site:
     # ------------------------------------------
 
     @log_entry
-    def set_altitude(self, altitude: Union[float]) -> None:
+    def set_altitude(self, altitude: float) -> None:
         """
         Set the altitude attribute.
 
@@ -258,7 +258,7 @@ class Site:
         self._altitude = float(altitude)
 
     @log_entry
-    def set_latitude(self, latitude: Union[float]) -> None:
+    def set_latitude(self, latitude: float) -> None:
         """
         Set the latitude attribute.
 
@@ -270,7 +270,7 @@ class Site:
         self._lat = float(latitude)
 
     @log_entry
-    def set_longitude(self, longitude: Union[float]) -> None:
+    def set_longitude(self, longitude: float) -> None:
         """
         Set the longitude attribute.
 
