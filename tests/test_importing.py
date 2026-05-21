@@ -483,6 +483,14 @@ class TestWideData:
         assert dataset.metadf.loc[station.name, "lat"] == pytest.approx(51.027)
         assert dataset.metadf.loc[station.name, "lon"] == pytest.approx(3.71)
 
+        with pytest.raises(ValueError, match="Latitude should be between -90.0 and 90.0"):
+            station.site.set_latitude(91.0)
+
+        with pytest.raises(
+            ValueError, match="Longitude should be between -180.0 and 180.0"
+        ):
+            station.site.set_longitude(181.0)
+
 
 class TestWideSingleStationData:
     # to pass to the solutionfixer
