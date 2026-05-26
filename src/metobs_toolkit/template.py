@@ -7,7 +7,6 @@ This module provides the Template class and related functions for handling
 template files and mappings between data/metadata columns and toolkit conventions.
 """
 
-
 import sys
 import logging
 from typing import Union

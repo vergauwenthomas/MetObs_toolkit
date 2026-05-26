@@ -4,7 +4,7 @@ requires = ["poetry-core"]
 
 [project]
 name = "MetObs-toolkit"
-version = "1.0.3"
+version = "1.0.4"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Thomas Vergauwen", email = "thomas.vergauwen@ugent.be"}]
@@ -43,7 +43,7 @@ dependencies=[
   "pint>=0.24.4,<1.0",
   "shapely>=2.0.6,<3.0",
   "xarray>=2022.3.0,<2027.0.0",
-  "pyarrow>=21.0.0,<22.0.0",
+  "pyarrow>=23.0.0,<24.0.0",
   "netcdf4>=1.7.2,<2.0.0",
   "pytz>=2024.1,<2027.1"
 ]
@@ -56,11 +56,11 @@ nbconvert = "^7.16.6"
 poetry = "^2"
 pre-commit = "^4.0.1"
 pretty-errors = "^1.2.25"
-pytest = "^8.3.5"
+pytest = "^9.0.3"
 pytest-mpl = "^0.17.0"
 pytest-cov = "^6.1.1"
 nbval = "^0.11.0"
-black = "^25.1.0"
+black = "^26.3.1"
 jupyter = "^1.1.1"
 
 [tool.poetry.group.documentation.dependencies]
