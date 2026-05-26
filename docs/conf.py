@@ -13,7 +13,6 @@
 import os, sys
 from pathlib import Path
 
-
 # Note that on the github workflow the build is executed in the doc folder,
 # Thus if that is the case, we need to go up the foldertree
 

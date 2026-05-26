@@ -48,12 +48,10 @@ def test_unit(unitstring: str) -> bool:
         Obstype(name="dummy", std_unit=unitstring, description="dummy")
         return True
     except MetObsUnitUnknown:
-        print(
-            f"!! {unitstring} is not a known Pint-unit. \
+        print(f"!! {unitstring} is not a known Pint-unit. \
 See https://github.com/hgrecco/pint/blob/master/pint/default_en.txt \
 for a complete list.\n (Note that you can use prefixes (kilo, hecto, ... ) \
-and expressions (meter/second, liter/second**2, ...)"
-        )
+and expressions (meter/second, liter/second**2, ...)")
         return False
 
 
@@ -74,27 +72,19 @@ def add_new_obstype() -> tuple:
     while not name_ok:
         obsname = str(input("Give the name of your observation type: "))
         if obsname in tlk_obstypes.keys():
-            print(
-                f"!! {obsname} is already a known observation type. This \
-cannot be added."
-            )
+            print(f"!! {obsname} is already a known observation type. This \
+cannot be added.")
         else:
             name_ok = True
 
     # get std unit
-    print(
-        "(Note: Units are handled by the pint-package. See a list of all \
+    print("(Note: Units are handled by the pint-package. See a list of all \
 available units here: \
-https://github.com/hgrecco/pint/blob/master/pint/default_en.txt) "
-    )
+https://github.com/hgrecco/pint/blob/master/pint/default_en.txt) ")
     stdunit_ok = False
     while not stdunit_ok:
-        std_unit = str(
-            input(
-                "Give the standard unit (how the toolkit should \
-store/present the data): "
-            )
-        )
+        std_unit = str(input("Give the standard unit (how the toolkit should \
+store/present the data): "))
         # test if the unit is valid
         stdunit_ok = test_unit(std_unit)
 
@@ -143,26 +133,18 @@ def get_unit(obstype: Obstype) -> str:
         compatible_units = obstype.get_compatible_units()
         curunit_ok = False
         while not curunit_ok:
-            print(
-                f"The following units are compatible with \
-{obstype}: \n {compatible_units}"
-            )
-            cur_unit = str(
-                input(
-                    "Give the unit your data is in (you can add prefixes \
-like kilo/hecto/etc if you need): "
-                )
-            )
+            print(f"The following units are compatible with \
+{obstype}: \n {compatible_units}")
+            cur_unit = str(input("Give the unit your data is in (you can add prefixes \
+like kilo/hecto/etc if you need): "))
 
             # test unit
             try:
                 obstype.original_unit = cur_unit  # checks compatibility
                 curunit_ok = True
             except MetObsUnitUnknown:
-                print(
-                    f"!! {cur_unit} is not compatible with {obstype}. \
-Provide a compatible unit."
-                )
+                print(f"!! {cur_unit} is not compatible with {obstype}. \
+Provide a compatible unit.")
                 pass
         return cur_unit
 
@@ -333,10 +315,8 @@ def build_template_prompt() -> None:
 
     known_obstypes = copy.copy(tlk_obstypes)
 
-    print(
-        "This prompt will help to build a template for your data and metadata. \
-Answer the prompt and hit Enter. \n \n"
-    )
+    print("This prompt will help to build a template for your data and metadata. \
+Answer the prompt and hit Enter. \n \n")
 
     print(" *******      File locations   *********** \n")
 
@@ -414,10 +394,8 @@ observation(s) of one station)": 3,
                     _ = pd.to_datetime(data[datetimecolumn], format=datetimefmt)
                     fmt_is_ok = True
                 except ValueError:
-                    print(
-                        f" !! {datetimefmt} is not a suitable format for your \
-{datetimecolumn}-column, check your data and input a suitable format."
-                    )
+                    print(f" !! {datetimefmt} is not a suitable format for your \
+{datetimecolumn}-column, check your data and input a suitable format.")
                     pass
 
             tmpl_dict["data_related"]["timestamp"]["datetime_fmt"] = datetimefmt

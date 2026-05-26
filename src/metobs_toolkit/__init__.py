@@ -39,7 +39,6 @@ from metobs_toolkit.backend_collection.loggingmodule import (
     add_StreamHandler,
 )
 
-
 # =============================================================================
 # Specify demo data paths
 # =============================================================================

@@ -311,15 +311,13 @@ class MetaDataParser:
         else:
             # 2. not present in the metadata
             if self.datadf.shape[0] > 1:
-                raise MetObsInconsistentStationName(
-                    f"""
+                raise MetObsInconsistentStationName(f"""
     The station name used in the single-station data is {target_single_name} (is a column in the data file,
     or defined in the template file). This station name is NOT present in the metadata, and multiple stations are
     present. Make sure that the single station name used by the data is the same
     as in the metadata file. (Or make sure that there is only one station present
     in the metadata file).
-    """
-                )
+    """)
             else:
                 logger.warning(
                     f"Due to a mismatch in single-station-name, the metadata name: {self.datadf.index[0]} --> {target_single_name} is renamed to be in line with the data file and template."

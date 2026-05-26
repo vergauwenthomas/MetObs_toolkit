@@ -77,7 +77,6 @@ from metobs_toolkit.geedatasetmanagers import (
 from metobs_toolkit.gee_api import connect_to_gee
 from metobs_toolkit.backend_collection.decorators import log_entry
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
 
