@@ -54,10 +54,8 @@ class Analysis:
 
     def __init__(self, Dataholder: Union[Dataset, Station]):
         if not isinstance(Dataholder, (Dataset, Station)):
-            raise TypeError(
-                f"Dataholder is not a Dataset or Station, \
-but a {type(Dataholder)}"
-            )
+            raise TypeError(f"Dataholder is not a Dataset or Station, \
+but a {type(Dataholder)}")
 
         if isinstance(Dataholder, Dataset):
             df = Dataholder.df
@@ -333,11 +331,9 @@ but a {type(Dataholder)}"
         # test if agg categories are valid
         for aggcat in agg:
             if aggcat not in self._all_possible_agg_categories():
-                raise ValueError(
-                    f"{aggcat} is not a possible agg category for {self}. \
+                raise ValueError(f"{aggcat} is not a possible agg category for {self}. \
 These are all the possible agg categories: \
-{self._all_possible_agg_categories()}."
-                )
+{self._all_possible_agg_categories()}.")
 
         # create a fulldf
         fulldf = pd.merge(left=self.fulldf, right=self.metadf, how="left", on="name")
@@ -554,21 +550,17 @@ are all the possible agg categories: {self._all_possible_agg_categories()}."
         components (hour, minute, second). The resulting diurnal cycle is
         plotted, with options for customization.
         """
-        logger.debug(
-            f"Entering {self.__class__.__name__}.plot_\
-diurnal_cycle_with_reference_station"
-        )
+        logger.debug(f"Entering {self.__class__.__name__}.plot_\
+diurnal_cycle_with_reference_station")
 
         # test if obstype is known
         self._obstype_is_known(obstype)
 
         # test if colorby is valid
         if colorby not in self._all_possible_agg_categories():
-            raise ValueError(
-                f"{colorby} is not a possible agg category for {self}. \
+            raise ValueError(f"{colorby} is not a possible agg category for {self}. \
 These are all the possible agg categories: \
-{self._all_possible_agg_categories()}."
-            )
+{self._all_possible_agg_categories()}.")
 
         colorby_blacklist = ["hour", "minute", "second"]
         if colorby in colorby_blacklist:
@@ -689,9 +681,7 @@ with {ref_station} as reference, grouped per {colorby}."
         list
             List of possible aggregation categories.
         """
-        logger.debug(
-            f"Entering {self.__class__.__name__}._all_\
-possible_agg_categories"
-        )
+        logger.debug(f"Entering {self.__class__.__name__}._all_\
+possible_agg_categories")
         metacategories = list(self.metadf.reset_index().columns)
         return list(set(metacategories + possible_time_aggregates))

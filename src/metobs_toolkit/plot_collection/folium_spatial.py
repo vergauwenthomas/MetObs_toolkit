@@ -72,9 +72,7 @@ def add_title_to_folium_map(title: str, Map: folium.Map) -> folium.Map:
 
     title_html = """
                  <h3 align="center" style="font-size:20px"><b>{}</b></h3>
-                 """.format(
-        title
-    )
+                 """.format(title)
 
     Map.get_root().html.add_child(folium.Element(title_html))
     return Map

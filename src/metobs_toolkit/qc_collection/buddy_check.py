@@ -561,10 +561,8 @@ def toolkit_buddy_check(
             max_alt_diff,
         )
         if metadf["altitude"].isna().any():
-            raise ValueError(
-                "At least one station has a NaN \
-value for 'altitude'"
-            )
+            raise ValueError("At least one station has a NaN \
+value for 'altitude'")
         # Filter by altitude difference
         spatial_buddies = _filter_to_altitude_buddies(
             buddies=spatial_buddies,
