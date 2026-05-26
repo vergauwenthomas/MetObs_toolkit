@@ -92,8 +92,8 @@ def connect_to_gee(**kwargs) -> None:
         if "Not signed up for Earth Engine or project is not registered" in str(e):
             logger.warning(
                 "GEE credentials appear to be outdated or missing a Cloud Project. "
-                "Run `metobs_toolkit.connect_to_gee(force=True)` interactively to "
-                "re-authenticate and link a registered Cloud Project."
+                "Run `metobs_toolkit.connect_to_gee()` interactively to re-authenticate and link a registered Cloud Project "
+                "(use `force=True` to reset credentials if needed)."
             )
         # Fall through to authentication
 
