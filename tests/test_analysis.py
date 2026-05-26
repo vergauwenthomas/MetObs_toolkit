@@ -208,6 +208,21 @@ class TestDemoDataset:
         fig = ax.get_figure()
         return fig
 
+    def test_diurnal_cycle_plot_with_reference_colorby_name(self):
+        """Sanity test: colorby='name' (default) should not raise a KeyError."""
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # 2. apply a metobs manipulation – colorby='name' is the default and
+        #    previously failed because 'name' lives in the MultiIndex, not in
+        #    the DataFrame columns.
+        ax = ana.plot_diurnal_cycle_with_reference_station(
+            ref_station="vlinder02", obstype="temp", colorby="name"
+        )
+        assert ax is not None
+
 
 if __name__ == "__main__":
     print(
