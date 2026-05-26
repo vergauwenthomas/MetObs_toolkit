@@ -1167,6 +1167,7 @@ class Station:
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
         initialize_gee: bool = True,
+        find_nearest_with_data: bool = False,
     ) -> Union[pd.DataFrame, None]:
         """
         Extract time series data from GEE.
@@ -1205,6 +1206,11 @@ class Station:
             If True, forces saving the data to Google Drive. Defaults to False.
         initialize_gee : bool, optional
             If True, initialize the Google Earth Engine API before fetching data. Default is True.
+        find_nearest_with_data : bool, optional
+            If True, for stations whose nearest gridpoint holds no data (e.g.
+            over the ocean for ERA5-land), a search is performed to find the
+            nearest gridpoint that does hold data. This acts as a land-mask
+            aware nearest gridpoint search. Default is False.
 
         Returns
         -------
@@ -1275,6 +1281,7 @@ class Station:
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
             initialize_gee=initialize_gee,
+            find_nearest_with_data=find_nearest_with_data,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
