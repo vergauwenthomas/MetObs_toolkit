@@ -54,9 +54,8 @@ echo ""
 echo "========================================="
 echo "Step 1a: Validating GEE authentication..."
 echo "========================================="
-GEE_VALID=false
 if poetry run python -c "import ee; ee.Initialize(); print('✓ GEE initialization succeeded')" 2>/dev/null; then
-    GEE_VALID=true
+    pass
 else
     echo ""
     echo "⚠ WARNING: GEE authentication is NOT working!"
@@ -79,15 +78,15 @@ echo ""
 #1b. Test GEE authentication in Poetry environment (optional, kept for backward compat)
 if [ "$TEST_GEE_AUTH" = "1" ]; then
     echo "========================================="
-    echo "Step 1a: Testing GEE authentication in Poetry environment..."
+    echo "Step 1b: Testing GEE authentication in Poetry environment..."
     echo "========================================="
     cd ${DEPLOY_DIR}
     poetry run python ${DEPLOY_DIR}/test_gee_auth.py
     if [ $? -ne 0 ]; then
         echo ""
         echo "⚠ GEE authentication test failed in Poetry environment!"
-        echo "  Continue anyway? (tests may fail)"
-        read -p "Press Enter to continue or Ctrl+C to abort..."
+        echo "  Aborting pipeline."
+        exit 1
     fi
     echo ""
 fi
