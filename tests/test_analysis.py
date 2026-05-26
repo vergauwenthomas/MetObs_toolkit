@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 sys.path.insert(0, str(libfolder / "src"))

@@ -46,6 +46,8 @@ Methods for updating site metadata and spatial information.
 .. autosummary::
    :toctree: api/
 
+   Site.set_latitude
+   Site.set_longitude
    Site.set_altitude
    Site.set_LCZ
    Site.set_geedata

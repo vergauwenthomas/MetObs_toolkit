@@ -17,7 +17,6 @@ from os import PathLike
 
 from metobs_toolkit.settings_collection.settings import Settings
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
 
