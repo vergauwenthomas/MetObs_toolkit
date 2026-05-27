@@ -573,14 +573,22 @@ These are all the possible agg categories: \
             )
 
         # create a differences in time
+        # Note: when colorby='name', 'name' is in the MultiIndex after
+        # set_index, so we cannot select it as a column directly.
+        cols_to_select = [obstype, "hour", "minute", "second"]
+        if colorby != "name":
+            cols_to_select.append(colorby)
         fulldf = pd.merge(
             left=self.fulldf, right=self.metadf, how="left", on="name"
-        ).set_index(["datetime", "name"])[
-            [obstype, colorby, "hour", "minute", "second"]
-        ]
+        ).set_index(["datetime", "name"])[cols_to_select]
 
         refrecords = fulldf.xs(ref_station, level="name", drop_level=True)[obstype]
         fulldf["diff_value"] = fulldf[obstype] - refrecords
+
+        # When colorby='name', reset the 'name' index level to a column so
+        # that the groupby below can use it without ambiguity.
+        if colorby == "name":
+            fulldf = fulldf.reset_index(level="name")
 
         # Aggregate the df
         aggdf = fulldf.groupby(
