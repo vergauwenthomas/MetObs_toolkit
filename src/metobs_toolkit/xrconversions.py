@@ -10,7 +10,6 @@ from metobs_toolkit.settings_collection import Settings
 from metobs_toolkit.qc_collection.whitelist import SensorWhiteSet, WhiteSet
 from metobs_toolkit.settings_collection import __version__
 
-
 if TYPE_CHECKING:
     from metobs_toolkit.sensordata import Sensordata
     from metobs_toolkit.modeltimeseries import Modeltimeseries

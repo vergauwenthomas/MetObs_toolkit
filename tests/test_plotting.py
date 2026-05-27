@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 # import metobs_toolkit
 import pandas as pd
 
-
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 sys.path.insert(0, str(libfolder / "src"))
@@ -18,7 +17,6 @@ import metobs_toolkit
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer2, assert_equality, datadir
 import shutil
-
 
 print(
     "To Overwrite the solutions, run: \n pytest test_plotting.py --mpl-generate-path=baseline"

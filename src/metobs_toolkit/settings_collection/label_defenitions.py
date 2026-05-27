@@ -5,6 +5,7 @@ Label color and name defenitions for the metobs_toolkit.
 
 @author: thoverga
 """
+
 line = "line"
 scatter = "scatter"
 vline = "vline"

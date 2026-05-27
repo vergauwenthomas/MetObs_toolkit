@@ -2,8 +2,8 @@ import pytest
 import sys
 import copy
 from pathlib import Path
+import matplotlib.pyplot as plt
 import pandas as pd
-
 
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
@@ -203,7 +203,8 @@ class TestDemoDataset:
         #  1. get_startpoint data
         ana = copy.deepcopy(import_analysis)
         # 2. apply a metobs manipulation
-        ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ")
+        fig, ax = plt.subplots(figsize=(15, 12))
+        ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ", ax=ax)
         fig = ax.get_figure()
         fig.set_size_inches(15, 5)
         return fig
@@ -214,9 +215,30 @@ class TestDemoDataset:
         ana = copy.deepcopy(import_analysis)
 
         # 2. apply a metobs manipulation
+        fig, ax = plt.subplots(figsize=(15, 12))
         ax = ana.plot_diurnal_cycle_with_reference_station(
-            ref_station="vlinder02", obstype="temp", colorby="LCZ"
+            ref_station="vlinder02", obstype="temp", colorby="LCZ", ax=ax
         )
+        fig = ax.get_figure()
+        return fig
+
+    @pytest.mark.mpl_image_compare
+    def test_diurnal_cycle_plot_with_reference_colorby_name(self):
+        """Sanity test: colorby='name' (default) should not raise a KeyError."""
+        #  1. get_startpoint data
+        ana = TestDemoDataset.solutionfixer.get_solution(
+            **TestDemoDataset.solkwargs, methodname="test_import_data"
+        )
+
+        # 2. apply a metobs manipulation – colorby='name' is the default and
+        #    previously failed because 'name' lives in the MultiIndex, not in
+        #    the DataFrame columns.
+        fig, ax = plt.subplots(figsize=(15, 12))
+        ax = ana.plot_diurnal_cycle_with_reference_station(
+            ref_station="vlinder02", obstype="temp", colorby="name",
+            ax=ax,
+        )
+        assert ax is not None
         fig = ax.get_figure()
         fig.set_size_inches(15, 5)
         return fig

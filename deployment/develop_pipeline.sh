@@ -14,21 +14,21 @@ cd ${DEPLOY_DIR}
 
 #0. Set up GEE authentication environment variable
 echo "========================================="
-echo "Step 0: Setting up GEE authentication..."
+echo "Step 0: Checking GEE credentials file..."
 echo "========================================="
 
 # Check for GEE credentials and set environment variable
 GEE_CRED_PATH="${HOME}/.config/earthengine/credentials"
 if [ -f "$GEE_CRED_PATH" ]; then
     export EARTHENGINE_CREDENTIALS_PATH="$GEE_CRED_PATH"
-    echo "✓ GEE credentials found at: $GEE_CRED_PATH"
-    echo "  EARTHENGINE_CREDENTIALS_PATH environment variable set"
+    echo "✓ GEE credentials file found at: $GEE_CRED_PATH"
+    echo "  (Note: file presence alone does not guarantee a working authentication)"
 else
     echo "⚠ WARNING: GEE credentials not found at expected location"
     echo "  Expected: $GEE_CRED_PATH"
-    echo "  Tests requiring GEE may fail"
+    echo "  Tests requiring GEE will fail"
     echo ""
-    echo "  To set up GEE credentials, run:"
+    echo "  To set up GEE credentials, run interactively:"
     echo "    python -c 'import metobs_toolkit; metobs_toolkit.connect_to_gee()'"
     echo ""
 fi
@@ -50,18 +50,43 @@ poetry install --all-extras --no-cache
 echo ""
 
 
-#1a. Test GEE authentication in Poetry environment (optional)
+#1a. Validate GEE authentication using the installed venv
+echo "========================================="
+echo "Step 1a: Validating GEE authentication..."
+echo "========================================="
+if poetry run python -c "import ee; ee.Initialize(); print('✓ GEE initialization succeeded')" 2>/dev/null; then
+    pass
+else
+    echo ""
+    echo "⚠ WARNING: GEE authentication is NOT working!"
+    echo ""
+    echo "  Likely cause: your credentials at ~/.config/earthengine/credentials are"
+    echo "  outdated (old format without a registered Cloud Project). The EE library"
+    echo "  falls back to gcloud Application Default Credentials, which references"
+    echo "  an unregistered project."
+    echo ""
+    echo "  Fix: run the following command INTERACTIVELY (outside this script):"
+    echo "    python -c 'import metobs_toolkit; metobs_toolkit.connect_to_gee(force=True)'"
+    echo "  This will re-authenticate and link a registered Cloud Project."
+    echo ""
+    echo "  All GEE-dependent tests will FAIL until this is resolved."
+    echo ""
+    read -rp "  Press Enter to continue anyway (GEE tests will fail), or Ctrl+C to abort..."
+fi
+echo ""
+
+#1b. Test GEE authentication in Poetry environment (optional, kept for backward compat)
 if [ "$TEST_GEE_AUTH" = "1" ]; then
     echo "========================================="
-    echo "Step 1a: Testing GEE authentication in Poetry environment..."
+    echo "Step 1b: Testing GEE authentication in Poetry environment..."
     echo "========================================="
     cd ${DEPLOY_DIR}
     poetry run python ${DEPLOY_DIR}/test_gee_auth.py
     if [ $? -ne 0 ]; then
         echo ""
         echo "⚠ GEE authentication test failed in Poetry environment!"
-        echo "  Continue anyway? (tests may fail)"
-        read -p "Press Enter to continue or Ctrl+C to abort..."
+        echo "  Aborting pipeline."
+        exit 1
     fi
     echo ""
 fi

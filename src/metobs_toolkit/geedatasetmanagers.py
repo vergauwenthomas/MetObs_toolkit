@@ -1004,7 +1004,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             MAP.setCenter(lon=centroid.x.item(), lat=centroid.y.item(), zoom=8)
 
             metadf = metadf.to_crs("epsg:4326")
-            (xmin, ymin, xmax, ymax) = metadf.total_bounds
+            xmin, ymin, xmax, ymax = metadf.total_bounds
 
             if (vmin is None) | (vmax is None):
                 roi = ee.Geometry.BBox(west=xmin, south=ymin, east=xmax, north=ymax)
@@ -1276,10 +1276,8 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
                 "The data is transfered! Open the following link in your browser: \n\n"
             )
             logger.warning(f"{doc_folder_id} \n\n")
-            logger.warning(
-                "To upload the data to the model, use the \
-Dataset.import_gee_data_from_file() method."
-            )
+            logger.warning("To upload the data to the model, use the \
+Dataset.import_gee_data_from_file() method.")
 
             return None
 

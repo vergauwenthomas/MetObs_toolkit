@@ -89,11 +89,31 @@ def connect_to_gee(**kwargs) -> None:
         return None
     except Exception as e:
         logger.warning(f"Failed to initialize GEE with default credentials: {e}")
+        if "Not signed up for Earth Engine or project is not registered" in str(e):
+            logger.warning(
+                "GEE credentials appear to be outdated or missing a Cloud Project. "
+                "Run `metobs_toolkit.connect_to_gee()` interactively to re-authenticate and link a registered Cloud Project "
+                "(use `force=True` to reset credentials if needed)."
+            )
         # Fall through to authentication
 
     # If initialization failed, authenticate and retry initialization.
     ee.Authenticate()
-    ee.Initialize()
+    # After authentication the credentials file may now contain the project field.
+    # Read it and pass it explicitly so ee.Initialize() uses the right Cloud Project
+    # instead of falling back to unregistered defaults from gcloud ADC.
+    _cred_path = Path.home() / ".config" / "earthengine" / "credentials"
+    _project = None
+    if _cred_path.exists():
+        try:
+            with open(_cred_path) as _f:
+                _project = json.load(_f).get("project")
+        except Exception:
+            pass
+    if _project:
+        ee.Initialize(project=_project)
+    else:
+        ee.Initialize()
     return None
 
 

@@ -8,7 +8,6 @@ import tempfile
 import pandas as pd
 import numpy as np
 
-
 # Add the local source directory to Python path for development
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 sys.path.insert(0, str(libfolder / "src"))
@@ -476,6 +475,44 @@ class TestWideData:
         # 5. Construct the equlity tests
         assert_equality(dataset, solutionobj)  # dataset comparison
         assert dataset.df.shape == (196, 2)
+
+    def test_set_site_coordinates_without_metadata(self):
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=TestWideData.templatefile,
+            input_metadata_file=None,
+            input_data_file=TestWideData.datafile,
+            freq_estimation_method="median",
+            freq_estimation_simplify_tolerance="2min",
+            origin_simplify_tolerance="5min",
+            timestamp_tolerance="4min",
+        )
+
+        station = dataset.stations[0]
+
+        assert not station.site.flag_has_coordinates()
+
+        station.site.set_latitude(51.027)
+        assert not station.site.flag_has_coordinates()
+
+        station.site.set_longitude(3.71)
+        assert station.site.flag_has_coordinates()
+        assert station.site.lat == pytest.approx(51.027)
+        assert station.site.lon == pytest.approx(3.71)
+        assert station.metadf.loc[station.name, "lat"] == pytest.approx(51.027)
+        assert station.metadf.loc[station.name, "lon"] == pytest.approx(3.71)
+        assert dataset.metadf.loc[station.name, "lat"] == pytest.approx(51.027)
+        assert dataset.metadf.loc[station.name, "lon"] == pytest.approx(3.71)
+
+        with pytest.raises(
+            ValueError, match="Latitude should be between -90.0 and 90.0"
+        ):
+            station.site.set_latitude(91.0)
+
+        with pytest.raises(
+            ValueError, match="Longitude should be between -180.0 and 180.0"
+        ):
+            station.site.set_longitude(181.0)
 
 
 class TestWideSingleStationData:

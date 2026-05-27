@@ -286,8 +286,20 @@ class Site:
     #   Setters
     # ------------------------------------------
 
+    def _validate_coordinate_value(
+        self, value: float, min_value: float, max_value: float, coordinate_name: str
+    ) -> float:
+        value = float(value)
+        if pd.isna(value):
+            return nan
+        if value < min_value or value > max_value:
+            raise ValueError(
+                f"{coordinate_name} should be between {min_value} and {max_value}, not {value}."
+            )
+        return value
+
     @log_entry
-    def set_altitude(self, altitude: Union[float]) -> None:
+    def set_altitude(self, altitude: float) -> None:
         """
         Set the altitude attribute.
 
@@ -297,6 +309,40 @@ class Site:
             Altitude value to set.
         """
         self._altitude = float(altitude)
+
+    @log_entry
+    def set_latitude(self, latitude: float) -> None:
+        """
+        Set the latitude attribute.
+
+        Parameters
+        ----------
+        latitude : float
+            Latitude value to set.
+        """
+        self._lat = self._validate_coordinate_value(
+            value=latitude,
+            min_value=-90.0,
+            max_value=90.0,
+            coordinate_name="Latitude",
+        )
+
+    @log_entry
+    def set_longitude(self, longitude: float) -> None:
+        """
+        Set the longitude attribute.
+
+        Parameters
+        ----------
+        longitude : float
+            Longitude value to set.
+        """
+        self._lon = self._validate_coordinate_value(
+            value=longitude,
+            min_value=-180.0,
+            max_value=180.0,
+            coordinate_name="Longitude",
+        )
 
     @log_entry
     def set_LCZ(self, LCZ: str) -> None:
