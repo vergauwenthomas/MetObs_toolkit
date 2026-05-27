@@ -315,6 +315,28 @@ jobs:
               print("Version check passed: current version differs from origin/master.")
               PY
 
+    check-backward-compat-artifacts:
+        name: Guard baseline pickle objects from accidental modification
+        needs: launch-pipeline
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+
+          - name: Verify baseline pickle checksums
+            run: |
+              cd $GITHUB_WORKSPACE/tests/baseline_pickle_objects
+              if ! sha256sum --check CHECKSUMS --strict; then
+                echo ""
+                echo "ERROR: The contents of tests/baseline_pickle_objects/ have changed!"
+                echo "These files are reference artifacts for backward compatibility testing."
+                echo "If this change is intentional, update tests/baseline_pickle_objects/CHECKSUMS"
+                echo "by running: sha256sum <your-new-file.pkl> >> tests/baseline_pickle_objects/CHECKSUMS"
+                echo "and commit both the new pickle file and the updated CHECKSUMS file together."
+                exit 1
+              fi
+              echo "Baseline pickle checksums verified – backward compatibility artifacts are intact."
+
     pytest:
         name: Run Pytest framework
         needs: launch-pipeline
@@ -334,7 +356,8 @@ jobs:
             - tests/test_to_xr.py
             - tests/test_modeldata.py
             - tests/test_logging.py
-            - tests/test_settings.py            
+            - tests/test_settings.py
+            - tests/test_backward_compatibility.py            
 
         continue-on-error: true
         steps:
