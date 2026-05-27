@@ -861,6 +861,126 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         """Return the time resolution as a string."""
         return str(self.time_res)
 
+    def _find_nearest_with_data(
+        self,
+        metadf: pd.DataFrame,
+        bandnames: list,
+        startdt_utc,
+        enddt_utc,
+        max_search_distance_m: int = 50000,
+        search_step_m: int = None,
+    ) -> Union[pd.DataFrame, None]:
+        """
+        Find nearest gridpoint with data for stations that have no data.
+
+        For each station in metadf, this method searches in increasing buffer
+        distances for the nearest gridpoint that holds data in the GEE dataset.
+        This is useful when stations are located over the ocean/sea and the GEE
+        dataset (e.g. ERA5-land) only has data over land.
+
+        Parameters
+        ----------
+        metadf : pandas.DataFrame
+            Metadata dataframe with station locations that have no data.
+        bandnames : list
+            List of band names to extract.
+        startdt_utc : pandas.Timestamp
+            Start datetime of the timeseries in UTC.
+        enddt_utc : pandas.Timestamp
+            End datetime of the timeseries in UTC (already adjusted with time_res).
+        max_search_distance_m : int, optional
+            Maximum search distance in meters. Default is 50000 (50 km).
+        search_step_m : int, optional
+            Step size in meters for expanding the search. Default is the dataset
+            scale value.
+
+        Returns
+        -------
+        pandas.DataFrame or None
+            Dataframe with timeseries for recovered stations, or None if no
+            data could be found for any station.
+        """
+        if search_step_m is None:
+            search_step_m = self.scale
+
+        raster = gee_api.get_ee_obj(self, target_bands=bandnames)
+        # Get a single image to test for data availability
+        test_collection = raster.filter(
+            ee.Filter.date(
+                gee_api.datetime_to_gee_datetime(startdt_utc),
+                gee_api.datetime_to_gee_datetime(enddt_utc),
+            )
+        )
+        test_image = test_collection.first()
+
+        all_recovered = []
+
+        for station_name, row in metadf.iterrows():
+            lon, lat = row["lon"], row["lat"]
+            found = False
+
+            for dist in range(search_step_m, max_search_distance_m + search_step_m, search_step_m):
+                # Create a buffer around the station and sample the image
+                point = ee.Geometry.Point([lon, lat])
+                buffered = point.buffer(dist)
+
+                # Sample the image within the buffer
+                sampled = test_image.sample(
+                    region=buffered,
+                    scale=self.scale,
+                    numPixels=1,
+                    geometries=True,
+                )
+
+                info = sampled.getInfo()
+                if info["features"]:
+                    # Found a pixel with data - extract its coordinates
+                    coords = info["features"][0]["geometry"]["coordinates"]
+                    new_lon, new_lat = coords[0], coords[1]
+                    logger.info(
+                        f"Found nearest gridpoint with data for station "
+                        f"'{station_name}' at distance ~{dist}m "
+                        f"(lon={new_lon:.4f}, lat={new_lat:.4f})."
+                    )
+                    found = True
+
+                    # Now extract the full timeseries at this new location
+                    new_metadf = pd.DataFrame(
+                        {"lat": [new_lat], "lon": [new_lon]},
+                        index=pd.Index([station_name], name="name"),
+                    )
+                    ee_fc = gee_api._df_to_features_point_collection(new_metadf)
+
+                    @log_entry
+                    def rasterExtraction(image):
+                        feature = image.sampleRegions(
+                            collection=ee_fc,
+                            scale=self.scale,
+                        )
+                        return feature
+
+                    results = (
+                        test_collection.map(gee_api._addDate)
+                        .map(rasterExtraction)
+                        .flatten()
+                    )
+                    results = results.getInfo()
+                    properties = [x["properties"] for x in results["features"]]
+                    if properties:
+                        station_df = pd.DataFrame(properties)
+                        all_recovered.append(station_df)
+                    break
+
+            if not found:
+                logger.warning(
+                    f"Could not find any gridpoint with data within "
+                    f"{max_search_distance_m}m for station '{station_name}'."
+                )
+
+        if all_recovered:
+            return pd.concat(all_recovered, ignore_index=True)
+        return None
+
     @log_entry
     def get_info(self, printout: bool = True) -> Union[None, str]:
         """
@@ -1089,6 +1209,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
         initialize_gee: bool = True,
+        find_nearest_with_data: bool = False,
     ) -> Union[pd.DataFrame, None]:
         """
         Extract timeseries data and set the modeldf.
@@ -1115,6 +1236,11 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             If True, forces writing to Google Drive. Default is False.
         initialize_gee : bool, optional
             If True, initializes the GEE API before extracting data. Default is True.
+        find_nearest_with_data : bool, optional
+            If True, for stations whose nearest gridpoint holds no data (e.g.
+            over the ocean for ERA5-land), a search is performed to find the
+            nearest gridpoint that does hold data. This acts as a land-mask
+            aware nearest gridpoint search. Default is False.
 
         Returns
         -------
@@ -1224,6 +1350,53 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
             df = self._format_gee_df_structure(
                 df
             )  # format to wide structure + rename columns etc
+
+            # Check for missing stations
+            requested_stations = set(metadf.index.tolist())
+            returned_stations = set(
+                df.index.get_level_values("name").unique().tolist()
+            )
+            missing_stations = requested_stations - returned_stations
+
+            if missing_stations:
+                if find_nearest_with_data:
+                    # For missing stations, search for nearest gridpoint with data
+                    logger.info(
+                        f"Searching nearest gridpoint with data for stations: {missing_stations}"
+                    )
+                    missing_metadf = metadf.loc[list(missing_stations)]
+                    recovered_df = self._find_nearest_with_data(
+                        metadf=missing_metadf,
+                        bandnames=bandnames,
+                        startdt_utc=startdt_utc,
+                        enddt_utc=enddt_utc,
+                    )
+                    if recovered_df is not None:
+                        recovered_df = self._format_gee_df_structure(recovered_df)
+                        df = pd.concat([df, recovered_df])
+                        df = df.sort_index()
+                        # Update missing stations after recovery
+                        still_missing = missing_stations - set(
+                            recovered_df.index.get_level_values("name").unique().tolist()
+                        )
+                        if still_missing:
+                            logger.warning(
+                                f"The following station(s) have no nearest gridpoint with data "
+                                f"in the target GEE dataset {self.name}, even after searching "
+                                f"nearby gridpoints: {still_missing}"
+                            )
+                    else:
+                        logger.warning(
+                            f"The following station(s) have no nearest gridpoint with data "
+                            f"in the target GEE dataset {self.name}: {missing_stations}"
+                        )
+                else:
+                    logger.warning(
+                        f"The following station(s) have no nearest gridpoint with data "
+                        f"in the target GEE dataset {self.name}: {missing_stations}. "
+                        f"Set find_nearest_with_data=True to search for the nearest "
+                        f"gridpoint that holds data."
+                    )
 
             if not get_all_bands:
                 df = self._subset_to_obstypes(df=df, obstypes=obstypes)

@@ -1721,6 +1721,7 @@ class Dataset:
         force_direct_transfer: bool = False,
         force_to_drive: bool = False,
         initialize_gee: bool = True,
+        find_nearest_with_data: bool = False,
     ) -> Union[pd.DataFrame, None]:
         if not isinstance(gee_dynamic_manager, GEEDynamicDatasetManager):
             raise TypeError(
@@ -1767,6 +1768,7 @@ class Dataset:
             force_direct_transfer=force_direct_transfer,
             force_to_drive=force_to_drive,
             initialize_gee=initialize_gee,
+            find_nearest_with_data=find_nearest_with_data,
         )
         if df is None:
             logger.warning("No data is returned by the GEE api request.")
