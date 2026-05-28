@@ -5,13 +5,13 @@ from os import PathLike
 import copy
 import pickle
 import logging
+import warnings
 from typing import Literal, Union, Tuple, List, Dict, TYPE_CHECKING
 from pathlib import Path
 
 import pandas as pd
 import numpy as np
 import concurrent.futures
-
 
 if TYPE_CHECKING:
     from matplotlib.pyplot import Axes
@@ -2596,7 +2596,20 @@ class Dataset:
             Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
             keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``. Returns None when
             no stations provide the requested ``obstype``.
+
+        .. versionchanged:: 1.1.0
+            When ``make_plot=False``, the return type changed from ``pandas.DataFrame`` to
+            ``dict[str, pandas.Series]`` with keys ``all_labels``, ``outlier_labels``, and
+            ``per_check_labels``. Update any code that previously unpacked or indexed the
+            returned DataFrame.
         """
+        warnings.warn(
+            "As of version 1.1.0, get_qc_stats() returns a dict[str, pandas.Series] "
+            "(with keys 'all_labels', 'outlier_labels', and 'per_check_labels') instead "
+            "of a pandas.DataFrame when make_plot=False. Please update your code accordingly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         # collect stations that actually have the target obstype
         target_stations = [sta for sta in self.stations if obstype in sta.obsdata]

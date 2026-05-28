@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import copy
+import warnings
 import numpy as np
 import pandas as pd
 from typing import Literal, Union, TYPE_CHECKING
@@ -1668,7 +1669,20 @@ class Station:
         matplotlib.figure.Figure or dict[str, pandas.Series]
             Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
             keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``.
+
+        .. versionchanged:: 1.1.0
+            When ``make_plot=False``, the return type changed from ``pandas.DataFrame`` to
+            ``dict[str, pandas.Series]`` with keys ``all_labels``, ``outlier_labels``, and
+            ``per_check_labels``. Update any code that previously unpacked or indexed the
+            returned DataFrame.
         """
+        warnings.warn(
+            "As of version 1.1.0, get_qc_stats() returns a dict[str, pandas.Series] "
+            "(with keys 'all_labels', 'outlier_labels', and 'per_check_labels') instead "
+            "of a pandas.DataFrame when make_plot=False. Please update your code accordingly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # argument checks
         self._obstype_is_known_check(obstype)
         # get freq statistics
