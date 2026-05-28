@@ -21,7 +21,6 @@ from metobs_toolkit.qc_collection.whitelist import WhiteSet
 # Import methods
 from . import methods as buddymethods
 
-
 if TYPE_CHECKING:
     from metobs_toolkit.station import Station
 

@@ -2,7 +2,6 @@ import logging
 
 import pandas as pd
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
 

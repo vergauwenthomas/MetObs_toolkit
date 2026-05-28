@@ -5,7 +5,6 @@ from typing import List, TYPE_CHECKING
 
 import pandas as pd
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
 if TYPE_CHECKING:

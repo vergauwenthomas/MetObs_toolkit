@@ -11,7 +11,6 @@ import geopandas as gpd
 import json
 import pandas as pd
 
-
 # Project paths
 libfolder = Path(__file__).resolve().parent.parent
 datadir = libfolder / "tests" / "data"
@@ -178,6 +177,7 @@ def _store_dataframe(df: pd.DataFrame, dir_path: Path) -> None:
     _write_datatype(dir_path, "DataFrame")
     df.to_parquet(dir_path / "solution_df.parquet")
 
+
 def _store_series(series: pd.Series, dir_path: Path) -> None:
     """Store a Series solution."""
     _write_datatype(dir_path, "Series")
@@ -258,9 +258,10 @@ def _read_dataframe(dir_path: Path) -> pd.DataFrame:
     """Read a DataFrame solution."""
     return pd.read_parquet(dir_path / "solution_df.parquet")
 
+
 def _read_series(dir_path: Path) -> pd.Series:
     """Read a Series solution."""
-    return pd.read_parquet(dir_path / "solution_series.parquet").iloc[:,0]
+    return pd.read_parquet(dir_path / "solution_series.parquet").iloc[:, 0]
 
 
 def _read_dataset(dir_path: Path) -> SerializedDataset:

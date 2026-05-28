@@ -235,7 +235,9 @@ class TestDemoDataset:
         #    the DataFrame columns.
         fig, ax = plt.subplots(figsize=(15, 12))
         ax = ana.plot_diurnal_cycle_with_reference_station(
-            ref_station="vlinder02", obstype="temp", colorby="name",
+            ref_station="vlinder02",
+            obstype="temp",
+            colorby="name",
             ax=ax,
         )
         assert ax is not None

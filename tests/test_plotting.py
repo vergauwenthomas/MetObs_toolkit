@@ -228,7 +228,9 @@ class TestDemoDataset:
 
         station = dataset_with_era.get_station("vlinder05")
         fig, ax = plt.subplots(figsize=(15, 5))
-        ax = station.make_plot_of_modeldata(obstype="temp", modelname="ERA5-land", ax=ax)
+        ax = station.make_plot_of_modeldata(
+            obstype="temp", modelname="ERA5-land", ax=ax
+        )
         fig.set_size_inches(15, 5)
         fig.tight_layout()
         return fig
@@ -240,8 +242,7 @@ class TestDemoDataset:
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax = dataset_with_era.make_plot_of_modeldata(
-            obstype="temp", modelname="ERA5-land",
-            ax=ax
+            obstype="temp", modelname="ERA5-land", ax=ax
         )
         fig.set_size_inches(15, 5)
         fig.tight_layout()
@@ -339,7 +340,7 @@ class TestDemoDataset:
     def test_dataset_color_by_station_and_modeldata_timeseries_plot(
         self, import_dataset_with_era5
     ):
-        
+
         dataset_with_era = copy.deepcopy(import_dataset_with_era5)
         fig, ax = plt.subplots(figsize=(15, 5))
         ax = dataset_with_era.make_plot(colorby="station", show_modeldata=True, ax=ax)
@@ -377,7 +378,7 @@ class TestDemoDataset:
             linestyle="-.",
             alpha=0.8,
             figsize=(10, 6),
-            ax=ax
+            ax=ax,
         )
         ax.legend()
         fig.set_size_inches(15, 5)
@@ -403,7 +404,7 @@ class TestDemoDataset:
             linestyle="-.",
             alpha=0.8,
             figsize=(10, 6),
-            ax=ax
+            ax=ax,
         )
         ax.legend()
         fig.set_size_inches(15, 5)
@@ -429,7 +430,7 @@ class TestDemoDataset:
             markersize=4,
             alpha=0.7,
             figsize=(12, 8),
-            ax=ax
+            ax=ax,
         )
         ax.legend()
         fig.set_size_inches(15, 5)

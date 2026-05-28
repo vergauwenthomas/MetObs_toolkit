@@ -5,7 +5,6 @@ from typing import Union, List, Dict, TYPE_CHECKING
 
 import pandas as pd
 
-
 logger = logging.getLogger("<metobs_toolkit>")
 
 from .findbuddies import filter_buddygroup_by_altitude, subset_buddies_to_nearest
