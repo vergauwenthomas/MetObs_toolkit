@@ -250,15 +250,15 @@ class SensorData:
             else:
                 self.outliers_values_bin = pd.Series(dtype="float32")
 
-    # TODO: update this method to handle QCresult outliers + outliers_values_bin
     def __add__(self, other: "SensorData") -> "SensorData":
         """
         Combine two SensorData objects for the same station and obstype.
 
-
-        !!! The result contains all unique records, with preference to non-NaN values from 'other'.
-        This makes the addition not strict associative.
-        Outliers and gaps are concatenated.
+        The result contains all unique records, with preference to non-NaN values
+        from 'other'. This makes the addition not strictly associative.
+        Any existing outliers and gaps are discarded in the combined result and
+        a warning is emitted; they cannot be trivially merged when the two
+        instances may differ in time resolution or coverage.
         """
         if not isinstance(other, SensorData):
             raise MetObsAdditionError("Can only add SensorData to SensorData.")
@@ -353,7 +353,6 @@ class SensorData:
     def to_xr(self) -> xrDataset:
         return sensordata_to_xr(self, fmt_datetime_coordinate=True)
 
-    # TODO: update this method to handle QCresult outliers
     @property
     def outliersdf(self) -> pd.DataFrame:
         """Return a DataFrame of the outlier records."""
