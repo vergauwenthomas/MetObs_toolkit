@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+import warnings
 from typing import Literal, Union, TYPE_CHECKING
 
 
@@ -176,6 +177,78 @@ class SensorData:
     def __str__(self) -> str:
         """Return a string representation of the SensorData object."""
         return f"{self.obstype.name} data of station {self.stationname}."
+
+    def __setstate__(self, state: dict) -> None:
+        """Restore instance from pickle, migrating legacy formats.
+
+        Handles backward-compatible unpickling when the ``outliers`` attribute
+        was stored as a list of plain dicts (pre-QCresult era) rather than a
+        list of :class:`~metobs_toolkit.qcresult.QCresult` objects.  Also
+        initialises the ``outliers_values_bin`` Series when it is absent from
+        the pickled state (introduced alongside the QCresult refactor).
+        """
+        self.__dict__.update(state)
+
+        # ------------------------------------------------------------------
+        # Migrate legacy outliers: list[dict] -> list[QCresult]
+        # Legacy dict schema: {'checkname': str, 'df': DataFrame, 'settings': dict}
+        # where df has a DatetimeIndex and a 'value' column for the flagged
+        # timestamps only.
+        # ------------------------------------------------------------------
+        migrated: list = []
+        collected_values: list = []
+        needs_migration = any(
+            isinstance(item, dict) for item in self.outliers
+        )
+        if needs_migration:
+            warnings.warn(
+                f"SensorData for station '{self._stationname}' was pickled with a "
+                "legacy format (<v1.1.0). The outliers are being migrated "
+                "automatically to the current format. Re-save the dataset to "
+                "avoid this warning in future.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            for item in self.outliers:
+                if isinstance(item, dict):
+                    checkname = item.get("checkname", "outlier")
+                    checksettings = item.get("settings", {})
+                    legacy_df = item.get("df", pd.DataFrame())
+
+                    if not legacy_df.empty:
+                        flags = pd.Series(
+                            flagged_cond,
+                            index=legacy_df.index,
+                            name="flags",
+                        )
+                        if "value" in legacy_df.columns:
+                            collected_values.append(legacy_df["value"])
+                    else:
+                        flags = pd.Series(
+                            dtype=str,
+                            index=pd.DatetimeIndex([], name="datetime"),
+                            name="flags",
+                        )
+
+                    migrated.append(
+                        QCresult(
+                            checkname=checkname,
+                            checksettings=checksettings,
+                            flags=flags,
+                        )
+                    )
+                else:
+                    migrated.append(item)
+            self.outliers = migrated
+
+        # ------------------------------------------------------------------
+        # Add outliers_values_bin when absent (pre-QCresult pickles)
+        # ------------------------------------------------------------------
+        if not hasattr(self, "outliers_values_bin"):
+            if collected_values:
+                self.outliers_values_bin = pd.concat(collected_values)
+            else:
+                self.outliers_values_bin = pd.Series(dtype="float32")
 
     # TODO: update this method to handle QCresult outliers + outliers_values_bin
     def __add__(self, other: "SensorData") -> "SensorData":

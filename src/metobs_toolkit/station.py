@@ -1670,6 +1670,8 @@ class Station:
             Figure with QC overview pies when ``make_plot`` is True; otherwise a dictionary with
             keys ``all_labels``, ``outlier_labels``, and ``per_check_labels``.
 
+        Notes
+        ------
         .. versionchanged:: 1.1.0
             When ``make_plot=False``, the return type changed from ``pandas.DataFrame`` to
             ``dict[str, pandas.Series]`` with keys ``all_labels``, ``outlier_labels``, and
