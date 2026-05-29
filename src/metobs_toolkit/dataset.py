@@ -2184,6 +2184,39 @@ class Dataset:
         ...     N_iter=3,
         ... )
 
+        .. versionchanged:: 1.1.0
+
+           **Breaking changes compared to v1.0.x:**
+
+           * **Outlier-selection logic revised.** The previous implementation
+             evaluated *groups* of stations and flagged the single worst
+             observation per group. The new implementation evaluates every
+             station **individually** as the center of its buddy group, so
+             each station is independently tested against its neighbors.
+             This means the same dataset may produce a different set of
+             outliers than before.
+
+           * **Default z-score method changed to robust (median / MAD).**
+             Statistics are now computed with the median and Median Absolute
+             Deviation (MAD) by default (``use_z_robust_method=True``).
+             To reproduce the previous mean / std behaviour set
+             ``use_z_robust_method=False``.
+
+           * ``min_std`` renamed to ``min_sample_spread``. Passing ``min_std``
+             now raises a :exc:`DeprecationWarning`.
+
+           * New parameter ``min_buddy_distance`` (default ``0.0``) — excludes
+             stations that are closer than this distance (in metres) from the
+             buddy group. Set to ``0.0`` to reproduce previous behaviour.
+
+           * New parameter ``max_sample_size`` (default ``None``) — caps the
+             number of spatial buddies per station to the nearest N stations.
+             Set to ``None`` to reproduce previous behaviour (no cap).
+
+           * New parameter ``use_z_robust_method`` — selects between the
+             robust (median/MAD) and classic (mean/std) z-score.
+             Set to ``False`` to reproduce the previous mean/std behaviour.
+
         """
         if min_std is not None:
             raise DeprecationWarning(
@@ -2483,6 +2516,46 @@ class Dataset:
         ...         {"category": "network", "buddy_radius": 50000, "z_threshold": 2.5, "min_sample_size": 3, "only_if_previous_had_no_buddies": True}
         ...     ]
         ... )
+
+        .. versionchanged:: 1.1.0
+
+           **Breaking changes compared to v1.0.x:**
+
+           * **Outlier-selection logic revised.** The previous implementation
+             evaluated *groups* of stations and flagged the single worst
+             observation per group. The new implementation evaluates every
+             station **individually** as the center of its buddy group, so
+             each station is independently tested against its neighbors.
+             This means the same dataset may produce a different set of
+             outliers than before.
+
+           * **Default z-score method changed to robust (median / MAD).**
+             Statistics are now computed with the median and Median Absolute
+             Deviation (MAD) by default (``use_z_robust_method=True``).
+             To reproduce the previous mean / std behaviour set
+             ``use_z_robust_method=False``.
+
+           * ``min_std`` renamed to ``min_sample_spread``. Passing ``min_std``
+             now raises a :exc:`DeprecationWarning`.
+
+           * New parameter ``min_buddy_distance`` (default ``0.0``) — excludes
+             stations that are closer than this distance (in metres) from both
+             spatial and safety-net buddy groups.
+
+           * New parameter ``max_sample_size`` (default ``None``) — caps the
+             number of spatial buddies per station to the nearest N stations.
+
+           * New parameter ``use_z_robust_method`` — selects between the
+             robust (median/MAD) and classic (mean/std) z-score.
+             Set to ``False`` to reproduce the previous mean/std behaviour.
+
+           * **Safety net configs extended.** Each safety net dict now accepts
+             two additional optional keys: ``min_buddy_distance`` (minimum
+             distance for category buddies), ``max_sample_size`` (caps the
+             number of category buddies), and
+             ``only_if_previous_had_no_buddies`` (cascading fallback — this
+             safety net is only applied to records for which the preceding
+             safety net had too few buddies).
 
         """
         if min_std is not None:
