@@ -205,8 +205,7 @@ class TestDemoDataset:
         # 2. apply a metobs manipulation
         fig, ax = plt.subplots(figsize=(15, 12))
         ax = ana.plot_diurnal_cycle(obstype="temp", colorby="LCZ", ax=ax)
-        fig = ax.get_figure()
-        fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
     @pytest.mark.mpl_image_compare
@@ -219,16 +218,14 @@ class TestDemoDataset:
         ax = ana.plot_diurnal_cycle_with_reference_station(
             ref_station="vlinder02", obstype="temp", colorby="LCZ", ax=ax
         )
-        fig = ax.get_figure()
+        fig.tight_layout()
         return fig
 
     @pytest.mark.mpl_image_compare
-    def test_diurnal_cycle_plot_with_reference_colorby_name(self):
+    def test_diurnal_cycle_plot_with_reference_colorby_name(self, import_analysis):
         """Sanity test: colorby='name' (default) should not raise a KeyError."""
         #  1. get_startpoint data
-        ana = TestDemoDataset.solutionfixer.get_solution(
-            **TestDemoDataset.solkwargs, methodname="test_import_data"
-        )
+        ana = copy.deepcopy(import_analysis)
 
         # 2. apply a metobs manipulation – colorby='name' is the default and
         #    previously failed because 'name' lives in the MultiIndex, not in
@@ -241,8 +238,7 @@ class TestDemoDataset:
             ax=ax,
         )
         assert ax is not None
-        fig = ax.get_figure()
-        fig.set_size_inches(15, 5)
+        fig.tight_layout()
         return fig
 
 
