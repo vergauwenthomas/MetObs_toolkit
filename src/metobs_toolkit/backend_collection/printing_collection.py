@@ -6,6 +6,18 @@ indent = Settings.get("print_config.item_indent")
 
 
 def print_fmt_title(title):
+    """Return a formatted title string surrounded by border characters.
+
+    Parameters
+    ----------
+    title : str
+        The title text to display.
+
+    Returns
+    -------
+    str
+        The formatted title string with border lines and centred title text.
+    """
     retstr = title_char * max_n_chars + "\n"
     retstr += str(title).center(max_n_chars) + "\n"
     retstr += title_char * max_n_chars + "\n"
@@ -14,6 +26,18 @@ def print_fmt_title(title):
 
 
 def print_fmt_section(section):
+    """Return a formatted section header string.
+
+    Parameters
+    ----------
+    section : str
+        The section name to display.
+
+    Returns
+    -------
+    str
+        The formatted section header string surrounded by dashes.
+    """
     printsection = "--- " + str(section) + " ---"
     retstr = "\n" + printsection + "\n\n"
     return retstr

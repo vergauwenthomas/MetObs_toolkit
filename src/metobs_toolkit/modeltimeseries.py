@@ -99,8 +99,42 @@ class ModelTimeSeries:
         modelvariable: str = None,
         _convert_to_standard_units: bool = True,
     ):
-        self.site = site
+        """Initialize a ModelTimeSeries with data and model metadata.
 
+        Parameters
+        ----------
+        site : Site
+            The site object representing the measurement location.
+        datarecords : numpy.ndarray
+            Observation values in the model's native units.  Automatically
+            converted to standard units unless *_convert_to_standard_units* is
+            ``False``.
+        timestamps : numpy.ndarray
+            Timestamps corresponding to *datarecords*.
+        modelobstype : ModelObstype
+            Observation type that carries unit-conversion and band information.
+        datadtype : type, optional
+            Numeric dtype for the stored series.  Default is
+            :data:`numpy.float32`.
+        timezone : str, optional
+            Timezone of *timestamps*.  Default is ``'UTC'``.
+        modelname : str, optional
+            Human-readable name of the model (e.g. ``'ERA5_land'``).
+        modelvariable : str, optional
+            Model variable / band name.
+        _convert_to_standard_units : bool, optional
+            If ``True`` (default), converts *datarecords* from model units to
+            standard units.  Set to ``False`` when data are already in standard
+            units (e.g. during ``__add__``).
+
+        Raises
+        ------
+        TypeError
+            If *modelobstype* is not a :class:`ModelObstype` instance.
+        MetObsUnitUnknown
+            If the :attr:`model_unit` of *modelobstype* is ``None``.
+        """
+        self.site = site
         # Testing the ModelObstype
         self.modelobstype = modelobstype
         if not isinstance(self.modelobstype, ModelObstype):
@@ -142,6 +176,14 @@ class ModelTimeSeries:
     #    Specials
     # ------------------------------------------
     def __repr__(self):
+        """Return a string representation for debugging.
+
+        Returns
+        -------
+        str
+            String in the format
+            ``<ModelTimeSeries(id=<id>,modelobstype=<name>)>``.
+        """
         return (
             f"<ModelTimeSeries(id={self._id()},modelobstype={self.modelobstype.name})>"
         )
@@ -239,6 +281,19 @@ class ModelTimeSeries:
         return modeltimeseries_to_xr(self, fmt_datetime_coordinate=True)
 
     def _get_info_core(self, nident_root=1) -> dict:
+        """Build a formatted info string with core model-timeseries attributes.
+
+        Parameters
+        ----------
+        nident_root : int, optional
+            Base indentation level for printed lines.  Default is 1.
+
+        Returns
+        -------
+        str
+            Formatted string listing model name, variable, time range,
+            frequency, record count, and unit conversion details.
+        """
         infostr = ""
         infostr += printing.print_fmt_line(
             f"Modelname {self.modelname} -> variable/band: {self.modelvariable}",

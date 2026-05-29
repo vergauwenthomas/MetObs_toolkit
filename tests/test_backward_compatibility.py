@@ -52,7 +52,8 @@ _BASELINE_PKL_DIR = _LIBFOLDER / "tests" / "baseline_pickle_objects"
 _LEGACY_PKL = _BASELINE_PKL_DIR / "dataset_created_with_and_for_v1.x.x.pkl"
 
 
-#%%
+# %%
+
 
 def _make_demo_dataset() -> metobs_toolkit.Dataset:
     """Return a small, fully-loaded demo dataset (multi-station, long CSV)."""
@@ -243,28 +244,25 @@ class TestPickleRoundTrip:
             "This file must be present to run the legacy backward-compatibility test."
         )
         loaded = metobs_toolkit.import_dataset_from_pkl(target_path=str(_LEGACY_PKL))
-        assert isinstance(loaded, metobs_toolkit.Dataset), (
-            "Loading the legacy v1.x.x pickle did not return a Dataset instance."
-        )
-        assert len(loaded.stations) > 0, (
-            "Legacy Dataset loaded without any stations."
-        )
-        assert not loaded.df.empty, (
-            "Legacy Dataset loaded but observations DataFrame is empty."
-        )
-        assert not loaded.metadf.empty, (
-            "Legacy Dataset loaded but metadata DataFrame is empty."
-        )
-        assert not loaded.outliersdf.empty, (
-            "Legacy Dataset loaded but outliers DataFrame is empty."
-        )
-        assert not loaded.modeldatadf.empty, (
-            "Legacy Dataset loaded but model data DataFrame is empty."
-        )
-        assert not loaded.gapsdf.empty, (
-            "Legacy Dataset loaded but gaps DataFrame is empty."
-        )
-
+        assert isinstance(
+            loaded, metobs_toolkit.Dataset
+        ), "Loading the legacy v1.x.x pickle did not return a Dataset instance."
+        assert len(loaded.stations) > 0, "Legacy Dataset loaded without any stations."
+        assert (
+            not loaded.df.empty
+        ), "Legacy Dataset loaded but observations DataFrame is empty."
+        assert (
+            not loaded.metadf.empty
+        ), "Legacy Dataset loaded but metadata DataFrame is empty."
+        assert (
+            not loaded.outliersdf.empty
+        ), "Legacy Dataset loaded but outliers DataFrame is empty."
+        assert (
+            not loaded.modeldatadf.empty
+        ), "Legacy Dataset loaded but model data DataFrame is empty."
+        assert (
+            not loaded.gapsdf.empty
+        ), "Legacy Dataset loaded but gaps DataFrame is empty."
 
 
 # ===========================================================================
@@ -444,7 +442,9 @@ class TestSignatureBackwardCompat:
         }
         actual = _param_names(metobs_toolkit.Dataset.buddy_check_with_safetynets)
         missing = expected - actual
-        assert not missing, f"Missing parameters in buddy_check_with_safetynets: {missing}"
+        assert (
+            not missing
+        ), f"Missing parameters in buddy_check_with_safetynets: {missing}"
 
     # ---- Gap handling ----
 
@@ -622,8 +622,9 @@ class TestKeywordArgumentInvocations:
     def test_get_qc_stats_kwargs(self, demo_dataset):
         ds_copy = demo_dataset.copy(deep=True)
         ds_copy.gross_value_check(obstype="temp", use_mp=False)
-        result = ds_copy.get_qc_stats(obstype="temp", make_plot=False)
-        assert isinstance(result, pd.DataFrame)
+        with pytest.warns(DeprecationWarning, match="1.1.0"):
+            result = ds_copy.get_qc_stats(obstype="temp", make_plot=False)
+        assert isinstance(result, dict)
 
     def test_interpolate_gaps_kwargs(self, qced_dataset):
         ds_copy = qced_dataset.copy(deep=True)
@@ -729,9 +730,9 @@ class TestPublicAPISurface:
         ],
     )
     def test_name_exists_in_package(self, name):
-        assert hasattr(metobs_toolkit, name), (
-            f"'{name}' is no longer accessible from metobs_toolkit"
-        )
+        assert hasattr(
+            metobs_toolkit, name
+        ), f"'{name}' is no longer accessible from metobs_toolkit"
 
     def test_version_is_string(self):
         assert isinstance(metobs_toolkit.__version__, str)

@@ -14,6 +14,17 @@ from metobs_toolkit.settings_collection import Settings
 
 
 def all_gap_labels() -> list[str]:
+    """Return a list of all gap and gap-fill label strings from Settings.
+
+    The list includes the standard gap label, all successful gap-fill
+    labels, and all failed gap-fill labels as defined in
+    ``Settings.get('label_def.*')``.
+
+    Returns
+    -------
+    list of str
+        Ordered list of gap-related label strings.
+    """
     return (
         [Settings.get("label_def.regular_gap.label")]  # 'gap'
         + [
@@ -28,6 +39,14 @@ def all_gap_labels() -> list[str]:
 
 
 def all_outlier_labels() -> list[str]:
+    """Return a list of all QC outlier label strings from Settings.
+
+    Returns
+    -------
+    list of str
+        List of label strings for all QC check categories as defined in
+        ``Settings.get('qc_label_group')``.
+    """
     return [
         Settings.get(f"label_def.{cat}.label") for cat in Settings.get("qc_label_group")
     ]

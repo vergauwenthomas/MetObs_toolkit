@@ -2,6 +2,7 @@
 
 import pytest
 import sys
+import copy
 from pathlib import Path
 
 # import metobs_toolkit
@@ -15,22 +16,18 @@ import metobs_toolkit
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
-import shutil
+from solutionclass import SolutionFixer2, assert_equality, datadir
+
 import pint
 
 
 class TestObstype:
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testobstypedata"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    def test_import_demo_data(self, overwrite_solution=False):
-        # 0. Get info of the current check
-        _method_name = sys._getframe().f_code.co_name  # get the name of this method
-
-        # 1. get_startpoint data
-        pass
+    @pytest.fixture(scope="class")
+    def import_dataset(self):
         # 2. apply a metobs manipulation
         dataset = metobs_toolkit.Dataset()
         dataset.import_data_from_file(
@@ -38,12 +35,19 @@ class TestObstype:
             input_metadata_file=metobs_toolkit.demo_metadatafile,
             input_data_file=metobs_toolkit.demo_datafile,
         )
-        data_to_test = dataset
+        return dataset
+
+    @pytest.mark.dependency()
+    def test_import_demo_data(self, import_dataset, overwrite_solution=False):
+        # 0. Get info of the current check
+        _method_name = sys._getframe().f_code.co_name  # get the name of this method
+
+        dataset = copy.deepcopy(import_dataset)
 
         # 3. overwrite solution?
         if overwrite_solution:
             TestObstype.solutionfixer.create_solution(
-                solutiondata=data_to_test,
+                solution=dataset,
                 methodname=_method_name,
                 **TestObstype.solkwargs,
             )
@@ -54,13 +58,12 @@ class TestObstype:
         )
 
         # 5. Construct the equlity tests
-        assert_equality(data_to_test, solutionobj)  # dataset comparison
+        assert_equality(dataset, solutionobj)  # dataset comparison
 
-    def test_calling_methods_without_solution_on_obstypes(self):
+    @pytest.mark.dependency(depends=["TestObstype::test_import_demo_data"])
+    def test_calling_methods_without_solution_on_obstypes(self, import_dataset):
         # 1. get_startpoint data
-        dataset = TestObstype.solutionfixer.get_solution(
-            **TestObstype.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # run methods, and see if something breaks
         temp = dataset.obstypes["temp"]
         # testing specials
@@ -85,11 +88,10 @@ class TestObstype:
         # Method calls on modelobstypes_vectorfields
         _ = era5_manager.modelobstypes["wind"].get_info(printout=False)
 
-    def test_units_io(self):
+    @pytest.mark.dependency(depends=["TestObstype::test_import_demo_data"])
+    def test_units_io(self, import_dataset):
         # 1. get_startpoint data
-        dataset = TestObstype.solutionfixer.get_solution(
-            **TestObstype.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
         # run methods, and see if something breaks
         temp = dataset.obstypes["temp"]
 
@@ -105,7 +107,8 @@ class TestObstype:
         temp.description = None
         assert isinstance(temp.description, str)
 
-    def test_creating_new_obstypes(self):
+    @pytest.mark.dependency(depends=["TestObstype::test_import_demo_data"])
+    def test_creating_new_obstypes(self, import_dataset):
         # 1. Create a new Obstype instance
         new_obstype = metobs_toolkit.obstypes.Obstype(
             name="new_temp", std_unit="°F", description="New temperature observation"
@@ -134,9 +137,7 @@ class TestObstype:
         assert (in_farenheit.astype(int) == pd.Series([139, 67, 85])).all()
 
         # Test adding units to the dataset
-        dataset = TestObstype.solutionfixer.get_solution(
-            **TestObstype.solkwargs, methodname="test_import_demo_data"
-        )
+        dataset = copy.deepcopy(import_dataset)
 
         dataset.add_new_observationtype(obstype=new_obstype)
         assert "new_temp" in dataset.obstypes.keys()
@@ -222,6 +223,19 @@ class TestObstype:
 
 if __name__ == "__main__":
     # pytest.main([__file__])
+    OVERWRITE_SOLUTION = False
 
     testobstype = TestObstype()
-    testobstype.test_import_demo_data(overwrite_solution=True)
+
+    demodata = testobstype.import_dataset.__wrapped__(testobstype)
+    testobstype.test_import_demo_data(
+        overwrite_solution=OVERWRITE_SOLUTION, import_dataset=demodata
+    )
+    testobstype.test_calling_methods_without_solution_on_obstypes(
+        import_dataset=demodata
+    )
+    testobstype.test_units_io(import_dataset=demodata)
+    testobstype.test_creating_new_obstypes(import_dataset=demodata)
+    testobstype.test_calling_methods_on_modelobstypes()
+    testobstype.test_model_unit_setter()
+    testobstype.test_model_band_setter()

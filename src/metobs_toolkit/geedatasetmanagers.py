@@ -120,6 +120,7 @@ class _GEEDatasetManager:
     # ------------------------------------------
 
     def __str__(self):
+        """Return a human-readable string representation of this GEE dataset manager."""
         return f"{self.__name__} representation of {self.name} "
 
     def __repr__(self):
@@ -412,6 +413,7 @@ class GEEStaticDatasetManager(_GEEDatasetManager):
 
         @log_entry
         def rasterExtraction(image):
+            """Apply reduceRegions to a single GEE image and return feature collection."""
             feature = image.reduceRegions(
                 reducer=ee.Reducer.frequencyHistogram(),
                 collection=ee_fc,
@@ -1188,6 +1190,7 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         @log_entry
         def rasterExtraction(image):
+            """Apply sampleRegions to a single GEE image and return feature collection."""
             feature = image.sampleRegions(
                 collection=ee_fc,
                 scale=self.scale,

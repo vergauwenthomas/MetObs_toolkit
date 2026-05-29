@@ -97,7 +97,7 @@ def connect_to_gee(**kwargs) -> None:
             )
         # Fall through to authentication
 
-    # If initialization failed, try to authenticate
+    # If initialization failed, authenticate and retry initialization.
     ee.Authenticate()
     # After authentication the credentials file may now contain the project field.
     # Read it and pass it explicitly so ee.Initialize() uses the right Cloud Project

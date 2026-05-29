@@ -43,6 +43,20 @@ class Site:
         longitude: float,
         extradata: dict | None = None,
     ):
+        """Initialize a Site with name, coordinates, and optional extra metadata.
+
+        Parameters
+        ----------
+        stationname : str
+            Name of the station this site belongs to.
+        latitude : float
+            Latitude of the station in decimal degrees.
+        longitude : float
+            Longitude of the station in decimal degrees.
+        extradata : dict, optional
+            Additional metadata for the site (e.g. ``{'altitude': 10.5,
+            'LCZ': 'LCZ-4'}``).  Default is ``None`` (treated as empty dict).
+        """
         # Set data
         self._stationname = stationname
         self._lat = float(latitude)
@@ -67,7 +81,12 @@ class Site:
         self.setup()
 
     def setup(self):
-        # transfer altitude to attr
+        """Transfer commonly used attributes from extradata into dedicated properties.
+
+        Reads ``'altitude'`` and ``'LCZ'`` keys from :attr:`extradata` and
+        assigns them to :attr:`_altitude` and :attr:`_LCZ` respectively.  If a
+        key is not present the attribute is set to ``numpy.nan``.
+        """
         if "altitude" in self.extradata.keys():
             logger.debug(
                 f'Setting altitude({float(self.extradata["altitude"])}) attribute for site {self.stationname} from extradata'
@@ -123,6 +142,28 @@ class Site:
         )
 
     def __add__(self, other: "Site") -> "Site":
+        """Merge two Site objects that represent the same physical location.
+
+        The two sites must share the same station name, latitude and longitude.
+        Metadata from *other* (extradata, GEE data) is merged using a
+        dict-update strategy (values in *other* take precedence).  Altitude and
+        LCZ are kept from whichever site has a non-NaN value.
+
+        Parameters
+        ----------
+        other : Site
+            The other Site instance to merge with.
+
+        Returns
+        -------
+        Site
+            A new Site containing the merged metadata.
+
+        Raises
+        ------
+        MetObsAdditionError
+            If the station names or coordinates differ between the two sites.
+        """
         # We assume an outside merge on the same name, and same coordinates
 
         # lat, lon and name must be the same!

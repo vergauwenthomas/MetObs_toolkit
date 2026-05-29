@@ -1,0 +1,29 @@
+================================================================================
+                            General info of Dataset                             
+================================================================================
+
+
+--- Observational info ---
+
+Dataset instance with:
+  -28 number of stations
+  -483840 number of records
+  -4 types of sensor data are present.
+  -Observations from 2022-09-01 00:00:00+00:00 -> 2022-09-15 23:55:00+00:00
+  -Outlier info:
+    -No QC outliers present.
+  -Gaps info:
+    -A total of 12 gaps are present.
+      -label counts: 
+        -gap: 12
+    -For these obstyes: ['humidity', 'temp', 'wind_direction', 'wind_speed']
+    -For 1 stations: ['vlinder02']
+
+--- Metadata info ---
+
+  -28 number of stations
+  -The following metadata is present: ['lat', 'lon', 'altitude', 'LCZ', 'scho...
+
+--- Modeldata info ---
+
+  -Dataset instance without modeldata.

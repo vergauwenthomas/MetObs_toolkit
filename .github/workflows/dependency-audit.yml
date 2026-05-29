@@ -48,7 +48,7 @@ jobs:
         run: poetry run python -m pip install pip-audit
 
       - name: Vulnerability audit
-        run: poetry run pip-audit
+        run: poetry run pip-audit --skip-editable
 
       - name: Geemap folium import guard
         run: |

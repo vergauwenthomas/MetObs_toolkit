@@ -1,0 +1,887 @@
+from __future__ import annotations
+import logging
+
+from typing import Union, List, Dict, TYPE_CHECKING
+from collections import defaultdict
+
+from metobs_toolkit.qcresult import (
+    unchecked_cond,
+    unmet_cond,
+    pass_cond,
+    flagged_cond,
+    saved_cond,
+)
+
+import pandas as pd
+
+if TYPE_CHECKING:
+    from metobs_toolkit.sensordata import SensorData
+    from metobs_toolkit.site import Site
+
+logger = logging.getLogger("<metobs_toolkit>")
+
+# ===============================
+# Labels
+# ===============================
+# Constants for buddy check status labels
+BC_NOT_TESTED = "not_tested"  # Value was NaN, not tested
+BC_NO_BUDDIES = "no_buddies"  # Not enough buddies to test
+BC_PASSED = "passed"  # Tested and passed
+BC_FLAGGED = "flagged"  # Tested and flagged as outlier
+BC_SAFETYNET_SAVED = "safetynet_saved"  # Flagged but saved by safetynet
+BC_SAFETYNET_OUTLIER = "safetynet_outlier"  # Flagged but not saved by safetynet
+BC_WHITELIST_SAVED = "whitelist_saved"  # Flagged but saved by whitelist
+BC_WHITELIST_NOT_SAVED = "whitelist_not_saved"  # Flagged but not saved by whitelist
+BC_CHECK_SKIPPED = "skipped"  # This check was skipped, e.g. due to arugments of the user (not whitelist, not safetynets etc)
+
+
+to_qc_labels_map = {
+    BC_NOT_TESTED: unchecked_cond,  # Value was NaN, not tested
+    BC_NO_BUDDIES: unmet_cond,  # Not enough buddies to test
+    BC_PASSED: pass_cond,  # Tested and passed
+    BC_FLAGGED: flagged_cond,  # Tested and flagged as outlier
+    BC_SAFETYNET_SAVED: pass_cond,  # IMPORTANT !!!
+    # BC_SAFETYNET_OUTLIER : flagged_cond  # Flagged but not saved by safetynet
+    BC_WHITELIST_SAVED: saved_cond,  # Flagged but saved by whitelist
+    # BC_WHITELIST_NOT_SAVED : flagged_cond
+}
+
+# ===============================
+# Buddy wrap sensor class
+# ===============================
+
+
+class BuddyWrapSensor:
+    """Wrapper for a Sensor with buddy check-specific details.
+
+    This class wraps a sensor object and adds information about how it is
+    handled during the buddy check process, including buddy assignment,
+    filtering steps, and participation in buddy groups.
+
+    Attributes
+    ----------
+    sensor : SensorData
+        The wrapped Sensor object.
+    _buddy_groups : dict
+        Dictionary mapping group names to lists of buddy sensor names.
+    flag_lapsrate_corrections : bool
+        Whether lapse rate corrections have been applied.
+    cor_term : float
+        The correction term applied for lapse rate.
+    flags : pandas.DataFrame
+        DataFrame with MultiIndex (datetime, iteration) containing flag values.
+        Columns are added via `add_flags` method for different check types.
+    details : dict
+        Dictionary storing iteration-wise detail information. Structure:
+        {
+            'spatial_check': {
+                iteration_int: Series(index=DatetimeIndex, data=detail_strings),
+                ...
+            },
+            'safetynet_check': {
+                groupname_str: {
+                    iteration_int: Series(index=DatetimeIndex, data=detail_strings),
+                    ...
+                },
+                ...
+            },
+            'whitelist_check': {
+                iteration_int: Series(index=DatetimeIndex, data=detail_strings),
+                ...
+            },
+        }
+    """
+
+    def __init__(self, sensor: SensorData, site: Site):
+        """Initialize with a SensorData object and its associated Site.
+
+        Parameters
+        ----------
+        sensor : SensorData
+            The sensor whose observations will be buddy-checked.
+        site : Site
+            Spatial metadata for the station (coordinates, altitude, etc.).
+        """
+        self._sensor = sensor
+        self._site = site
+        # Initialize instance-specific attributes (NOT class attributes!)
+        self._buddy_groups: Dict[str, List[str]] = {
+            "spatial": [],
+        }
+
+        # Value corrections
+        self.flag_lapsrate_corrections: bool = False
+        self.cor_term: float = 0.0
+
+        # Flags DataFrame with MultiIndex (datetime, iteration)
+        self._flags: pd.DataFrame = pd.DataFrame()
+
+        # Details dictionary structure
+        self.details: Dict[
+            str, Union[Dict[int, pd.Series], Dict[str, Dict[int, pd.Series]]]
+        ] = {
+            "spatial_check": {},
+            "safetynet_check": {},  # Dict of groupname -> Dict of iteration -> Series
+            "whitelist_check": {},
+        }
+
+    @property
+    def sensor(self) -> SensorData:
+        """Get the wrapped SensorData object."""
+        return self._sensor
+
+    @property
+    def site(self) -> Site:
+        """Get the wrapped Site object."""
+        return self._site
+
+    @property
+    def name(self) -> str:
+        """Get the station name."""
+        return self.sensor.stationname
+
+    @property
+    def flags(self) -> pd.DataFrame:
+        """Get the flags DataFrame."""
+        if self._flags.empty:
+            return pd.DataFrame(
+                index=pd.MultiIndex(
+                    levels=[[], []], codes=[[], []], names=["datetime", "iteration"]
+                )
+            )
+
+        return self._flags
+
+    @flags.setter
+    def flags(self, flags: pd.DataFrame) -> None:
+        """Set the flags DataFrame after validating its structure.
+
+        Parameters
+        ----------
+        flags : pandas.DataFrame
+            DataFrame with a MultiIndex whose levels are
+            ``['datetime', 'iteration']``.
+
+        Raises
+        ------
+        ValueError
+            If ``flags`` is not a DataFrame, does not have a MultiIndex, or
+            the MultiIndex levels are not ``['datetime', 'iteration']``.
+        """
+        if not isinstance(flags, pd.DataFrame):
+            raise ValueError("flags must be a pandas DataFrame")
+
+        if not flags.empty:
+            if not isinstance(flags.index, pd.MultiIndex):
+                raise ValueError("flags DataFrame must have a MultiIndex")
+            if flags.index.names != ["datetime", "iteration"]:
+                raise ValueError(
+                    "flags DataFrame MultiIndex must have levels ['datetime', 'iteration']"
+                )
+
+        # Preserve column order: existing columns first, new columns at the end
+        if not self._flags.empty and not flags.empty:
+            existing_cols = [col for col in self._flags.columns if col in flags.columns]
+            new_cols = [col for col in flags.columns if col not in self._flags.columns]
+            ordered_cols = existing_cols + new_cols
+            flags = flags[ordered_cols]
+
+        self._flags = flags
+
+    def add_flags(
+        self, iteration: int, flag_series: pd.Series, column_name: str
+    ) -> None:
+        """Add flags to the flags DataFrame for a specific iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            The iteration number.
+        flag_series : pd.Series
+            Series with DatetimeIndex containing flag values.
+        column_name : str
+            The name of the column to add/update (e.g., 'spatial_check',
+            'safetynet_check:groupname', 'whitelist_check').
+        """
+        if flag_series.empty:
+            return
+
+        # Subset flag_series to only include indices present in self.sensor.series.index
+        # edgcase: this can be caused because of the wideobds desing, that creates empty rows
+        # for timestamps where no observations are present.
+        valid_index = flag_series.index.intersection(self.sensor.series.index)
+        flag_series = flag_series.loc[valid_index]
+        # Remove duplicates (keep first occurrence)
+        flag_series = flag_series[~flag_series.index.duplicated(keep="first")]
+
+        # Create a DataFrame with MultiIndex for the new flags
+        new_flags = pd.DataFrame(
+            {column_name: flag_series.values},
+            index=pd.MultiIndex.from_arrays(
+                [flag_series.index, [iteration] * len(flag_series)],
+                names=["datetime", "iteration"],
+            ),
+        )
+
+        if self.flags.empty:
+            self.flags = new_flags
+        else:
+            # Merge new flags with existing flags
+            # Use combine_first to keep existing values and add new ones
+            self.flags = self.flags.combine_first(new_flags)
+
+            # If the column already exists, update with new values (not NaN)
+            if column_name in self.flags.columns:
+                # For indices that exist in both, update from new_flags
+                common_idx = self.flags.index.intersection(new_flags.index)
+                if not common_idx.empty:
+                    self.flags.loc[common_idx, column_name] = new_flags.loc[
+                        common_idx, column_name
+                    ]
+
+        self.flags = self.flags.sort_index()
+
+    def filter_buddies(self, filteredbuddies: List[str], groupname: str) -> None:
+        """Store a filtered version of a buddy group.
+
+        The filtered buddies are saved under ``'{groupname}_filtered'`` and
+        will be returned by :meth:`get_buddies` instead of the base group.
+
+        Parameters
+        ----------
+        filteredbuddies : list of str
+            Station names remaining after filtering.
+        groupname : str
+            The base buddy group name (e.g. ``'spatial'``).
+        """
+        self.set_buddies(filteredbuddies, groupname=f"{groupname}_filtered")
+
+    def set_buddies(self, buddies: List[str], groupname: str) -> None:
+        """Add or overwrite a buddy group entry.
+
+        Parameters
+        ----------
+        buddies : list of str
+            Station names to assign to the group.
+        groupname : str
+            Key under which the buddies are stored in ``_buddy_groups``.
+        """
+        self._buddy_groups.update({groupname: buddies})
+
+    def get_buddies(self, groupname: str) -> List[str]:
+        """Return the buddy list for the given group, preferring the filtered version.
+
+        If a ``'{groupname}_filtered'`` entry exists it is returned;
+        otherwise the base ``groupname`` entry is returned.
+
+        Parameters
+        ----------
+        groupname : str
+            The name of the buddy group (e.g. ``'spatial'``).
+
+        Returns
+        -------
+        list of str
+            Station names in the (filtered) buddy group.
+
+        Raises
+        ------
+        ValueError
+            If neither the base nor the filtered group exists.
+        """
+        if f"{groupname}_filtered" in self._buddy_groups:
+            return self._buddy_groups[f"{groupname}_filtered"]
+        if groupname in self._buddy_groups:
+            return self._buddy_groups[groupname]
+        raise ValueError(f"Unknown buddy group: {groupname}")
+
+    def has_enough_buddies(self, groupname: str, min_buddies: int) -> bool:
+        """Check if the station has enough final buddies."""
+        enough = len(self.get_buddies(groupname=groupname)) >= min_buddies
+        return enough
+
+    def _update_details(
+        self, iteration: int, detail_series: pd.Series, groupname: str
+    ) -> None:
+        """Append or create detail strings for a given group and iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            Iteration number to store details under.
+        detail_series : pandas.Series
+            Series with a DatetimeIndex containing human-readable detail
+            strings for each timestep.
+        groupname : str
+            Key in ``self.details`` dict (e.g. ``'spatial_check'``).
+        """
+        # Handle empty input - still store an empty entry to ensure the iteration key exists
+        if detail_series.empty:
+            if iteration not in self.details[groupname]:
+                self.details[groupname][iteration] = pd.Series(
+                    dtype=str, index=pd.DatetimeIndex([], name="datetime")
+                )
+            return
+
+        # Subset detail_series to only include indices present in self.sensor.series.index
+        # edgcase: this can be caused because of the wideobds desing, that creates empty rows
+        # for timestamps where no observations are present.
+        valid_index = detail_series.index.intersection(self.sensor.series.index)
+        detail_series = detail_series.loc[valid_index]
+        # Remove duplicates (keep first occurrence)
+        detail_series = detail_series[~detail_series.index.duplicated(keep="first")]
+
+        # Store details in the details dictionary (even if now empty after filtering)
+        if iteration not in self.details[groupname]:
+            self.details[groupname][iteration] = detail_series
+        else:
+            # Append to existing series for this iteration
+            existing = self.details[groupname][iteration]
+            if existing.empty:
+                self.details[groupname][iteration] = detail_series
+            elif not detail_series.empty:
+                combined = pd.concat([existing, detail_series])
+                # Remove duplicates keeping first
+                self.details[groupname][iteration] = combined[
+                    ~combined.index.duplicated(keep="first")
+                ].sort_index()
+
+    def add_spatial_details(self, iteration: int, detail_series: pd.Series) -> None:
+        """Add spatial check detail information for an iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            The iteration number.
+        detail_series : pd.Series
+            Series with DatetimeIndex containing detail messages.
+        """
+        self._update_details(
+            iteration=iteration, detail_series=detail_series, groupname="spatial_check"
+        )
+
+    def add_safetynet_details(
+        self, iteration: int, safetynetname: str, detail_series: pd.Series
+    ) -> None:
+        """Store detail strings from a safety-net check for a specific iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            Iteration number.
+        safetynetname : str
+            Name of the safety-net group (e.g. a LCZ category name).
+        detail_series : pandas.Series
+            Series with a DatetimeIndex containing detail messages for each
+            timestamp that was assessed by the safety net.
+        """
+        if detail_series.empty:
+            return
+        # Remove duplicates (keep first occurrence)
+        detail_series = detail_series[~detail_series.index.duplicated(keep="first")]
+
+        # check if the groupname entry exists
+        if safetynetname not in self.details["safetynet_check"]:
+            self.details["safetynet_check"][safetynetname] = {}
+
+        # Store details in the details dictionary
+        if iteration not in self.details["safetynet_check"][safetynetname]:
+            self.details["safetynet_check"][safetynetname][iteration] = detail_series
+        else:
+            # Append to existing series for this iteration
+            existing = self.details["safetynet_check"][safetynetname][iteration]
+            combined = pd.concat([existing, detail_series])
+            # Remove duplicates keeping first
+            self.details["safetynet_check"][safetynetname][iteration] = combined[
+                ~combined.index.duplicated(keep="first")
+            ].sort_index()
+
+    def update_whitelist_details(
+        self, whitelistseries: pd.Series, iteration: int, is_saved: bool = True
+    ) -> None:
+        """Update whitelist check saved information for an iteration.
+
+        Parameters
+        ----------
+        whitelistseries : pd.Series
+            Series with DatetimeIndex containing detail messages for whitelisted records.
+        iteration : int
+            The iteration number.
+        is_saved : bool, optional
+            Whether the records were saved by the whitelist (True) or not (False).
+            Default is True.
+        """
+        # Remove duplicates (keep first occurrence)
+        whitelistseries = whitelistseries[
+            ~whitelistseries.index.duplicated(keep="first")
+        ]
+
+        if whitelistseries.empty:
+            return
+
+        if is_saved:
+            flag = BC_WHITELIST_SAVED
+        else:
+            flag = BC_WHITELIST_NOT_SAVED
+        # Add flags to the flags DataFrame
+        flag_series = pd.Series(flag, index=whitelistseries.index)
+        self.add_flags(
+            iteration=iteration, flag_series=flag_series, column_name="whitelist_check"
+        )
+
+        # Store details in the details dictionary
+        if iteration not in self.details["whitelist_check"]:
+            self.details["whitelist_check"][iteration] = whitelistseries
+        else:
+            # Append to existing series for this iteration
+            existing = self.details["whitelist_check"][iteration]
+            combined = pd.concat([existing, whitelistseries])
+            # Remove duplicates keeping first
+            self.details["whitelist_check"][iteration] = combined[
+                ~combined.index.duplicated(keep="first")
+            ].sort_index()
+
+    def _get_iterations(self) -> List[int]:
+        """Get all iterations that have been processed."""
+        iterations = set()
+
+        # From spatial_check
+        iterations.update(self.details["spatial_check"].keys())
+
+        # From safetynet_check (nested)
+        for groupname, iter_dict in self.details["safetynet_check"].items():
+            iterations.update(iter_dict.keys())
+
+        # From whitelist_check
+        iterations.update(self.details["whitelist_check"].keys())
+
+        return sorted(iterations)
+
+    def get_final_labels(self) -> pd.Series:
+        """Compute the final buddy-check label for each unique datetime.
+
+        Applies :func:`final_label_logic` over the ``flags`` DataFrame
+        grouped by ``'datetime'``.
+
+        Returns
+        -------
+        pandas.Series
+            Series indexed by ``datetime`` with the final BC label string
+            for each timestep.  Series name is ``'final_label'``.
+        """
+        flags = self.flags
+
+        # if no whitelist check has been performed, create an empyt column
+        if "whitelist_check" not in flags.columns:
+            flags["whitelist_check"] = BC_CHECK_SKIPPED  #'skipped'
+
+        final_labels = flags.groupby("datetime").apply(final_label_logic)
+        final_labels.name = "final_label"
+        return final_labels
+
+    def get_final_details(self) -> pd.Series:
+        """Get detailed description strings for each timestamp based on final label logic.
+
+        This method returns a Series with detailed description strings that illustrate
+        how the final label was determined. The details are extracted from the details
+        attribute and combined based on the check pipeline.
+
+        Returns
+        -------
+        pd.Series
+            Series with DatetimeIndex containing detailed description strings.
+            The series name is 'final_details'.
+        """
+        # Handle edge case: if flags are empty, return empty series
+        if self.flags.empty:
+            return pd.Series(dtype=str, name="final_details")
+
+        # The flags have a MultiIndex (datetime, iteration), but the detail
+        # Series stored in self.details use a plain DatetimeIndex. We must
+        # build the detail strings per-iteration using the DatetimeIndex so
+        # that reindexing can match properly, then combine the results back
+        # into a Series indexed by the original MultiIndex.
+
+        # Get all datetimes (unique, from flags)
+        all_datetimes = self.flags.index.get_level_values("datetime").unique()
+
+        def reindex_details(
+            detail_series: pd.Series, dt_index: pd.DatetimeIndex
+        ) -> pd.Series:
+            """Reindex a detail Series to match the given DatetimeIndex."""
+            return detail_series.reindex(dt_index).fillna("NA").astype(str)
+
+        # Get all iterations that have been processed (using the helper method)
+        iterations = self._get_iterations()
+
+        # If no iterations found, try to infer from flags index
+        if not iterations:
+            # Fallback: get unique iterations from the flags MultiIndex
+            if isinstance(self.flags.index, pd.MultiIndex):
+                iterations = sorted(
+                    self.flags.index.get_level_values("iteration").unique()
+                )
+            else:
+                iterations = [0]  # Default to iteration 0
+
+        # Build detail strings per datetime using all_datetimes as the index
+        detailstr = pd.Series("", index=all_datetimes)
+
+        for iter_num in iterations:
+            # Check if this iteration exists in spatial_check details
+            if iter_num not in self.details["spatial_check"]:
+                # If iteration doesn't exist in spatial_check, add a placeholder message
+                detailstr = (
+                    detailstr
+                    + f"iteration {iter_num}:[No spatial check details available"
+                )
+            else:
+                detailstr = detailstr + f"iteration {iter_num}:["
+
+            # add spatial check details
+            if iter_num in self.details["spatial_check"]:
+                spatial_details = reindex_details(
+                    self.details["spatial_check"][iter_num], all_datetimes
+                )
+                detailstr = detailstr.str.cat(spatial_details, sep="")
+            # else: placeholder already added above
+
+            detailstr = detailstr + " --> "
+
+            # add safetynet details
+            if bool(self.details["safetynet_check"]):
+
+                for safetynetkey in self.details["safetynet_check"].keys():
+                    if iter_num in self.details["safetynet_check"][safetynetkey].keys():
+
+                        savedetails = reindex_details(
+                            self.details["safetynet_check"][safetynetkey][iter_num],
+                            all_datetimes,
+                        )
+                        detailstr = detailstr.str.cat(
+                            savedetails, sep=f"{safetynetkey}:"
+                        )
+
+                    else:
+                        detailstr = detailstr + f"{safetynetkey}: NA "
+
+                    detailstr = detailstr + " --> "
+            else:
+                detailstr = detailstr + "NA " + " --> "
+
+            # add whitelist details
+            if iter_num in self.details["whitelist_check"].keys():
+                savedetails = reindex_details(
+                    self.details["whitelist_check"][iter_num], all_datetimes
+                )
+                detailstr = detailstr.str.cat(savedetails, sep="")
+            else:
+                detailstr = detailstr + "NA"
+
+            detailstr = detailstr + "] \n"
+
+        detailstr.name = "final_details"
+        return detailstr
+
+    def get_iteration_summary(self, iteration: int) -> Dict[str, int]:
+        """Get a summary of record counts for a specific iteration.
+
+        Parameters
+        ----------
+        iteration : int
+            The iteration number to summarize.
+
+        Returns
+        -------
+        dict
+            Dictionary with check types as keys and record counts as values.
+            For safetynet_check, includes both total and per-group counts.
+        """
+        # Count spatial_check
+        spatial_count = 0
+        if iteration in self.details["spatial_check"]:
+            spatial_count = len(self.details["spatial_check"][iteration])
+
+        # Count safetynet_check per group
+        safetynet_per_group = {}
+        for groupname, iter_dict in self.details["safetynet_check"].items():
+            if iteration in iter_dict:
+                safetynet_per_group[groupname] = len(iter_dict[iteration])
+        safetynet_total = sum(safetynet_per_group.values())
+
+        # Count whitelist_check
+        whitelist_count = 0
+        if iteration in self.details["whitelist_check"]:
+            whitelist_count = len(self.details["whitelist_check"][iteration])
+
+        return {
+            "spatial_check": spatial_count,
+            "safetynet_check": safetynet_per_group,
+            "safetynet_check_total": safetynet_total,
+            "whitelist_check": whitelist_count,
+        }
+
+    def get_info(self) -> str:
+        """Get a summary of the BuddyWrapSensor status and attributes.
+
+        Returns
+        -------
+        str
+            Formatted string with overview of the station's buddy check status.
+        """
+        lines = []
+        lines.append("=" * 60)
+        lines.append(f"BuddyWrapSensor: {self.name}")
+        lines.append("=" * 60)
+
+        # Buddy groups
+        lines.append("\n--- Buddy Groups ---")
+        if self._buddy_groups:
+            for groupname, buddies in self._buddy_groups.items():
+                n_buddies = len(buddies)
+                buddies_str = ", ".join(buddies[:5])
+                if n_buddies > 5:
+                    buddies_str += f", ... (+{n_buddies - 5} more)"
+                lines.append(f"  {groupname}: {n_buddies} buddies")
+                if buddies:
+                    lines.append(f"    [{buddies_str}]")
+        else:
+            lines.append("  No buddy groups assigned")
+
+        # Corrections
+        lines.append("\n--- Value Corrections ---")
+        lines.append(f"  Lapse rate correction: {self.flag_lapsrate_corrections}")
+        if self.flag_lapsrate_corrections:
+            lines.append(f"  Correction term: {self.cor_term:.4f}")
+
+        # Flags summary
+        lines.append("\n--- Flags ---")
+        if not self.flags.empty:
+            lines.append(f"  Total flag entries: {len(self.flags)}")
+            lines.append(f"  Flag columns: {list(self.flags.columns)}")
+        else:
+            lines.append("  No flags recorded")
+
+        # Iteration status
+        iterations = self._get_iterations()
+        lines.append("\n--- Iteration Status ---")
+        if iterations:
+            lines.append(f"  Iterations processed: {len(iterations)}")
+
+            # Totals across all iterations
+            total_spatial = 0
+            total_safetynet = 0
+            total_whitelist = 0
+            safetynet_groups_total: Dict[str, int] = {}
+
+            for iteration in iterations:
+                summary = self.get_iteration_summary(iteration)
+                total_spatial += summary["spatial_check"]
+                total_safetynet += summary["safetynet_check_total"]
+                total_whitelist += summary["whitelist_check"]
+
+                # Accumulate per-group safetynet totals
+                for groupname, count in summary["safetynet_check"].items():
+                    safetynet_groups_total[groupname] = (
+                        safetynet_groups_total.get(groupname, 0) + count
+                    )
+
+                lines.append(f"\n  Iteration {iteration}:")
+                lines.append(f"    Spatial outliers: {summary['spatial_check']}")
+                if summary["safetynet_check"]:
+                    lines.append(
+                        f"    Safetynet saved (total): {summary['safetynet_check_total']}"
+                    )
+                    for groupname, count in summary["safetynet_check"].items():
+                        lines.append(f"      - {groupname}: {count}")
+                else:
+                    lines.append(f"    Safetynet saved: 0")
+                lines.append(f"    Whitelist saved: {summary['whitelist_check']}")
+
+            lines.append(f"\n  --- Totals ---")
+            lines.append(f"  Total spatial outliers: {total_spatial}")
+            lines.append(f"  Total safetynet saved: {total_safetynet}")
+            if safetynet_groups_total:
+                for groupname, count in safetynet_groups_total.items():
+                    lines.append(f"    - {groupname}: {count}")
+            lines.append(f"  Total whitelist saved: {total_whitelist}")
+        else:
+            lines.append("  No iterations processed")
+
+        lines.append("=" * 60)
+
+        info_str = "\n".join(lines)
+        print(info_str)
+        return info_str
+
+    def map_timestamps(self, timestamp_map: Dict[str, pd.Series]) -> None:
+        """Map synchronized timestamps to original timestamps for this station.
+
+        This function maps the synchronized timestamps (used during buddy check
+        processing) back to the original timestamps for this station's flags and
+        details attributes.
+
+        Parameters
+        ----------
+        timestamp_map : dict
+            Dictionary mapping station names to Series where index is synchronized
+            timestamp and value is original timestamp.
+
+        Returns
+        -------
+        None
+            Modifies the station in-place.
+        """
+
+        # ts_map = timestamp_map[self.name]
+
+        # Revert flags DataFrame timestamps (MultiIndex: datetime, iteration)
+        if not self.flags.empty:
+            self.flags = _map_dt_index(
+                pdobj=self.flags, ts_map=timestamp_map, datetime_level="datetime"
+            )
+
+        # Revert details timestamps
+        # spatial_check: {iteration: Series}
+        for iteration, detail_series in self.details["spatial_check"].items():
+            self.details["spatial_check"][iteration] = _map_dt_index(
+                pdobj=detail_series, ts_map=timestamp_map
+            )
+
+        # safetynet_check: {groupname: {iteration: Series}}
+        for groupname, iter_dict in self.details["safetynet_check"].items():
+            for iteration, detail_series in iter_dict.items():
+                self.details["safetynet_check"][groupname][iteration] = _map_dt_index(
+                    pdobj=detail_series, ts_map=timestamp_map
+                )
+
+        # whitelist_check: {iteration: Series}
+        for iteration, detail_series in self.details["whitelist_check"].items():
+            self.details["whitelist_check"][iteration] = _map_dt_index(
+                pdobj=detail_series, ts_map=timestamp_map
+            )
+
+
+# ===============================
+# helpers for BCS
+# ===============================
+
+
+def final_label_logic(subset: pd.DataFrame) -> str:
+    """Determine the final buddy-check label for one datetime from all iteration flags.
+
+    This module-level function is intended to be called via
+    ``groupby('datetime').apply(final_label_logic)`` on the ``flags``
+    DataFrame of a :class:`BuddyWrapSensor`.
+
+    Parameters
+    ----------
+    subset : pandas.DataFrame
+        Subset of the flags DataFrame for a single ``datetime``.
+        Expected columns: ``'spatial_check'``, optional
+        ``'safetynet_check:<name>'`` columns, and ``'whitelist_check'``.
+
+    Returns
+    -------
+    str
+        One of the ``BC_*`` status constants defined in this module.
+
+    Raises
+    ------
+    ValueError
+        If the combination of flags does not match any known outcome.
+    """
+    # the flag not tested is present on ALL iterations !
+    if subset["spatial_check"].apply(lambda x: x == "not_tested").all():
+        return BC_NOT_TESTED
+
+    # --- passed condition ----
+    # 1a perfect pass (pass on last iteration of spatial check)
+    if subset["spatial_check"].iloc[-1] == BC_PASSED:
+        return BC_PASSED
+
+    if subset["spatial_check"].iloc[-1] == BC_NO_BUDDIES:
+        # Choice made: it can happen that a record passed a previous iteration,
+        # but has not enough buddies in the last iteration. Applying the 'save' logic,
+        # it is best to label this as no_buddies
+        return BC_NO_BUDDIES
+
+    # catched by safetynet
+    # if there is at least (there can only be one), pass in the last iteration of saftynets
+    saftynet_cols = [
+        col for col in subset.columns if col.startswith("safetynet_check:")
+    ]
+    if any(
+        subset.iloc[-1][saftynet_cols] == BC_PASSED
+    ):  # TODO not shure of this string
+        return BC_SAFETYNET_SAVED
+
+    # catched by whitelist
+    if subset["whitelist_check"].iloc[-1] == BC_WHITELIST_SAVED:
+        return BC_WHITELIST_SAVED
+
+    # --- failed condition ----
+
+    # fail in last iteration of spatial check
+    if (
+        (subset["spatial_check"].iloc[-1] == BC_FLAGGED)
+        and all(
+            subset.iloc[-1][saftynet_cols] != BC_PASSED
+        )  # not passed is [nan, flagged, no-buddies]
+        and (subset["whitelist_check"].iloc[-1] != BC_WHITELIST_SAVED)
+    ):  # not saved is [nan, skipped, not-saved]
+        return BC_FLAGGED
+
+    # fail in any previous iteration of spatial check
+    if (any(subset["spatial_check"] == BC_FLAGGED)) and (
+        subset["spatial_check"].iloc[-1] == BC_NOT_TESTED
+    ):
+        return BC_FLAGGED
+
+    raise ValueError(
+        f"Unforeseen situation encountered in final label logic: \n {subset}"
+    )
+
+
+def _map_dt_index(
+    pdobj: pd.Series | pd.DataFrame, ts_map: pd.Series, datetime_level: str = "datetime"
+) -> pd.DataFrame:
+    """Revert timestamps in a DataFrame with MultiIndex containing datetime level.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with MultiIndex containing a datetime level.
+    ts_map : pd.Series
+        Series mapping synchronized timestamps (index) to original timestamps (values).
+    datetime_level : str
+        Name of the datetime level in the MultiIndex.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with reverted timestamps in the MultiIndex.
+    """
+
+    if isinstance(pdobj, pd.Series):
+        df = pdobj.to_frame()
+        returnseries = True
+    else:
+        df = pdobj
+        returnseries = False
+
+    # Get the current index
+    old_index = df.index
+    level_names = old_index.names
+
+    df = df.reset_index()
+    df["_mapped_datetime"] = df[datetime_level].map(
+        lambda x: ts_map.get(x, x) if pd.notna(ts_map.get(x, pd.NaT)) else x
+    )
+    df = df.drop(columns=[datetime_level])
+    df = df.rename(columns={"_mapped_datetime": datetime_level})
+    df = df.set_index(level_names)
+    df = df.sort_index()
+    if returnseries:
+        return df.iloc[:, 0]
+    return df

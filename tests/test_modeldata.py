@@ -18,29 +18,8 @@ from metobs_toolkit.backend_collection.errorclasses import (
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
-from solutionclass import SolutionFixer, assert_equality, datadir
-
-
-def create_dataset_with_modeldata():
-    # 1. Create basic dataset with demo data
-    dataset = metobs_toolkit.Dataset()
-    dataset.import_data_from_file(
-        template_file=metobs_toolkit.demo_template,
-        input_metadata_file=metobs_toolkit.demo_metadatafile,
-        input_data_file=metobs_toolkit.demo_datafile,
-    )
-
-    # 2. Import ERA5 model data from CSV file
-    era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
-    era5_file = datadir.joinpath(
-        "ERA5-land_timeseries_data_of_full_dataset_28_stations.csv"
-    )
-
-    # Import the model data
-    imported_df = dataset.import_gee_data_from_file(
-        filepath=era5_file, gee_dynamic_manager=era5_manager, force_update=True
-    )
-    return dataset
+from solutionclass import SolutionFixer2, assert_equality, datadir
+import copy
 
 
 class TestModelDataImport:
@@ -48,13 +27,39 @@ class TestModelDataImport:
 
     # to pass to the solutionfixer
     solkwargs = {"testfile": Path(__file__).name, "classname": "testmodeldataimport"}
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
-    def test_import_era5_data_from_file(self):
+    @pytest.fixture(scope="class")
+    def dataset_with_modeldata(self):
+        """Create a dataset with ERA5 model data for the class."""
+        # 1. Create basic dataset with demo data
+        dataset = metobs_toolkit.Dataset()
+        dataset.import_data_from_file(
+            template_file=metobs_toolkit.demo_template,
+            input_metadata_file=metobs_toolkit.demo_metadatafile,
+            input_data_file=metobs_toolkit.demo_datafile,
+        )
+
+        # 2. Import ERA5 model data from CSV file
+        era5_manager = metobs_toolkit.default_GEE_datasets["ERA5-land"]
+        era5_file = datadir.joinpath(
+            "ERA5-land_timeseries_data_of_full_dataset_28_stations.csv"
+        )
+
+        # Import the model data
+        imported_df = dataset.import_gee_data_from_file(
+            filepath=era5_file, gee_dynamic_manager=era5_manager, force_update=True
+        )
+        assert (
+            not imported_df.empty
+        ), "Imported model data DataFrame should not be empty"
+        return dataset
+
+    def test_import_era5_data_from_file(self, dataset_with_modeldata):
         """Test importing ERA5 data from CSV file."""
 
         # 1. Create basic dataset with demo data
-        dataset = create_dataset_with_modeldata()
+        dataset = copy.deepcopy(dataset_with_modeldata)
 
         # Verify model data was imported
         modeldatadf = dataset.modeldatadf
@@ -89,10 +94,10 @@ class TestModelDataImport:
             "details" in sta_modeldf.columns
         ), "Model data DataFrame should have 'details' column"
 
-    def test_modeltimeseries_properties(self):
+    def test_modeltimeseries_properties(self, dataset_with_modeldata):
         """Test ModelTimeSeries data-related attributes and methods."""
         # 1. Create basic dataset with demo data
-        dataset = create_dataset_with_modeldata()
+        dataset = copy.deepcopy(dataset_with_modeldata)
         station = dataset.get_station("vlinder04")
         # Test with temperature data
         obstype = "temp"
@@ -186,7 +191,7 @@ class TestStationModelDataMethods:
         "testfile": Path(__file__).name,
         "classname": "teststationmodeldatamethods",
     }
-    solutionfixer = SolutionFixer(solutiondir=solutionsdir)
+    solutionfixer = SolutionFixer2(solutiondir=solutionsdir)
 
     def create_test_station_with_multiple_modeldata(self):
         """Create a station with multiple model data sources for testing."""
@@ -489,5 +494,29 @@ class TestStationModelDataMethods:
 
 
 if __name__ == "__main__":
-    tester = TestStationModelDataMethods()
-    tester.test_add_to_modeldata_basic()
+    # test modeldata on dataset
+    tester = TestModelDataImport()
+
+    dataset_era = tester.dataset_with_modeldata.__wrapped__(tester)
+
+    tester.test_import_era5_data_from_file(dataset_era)
+    tester.test_modeltimeseries_properties(dataset_era)
+
+    # test manager
+    manager_tester = TestModelDataManagers()
+    manager_tester.test_gee_dataset_managers_availability()
+    manager_tester.test_gee_manager_info_methods()
+
+    # test station modeldata methods
+    station_tester = TestStationModelDataMethods()
+    station_tester.test_add_to_modeldata_basic()
+    station_tester.test_add_to_modeldata_force_update()
+    station_tester.test_add_to_modeldata_wrong_type()
+    station_tester.test_get_modeltimeseries_by_obstype_only()
+    station_tester.test_get_modeltimeseries_multiple_same_obstype()
+    station_tester.test_get_modeltimeseries_by_modelname()
+    station_tester.test_get_modeltimeseries_by_modelvariable()
+    station_tester.test_get_modeltimeseries_by_both_filters()
+    station_tester.test_get_modeltimeseries_no_match()
+    station_tester.test_get_modeltimeseries_no_modeldata()
+    station_tester.test_modeldata_property_list_format()

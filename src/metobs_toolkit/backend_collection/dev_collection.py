@@ -59,6 +59,30 @@ def copy_doc(
 
 
 def add_new_arg_in_docstr(docstr, newargstr, firstline_indent=8, description_indent=4):
+    """Insert a new parameter description into an existing numpy-style docstring.
+
+    The new argument string is inserted immediately before the blank line that
+    closes the ``Parameters`` section.
+
+    Parameters
+    ----------
+    docstr : str
+        The original docstring in numpy format.
+    newargstr : str
+        The parameter description to insert (numpy-style, e.g.
+        ``"y : str\\n    Another parameter."``).
+    firstline_indent : int, optional
+        Number of spaces used for the parameter name line indent.
+        Default is ``8``.
+    description_indent : int, optional
+        Additional spaces appended to *firstline_indent* for description
+        continuation lines.  Default is ``4``.
+
+    Returns
+    -------
+    str
+        The docstring with the new parameter description injected.
+    """
     newargstr = newargstr.lstrip()  # drop leading spaces
     # Remove all leading spaces from each line in the newargstr
     newargstr = "\n".join(line.lstrip() for line in newargstr.splitlines())
