@@ -197,9 +197,7 @@ class SensorData:
         # ------------------------------------------------------------------
         migrated: list = []
         collected_values: list = []
-        needs_migration = any(
-            isinstance(item, dict) for item in self.outliers
-        )
+        needs_migration = any(isinstance(item, dict) for item in self.outliers)
         if needs_migration:
             warnings.warn(
                 f"SensorData for station '{self._stationname}' was pickled with a "
