@@ -1,11 +1,9 @@
 # MetObs-toolkit
 
+[![DOI](https://zenodo.org/badge/latestdoi/539844091.svg)](https://zenodo.org/badge/latestdoi/539844091)
 [![PyPI version](https://badge.fury.io/py/metobs-toolkit.svg)](https://badge.fury.io/py/metobs-toolkit)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/metobs-toolkit.svg)](https://anaconda.org/conda-forge/metobs-toolkit)
 [![Documentation Status](https://readthedocs.org/projects/metobs-toolkit/badge/?version=latest)](https://metobs-toolkit.readthedocs.io/en/latest/?badge=latest)
-[![status](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d/status.svg)](https://joss.theoj.org/papers/ffa3a79315bdf4c4793992a1de41193d)
-[![Tests passing](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml/badge.svg?branch=master)](https://github.com/vergauwenthomas/MetObs_toolkit/actions/workflows/main_workflow.yml)
-
 
 [<img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>](https://metobs-toolkit.readthedocs.io/en/latest/index.html)
 
