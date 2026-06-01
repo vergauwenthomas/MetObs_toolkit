@@ -19,13 +19,6 @@ jobs:
         with:
           ref: master
 
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v2.0
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
-          allow_poetry_pre_release: "yes"
-          package_directory: "src/metobs_toolkit"
-
       - name: Get package version
         id: get-version
         run: |
@@ -41,6 +34,14 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Build and publish to pypi
+        if: steps.check-tag.outputs.exists == 'false'
+        uses: JRubics/poetry-publish@v2.0
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          allow_poetry_pre_release: "yes"
+          package_directory: "src/metobs_toolkit"
 
       - name: Create GitHub Release
         if: steps.check-tag.outputs.exists == 'false'
