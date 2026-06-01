@@ -32,6 +32,10 @@ jobs:
                   echo "labelispresent=0" >> "$GITHUB_OUTPUT"
               fi
 
+    dependency-audit:
+      needs: launch-pipeline
+      uses: ./.github/workflows/dependency-audit.yml
+
     launch-pipeline:
         runs-on: ubuntu-latest
         needs: scan-pr-labels

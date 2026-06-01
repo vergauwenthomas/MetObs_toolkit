@@ -1,14 +1,7 @@
 name: Dependency compatibility and audit
 
 on:
-  push:
-    branches:
-      - master
-      - main
-      - develop
-      - bugfix_*
-  pull_request:
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   compatibility-and-audit:
