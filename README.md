@@ -5,9 +5,6 @@
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/metobs-toolkit.svg)](https://anaconda.org/conda-forge/metobs-toolkit)
 [![Documentation Status](https://readthedocs.org/projects/metobs-toolkit/badge/?version=latest)](https://metobs-toolkit.readthedocs.io/en/latest/?badge=latest)
 
-
-
-
 [<img src="https://raw.githubusercontent.com/vergauwenthomas/MetObs_toolkit/master/docs/logo_small.jpeg" alt="drawing" style="width:200px;"/>](https://metobs-toolkit.readthedocs.io/en/latest/index.html)
 
 The MetObs-toolkit provides a comprehensive framework for scientists to process, quality control, and analyze raw meteorological data. It is designed to be flexible, extensible, and user-friendly for a wide range of meteorological applications.
