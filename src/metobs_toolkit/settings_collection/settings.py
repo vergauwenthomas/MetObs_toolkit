@@ -96,6 +96,7 @@ class Settings:
             "item_indent": " " * 2,
             "title_char": "=",
         },
+        'dummy_setting': 'This is a dummy setting to demonstrate how to add new settings. Remove or replace this in actual use.',
         # Plotting defaults
         "plotting_settings": default_plot_settings,
         # Technical settings
