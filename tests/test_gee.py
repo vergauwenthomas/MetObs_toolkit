@@ -82,7 +82,7 @@ def test_era5_land_snaps_to_nearest_valid_gridpoint(monkeypatch, caplog):
     assert adjusted.loc["station-1", "lat"] == pytest.approx(51.1)
     assert metadf.loc["station-1", "lon"] == pytest.approx(2.0)
     assert metadf.loc["station-1", "lat"] == pytest.approx(51.0)
-    assert "ERA5-land returned no values" in caplog.text
+    assert "Snapped ERA5-land stations" in caplog.text
 
 
 class TestDemoDataset:
