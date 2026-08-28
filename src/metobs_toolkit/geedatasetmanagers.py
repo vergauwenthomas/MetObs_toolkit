@@ -131,12 +131,16 @@ def _snap_era5_land_metadf_to_nearest_valid_gridpoint(
         adjusted_metadf.at[station_name, "lon"] = float(snapped_lon)
         adjusted_metadf.at[station_name, "lat"] = float(snapped_lat)
 
-        if not np.isclose([original_lon, original_lat], snapped_coords).all():
+        max_same_pixel_m = float(scale) * np.sqrt(2.0) / 2.0
+        distance_m = _haversine_distance_m(
+            original_lon, original_lat, float(snapped_lon), float(snapped_lat)
+        )
+        if distance_m > max_same_pixel_m:
             snapped_stations.append(station_name)
 
     if snapped_stations:
         logger.warning(
-            "ERA5-land returned no values for %s; retrying with the nearest valid gridpoint.",
+            "Snapped ERA5-land stations %s to the nearest valid land gridpoint for extraction.",
             snapped_stations,
         )
     if unresolved_stations:
