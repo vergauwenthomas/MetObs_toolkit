@@ -2,6 +2,7 @@
 
 import pytest
 import sys
+import logging
 from pathlib import Path
 import tempfile
 import copy
@@ -16,10 +17,72 @@ import geemap.foliumap as geemap
 libfolder = Path(str(Path(__file__).resolve())).parent.parent
 sys.path.insert(0, str(libfolder / "src"))
 import metobs_toolkit
+from metobs_toolkit.geedatasetmanagers import (
+    _snap_era5_land_metadf_to_nearest_valid_gridpoint,
+)
 
 # solutionfolder
 solutionsdir = libfolder.joinpath("tests").joinpath("pkled_solutions")
 from solutionclass import SolutionFixer2, assert_equality, datadir
+
+
+def test_era5_land_snaps_to_nearest_valid_gridpoint(monkeypatch, caplog):
+    """Verify that coastal ERA5-land points are moved to the nearest valid pixel."""
+
+    metadf = pd.DataFrame(
+        {"lat": [51.0], "lon": [2.0]}, index=pd.Index(["station-1"], name="name")
+    )
+
+    class FakePoint:
+        def __init__(self, coords):
+            self.coords = coords
+
+        def buffer(self, radius):
+            return {"radius": radius, "coords": self.coords}
+
+    class FakeGeometry:
+        @staticmethod
+        def Point(coords):
+            return FakePoint(coords)
+
+    class FakeSampleResult:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def getInfo(self):
+            return self.payload
+
+    class FakeRaster:
+        def sample(self, region, scale, geometries, dropNulls):
+            if region["radius"] < 5000:
+                return FakeSampleResult({"features": []})
+            return FakeSampleResult(
+                {
+                    "features": [
+                        {
+                            "geometry": {"coordinates": [2.1, 51.1]},
+                        }
+                    ]
+                }
+            )
+
+    monkeypatch.setattr(
+        metobs_toolkit.geedatasetmanagers.ee, "Geometry", FakeGeometry
+    )
+
+    with caplog.at_level(logging.WARNING, logger="<metobs_toolkit>"):
+        adjusted = _snap_era5_land_metadf_to_nearest_valid_gridpoint(
+            metadf=metadf,
+            raster=FakeRaster(),
+            scale=2500,
+            search_radii=[1000, 5000],
+        )
+
+    assert adjusted.loc["station-1", "lon"] == pytest.approx(2.1)
+    assert adjusted.loc["station-1", "lat"] == pytest.approx(51.1)
+    assert metadf.loc["station-1", "lon"] == pytest.approx(2.0)
+    assert metadf.loc["station-1", "lat"] == pytest.approx(51.0)
+    assert "Snapped ERA5-land stations" in caplog.text
 
 
 class TestDemoDataset:

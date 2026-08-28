@@ -52,6 +52,106 @@ from metobs_toolkit.backend_collection.decorators import log_entry
 logger = logging.getLogger("<metobs_toolkit>")
 
 
+def _snap_era5_land_metadf_to_nearest_valid_gridpoint(
+    metadf: pd.DataFrame,
+    raster,
+    scale: int,
+    search_radii: list[int] | None = None,
+) -> pd.DataFrame:
+    """Snap ERA5-land metadata points to the nearest valid land gridpoint."""
+    search_image = raster.first() if hasattr(raster, "first") else raster
+    adjusted_metadf = metadf.copy()
+    snapped_stations = []
+    unresolved_stations = []
+
+    if search_radii is None:
+        # Expand the search window gradually so coastal stations can fall back
+        # to the closest land pixel without scanning the whole dataset.
+        search_radii = [
+            max(int(scale), 1000),
+            max(int(scale) * 2, 5000),
+            max(int(scale) * 4, 10000),
+            max(int(scale) * 8, 25000),
+            max(int(scale) * 16, 50000),
+            max(int(scale) * 32, 100000),
+        ]
+
+    def _haversine_distance_m(
+        lon1: float, lat1: float, lon2: float, lat2: float
+    ) -> float:
+        """Compute the distance between two lon/lat points in meters."""
+        earth_radius_m = 6371000.0
+        lon1_rad, lat1_rad, lon2_rad, lat2_rad = np.radians(
+            [lon1, lat1, lon2, lat2]
+        )
+        dlon = lon2_rad - lon1_rad
+        dlat = lat2_rad - lat1_rad
+        a = (
+            np.sin(dlat / 2.0) ** 2
+            + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2.0) ** 2
+        )
+        return float(2.0 * earth_radius_m * np.arctan2(np.sqrt(a), np.sqrt(1.0 - a)))
+
+    for station_name, row in metadf.iterrows():
+        original_lon = float(row["lon"])
+        original_lat = float(row["lat"])
+        point = ee.Geometry.Point([original_lon, original_lat])
+        snapped_coords = None
+
+        for radius in search_radii:
+            candidates = search_image.sample(
+                region=point.buffer(radius),
+                scale=scale,
+                geometries=True,
+                dropNulls=True,
+            ).getInfo()
+            features = candidates.get("features", [])
+            if not features:
+                continue
+
+            # Pick the sampled pixel with the smallest great-circle distance
+            # to the original station coordinates.
+            best_feature = min(
+                features,
+                key=lambda feature: _haversine_distance_m(
+                    original_lon,
+                    original_lat,
+                    feature["geometry"]["coordinates"][0],
+                    feature["geometry"]["coordinates"][1],
+                ),
+            )
+            snapped_coords = best_feature["geometry"]["coordinates"][:2]
+            break
+
+        if snapped_coords is None:
+            unresolved_stations.append(station_name)
+            continue
+
+        snapped_lon, snapped_lat = snapped_coords
+        adjusted_metadf.at[station_name, "lon"] = float(snapped_lon)
+        adjusted_metadf.at[station_name, "lat"] = float(snapped_lat)
+
+        max_same_pixel_m = float(scale) * np.sqrt(2.0) / 2.0
+        distance_m = _haversine_distance_m(
+            original_lon, original_lat, float(snapped_lon), float(snapped_lat)
+        )
+        if distance_m > max_same_pixel_m:
+            snapped_stations.append(station_name)
+
+    if snapped_stations:
+        logger.warning(
+            "Snapped ERA5-land stations %s to the nearest valid land gridpoint for extraction.",
+            snapped_stations,
+        )
+    if unresolved_stations:
+        logger.warning(
+            "ERA5-land could not determine a nearby valid gridpoint for %s.",
+            unresolved_stations,
+        )
+
+    return adjusted_metadf
+
+
 # =============================================================================
 # Class Model data (collection of external model data)
 # =============================================================================
@@ -1164,6 +1264,37 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
 
         logger.info(f"{bandnames} are extracted from {self}.")
 
+        raster = gee_api.get_ee_obj(self, target_bands=bandnames)
+
+        def _build_results(data_metadf: pd.DataFrame):
+            """Build the GEE feature collection for a metadata dataframe."""
+            # Keep the extraction logic in one place so the direct and Drive paths
+            # always use the same time filtering and point sampling behavior.
+            ee_fc = gee_api._df_to_features_point_collection(data_metadf)
+
+            @log_entry
+            def rasterExtraction(image):
+                """Apply sampleRegions to a single GEE image and return feature collection."""
+                feature = image.sampleRegions(
+                    collection=ee_fc,
+                    scale=self.scale,
+                )
+                return feature
+
+            return (
+                raster.filter(
+                    ee.Filter.date(
+                        gee_api.datetime_to_gee_datetime(startdt_utc),
+                        gee_api.datetime_to_gee_datetime(
+                            enddt_utc + pd.Timedelta(self.time_res)
+                        ),
+                    )
+                )
+                .map(gee_api._addDate)
+                .map(rasterExtraction)
+                .flatten()
+            )
+
         _est_data_size = gee_api._estimate_data_size(
             metadf=metadf,
             startdt=startdt_utc,
@@ -1186,43 +1317,27 @@ class GEEDynamicDatasetManager(_GEEDatasetManager):
         else:
             use_drive = False
 
-        ee_fc = gee_api._df_to_features_point_collection(metadf)
-
-        @log_entry
-        def rasterExtraction(image):
-            """Apply sampleRegions to a single GEE image and return feature collection."""
-            feature = image.sampleRegions(
-                collection=ee_fc,
+        if self.name == "ERA5-land":
+            # ERA5-land can return no value for coastal stations, so adjust the
+            # station coordinates before building the extraction results.
+            metadf = _snap_era5_land_metadf_to_nearest_valid_gridpoint(
+                metadf=metadf,
+                raster=raster,
                 scale=self.scale,
             )
-            return feature
 
-        # Because the daterange is maxdate exclusive, add the time resolution to the enddt
-        enddt_utc = enddt_utc + pd.Timedelta(self.time_res)
+        results = _build_results(metadf)
 
-        raster = gee_api.get_ee_obj(self, target_bands=bandnames)
-        results = (
-            raster.filter(
-                ee.Filter.date(
-                    gee_api.datetime_to_gee_datetime(startdt_utc),
-                    gee_api.datetime_to_gee_datetime(enddt_utc),
-                )
+        if results.size().getInfo() == 0:
+            raise MetObsModelDataError(
+                "ERROR: the returned timeseries from GEE are empty."
             )
-            .map(gee_api._addDate)
-            .map(rasterExtraction)
-            .flatten()
-        )
 
         if not use_drive:
             results = results.getInfo()
 
             properties = [x["properties"] for x in results["features"]]
             df = pd.DataFrame(properties)
-
-            if df.empty:
-                raise MetObsModelDataError(
-                    "ERROR: the returned timeseries from GEE are empty."
-                )
 
             df = self._format_gee_df_structure(
                 df
