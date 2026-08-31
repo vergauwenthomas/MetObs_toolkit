@@ -510,6 +510,93 @@ class Dataset:
         new_dataset._template = self._template
 
         return new_dataset
+    
+    @log_entry
+    def subset_gapfree_stations(
+            self,
+            obstype: str,
+            start_datetime: pd.Timestamp,
+            end_datetime: pd.Timestamp,
+        ) -> tuple["Dataset", list[str], list[str]]:     
+        
+        """
+        Create a subset of the dataset containing only stations that are gap-free for a given observation type and time range.
+
+        Parameters
+        ----------
+        obstype : str
+            The observation type to check for gaps.
+        start_datetime : pd.Timestamp
+            The start of the time range to check for gaps.
+        end_datetime : pd.Timestamp
+            The end of the time range to check for gaps.
+
+        Returns
+        -------
+        Dataset
+            A new Dataset instance containing only the gap-free stations.
+        list
+            A list of station names that were skipped because they were not gap-free.
+        list 
+            A list of station names that were gap-free and included in the new dataset.
+        """
+        gapfree_stations = []
+        skipped_stations = []
+
+        for sta in self.stations:
+            if obstype not in sta.sensordata:
+                logger.debug(
+                    "Station %s does not have sensor data for obstype '%s'; skipping.",
+                    sta.name,
+                    obstype,
+                )
+                skipped_stations.append(sta.name)
+                continue
+
+            sensor = sta.get_sensor(obstype)
+            if sensor.start_datetime > start_datetime or sensor.end_datetime < end_datetime:
+                print(f"Station {sta.name} does not cover the specified time range for observation type '{obstype}'. Skipping.")
+                skipped_stations.append(sta.name)
+                continue
+
+            # Check for gaps in the specified time range
+            gaps = sensor.get_gaps()
+
+            if not gaps:
+                logger.debug(
+                    "Station %s has no gaps for obstype '%s' in the specified time range; adding.",
+                    sta.name,
+                    obstype,
+                )
+                gapfree_stations.append(sta)
+                continue
+            gaps = sensor.get_gaps()
+
+            relevant_gaps = [
+                gap for gap in gaps
+                if not (
+                    gap.start_datetime() > end_datetime
+                    or gap.end_datetime() < start_datetime
+                )
+            ]
+
+            if all(gap.fillstatus() == "successful gapfill" for gap in relevant_gaps):
+                gapfree_stations.append(sta)
+            else:
+                skipped_stations.append(sta.name)
+                
+
+        gapfree_station_names = [sta.name for sta in gapfree_stations]
+
+        if len(gapfree_station_names) == 1:
+            new_dataset = Dataset()
+            new_dataset._stations = [copy.deepcopy(gapfree_stations[0])]
+            new_dataset._obstypes = self._obstypes
+            new_dataset._template = self._template
+        else:
+            new_dataset = self.subset_by_stations(gapfree_station_names, deepcopy=True)
+
+        return new_dataset, skipped_stations, gapfree_station_names
 
     @log_entry
     def get_station(self, stationname: str) -> Station:
@@ -3268,3 +3355,4 @@ def filter_to_stations_with_target_obstype(
             continue
 
     return subset, skipped
+

@@ -388,7 +388,11 @@ class SensorData:
                 columns=["value", "label", "details"],
                 index=pd.DatetimeIndex([], name="datetime"),
             )
-
+    @log_entry
+    def get_gaps(self) -> list[Gap]:
+        """Return a copy of the list of Gap objects representing the identified gaps."""
+        return list(self.gaps)
+        
     @copy_doc(sensordata_gap_status_overview_df)
     def gap_overview_df(self) -> pd.DataFrame:
         return sensordata_gap_status_overview_df(self)
