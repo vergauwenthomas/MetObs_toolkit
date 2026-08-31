@@ -558,8 +558,12 @@ class Dataset:
             # Check for gaps in the specified time range
             gaps = sensor.get_gaps()
 
-            if gaps.empty:
-                print(f"Station {sta.name} has no gaps for observation type '{obstype}' in the specified time range. Adding to gap-free stations.")
+            if not gaps:
+                logger.debug(
+                    "Station %s has no gaps for obstype '%s' in the specified time range; adding.",
+                    sta.name,
+                    obstype,
+                )
                 gapfree_stations.append(sta)
                 continue
             gaps = sensor.get_gaps()
