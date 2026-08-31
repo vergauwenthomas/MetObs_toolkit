@@ -586,9 +586,17 @@ class Dataset:
                 skipped_stations.append(sta.name)
                 
 
-        new_dataset = self.subset_by_stations(gapfree_stations, deepcopy=True)
+        gapfree_station_names = [sta.name for sta in gapfree_stations]
 
-        return new_dataset, gapfree_stations, skipped_stations
+        if len(gapfree_station_names) == 1:
+            new_dataset = Dataset()
+            new_dataset._stations = [copy.deepcopy(gapfree_stations[0])]
+            new_dataset._obstypes = self._obstypes
+            new_dataset._template = self._template
+        else:
+            new_dataset = self.subset_by_stations(gapfree_station_names, deepcopy=True)
+
+        return new_dataset, skipped_stations, gapfree_station_names
 
     @log_entry
     def get_station(self, stationname: str) -> Station:
