@@ -511,7 +511,7 @@ class Dataset:
 
         return new_dataset
     
-    # write a function that subsets the dataset to only include stations that are gapfree for a given obstype and time range, gaps that are filled succesfully count as gapfree. if the sensordata only starts after the start_datetime or ends before the end_datetime, it should be considered as not gapfree. The function should return a new Dataset instance with only the gapfree stations and a list of the skipped stations. 
+    @log_entry
     def subset_gapfree_stations(
             self,
             obstype: str,
