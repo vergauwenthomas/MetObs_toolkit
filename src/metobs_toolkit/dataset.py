@@ -545,7 +545,11 @@ class Dataset:
 
         for sta in self.stations:
             if obstype not in sta.sensordata:
-                print(f"Station {sta.name} does not have sensor data for observation type '{obstype}'. Skipping.")
+                logger.debug(
+                    "Station %s does not have sensor data for obstype '%s'; skipping.",
+                    sta.name,
+                    obstype,
+                )
                 skipped_stations.append(sta.name)
                 continue
 
